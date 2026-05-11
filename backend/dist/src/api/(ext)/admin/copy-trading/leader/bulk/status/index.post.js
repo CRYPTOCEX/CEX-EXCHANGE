@@ -1,1 +1,157 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/(ext)/copy-trading/utils");exports.metadata={summary:"Bulk Update Leader Status",description:"Updates the status of multiple leaders at once.",operationId:"adminBulkUpdateCopyTradingLeaderStatus",tags:["Admin","Copy Trading","Leaders"],requiresAuth:!0,permission:"access.copy_trading",middleware:["copyTradingAdmin"],logModule:"ADMIN_COPY",logTitle:"Bulk update leader status",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{leaderIds:{type:"array",items:{type:"string"},description:"Array of leader IDs to update"},status:{type:"string",enum:["ACTIVE","SUSPENDED","INACTIVE"],description:"New status for all leaders"},reason:{type:"string",description:"Reason for the status change"}},required:["leaderIds","status","reason"]}}}},responses:{200:{description:"Leaders updated successfully"},400:{description:"Bad Request"},401:{description:"Unauthorized"},403:{description:"Forbidden"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{user:t,body:s,ctx:a}=e,{leaderIds:r,status:d,reason:i}=s||{};if(!(null==t?void 0:t.id)){null==a||a.fail("Unauthorized");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}null==a||a.step("Validating request data");if(!r||!Array.isArray(r)||0===r.length){null==a||a.fail("Leader IDs array is required");throw(0,error_1.createError)({statusCode:400,message:"Leader IDs array is required"})}if(!d){null==a||a.fail("Status is required");throw(0,error_1.createError)({statusCode:400,message:"Status is required"})}if(!i){null==a||a.fail("Reason is required");throw(0,error_1.createError)({statusCode:400,message:"Reason is required"})}const o=["ACTIVE","SUSPENDED","INACTIVE"];if(!o.includes(d)){null==a||a.fail(`Invalid status: ${d}`);throw(0,error_1.createError)({statusCode:400,message:`Invalid status. Must be one of: ${o.join(", ")}`})}null==a||a.step(`Fetching ${r.length} leaders`);const u=await db_1.models.copyTradingLeader.findAll({where:{id:r}});if(0===u.length){null==a||a.fail("No leaders found");throw(0,error_1.createError)({statusCode:404,message:"No leaders found"})}const l=[],n=[];null==a||a.step(`Processing bulk status update to ${d}`);await db_1.sequelize.transaction(async e=>{for(const s of u)try{const a=s.status;if(a===d){l.push({id:s.id,displayName:s.displayName,status:"skipped",message:`Already ${d}`});continue}if("ACTIVE"===d&&"PENDING"===a){n.push({id:s.id,displayName:s.displayName,error:"Use approve endpoint for pending leaders"});continue}await s.update({status:d},{transaction:e});"SUSPENDED"===d&&await db_1.models.copyTradingFollower.update({status:"PAUSED"},{where:{leaderId:s.id,status:"ACTIVE"},transaction:e});await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:s.id,action:`BULK_${d}`,oldValue:{status:a},newValue:{status:d},adminId:t.id,reason:i});l.push({id:s.id,displayName:s.displayName,status:"updated",oldStatus:a,newStatus:d})}catch(e){n.push({id:s.id,displayName:s.displayName,error:e.message})}});null==a||a.step("Updating statistics for affected leaders");for(const e of l.filter(e=>"updated"===e.status))try{await(0,utils_1.updateLeaderStats)(e.id)}catch(e){}null==a||a.success(`Processed ${u.length} leaders: ${l.filter(e=>"updated"===e.status).length} updated, ${l.filter(e=>"skipped"===e.status).length} skipped, ${n.length} failed`);return{message:`Processed ${u.length} leaders`,updated:l.filter(e=>"updated"===e.status).length,skipped:l.filter(e=>"skipped"===e.status).length,failed:n.length,results:l,errors:n}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/(ext)/copy-trading/utils");
+exports.metadata = {
+    summary: "Bulk Update Leader Status",
+    description: "Updates the status of multiple leaders at once.",
+    operationId: "adminBulkUpdateCopyTradingLeaderStatus",
+    tags: ["Admin", "Copy Trading", "Leaders"],
+    requiresAuth: true,
+    permission: "access.copy_trading",
+    middleware: ["copyTradingAdmin"],
+    logModule: "ADMIN_COPY",
+    logTitle: "Bulk update leader status",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        leaderIds: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "Array of leader IDs to update",
+                        },
+                        status: {
+                            type: "string",
+                            enum: ["ACTIVE", "SUSPENDED", "INACTIVE"],
+                            description: "New status for all leaders",
+                        },
+                        reason: {
+                            type: "string",
+                            description: "Reason for the status change",
+                        },
+                    },
+                    required: ["leaderIds", "status", "reason"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Leaders updated successfully" },
+        400: { description: "Bad Request" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { user, body, ctx } = data;
+    const { leaderIds, status, reason } = body || {};
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Unauthorized");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating request data");
+    if (!leaderIds || !Array.isArray(leaderIds) || leaderIds.length === 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Leader IDs array is required");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Leader IDs array is required" });
+    }
+    if (!status) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Status is required");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Status is required" });
+    }
+    if (!reason) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Reason is required");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Reason is required" });
+    }
+    const validStatuses = ["ACTIVE", "SUSPENDED", "INACTIVE"];
+    if (!validStatuses.includes(status)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Invalid status: ${status}`);
+        throw (0, error_1.createError)({ statusCode: 400, message: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching ${leaderIds.length} leaders`);
+    const leaders = await db_1.models.copyTradingLeader.findAll({
+        where: { id: leaderIds },
+    });
+    if (leaders.length === 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("No leaders found");
+        throw (0, error_1.createError)({ statusCode: 404, message: "No leaders found" });
+    }
+    const results = [];
+    const errors = [];
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing bulk status update to ${status}`);
+    await db_1.sequelize.transaction(async (transaction) => {
+        for (const leader of leaders) {
+            try {
+                const oldStatus = leader.status;
+                if (oldStatus === status) {
+                    results.push({
+                        id: leader.id,
+                        displayName: leader.displayName,
+                        status: "skipped",
+                        message: `Already ${status}`,
+                    });
+                    continue;
+                }
+                if (status === "ACTIVE" && oldStatus === "PENDING") {
+                    errors.push({
+                        id: leader.id,
+                        displayName: leader.displayName,
+                        error: "Use approve endpoint for pending leaders",
+                    });
+                    continue;
+                }
+                await leader.update({ status }, { transaction });
+                if (status === "SUSPENDED") {
+                    await db_1.models.copyTradingFollower.update({ status: "PAUSED" }, { where: { leaderId: leader.id, status: "ACTIVE" }, transaction });
+                }
+                if (status === "ACTIVE" && oldStatus === "SUSPENDED") {
+                }
+                await (0, utils_1.createAuditLog)({
+                    entityType: "LEADER",
+                    entityId: leader.id,
+                    action: `BULK_${status}`,
+                    oldValue: { status: oldStatus },
+                    newValue: { status },
+                    adminId: user.id,
+                    reason,
+                });
+                results.push({
+                    id: leader.id,
+                    displayName: leader.displayName,
+                    status: "updated",
+                    oldStatus,
+                    newStatus: status,
+                });
+            }
+            catch (err) {
+                errors.push({
+                    id: leader.id,
+                    displayName: leader.displayName,
+                    error: err.message,
+                });
+            }
+        }
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating statistics for affected leaders");
+    for (const result of results.filter((r) => r.status === "updated")) {
+        try {
+            await (0, utils_1.updateLeaderStats)(result.id);
+        }
+        catch (_a) { }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Processed ${leaders.length} leaders: ${results.filter((r) => r.status === "updated").length} updated, ${results.filter((r) => r.status === "skipped").length} skipped, ${errors.length} failed`);
+    return {
+        message: `Processed ${leaders.length} leaders`,
+        updated: results.filter((r) => r.status === "updated").length,
+        skipped: results.filter((r) => r.status === "skipped").length,
+        failed: errors.length,
+        results,
+        errors,
+    };
+};

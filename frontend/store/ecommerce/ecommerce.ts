@@ -41,19 +41,17 @@ interface EcommerceStore {
   fetchProductBySlug: (slug: string) => Promise<ecommerceProduct | null>;
   fetchOrders: () => Promise<void>;
   fetchOrderById: (orderId: string) => Promise<ecommerceOrderAttributes | null>;
-  placeOrder: (
-    orderData: Partial<ecommerceOrderAttributes>
-  ) => Promise<boolean>;
   trackOrder: (orderId: string) => Promise<any>;
   downloadDigitalProduct: (orderItemId: string) => Promise<string>;
 
-  addToCart: (product: ecommerceProduct, quantity: number) => void;
+  addToCart: (product: ecommerceProduct, quantity: number) => boolean;
   removeFromCart: (productId: string) => void;
-  updateCartItemQuantity: (productId: string, quantity: number) => void;
+  updateCartItemQuantity: (productId: string, quantity: number) => boolean;
   clearCart: () => void;
 
-  addToWishlist: (product: ecommerceProduct) => void;
-  removeFromWishlist: (productId: string) => void;
+  addToWishlist: (product: ecommerceProduct) => Promise<void>;
+  removeFromWishlist: (productId: string) => Promise<void>;
+  fetchWishlist: () => Promise<void>;
   isInWishlist: (productId: string) => boolean;
   clearWishlist: () => void;
 
@@ -197,25 +195,6 @@ export const useEcommerceStore = create<EcommerceStore>()(
         return data;
       },
 
-      placeOrder: async (orderData: Partial<ecommerceOrderAttributes>) => {
-        set({ isProcessingOrder: true, error: null });
-
-        const { data, error } = await $fetch({
-          url: "/api/ecommerce/order",
-          method: "POST",
-          body: orderData,
-        });
-
-        if (error) {
-          const errorMessage = error || `Error placing order`;
-          set({ error: errorMessage, isProcessingOrder: false });
-          return false;
-        }
-
-        set({ isProcessingOrder: false });
-        return true;
-      },
-
       trackOrder: async (orderId: string) => {
         set({ isLoadingOrders: true, error: null });
 
@@ -252,22 +231,33 @@ export const useEcommerceStore = create<EcommerceStore>()(
         return data.downloadUrl || "";
       },
 
+      // BUG-18: Cart validates inventory for physical products
       addToCart: (product: ecommerceProduct, quantity: number) => {
         const { cart } = get();
         const existingItem = cart.find(
           (item) => item.product.id === product.id
         );
 
+        const currentQty = existingItem ? existingItem.quantity : 0;
+        const newQty = currentQty + quantity;
+
+        // Validate inventory for physical products
+        if (product.type === "PHYSICAL" && newQty > product.inventoryQuantity) {
+          set({ error: `Only ${product.inventoryQuantity} units available` });
+          return false;
+        }
+
         if (existingItem) {
           const updatedCart = cart.map((item) =>
             item.product.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: newQty }
               : item
           );
-          set({ cart: updatedCart });
+          set({ cart: updatedCart, error: null });
         } else {
-          set({ cart: [...cart, { product, quantity }] });
+          set({ cart: [...cart, { product, quantity }], error: null });
         }
+        return true;
       },
 
       removeFromCart: (productId: string) => {
@@ -275,20 +265,28 @@ export const useEcommerceStore = create<EcommerceStore>()(
         set({ cart: cart.filter((item) => item.product.id !== productId) });
       },
 
+      // BUG-18: Validate inventory on quantity update
       updateCartItemQuantity: (productId: string, quantity: number) => {
         const { cart } = get();
+        const item = cart.find((i) => i.product.id === productId);
+        if (item && item.product.type === "PHYSICAL" && quantity > item.product.inventoryQuantity) {
+          set({ error: `Only ${item.product.inventoryQuantity} units available` });
+          return false;
+        }
+
         const updatedCart = cart.map((item) =>
           item.product.id === productId ? { ...item, quantity } : item
         );
-        set({ cart: updatedCart });
+        set({ cart: updatedCart, error: null });
+        return true;
       },
 
       clearCart: () => {
         set({ cart: [] });
       },
 
-      // Wishlist functions
-      addToWishlist: (product: ecommerceProduct) => {
+      // BUG-12: Wishlist functions now sync with backend API
+      addToWishlist: async (product: ecommerceProduct) => {
         const { wishlist } = get();
         const isAlreadyInWishlist = wishlist.some(
           (item) => item.product.id === product.id
@@ -298,14 +296,74 @@ export const useEcommerceStore = create<EcommerceStore>()(
           return;
         }
 
+        // Optimistically update local state
         set({ wishlist: [...wishlist, { product, addedAt: new Date() }] });
+
+        // Sync with backend
+        const { error } = await $fetch({
+          url: "/api/ecommerce/wishlist",
+          method: "POST",
+          body: { productId: product.id },
+          silent: true,
+        });
+
+        if (error) {
+          // Revert on failure
+          set({
+            wishlist: wishlist.filter((item) => item.product.id !== product.id),
+          });
+        }
       },
 
-      removeFromWishlist: (productId: string) => {
+      removeFromWishlist: async (productId: string) => {
         const { wishlist } = get();
+        const removedItem = wishlist.find((item) => item.product.id === productId);
+
+        // Optimistically update local state
         set({
           wishlist: wishlist.filter((item) => item.product.id !== productId),
         });
+
+        // Find the wishlist item to get its backend ID
+        const { data: wishlistData } = await $fetch({
+          url: "/api/ecommerce/wishlist",
+          silentSuccess: true,
+          silent: true,
+        });
+
+        if (wishlistData?.items) {
+          const backendItem = wishlistData.items.find(
+            (item: any) => item.productId === productId
+          );
+          if (backendItem) {
+            const { error } = await $fetch({
+              url: `/api/ecommerce/wishlist/${backendItem.id}`,
+              method: "DELETE",
+              silent: true,
+            });
+
+            if (error && removedItem) {
+              // Revert on failure
+              set({ wishlist: [...get().wishlist, removedItem] });
+            }
+          }
+        }
+      },
+
+      fetchWishlist: async () => {
+        const { data, error } = await $fetch({
+          url: "/api/ecommerce/wishlist",
+          silentSuccess: true,
+          silent: true,
+        });
+
+        if (!error && data?.items) {
+          const wishlistItems: WishlistItem[] = data.items.map((item: any) => ({
+            product: item.product,
+            addedAt: new Date(item.createdAt || Date.now()),
+          }));
+          set({ wishlist: wishlistItems });
+        }
       },
 
       isInWishlist: (productId: string) => {

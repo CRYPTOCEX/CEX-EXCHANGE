@@ -111,12 +111,14 @@ export const createGuidedMatchingSlice = (
         locationsError: null,
       });
 
-      // Fetch cryptocurrencies
-      const cryptoResponse = await $fetch({
-        url: "/api/p2p/cryptocurrencies",
-        silentSuccess: true,
-      });
+      // M20: fetch all three endpoints in parallel instead of sequentially
+      const [cryptoResponse, paymentResponse, locationResponse] = await Promise.all([
+        $fetch({ url: "/api/p2p/cryptocurrencies", silentSuccess: true }),
+        $fetch({ url: "/api/p2p/payment-method", silentSuccess: true }),
+        $fetch({ url: "/api/p2p/location", silentSuccess: true }),
+      ]);
 
+      // Process cryptocurrencies
       if (cryptoResponse.error) {
         set({
           cryptocurrenciesError: "Failed to fetch cryptocurrencies",
@@ -139,12 +141,7 @@ export const createGuidedMatchingSlice = (
         }
       }
 
-      // Fetch payment methods
-      const paymentResponse = await $fetch({
-        url: "/api/p2p/payment-method",
-        silentSuccess: true,
-      });
-
+      // Process payment methods
       if (paymentResponse.error) {
         set({
           paymentMethodsError: "Failed to fetch payment methods",
@@ -185,12 +182,7 @@ export const createGuidedMatchingSlice = (
         }
       }
 
-      // Fetch locations
-      const locationResponse = await $fetch({
-        url: "/api/p2p/location",
-        silentSuccess: true,
-      });
-
+      // Process locations
       if (locationResponse.error) {
         set({
           locationsError: "Failed to fetch locations",
@@ -242,10 +234,11 @@ export const createGuidedMatchingSlice = (
         return false;
       }
 
-      // Process dates in the matching results
+      // M19: guard against undefined data.matches to prevent crash
+      const matches = data?.matches || [];
       const processedData = {
         ...data,
-        matches: data.matches.map((match: any) => ({
+        matches: matches.map((match: any) => ({
           ...match,
           offer: {
             ...match.offer,

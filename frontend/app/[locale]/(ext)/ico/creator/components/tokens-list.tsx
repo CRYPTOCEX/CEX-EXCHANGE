@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, ArrowUpDown, Download, Eye, Plus } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Clock, Eye, Plus, Rocket, Trophy } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import {
@@ -212,6 +212,25 @@ export function CreatorTokensList() {
         </TabsList>
 
         <TabsContent value="active" className="mt-6">
+          {tokens.active.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-full bg-blue-500/10 p-4 mb-4">
+                  <Rocket className="h-8 w-8 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{t("no_active_tokens")}</h3>
+                <p className="text-muted-foreground mb-4 max-w-sm">
+                  {t("no_active_tokens_description")}
+                </p>
+                <Link href="/ico/creator/token/new">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("create_new_token")}
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
           <div className="grid grid-cols-1 gap-4">
             {tokens.active.map((token) => {
               // Compute progress and days left
@@ -294,9 +313,29 @@ export function CreatorTokensList() {
               );
             })}
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="pending" className="mt-6">
+          {tokens.pending.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-full bg-yellow-500/10 p-4 mb-4">
+                  <Clock className="h-8 w-8 text-yellow-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{t("no_pending_tokens")}</h3>
+                <p className="text-muted-foreground mb-4 max-w-sm">
+                  {t("no_pending_tokens_description")}
+                </p>
+                <Link href="/ico/creator/token/new">
+                  <Button variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("submit_new_token")}
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ) : (
           <div className="grid grid-cols-1 gap-4">
             {tokens.pending.map((token) => {
               return (
@@ -355,9 +394,23 @@ export function CreatorTokensList() {
               );
             })}
           </div>
+          )}
         </TabsContent>
 
         <TabsContent value="completed" className="mt-6">
+          {tokens.completed.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">
+                  <Trophy className="h-8 w-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">{t("no_completed_tokens")}</h3>
+                <p className="text-muted-foreground max-w-sm">
+                  {t("no_completed_tokens_description")}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
           <div className="grid grid-cols-1 gap-4">
             {tokens.completed.map((token) => {
               const progress = token.targetAmount
@@ -427,6 +480,7 @@ export function CreatorTokensList() {
               );
             })}
           </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

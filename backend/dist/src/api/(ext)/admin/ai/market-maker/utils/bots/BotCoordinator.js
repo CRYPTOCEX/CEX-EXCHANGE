@@ -1,1 +1,290 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BotCoordinator=void 0;const BotManager_1=require("./BotManager"),console_1=require("@b/utils/console");class BotCoordinator{constructor(){this.marketRules=new Map;this.recentTrades=new Map;this.marketPressure=new Map;this.antiCollisionWindowMs=5e3;this.maxPressureImbalance=.3;this.recentTradeRetentionMs=6e4;this.botManager=BotManager_1.BotManager.getInstance()}static getInstance(){BotCoordinator.instance||(BotCoordinator.instance=new BotCoordinator);return BotCoordinator.instance}setMarketRules(e,r){this.marketRules.set(e,new Set(r));(0,console_1.logInfo)("bot-coordinator",`Set rules for market ${e}: ${r.join(", ")}`)}getMarketRules(e){return Array.from(this.marketRules.get(e)||[])}enableDefaultRules(e){this.setMarketRules(e,["ANTI_COLLISION","VOLUME_BALANCING","SPREAD_MAINTENANCE"])}coordinateTrade(e,r,t,s){const a=this.marketRules.get(e);if(!a||0===a.size||!t.shouldTrade)return{approved:!0};for(const n of a){const a=this.applyRule(n,e,r,t,s);if(!a.approved)return a;a.adjustedDecision&&(t=a.adjustedDecision)}return{approved:!0,adjustedDecision:t}}recordTrade(e,r,t,s,a){this.recentTrades.has(e)||this.recentTrades.set(e,[]);this.recentTrades.get(e).push({botId:r,side:t,price:s,amount:a,timestamp:Date.now()});this.updateMarketPressure(e,t,a);this.cleanOldTrades(e)}getMarketPressure(e){return this.marketPressure.get(e)}getRecommendedSide(e){const r=this.marketPressure.get(e);return r?r.netPressure>this.maxPressureImbalance?"SELL":r.netPressure<-this.maxPressureImbalance?"BUY":null:null}isSideAllowed(e,r){const t=this.marketPressure.get(e);return!t||!("BUY"===r&&t.netPressure>1.5*this.maxPressureImbalance)&&!("SELL"===r&&t.netPressure<1.5*-this.maxPressureImbalance)}getCoordinationStats(e){const r=this.getMarketRules(e),t=this.recentTrades.get(e)||[],s=this.marketPressure.get(e)||null,a=[];s&&(s.netPressure>this.maxPressureImbalance?a.push("High buy pressure - prioritize sell orders"):s.netPressure<-this.maxPressureImbalance?a.push("High sell pressure - prioritize buy orders"):a.push("Market pressure balanced"));return{activeRules:r,recentTradeCount:t.length,pressure:s,recommendations:a}}applyRule(e,r,t,s,a){switch(e){case"ANTI_COLLISION":return this.applyAntiCollision(r,t,s);case"PRICE_COORDINATION":return this.applyPriceCoordination(r,s,a);case"VOLUME_BALANCING":return this.applyVolumeBalancing(r,s);case"SPREAD_MAINTENANCE":return this.applySpreadMaintenance(r,s,a);default:return{approved:!0}}}applyAntiCollision(e,r,t){const s=this.recentTrades.get(e)||[],a=Date.now(),n=s.filter(e=>e.botId!==r&&e.side!==t.side&&a-e.timestamp<this.antiCollisionWindowMs);if(n.length>0){if(n.some(e=>"BUY"===t.side?t.price>=e.price:t.price<=e.price))return{approved:!1,reason:"Would collide with recent bot trade"}}return{approved:!0}}applyPriceCoordination(e,r,t){if(!r.price)return{approved:!0};const s=Number(t.currentPrice)/1e18,a=Number(r.price)/1e18;if(Math.abs((a-s)/s)>.01){const e=.01*s;let t;t="BUY"===r.side?BigInt(Math.floor(1e18*(s-e))):BigInt(Math.floor(1e18*(s+e)));return{approved:!0,adjustedDecision:{...r,price:t},reason:"Price adjusted to stay within coordination bounds"}}return{approved:!0}}applyVolumeBalancing(e,r){const t=this.marketPressure.get(e);if(!t)return{approved:!0};if("BUY"===r.side&&t.netPressure>this.maxPressureImbalance||"SELL"===r.side&&t.netPressure<-this.maxPressureImbalance){const e=r.amount?BigInt(Math.floor(.5*Number(r.amount))):void 0;return{approved:!0,adjustedDecision:{...r,amount:e},reason:"Order size reduced for volume balancing"}}return{approved:!0}}applySpreadMaintenance(e,r,t){var s,a;if(!r.price)return{approved:!0};const n=(null===(s=t.orderbook)||void 0===s?void 0:s.bestBid)||BigInt(0),o=(null===(a=t.orderbook)||void 0===a?void 0:a.bestAsk)||BigInt(0);if(n===BigInt(0)||o===BigInt(0))return{approved:!0};const i=Number(n),u=Number(o),d=Number(r.price);if("BUY"===r.side){const e=.999*u;if(d>e)return{approved:!0,adjustedDecision:{...r,price:BigInt(Math.floor(e))},reason:"Bid adjusted to maintain minimum spread"}}else{const e=1.001*i;if(d<e)return{approved:!0,adjustedDecision:{...r,price:BigInt(Math.floor(e))},reason:"Ask adjusted to maintain minimum spread"}}return{approved:!0}}updateMarketPressure(e,r,t){let s=this.marketPressure.get(e);s||(s={buyVolume:BigInt(0),sellVolume:BigInt(0),netPressure:0,lastUpdate:Date.now()});"BUY"===r?s.buyVolume+=t:s.sellVolume+=t;const a=Number(s.buyVolume)+Number(s.sellVolume);a>0&&(s.netPressure=(Number(s.buyVolume)-Number(s.sellVolume))/a);s.lastUpdate=Date.now();this.marketPressure.set(e,s)}cleanOldTrades(e){const r=this.recentTrades.get(e);if(!r)return;const t=Date.now()-this.recentTradeRetentionMs,s=r.filter(e=>e.timestamp>t);this.recentTrades.set(e,s)}resetMarketPressure(e){this.marketPressure.set(e,{buyVolume:BigInt(0),sellVolume:BigInt(0),netPressure:0,lastUpdate:Date.now()})}clearMarket(e){this.marketRules.delete(e);this.recentTrades.delete(e);this.marketPressure.delete(e)}}exports.BotCoordinator=BotCoordinator;exports.default=BotCoordinator;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BotCoordinator = void 0;
+const BotManager_1 = require("./BotManager");
+const console_1 = require("@b/utils/console");
+class BotCoordinator {
+    constructor() {
+        this.marketRules = new Map();
+        this.recentTrades = new Map();
+        this.marketPressure = new Map();
+        this.antiCollisionWindowMs = 5000;
+        this.maxPressureImbalance = 0.3;
+        this.recentTradeRetentionMs = 60000;
+        this.botManager = BotManager_1.BotManager.getInstance();
+    }
+    static getInstance() {
+        if (!BotCoordinator.instance) {
+            BotCoordinator.instance = new BotCoordinator();
+        }
+        return BotCoordinator.instance;
+    }
+    setMarketRules(marketId, rules) {
+        this.marketRules.set(marketId, new Set(rules));
+        (0, console_1.logInfo)("bot-coordinator", `Set rules for market ${marketId}: ${rules.join(", ")}`);
+    }
+    getMarketRules(marketId) {
+        return Array.from(this.marketRules.get(marketId) || []);
+    }
+    enableDefaultRules(marketId) {
+        this.setMarketRules(marketId, [
+            "ANTI_COLLISION",
+            "VOLUME_BALANCING",
+            "SPREAD_MAINTENANCE",
+        ]);
+    }
+    coordinateTrade(marketId, botId, decision, context) {
+        const rules = this.marketRules.get(marketId);
+        if (!rules || rules.size === 0 || !decision.shouldTrade) {
+            return { approved: true };
+        }
+        for (const rule of rules) {
+            const result = this.applyRule(rule, marketId, botId, decision, context);
+            if (!result.approved) {
+                return result;
+            }
+            if (result.adjustedDecision) {
+                decision = result.adjustedDecision;
+            }
+        }
+        return { approved: true, adjustedDecision: decision };
+    }
+    recordTrade(marketId, botId, side, price, amount) {
+        if (!this.recentTrades.has(marketId)) {
+            this.recentTrades.set(marketId, []);
+        }
+        const trades = this.recentTrades.get(marketId);
+        trades.push({
+            botId,
+            side,
+            price,
+            amount,
+            timestamp: Date.now(),
+        });
+        this.updateMarketPressure(marketId, side, amount);
+        this.cleanOldTrades(marketId);
+    }
+    getMarketPressure(marketId) {
+        return this.marketPressure.get(marketId);
+    }
+    getRecommendedSide(marketId) {
+        const pressure = this.marketPressure.get(marketId);
+        if (!pressure)
+            return null;
+        if (pressure.netPressure > this.maxPressureImbalance) {
+            return "SELL";
+        }
+        else if (pressure.netPressure < -this.maxPressureImbalance) {
+            return "BUY";
+        }
+        return null;
+    }
+    isSideAllowed(marketId, side) {
+        const pressure = this.marketPressure.get(marketId);
+        if (!pressure)
+            return true;
+        if (side === "BUY" && pressure.netPressure > this.maxPressureImbalance * 1.5) {
+            return false;
+        }
+        if (side === "SELL" && pressure.netPressure < -this.maxPressureImbalance * 1.5) {
+            return false;
+        }
+        return true;
+    }
+    getCoordinationStats(marketId) {
+        const rules = this.getMarketRules(marketId);
+        const trades = this.recentTrades.get(marketId) || [];
+        const pressure = this.marketPressure.get(marketId) || null;
+        const recommendations = [];
+        if (pressure) {
+            if (pressure.netPressure > this.maxPressureImbalance) {
+                recommendations.push("High buy pressure - prioritize sell orders");
+            }
+            else if (pressure.netPressure < -this.maxPressureImbalance) {
+                recommendations.push("High sell pressure - prioritize buy orders");
+            }
+            else {
+                recommendations.push("Market pressure balanced");
+            }
+        }
+        return {
+            activeRules: rules,
+            recentTradeCount: trades.length,
+            pressure,
+            recommendations,
+        };
+    }
+    applyRule(rule, marketId, botId, decision, context) {
+        switch (rule) {
+            case "ANTI_COLLISION":
+                return this.applyAntiCollision(marketId, botId, decision);
+            case "PRICE_COORDINATION":
+                return this.applyPriceCoordination(marketId, decision, context);
+            case "VOLUME_BALANCING":
+                return this.applyVolumeBalancing(marketId, decision);
+            case "SPREAD_MAINTENANCE":
+                return this.applySpreadMaintenance(marketId, decision, context);
+            default:
+                return { approved: true };
+        }
+    }
+    applyAntiCollision(marketId, botId, decision) {
+        const trades = this.recentTrades.get(marketId) || [];
+        const now = Date.now();
+        const recentOpposite = trades.filter((t) => t.botId !== botId &&
+            t.side !== decision.side &&
+            now - t.timestamp < this.antiCollisionWindowMs);
+        if (recentOpposite.length > 0) {
+            const wouldCollide = recentOpposite.some((t) => {
+                if (decision.side === "BUY") {
+                    return decision.price >= t.price;
+                }
+                else {
+                    return decision.price <= t.price;
+                }
+            });
+            if (wouldCollide) {
+                return {
+                    approved: false,
+                    reason: "Would collide with recent bot trade",
+                };
+            }
+        }
+        return { approved: true };
+    }
+    applyPriceCoordination(marketId, decision, context) {
+        if (!decision.price)
+            return { approved: true };
+        const currentPrice = Number(context.currentPrice) / 1e18;
+        const decisionPrice = Number(decision.price) / 1e18;
+        const priceDiff = Math.abs((decisionPrice - currentPrice) / currentPrice);
+        if (priceDiff > 0.01) {
+            const maxMove = currentPrice * 0.01;
+            let adjustedPrice;
+            if (decision.side === "BUY") {
+                adjustedPrice = BigInt(Math.floor((currentPrice - maxMove) * 1e18));
+            }
+            else {
+                adjustedPrice = BigInt(Math.floor((currentPrice + maxMove) * 1e18));
+            }
+            return {
+                approved: true,
+                adjustedDecision: {
+                    ...decision,
+                    price: adjustedPrice,
+                },
+                reason: "Price adjusted to stay within coordination bounds",
+            };
+        }
+        return { approved: true };
+    }
+    applyVolumeBalancing(marketId, decision) {
+        const pressure = this.marketPressure.get(marketId);
+        if (!pressure)
+            return { approved: true };
+        const wouldWorsen = (decision.side === "BUY" && pressure.netPressure > this.maxPressureImbalance) ||
+            (decision.side === "SELL" && pressure.netPressure < -this.maxPressureImbalance);
+        if (wouldWorsen) {
+            const reducedAmount = decision.amount
+                ? BigInt(Math.floor(Number(decision.amount) * 0.5))
+                : undefined;
+            return {
+                approved: true,
+                adjustedDecision: {
+                    ...decision,
+                    amount: reducedAmount,
+                },
+                reason: "Order size reduced for volume balancing",
+            };
+        }
+        return { approved: true };
+    }
+    applySpreadMaintenance(marketId, decision, context) {
+        var _a, _b;
+        if (!decision.price)
+            return { approved: true };
+        const minSpreadBps = 10;
+        const bestBid = ((_a = context.orderbook) === null || _a === void 0 ? void 0 : _a.bestBid) || BigInt(0);
+        const bestAsk = ((_b = context.orderbook) === null || _b === void 0 ? void 0 : _b.bestAsk) || BigInt(0);
+        if (bestBid === BigInt(0) || bestAsk === BigInt(0)) {
+            return { approved: true };
+        }
+        const bidNum = Number(bestBid);
+        const askNum = Number(bestAsk);
+        const decisionPriceNum = Number(decision.price);
+        if (decision.side === "BUY") {
+            const maxBid = askNum * (1 - minSpreadBps / 10000);
+            if (decisionPriceNum > maxBid) {
+                return {
+                    approved: true,
+                    adjustedDecision: {
+                        ...decision,
+                        price: BigInt(Math.floor(maxBid)),
+                    },
+                    reason: "Bid adjusted to maintain minimum spread",
+                };
+            }
+        }
+        else {
+            const minAsk = bidNum * (1 + minSpreadBps / 10000);
+            if (decisionPriceNum < minAsk) {
+                return {
+                    approved: true,
+                    adjustedDecision: {
+                        ...decision,
+                        price: BigInt(Math.floor(minAsk)),
+                    },
+                    reason: "Ask adjusted to maintain minimum spread",
+                };
+            }
+        }
+        return { approved: true };
+    }
+    updateMarketPressure(marketId, side, amount) {
+        let pressure = this.marketPressure.get(marketId);
+        if (!pressure) {
+            pressure = {
+                buyVolume: BigInt(0),
+                sellVolume: BigInt(0),
+                netPressure: 0,
+                lastUpdate: Date.now(),
+            };
+        }
+        if (side === "BUY") {
+            pressure.buyVolume += amount;
+        }
+        else {
+            pressure.sellVolume += amount;
+        }
+        const total = Number(pressure.buyVolume) + Number(pressure.sellVolume);
+        if (total > 0) {
+            pressure.netPressure =
+                (Number(pressure.buyVolume) - Number(pressure.sellVolume)) / total;
+        }
+        pressure.lastUpdate = Date.now();
+        this.marketPressure.set(marketId, pressure);
+    }
+    cleanOldTrades(marketId) {
+        const trades = this.recentTrades.get(marketId);
+        if (!trades)
+            return;
+        const cutoff = Date.now() - this.recentTradeRetentionMs;
+        const filtered = trades.filter((t) => t.timestamp > cutoff);
+        this.recentTrades.set(marketId, filtered);
+    }
+    resetMarketPressure(marketId) {
+        this.marketPressure.set(marketId, {
+            buyVolume: BigInt(0),
+            sellVolume: BigInt(0),
+            netPressure: 0,
+            lastUpdate: Date.now(),
+        });
+    }
+    clearMarket(marketId) {
+        this.marketRules.delete(marketId);
+        this.recentTrades.delete(marketId);
+        this.marketPressure.delete(marketId);
+    }
+}
+exports.BotCoordinator = BotCoordinator;
+exports.default = BotCoordinator;

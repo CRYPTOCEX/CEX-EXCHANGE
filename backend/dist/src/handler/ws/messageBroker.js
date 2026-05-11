@@ -72,20 +72,41 @@ class MessageBroker {
         try {
             const subscriptionKey = JSON.stringify(payload);
             const routeClients = this.clients.get(route);
-            if (routeClients) {
-                let matchedClients = 0;
-                for (const [clientId, clientRecord] of routeClients) {
-                    if (clientRecord.subscriptions.has(subscriptionKey)) {
-                        try {
-                            clientRecord.ws.send(JSON.stringify(message));
-                            matchedClients++;
+            if (!routeClients || routeClients.size === 0) {
+                console_1.logger.warn("WS", `No clients connected to route ${route} for broadcast`);
+                return;
+            }
+            let matchedClients = 0;
+            const msgString = JSON.stringify(message);
+            for (const [clientId, clientRecord] of routeClients) {
+                if (clientRecord.subscriptions.has(subscriptionKey)) {
+                    try {
+                        if (typeof clientRecord.ws.cork === "function") {
+                            clientRecord.ws.cork(() => {
+                                clientRecord.ws.send(msgString);
+                            });
                         }
-                        catch (error) {
-                            console_1.logger.error("WS", `Failed to send to client ${clientId}`, error);
-                            routeClients.delete(clientId);
+                        else {
+                            clientRecord.ws.send(msgString);
                         }
+                        matchedClients++;
+                    }
+                    catch (error) {
+                        console_1.logger.error("WS", `Failed to send to client ${clientId}`, error);
+                        routeClients.delete(clientId);
                     }
                 }
+            }
+            if (matchedClients === 0) {
+                const clientSubs = [];
+                for (const [clientId, clientRecord] of routeClients) {
+                    const subs = Array.from(clientRecord.subscriptions).join(", ");
+                    clientSubs.push(`${clientId}: [${subs}]`);
+                }
+                console_1.logger.warn("WS", `No matching subscriptions on route ${route} for key: ${subscriptionKey}. Connected clients (${routeClients.size}): ${clientSubs.join(" | ")}`);
+            }
+            else {
+                console_1.logger.debug("WS", `Broadcast to ${matchedClients} client(s) on route ${route}`);
             }
         }
         catch (error) {

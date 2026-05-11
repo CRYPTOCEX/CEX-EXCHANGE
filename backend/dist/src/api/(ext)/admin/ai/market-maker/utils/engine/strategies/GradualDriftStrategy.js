@@ -1,1 +1,62 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.GradualDriftStrategy=void 0;class GradualDriftStrategy{constructor(){this.name="gradual_drift"}calculate(t,e,r){const a=Number(t)/1e18,i=Number(e)/1e18-a,s=i/a*100,l=Math.abs(s);if(l<.1)return{shouldTrade:!1,direction:"BUY",priceAdjustment:0,sizeMultiplier:1,confidence:.5,reason:"Already at target price"};const d=i>0?"BUY":"SELL",o=this.getMaxStep(r.aggressionLevel);let u=Math.min(.1*l,o);u*=.8+.4*Math.random();r.currentVolatility>r.volatilityThreshold&&(u*=.5);let n=1;l>5?n=1.5:l<1&&(n=.5);return{shouldTrade:!0,direction:d,priceAdjustment:"BUY"===d?u:-u,sizeMultiplier:n,confidence:Math.min(1,l/10),reason:`Moving ${d} toward target (${s.toFixed(2)}% away)`}}getMaxStep(t){switch(t){case"AGGRESSIVE":return.5;case"MODERATE":return.2;default:return.1}}}exports.GradualDriftStrategy=GradualDriftStrategy;exports.default=GradualDriftStrategy;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GradualDriftStrategy = void 0;
+class GradualDriftStrategy {
+    constructor() {
+        this.name = "gradual_drift";
+    }
+    calculate(currentPrice, targetPrice, config) {
+        const current = Number(currentPrice) / 1e18;
+        const target = Number(targetPrice) / 1e18;
+        const distance = target - current;
+        const distancePercent = (distance / current) * 100;
+        const absDistance = Math.abs(distancePercent);
+        if (absDistance < 0.1) {
+            return {
+                shouldTrade: false,
+                direction: "BUY",
+                priceAdjustment: 0,
+                sizeMultiplier: 1,
+                confidence: 0.5,
+                reason: "Already at target price",
+            };
+        }
+        const direction = distance > 0 ? "BUY" : "SELL";
+        const maxStep = this.getMaxStep(config.aggressionLevel);
+        let stepSize = Math.min(absDistance * 0.1, maxStep);
+        const randomFactor = 0.8 + Math.random() * 0.4;
+        stepSize *= randomFactor;
+        if (config.currentVolatility > config.volatilityThreshold) {
+            stepSize *= 0.5;
+        }
+        let sizeMultiplier = 1;
+        if (absDistance > 5) {
+            sizeMultiplier = 1.5;
+        }
+        else if (absDistance < 1) {
+            sizeMultiplier = 0.5;
+        }
+        const confidence = Math.min(1, absDistance / 10);
+        return {
+            shouldTrade: true,
+            direction,
+            priceAdjustment: direction === "BUY" ? stepSize : -stepSize,
+            sizeMultiplier,
+            confidence,
+            reason: `Moving ${direction} toward target (${distancePercent.toFixed(2)}% away)`,
+        };
+    }
+    getMaxStep(aggression) {
+        switch (aggression) {
+            case "AGGRESSIVE":
+                return 0.5;
+            case "MODERATE":
+                return 0.2;
+            case "CONSERVATIVE":
+            default:
+                return 0.1;
+        }
+    }
+}
+exports.GradualDriftStrategy = GradualDriftStrategy;
+exports.default = GradualDriftStrategy;

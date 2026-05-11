@@ -8,6 +8,7 @@ const sequelize_1 = require("sequelize");
 const console_1 = require("@b/utils/console");
 const notification_1 = require("@b/services/notification");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 exports.metadata = {
     summary: "Emergency Cancel & Refund ICO (SuperAdmin Only)",
     description: "Emergency cancellation endpoint for SuperAdmins only. Cancels an active ICO offering and refunds ALL investors. Use this for scam prevention or critical security issues.",
@@ -107,7 +108,7 @@ exports.default = async (data) => {
         const transactions = await db_1.models.icoTransaction.findAll({
             where: {
                 offeringId: id,
-                status: { [sequelize_1.Op.in]: ["PENDING", "VERIFICATION", "RELEASED"] },
+                status: { [sequelize_1.Op.in]: ["PENDING", "VERIFICATION"] },
             },
             include: [{
                     model: db_1.models.user,
@@ -124,14 +125,47 @@ exports.default = async (data) => {
         let successfulRefunds = 0;
         let failedRefunds = 0;
         const refundDetails = [];
+        const escrowAdmin = await (0, fees_1.getSuperAdmin)();
+        if (!escrowAdmin) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "ICO escrow Super Admin wallet not configured.",
+            });
+        }
         for (const investment of transactions) {
             try {
+                const refundAmount = investment.amount * investment.price;
+                try {
+                    await wallet_1.walletService.debit({
+                        idempotencyKey: `ico_escrow_refund_${investment.id}`,
+                        userId: escrowAdmin.id,
+                        walletType: walletType,
+                        currency: currency,
+                        amount: refundAmount,
+                        operationType: "REFUND",
+                        referenceId: investment.id,
+                        description: `ICO escrow refund to buyer for ${offering.name} (tx ${investment.id}) - emergency cancel`,
+                        metadata: {
+                            escrow: true,
+                            direction: "refund",
+                            transactionId: investment.id,
+                            offeringId: id,
+                            emergencyCancellation: true,
+                        },
+                        transaction,
+                    });
+                }
+                catch (escrowErr) {
+                    if ((escrowErr === null || escrowErr === void 0 ? void 0 : escrowErr.name) !== "DuplicateOperationError")
+                        throw escrowErr;
+                    console_1.logger.warn("ADMIN_ICO_CANCEL", `Escrow already refunded for investment ${investment.id}; continuing.`);
+                }
                 const refundResult = await wallet_1.walletService.credit({
                     idempotencyKey: `ico_emergency_refund_${investment.id}`,
                     userId: investment.userId,
                     walletType: walletType,
                     currency: currency,
-                    amount: investment.amount,
+                    amount: refundAmount,
                     operationType: "REFUND",
                     description: `Emergency ICO refund for: ${offering.name}. Reason: ${reason}`,
                     referenceId: `ico_refund_${investment.id}`,
@@ -145,21 +179,21 @@ exports.default = async (data) => {
                     },
                 });
                 await investment.update({
-                    status: "REJECTED",
+                    status: "REFUNDED",
                     notes: `EMERGENCY CANCELLATION - ${reason}`,
                 }, { transaction });
-                totalRefunded += investment.amount;
+                totalRefunded += refundAmount;
                 successfulRefunds++;
                 refundDetails.push({
                     transactionId: investment.id,
                     userId: investment.userId,
                     userName: investment.user ? `${investment.user.firstName} ${investment.user.lastName}` : "Unknown",
-                    amount: investment.amount,
+                    amount: refundAmount,
                     currency: currency,
                     status: "SUCCESS",
                     walletTransactionId: refundResult.transactionId,
                 });
-                console_1.logger.success("ADMIN_ICO_CANCEL", `Refunded ${investment.amount} ${currency} to user ${investment.userId}`);
+                console_1.logger.success("ADMIN_ICO_CANCEL", `Refunded ${refundAmount} ${currency} to user ${investment.userId}`);
             }
             catch (refundError) {
                 if (refundError.name === "DuplicateOperationError") {
@@ -168,7 +202,7 @@ exports.default = async (data) => {
                     refundDetails.push({
                         transactionId: investment.id,
                         userId: investment.userId,
-                        amount: investment.amount,
+                        amount: investment.amount * investment.price,
                         currency: currency,
                         status: "ALREADY_REFUNDED",
                     });
@@ -179,7 +213,7 @@ exports.default = async (data) => {
                 refundDetails.push({
                     transactionId: investment.id,
                     userId: investment.userId,
-                    amount: investment.amount,
+                    amount: investment.amount * investment.price,
                     currency: currency,
                     status: "FAILED",
                     reason: refundError.message,
@@ -209,11 +243,11 @@ exports.default = async (data) => {
                 timestamp: new Date().toISOString(),
             }),
         }, { transaction });
-        if (failedRefunds > 0) {
+        if (failedRefunds > 0 && successfulRefunds === 0) {
             await transaction.rollback();
             throw (0, error_1.createError)({
                 statusCode: 500,
-                message: `Failed to refund ${failedRefunds} investment(s). Transaction rolled back. Please resolve wallet issues and try again.`,
+                message: `All ${failedRefunds} refund(s) failed. Transaction rolled back. Please resolve wallet issues and try again.`,
             });
         }
         await transaction.commit();

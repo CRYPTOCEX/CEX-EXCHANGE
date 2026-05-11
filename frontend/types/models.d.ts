@@ -77,8 +77,9 @@ interface userAttributes {
 interface User extends userAttributes {
   twoFactor: twoFactorAttributes;
   role: Role;
-  kyc: KycApplication;
-  kycLevel?: number;
+  kyc: UserKycStatus | null;
+  kycApplications?: KycApplicationWithLevel[];
+  kycLevel: number;
   featureAccess: string[];
   apiKeys: apiKeyAttributes[];
   nftCount?: number;
@@ -199,11 +200,41 @@ interface providerUserAttributes {
   updatedAt?: Date;
 }
 
+// The computed KYC status returned in user profile
+interface UserKycStatus {
+  id: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "ADDITIONAL_INFO_REQUIRED";
+  level: KycLevelInfo | null;
+}
+
+interface KycLevelInfo {
+  id: string;
+  name: string;
+  level: number;
+  features?: string[] | string;
+}
+
+// Full application with level (for KYC dashboard and admin)
+interface KycApplicationWithLevel {
+  id: string;
+  userId: string;
+  levelId: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "ADDITIONAL_INFO_REQUIRED";
+  data?: any;
+  adminNotes?: string;
+  reviewedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  level: KycLevelInfo;
+}
+
+// Keep old interface for backward compatibility but mark deprecated
+/** @deprecated Use UserKycStatus or KycApplicationWithLevel instead */
 interface KycApplication {
   id: string;
   userId: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
-  level: number;
+  level: number | KycLevelInfo;
   createdAt?: Date;
   updatedAt?: Date;
 }

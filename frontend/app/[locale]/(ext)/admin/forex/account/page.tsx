@@ -27,6 +27,7 @@ export default function ForexAccountPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("forex_trading_accounts")}
       description={t("manage_and_monitor_all_forex_trading")}
       itemTitle="Forex Account"

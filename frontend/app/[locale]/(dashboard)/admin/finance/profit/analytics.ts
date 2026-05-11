@@ -359,6 +359,14 @@ export function useAnalytics() {
             aggregation: { field: "type", value: "GATEWAY_PAYMENT" },
             icon: "mdi:credit-card",
           },
+          {
+            id: "trade_profit",
+            title: "ECO Trading",
+            metric: "TRADE",
+            model: "adminProfit",
+            aggregation: { field: "type", value: "TRADE" },
+            icon: "mdi:chart-line",
+          },
         ],
       },
       {
@@ -382,6 +390,7 @@ export function useAnalytics() {
               "NFT_AUCTION",
               "NFT_OFFER",
               "GATEWAY_PAYMENT",
+              "TRADE",
             ],
             config: {
               field: "type",
@@ -427,6 +436,12 @@ export function useAnalytics() {
                   label: "Gateway Payment",
                   color: "cyan",
                   icon: "mdi:credit-card",
+                },
+                {
+                  value: "TRADE",
+                  label: "ECO Trading",
+                  color: "teal",
+                  icon: "mdi:chart-line",
                 },
               ],
             },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Timer } from "lucide-react";
 
@@ -8,15 +8,20 @@ interface TradeTimerProps {
   startTime: string;
   timeLimit: number; // in minutes
   status: string;
+  onExpiry?: () => void;
 }
 
-export function TradeTimer({ startTime, timeLimit, status }: TradeTimerProps) {
+export function TradeTimer({ startTime, timeLimit, status, onExpiry }: TradeTimerProps) {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isExpired, setIsExpired] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Normalize status for case-insensitive comparison
+  const normalizedStatus = status?.toUpperCase() || "";
 
   useEffect(() => {
-    if (["completed", "cancelled", "disputed"].includes(status)) {
-      setTimeLeft("Completed");
+    if (["COMPLETED", "CANCELLED", "DISPUTED", "EXPIRED"].includes(normalizedStatus)) {
+      setTimeLeft(normalizedStatus === "EXPIRED" ? "Timed Out" : "Completed");
       return;
     }
 
@@ -28,6 +33,12 @@ export function TradeTimer({ startTime, timeLimit, status }: TradeTimerProps) {
 
       if (difference <= 0) {
         setIsExpired(true);
+        // M22: clear interval when timer expires instead of letting it run forever
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+        onExpiry?.();
         return "Time expired";
       }
 
@@ -43,14 +54,19 @@ export function TradeTimer({ startTime, timeLimit, status }: TradeTimerProps) {
 
     setTimeLeft(calculateTimeLeft());
 
-    const timer = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [startTime, timeLimit, status]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [startTime, timeLimit, normalizedStatus, onExpiry]);
 
-  if (["completed", "cancelled", "disputed"].includes(status)) {
+  if (["COMPLETED", "CANCELLED", "DISPUTED", "EXPIRED"].includes(normalizedStatus)) {
     return null;
   }
 

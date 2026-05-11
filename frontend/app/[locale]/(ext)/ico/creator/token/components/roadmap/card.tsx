@@ -55,8 +55,11 @@ export default function RoadmapCard({
   const tCommon = useTranslations("common");
   const isCompleted = !!item.completed;
 
-  const getDaysFromNow = (dateString: string) => {
+  const getDaysFromNow = (dateString: string | null | undefined) => {
+    if (!dateString) return null;
     const itemDate = new Date(dateString);
+    // Check for invalid date
+    if (isNaN(itemDate.getTime())) return null;
     const today = new Date();
     const diffTime = itemDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -145,11 +148,13 @@ export default function RoadmapCard({
               </div>
               <CardDescription className="mt-1 flex items-center gap-2">
                 <Clock className="h-3.5 w-3.5" />
-                {new Date(item.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {item.date && !isNaN(new Date(item.date).getTime())
+                  ? new Date(item.date).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "No date set"}
                 {!isCompleted && daysInfo && (
                   <span
                     className={cn(

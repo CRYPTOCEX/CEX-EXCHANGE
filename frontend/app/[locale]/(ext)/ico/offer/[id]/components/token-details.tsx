@@ -54,8 +54,16 @@ export function TokenDetails({
               <li key={index}>{item}</li>
             ))}
           </ul>
+        ) : details.useOfFunds && typeof details.useOfFunds === "object" ? (
+          <ul className="list-disc list-inside text-sm text-muted-foreground">
+            {Object.entries(details.useOfFunds as Record<string, unknown>).map(([key, value]) => (
+              <li key={key}>
+                {key.charAt(0).toUpperCase() + key.slice(1)}: {String(value)}%
+              </li>
+            ))}
+          </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">{details.useOfFunds}</p>
+          <p className="text-sm text-muted-foreground">{String(details.useOfFunds ?? "")}</p>
         )}
       </div>
 

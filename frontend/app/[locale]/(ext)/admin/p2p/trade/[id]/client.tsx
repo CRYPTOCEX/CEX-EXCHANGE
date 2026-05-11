@@ -42,11 +42,18 @@ import { useAdminTradesStore } from "@/store/p2p/admin-trades-store";
 import { wsManager, ConnectionStatus } from "@/services/ws-manager";
 import { useUserStore } from "@/store/user";
 
-// Get WebSocket URL for P2P trade
-function getP2PTradeWsUrl(tradeId: string): string {
+// Get WebSocket URL for P2P trade - all backends now use /api/ prefix
+function getP2PTradeWsUrl(tradeId: string, userId?: string): string {
   const protocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
-  const host = process.env.NEXT_PUBLIC_BACKEND_WS_URL || (typeof window !== "undefined" ? window.location.host : "");
-  return `${protocol}//${host}/api/p2p/trade/${tradeId}`;
+  const isDev = process.env.NODE_ENV === "development";
+  const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+  // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+  const host = process.env.NEXT_PUBLIC_BACKEND_WS_URL ||
+    (typeof window !== "undefined"
+      ? (isDev ? `${window.location.hostname}:${backendPort}` : window.location.host)
+      : "");
+  const baseUrl = `${protocol}//${host}/api/p2p/trade/${tradeId}`;
+  return userId ? `${baseUrl}?userId=${userId}` : baseUrl;
 }
 
 export default function AdminTradeDetailsClient() {
@@ -163,16 +170,27 @@ export default function AdminTradeDetailsClient() {
     }
   }, [tradeId, getTradeById]);
 
-  // Handle WebSocket connection status
+  // Handle WebSocket connection status - sends subscribe message when connected
   const handleWsStatus = useCallback((status: ConnectionStatus) => {
     setWsConnected(status === ConnectionStatus.CONNECTED);
-  }, []);
+
+    // Send subscription message when connected (event-driven, not polling)
+    if (status === ConnectionStatus.CONNECTED && user?.id && tradeId) {
+      wsManager.sendMessage(
+        {
+          action: "SUBSCRIBE",
+          payload: { tradeId, userId: user.id, isAdmin: true },
+        },
+        wsConnectionId
+      );
+    }
+  }, [tradeId, user?.id, wsConnectionId]);
 
   // Set up WebSocket connection
   useEffect(() => {
     if (!user?.id || !tradeId) return;
 
-    const wsUrl = getP2PTradeWsUrl(tradeId);
+    const wsUrl = getP2PTradeWsUrl(tradeId, user.id);
 
     // Connect to WebSocket
     wsManager.connect(wsUrl, wsConnectionId);
@@ -182,36 +200,24 @@ export default function AdminTradeDetailsClient() {
     wsManager.subscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
     wsManager.addStatusListener(handleWsStatus, wsConnectionId);
 
-    // Send subscription message once connected
-    const subscribeInterval = setInterval(() => {
-      if (wsManager.getStatus(wsConnectionId) === ConnectionStatus.CONNECTED) {
-        wsManager.sendMessage(
-          {
-            action: "SUBSCRIBE",
-            payload: { tradeId, userId: user.id, isAdmin: true },
-          },
-          wsConnectionId
-        );
-        clearInterval(subscribeInterval);
-      }
-    }, 100);
-
     return () => {
-      clearInterval(subscribeInterval);
-      // Unsubscribe and close connection
-      wsManager.sendMessage(
-        {
-          action: "UNSUBSCRIBE",
-          payload: { tradeId },
-        },
-        wsConnectionId
-      );
+      // Unsubscribe from local listeners first
       wsManager.unsubscribe("p2p-trade-data", handleTradeData, wsConnectionId);
       wsManager.unsubscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
       wsManager.removeStatusListener(handleWsStatus, wsConnectionId);
-      wsManager.close(wsConnectionId);
+      // Only try to send unsubscribe if connected
+      if (wsManager.getStatus(wsConnectionId) === ConnectionStatus.CONNECTED) {
+        wsManager.sendMessage(
+          {
+            action: "UNSUBSCRIBE",
+            payload: { tradeId },
+          },
+          wsConnectionId
+        );
+      }
+      // Don't close connection - let wsManager handle reconnection and reuse
     };
-  }, [tradeId, user?.id, wsConnectionId, handleTradeData, handleTradeEvent, handleWsStatus]);
+  }, [tradeId, user?.id, handleTradeData, handleTradeEvent, handleWsStatus]);
 
   const handleAction = (action: string) => {
     setActionType(action);

@@ -28,6 +28,7 @@ export default function MailwizardCampaignPage() {
       editLink="/admin/mailwizard/campaign/[id]"
       canDelete
       canView
+      isParanoid={false}
       title={t("email_campaign_management")}
       description={t("create_manage_and_track_email_marketing")}
       itemTitle="Campaign"

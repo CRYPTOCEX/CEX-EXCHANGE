@@ -5,6 +5,7 @@ const safe_imports_1 = require("@b/utils/safe-imports");
 const notifications_1 = require("@b/utils/notifications");
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+const Websocket_1 = require("@b/handler/Websocket");
 const BTC_NODE = (process.env.BTC_NODE || "mempool").toLowerCase();
 const BLOCKCYPHER_TOKEN = process.env.BLOCKCYPHER_TOKEN;
 const SCAN_INTERVAL = 60000;
@@ -311,7 +312,33 @@ class BTCDepositScanner {
                         lastChecked: Date.now(),
                     });
                 }
-                else if (confirmations > 0) {
+                else if (confirmations >= 0 && !existingTx) {
+                    try {
+                        const amount = tx.amount || (tx.value / 100000000);
+                        const broadcastPayload = {
+                            currency: "BTC",
+                            chain: "BTC",
+                            address: btcAddress.toLowerCase(),
+                        };
+                        Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", broadcastPayload, {
+                            stream: "verification",
+                            data: {
+                                type: "pending_confirmation",
+                                transactionHash: txid,
+                                hash: txid,
+                                confirmations,
+                                requiredConfirmations: REQUIRED_CONFIRMATIONS,
+                                amount,
+                                fee: 0,
+                                status: "PENDING",
+                                chain: "BTC",
+                                walletId: wallet.id,
+                            },
+                        });
+                    }
+                    catch (broadcastError) {
+                        console_1.logger.debug("BTC_SCAN", `Failed to broadcast pending tx ${txid}`, broadcastError);
+                    }
                     pendingDeposits++;
                 }
             }
@@ -345,6 +372,36 @@ class BTCDepositScanner {
             const result = await this.ecosystemWalletUtils.handleEcosystemDeposit(txData);
             if (result.transaction) {
                 console_1.logger.success("BTC_SCAN", `Deposit processed: ${result.transaction.id}`);
+                try {
+                    const broadcastPayload = {
+                        currency: "BTC",
+                        chain: "BTC",
+                        address: address.toLowerCase(),
+                    };
+                    Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", broadcastPayload, {
+                        stream: "verification",
+                        data: {
+                            status: 200,
+                            message: "Deposit confirmed",
+                            transactionId: result.transaction.id,
+                            wallet: {
+                                id: wallet.id,
+                                currency: "BTC",
+                                balance: wallet.balance,
+                                userId: wallet.userId,
+                            },
+                            trx: txData,
+                            balance: wallet.balance,
+                            currency: "BTC",
+                            chain: "BTC",
+                            method: "Wallet Deposit",
+                        },
+                    });
+                    console_1.logger.success("BTC_SCAN", `Broadcasted deposit confirmation to WebSocket for ${address}`);
+                }
+                catch (broadcastError) {
+                    console_1.logger.error("BTC_SCAN", `Failed to broadcast deposit to WebSocket`, broadcastError);
+                }
                 try {
                     await (0, notifications_1.createNotification)({
                         userId: wallet.userId,

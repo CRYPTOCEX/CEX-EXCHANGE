@@ -51,8 +51,8 @@ interface SelectedMarket {
   symbol: string;
   baseCurrency: string;
   quoteCurrency: string;
-  minBase: number;
-  minQuote: number;
+  minBase: string;
+  minQuote: string;
 }
 
 const tradingStyles = [
@@ -134,7 +134,7 @@ export default function BecomeLeaderClient() {
       const { data, error } = await $fetch({
         url: "/api/copy-trading/leader/me",
         method: "GET",
-        silentSuccess: true,
+        silent: true,
       });
 
       if (!error && data) {
@@ -151,7 +151,7 @@ export default function BecomeLeaderClient() {
       const { data, error } = await $fetch({
         url: "/api/ecosystem/market",
         method: "GET",
-        silentSuccess: true,
+        silent: true,
       });
 
       if (!error && data) {
@@ -169,7 +169,7 @@ export default function BecomeLeaderClient() {
     if (!selectedMarkets.find((m) => m.symbol === symbol)) {
       setSelectedMarkets([
         ...selectedMarkets,
-        { symbol, baseCurrency, quoteCurrency, minBase: 0, minQuote: 0 },
+        { symbol, baseCurrency, quoteCurrency, minBase: "0", minQuote: "0" },
       ]);
     }
   };
@@ -181,7 +181,7 @@ export default function BecomeLeaderClient() {
   const updateMarketSettings = (
     symbol: string,
     field: "minBase" | "minQuote",
-    value: number
+    value: string
   ) => {
     setSelectedMarkets(
       selectedMarkets.map((m) =>
@@ -218,8 +218,8 @@ export default function BecomeLeaderClient() {
         profitSharePercent,
         markets: selectedMarkets.map((m) => ({
           symbol: m.symbol,
-          minBase: m.minBase,
-          minQuote: m.minQuote,
+          minBase: parseFloat(m.minBase) || 0,
+          minQuote: parseFloat(m.minQuote) || 0,
         })),
       },
     });
@@ -317,7 +317,7 @@ export default function BecomeLeaderClient() {
                       maxLength={50}
                     />
                     <p className="text-xs text-zinc-500 mt-1">
-                      {t("this_is_how_followers_will_see_you")}{displayName.length}/50)
+                      {t("this_is_how_followers_will_see_you")} ({displayName.length}/50)
                     </p>
                   </div>
 
@@ -488,17 +488,16 @@ export default function BecomeLeaderClient() {
                             </Label>
                             <Input
                               id={`minBase-${market.symbol}`}
-                              type="number"
-                              min={0}
-                              step="any"
-                              value={market.minBase || ""}
-                              onChange={(e) =>
-                                updateMarketSettings(
-                                  market.symbol,
-                                  "minBase",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
+                              type="text"
+                              inputMode="decimal"
+                              value={market.minBase}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                // Allow empty, digits, and one decimal point
+                                if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                                  updateMarketSettings(market.symbol, "minBase", val);
+                                }
+                              }}
                               placeholder="0"
                               className="mt-1"
                             />
@@ -515,17 +514,16 @@ export default function BecomeLeaderClient() {
                             </Label>
                             <Input
                               id={`minQuote-${market.symbol}`}
-                              type="number"
-                              min={0}
-                              step="any"
-                              value={market.minQuote || ""}
-                              onChange={(e) =>
-                                updateMarketSettings(
-                                  market.symbol,
-                                  "minQuote",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
+                              type="text"
+                              inputMode="decimal"
+                              value={market.minQuote}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                // Allow empty, digits, and one decimal point
+                                if (val === "" || /^\d*\.?\d*$/.test(val)) {
+                                  updateMarketSettings(market.symbol, "minQuote", val);
+                                }
+                              }}
                               placeholder="0"
                               className="mt-1"
                             />

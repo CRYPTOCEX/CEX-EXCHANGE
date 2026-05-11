@@ -68,29 +68,9 @@ export default function FAQFormPage() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const promises: Promise<void>[] = [];
-        // Only fetch if there are no pages or FAQs already loaded
-        if (faqs.length === 0) promises.push(fetchFAQs());
-        if (pageLinks.length === 0) promises.push(fetchPageLinks());
-        if (promises.length > 0) {
-          await Promise.all(promises);
-        }
-        // For an existing FAQ, verify that it exists
-        if (!isNewFAQ) {
-          const existingFAQ = faqs.find((f) => f.id === id);
-          if (!existingFAQ) {
-            toast({
-              title: "FAQ not found",
-              description: "The FAQ you're trying to edit could not be found.",
-              variant: "destructive",
-            });
-            router.push("/admin/faq/manage");
-            return;
-          }
-          setFaq(existingFAQ);
-        }
+        // Always fetch fresh data to avoid stale state
+        await Promise.all([fetchFAQs(), fetchPageLinks()]);
       } catch (error) {
-        console.error("Error loading FAQ data:", error);
         toast({
           title: "Error",
           description: "Failed to load FAQ data. Please try again.",
@@ -102,7 +82,24 @@ export default function FAQFormPage() {
     };
 
     loadData();
-  }, [id, isNewFAQ]);
+  }, [id, isNewFAQ, fetchFAQs, fetchPageLinks, toast]);
+
+  // Update faq state when faqs are loaded/changed
+  useEffect(() => {
+    if (!isNewFAQ && faqs.length > 0) {
+      const existingFAQ = faqs.find((f) => f.id === id);
+      if (existingFAQ) {
+        setFaq(existingFAQ);
+      } else if (!loading) {
+        toast({
+          title: "FAQ not found",
+          description: "The FAQ you're trying to edit could not be found.",
+          variant: "destructive",
+        });
+        router.push("/admin/faq/manage");
+      }
+    }
+  }, [faqs, id, isNewFAQ, loading, toast, router]);
 
   const handleSave = useCallback(async () => {
     if (!faq) return;
@@ -126,10 +123,21 @@ export default function FAQFormPage() {
         await updateFAQ(id, faq);
       }
 
+      toast({
+        title: isNewFAQ ? "FAQ created" : "FAQ updated",
+        description: isNewFAQ
+          ? "FAQ has been created successfully."
+          : "FAQ has been updated successfully.",
+      });
+
       // Navigate back to the FAQ list
       router.push("/admin/faq/manage");
     } catch (error) {
-      console.error("Error saving FAQ:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save FAQ. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setSubmitting(false);
     }

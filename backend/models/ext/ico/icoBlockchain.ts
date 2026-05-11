@@ -12,7 +12,7 @@ export interface icoBlockchainAttributes {
 }
 
 export interface icoBlockchainCreationAttributes
-  extends Partial<icoBlockchainAttributes> {}
+  extends Omit<icoBlockchainAttributes, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export default class icoBlockchain
   extends Model<icoBlockchainAttributes, icoBlockchainCreationAttributes>
@@ -68,6 +68,11 @@ export default class icoBlockchain
             name: "PRIMARY",
             unique: true,
             fields: [{ name: "id" }],
+          },
+          {
+            name: "icoBlockchainNameKey",
+            unique: true,
+            fields: [{ name: "name" }],
           },
         ],
       }

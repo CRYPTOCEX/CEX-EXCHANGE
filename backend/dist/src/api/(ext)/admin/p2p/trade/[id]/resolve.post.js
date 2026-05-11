@@ -38,6 +38,7 @@ const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 const Middleware_1 = require("@b/handler/Middleware");
 const ownership_1 = require("../../../../p2p/utils/ownership");
 exports.metadata = {
@@ -88,7 +89,7 @@ exports.metadata = {
     permission: "edit.p2p.trade",
 };
 exports.default = async (data) => {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     const { params, body, user, ctx } = data;
     const { id } = params;
     const { resolution, notes } = body;
@@ -128,13 +129,14 @@ exports.default = async (data) => {
         let finalStatus = "COMPLETED";
         let fundsReleased = false;
         ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing resolution: ${resolution}`);
-        if (resolution === "BUYER_WINS" || resolution === "SPLIT") {
+        if (resolution === "BUYER_WINS") {
             if (trade.offer && trade.status !== "COMPLETED") {
                 const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
                 if (sellerWallet) {
                     const safeUnlockAmount = Math.min((_a = trade.amount) !== null && _a !== void 0 ? _a : 0, (_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0);
                     if (safeUnlockAmount > 0) {
-                        const platformFee = parseFloat(trade.escrowFee || "0");
+                        const sellerIsAdmin = await (0, fees_1.isSuperAdmin)(trade.sellerId);
+                        const platformFee = sellerIsAdmin ? 0 : parseFloat(trade.escrowFee || "0");
                         const buyerNetAmount = Math.max(0, trade.amount - platformFee);
                         const idempotencyKey = `p2p_resolve_seller_${trade.id}`;
                         await wallet_1.walletService.executeFromHold({
@@ -158,7 +160,7 @@ exports.default = async (data) => {
                             console_1.logger.warn("P2P_RESOLVE", `Partial fund handling for trade ${trade.id}: unlocked=${safeUnlockAmount}`);
                         }
                         const buyerWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.buyerId, trade.offer.walletType, trade.offer.currency);
-                        const buyerIdempotencyKey = `p2p_resolve_buyer_${trade.id}_${Date.now()}`;
+                        const buyerIdempotencyKey = `p2p_resolve_buyer_${trade.id}`;
                         await wallet_1.walletService.credit({
                             idempotencyKey: buyerIdempotencyKey,
                             userId: trade.buyerId,
@@ -178,12 +180,30 @@ exports.default = async (data) => {
                             transaction,
                         });
                         if (platformFee > 0) {
-                            await db_1.models.p2pCommission.create({
-                                adminId: user.id,
-                                amount: platformFee,
-                                description: `P2P escrow fee for resolved trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency}`,
-                                tradeId: trade.id,
-                            }, { transaction });
+                            const systemAdmin = await db_1.models.user.findOne({
+                                include: [{ model: db_1.models.role, as: "role", where: { name: "Super Admin" } }],
+                                order: [["createdAt", "ASC"]],
+                                transaction,
+                            });
+                            if (systemAdmin) {
+                                await db_1.models.p2pCommission.create({
+                                    adminId: systemAdmin.id,
+                                    amount: platformFee,
+                                    description: `P2P escrow fee for resolved trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency}`,
+                                    tradeId: trade.id,
+                                }, { transaction });
+                            }
+                            await (0, fees_1.collectPlatformFee)({
+                                userId: trade.sellerId,
+                                currency: trade.offer.currency,
+                                walletType: trade.offer.walletType,
+                                feeAmount: platformFee,
+                                type: "P2P_TRADE",
+                                description: `P2P escrow fee for resolved trade #${trade.id.slice(0, 8)}`,
+                                referenceId: trade.id,
+                                metadata: { tradeId: trade.id, resolvedBy: user.id, resolution },
+                                transaction,
+                            });
                             console_1.logger.info("P2P_RESOLVE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
                         }
                         fundsReleased = true;
@@ -195,15 +215,98 @@ exports.default = async (data) => {
             }
             finalStatus = "COMPLETED";
         }
+        else if (resolution === "SPLIT") {
+            if (trade.offer && trade.status !== "COMPLETED") {
+                const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                if (sellerWallet) {
+                    const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
+                    if (safeUnlockAmount > 0) {
+                        const sellerIsAdminSplit = await (0, fees_1.isSuperAdmin)(trade.sellerId);
+                        const platformFee = sellerIsAdminSplit ? 0 : parseFloat(trade.escrowFee || "0");
+                        const netAmount = Math.max(0, trade.amount - platformFee);
+                        const halfAmount = parseFloat((netAmount / 2).toFixed(8));
+                        await wallet_1.walletService.executeFromHold({
+                            idempotencyKey: `p2p_resolve_split_seller_escrow_${trade.id}`,
+                            userId: trade.sellerId,
+                            walletId: sellerWallet.id,
+                            walletType: trade.offer.walletType,
+                            currency: trade.offer.currency,
+                            amount: trade.amount,
+                            operationType: "P2P_TRADE_RESOLVE",
+                            description: `P2P trade resolved by admin - SPLIT`,
+                            metadata: { tradeId: trade.id, resolution, adminId: user.id, platformFee },
+                            transaction,
+                        });
+                        const buyerWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.buyerId, trade.offer.walletType, trade.offer.currency);
+                        await wallet_1.walletService.credit({
+                            idempotencyKey: `p2p_resolve_split_buyer_${trade.id}`,
+                            userId: trade.buyerId,
+                            walletId: buyerWallet.id,
+                            walletType: trade.offer.walletType,
+                            currency: trade.offer.currency,
+                            amount: halfAmount,
+                            operationType: "P2P_TRADE_RECEIVE",
+                            description: `P2P trade resolved - split (buyer half)`,
+                            metadata: { tradeId: trade.id, resolution, adminId: user.id, originalAmount: trade.amount, platformFee },
+                            transaction,
+                        });
+                        const sellerReceiveWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                        await wallet_1.walletService.credit({
+                            idempotencyKey: `p2p_resolve_split_seller_${trade.id}`,
+                            userId: trade.sellerId,
+                            walletId: sellerReceiveWallet.id,
+                            walletType: trade.offer.walletType,
+                            currency: trade.offer.currency,
+                            amount: halfAmount,
+                            operationType: "P2P_TRADE_RECEIVE",
+                            description: `P2P trade resolved - split (seller half)`,
+                            metadata: { tradeId: trade.id, resolution, adminId: user.id, originalAmount: trade.amount, platformFee },
+                            transaction,
+                        });
+                        if (platformFee > 0) {
+                            const systemAdmin = await db_1.models.user.findOne({
+                                include: [{ model: db_1.models.role, as: "role", where: { name: "Super Admin" } }],
+                                order: [["createdAt", "ASC"]],
+                                transaction,
+                            });
+                            if (systemAdmin) {
+                                await db_1.models.p2pCommission.create({
+                                    adminId: systemAdmin.id,
+                                    amount: platformFee,
+                                    description: `P2P escrow fee for split-resolved trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency}`,
+                                    tradeId: trade.id,
+                                }, { transaction });
+                            }
+                            await (0, fees_1.collectPlatformFee)({
+                                userId: trade.sellerId,
+                                currency: trade.offer.currency,
+                                walletType: trade.offer.walletType,
+                                feeAmount: platformFee,
+                                type: "P2P_TRADE",
+                                description: `P2P escrow fee for split-resolved trade #${trade.id.slice(0, 8)}`,
+                                referenceId: trade.id,
+                                metadata: { tradeId: trade.id, resolvedBy: user.id, resolution },
+                                transaction,
+                            });
+                        }
+                        fundsReleased = true;
+                    }
+                    else {
+                        console_1.logger.warn("P2P_RESOLVE", `No funds available to split for trade ${trade.id}`);
+                    }
+                }
+            }
+            finalStatus = "COMPLETED";
+        }
         else if (resolution === "SELLER_WINS" || resolution === "CANCELLED") {
             if (trade.offer && trade.status !== "COMPLETED") {
                 const isBuyOffer = trade.offer.type === "BUY";
                 if (isBuyOffer) {
                     const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
                     if (sellerWallet) {
-                        const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
+                        const safeUnlockAmount = Math.min((_e = trade.amount) !== null && _e !== void 0 ? _e : 0, (_f = sellerWallet.inOrder) !== null && _f !== void 0 ? _f : 0);
                         if (safeUnlockAmount > 0) {
-                            const releaseIdempotencyKey = `p2p_resolve_release_${trade.id}_${Date.now()}`;
+                            const releaseIdempotencyKey = `p2p_resolve_release_${trade.id}`;
                             await wallet_1.walletService.release({
                                 idempotencyKey: releaseIdempotencyKey,
                                 userId: trade.sellerId,
@@ -241,8 +344,8 @@ exports.default = async (data) => {
                     });
                     if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
                         const amountConfig = parseAmountConfig(offer.amountConfig);
-                        const tradeAmount = (_e = trade.amount) !== null && _e !== void 0 ? _e : 0;
-                        const originalTotal = (_f = amountConfig.originalTotal) !== null && _f !== void 0 ? _f : (amountConfig.total + tradeAmount);
+                        const tradeAmount = (_g = trade.amount) !== null && _g !== void 0 ? _g : 0;
+                        const originalTotal = (_h = amountConfig.originalTotal) !== null && _h !== void 0 ? _h : (amountConfig.total + tradeAmount);
                         const proposedTotal = amountConfig.total + tradeAmount;
                         const safeTotal = Math.min(proposedTotal, originalTotal);
                         if (safeTotal > amountConfig.total) {
@@ -327,14 +430,14 @@ exports.default = async (data) => {
             finalStatus,
             resolution,
             fundsReleased,
-        });
+        }, undefined, transaction);
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notifications");
         notifyTradeEvent(trade.id, finalStatus === "COMPLETED" ? "TRADE_COMPLETED" : "TRADE_CANCELLED", {
             buyerId: trade.buyerId,
             sellerId: trade.sellerId,
             amount: trade.amount,
-            currency: ((_g = trade.offer) === null || _g === void 0 ? void 0 : _g.currency) || trade.currency,
+            currency: ((_j = trade.offer) === null || _j === void 0 ? void 0 : _j.currency) || trade.currency,
             adminResolved: true,
             resolution,
         }).catch((err) => console_1.logger.error("P2P_RESOLVE", `Notification error: ${err}`));

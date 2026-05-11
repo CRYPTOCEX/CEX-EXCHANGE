@@ -25,6 +25,16 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/routing";
 import { toast } from "sonner";
@@ -145,7 +155,7 @@ function PlanCard({
       <CardContent>
         <div className="mb-6">
           <div className="flex items-baseline">
-            <span className="text-4xl font-bold">${plan.price}</span>
+            <span className="text-4xl font-bold">{plan.price} {plan.currency}</span>
           </div>
         </div>
         <ul className="space-y-3">
@@ -161,7 +171,7 @@ function PlanCard({
         <Button
           className="w-full"
           variant={isPro || isEnterprise ? "default" : "outline"}
-          disabled={isCurrentPlan || (isProcessing && isSelected)}
+          disabled={isCurrentPlan || isProcessing}
           onClick={() => handleUpgrade(plan.id)}
         >
           {isProcessing && isSelected ? (
@@ -201,6 +211,8 @@ export default function PlanUpgradePage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [upgradeComplete, setUpgradeComplete] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "comparison">("cards");
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   // Fetch plans if they haven't been loaded yet.
   useEffect(() => {
@@ -209,11 +221,19 @@ export default function PlanUpgradePage() {
     }
   }, [plans, fetchPlans]);
 
-  // Render a fallback if the current plan ID is not provided.
+  // Redirect if the current plan ID is not provided. Must run in useEffect —
+  // calling router.push during render throws "Cannot update a component
+  // while rendering a different component".
+  useEffect(() => {
+    if (!currentPlanId) {
+      router.push(`/ico/creator/token/${tokenId}`);
+    }
+  }, [currentPlanId, tokenId, router]);
+
   if (!currentPlanId) {
-    router.push(`/ico/creator/token/${tokenId}`);
     return null;
   }
+
   const handleUpgrade = async (planId: string) => {
     if (planId === currentPlanId) {
       toast("Already on this plan", {
@@ -221,6 +241,15 @@ export default function PlanUpgradePage() {
       });
       return;
     }
+    // Stage the plan and show confirm dialog before PUT.
+    setPendingPlanId(planId);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmUpgrade = async () => {
+    const planId = pendingPlanId;
+    setShowConfirmDialog(false);
+    if (!planId) return;
     setSelectedPlan(getPlanById(planId) || null);
     setIsProcessing(true);
     try {
@@ -233,8 +262,11 @@ export default function PlanUpgradePage() {
       toast.error(error.message || "Upgrade failed");
     } finally {
       setIsProcessing(false);
+      setPendingPlanId(null);
     }
   };
+
+  const pendingPlanDetails = pendingPlanId ? getPlanById(pendingPlanId) : null;
   const currentPlanDetails = getPlanById(currentPlanId);
   const showCompare = plans.length > 1;
   const featureComparison = showCompare ? generateFeatureComparison(plans) : [];
@@ -307,7 +339,7 @@ export default function PlanUpgradePage() {
                   {selectedPlan.name}
                 </Badge>
                 <span className="text-primary font-medium">
-                  ${selectedPlan.price}
+                  {selectedPlan.price} {selectedPlan.currency}
                 </span>
               </div>
             )}
@@ -355,7 +387,7 @@ export default function PlanUpgradePage() {
                                 {plan.name}
                               </span>
                               <span className="text-muted-foreground text-sm">
-                                ${plan.price}
+                                {plan.price} {plan.currency}
                               </span>
                               {plan.recommended && (
                                 <Badge variant="secondary" className="mt-1">
@@ -387,7 +419,7 @@ export default function PlanUpgradePage() {
                       </tr>
                     ))}
                     <tr>
-                      <td className="p-4 sticky left-0 bg-white z-10"></td>
+                      <td className="p-4 sticky left-0 bg-background z-10"></td>
                       {plans.map((plan) => (
                         <td key={plan.id} className="p-4 text-center">
                           <Button
@@ -416,7 +448,7 @@ export default function PlanUpgradePage() {
             {selectedPlan && selectedPlan.id !== currentPlanId && (
               <div className="mt-6 flex justify-center">
                 <Button onClick={() => handleUpgrade(selectedPlan.id)}>
-                  {tCommon("upgrade_to")} {selectedPlan.name} {t("for")}{selectedPlan.price}
+                  {tCommon("upgrade_to")} {selectedPlan.name} {t("for")} {selectedPlan.price} {selectedPlan.currency}
                 </Button>
               </div>
             )}
@@ -493,6 +525,43 @@ export default function PlanUpgradePage() {
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={showConfirmDialog}
+        onOpenChange={(open) => {
+          setShowConfirmDialog(open);
+          if (!open) setPendingPlanId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tCommon("confirm_upgrade")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingPlanDetails
+                ? `Are you sure you want to upgrade to the ${pendingPlanDetails.name} plan for ${pendingPlanDetails.price} ${pendingPlanDetails.currency}? This action cannot be undone.`
+                : "Are you sure you want to upgrade this plan? This action cannot be undone."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isProcessing}>
+              {tCommon("cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmUpgrade}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {tCommon("processing")}
+                </>
+              ) : (
+                tCommon("confirm")
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

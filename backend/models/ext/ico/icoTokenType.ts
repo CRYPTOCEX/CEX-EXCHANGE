@@ -13,7 +13,7 @@ export interface icoTokenTypeAttributes {
 }
 
 export interface icoTokenTypeCreationAttributes
-  extends Partial<icoTokenTypeAttributes> {}
+  extends Omit<icoTokenTypeAttributes, 'id' | 'status' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export default class icoTokenType
   extends Model<icoTokenTypeAttributes, icoTokenTypeCreationAttributes>
@@ -75,6 +75,11 @@ export default class icoTokenType
             name: "PRIMARY",
             unique: true,
             fields: [{ name: "id" }],
+          },
+          {
+            name: "icoTokenTypeNameKey",
+            unique: true,
+            fields: [{ name: "name" }],
           },
         ],
       }

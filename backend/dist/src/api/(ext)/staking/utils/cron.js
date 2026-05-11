@@ -135,7 +135,7 @@ async function processSinglePosition(pos, aprCalculationMethod, compoundFrequenc
                     (0, broadcast_1.broadcastLog)(cronName, `Error creating notification for position ${positionWithLock.id} (User ${positionUser.id}): ${notifErr.message}`, "error");
                 }
                 try {
-                    await (0, affiliate_1.processRewards)(positionUser.id, positionWithLock.amount, "STAKING_LOYALTY", pool.symbol);
+                    await (0, affiliate_1.processRewards)(positionUser.id, positionWithLock.amount, "STAKING_LOYALTY", pool.symbol, `STAKING_LOYALTY:staking:${positionWithLock.id}`);
                     (0, broadcast_1.broadcastLog)(cronName, `Additional rewards processed for position ${positionWithLock.id} (User ${positionUser.id})`, "success");
                 }
                 catch (rewardErr) {

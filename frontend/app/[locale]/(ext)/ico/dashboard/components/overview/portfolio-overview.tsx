@@ -3,8 +3,9 @@
 import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePortfolioStore } from "@/store/ico/portfolio/portfolio-store";
-import { formatCurrency } from "@/lib/ico/utils";
+import { formatCurrency, formatNumber, formatPercentage } from "@/lib/ico/utils";
 import { useTranslations } from "next-intl";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 export function PortfolioOverview() {
   const t = useTranslations("ext_ico");
@@ -26,8 +27,10 @@ export function PortfolioOverview() {
     return <div>{tExt("no_portfolio_data_available")}.</div>;
   }
 
+  const isPositive = portfolio.totalProfitLoss >= 0;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Card 1: Total Invested */}
       <Card>
         <CardHeader className="pb-2">
@@ -45,75 +48,7 @@ export function PortfolioOverview() {
         </CardContent>
       </Card>
 
-      {/* Card 2: Pending Investment */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("pending_investment")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {formatCurrency(portfolio.pendingInvested)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("investments_awaiting_token_release")}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Card 3: Pending Verification Investment */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("pending_verification_investment")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {formatCurrency(portfolio.pendingVerificationInvested)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("investments_awaiting_verification")}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Card 4: Received Investment */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("received_investment")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {formatCurrency(portfolio.receivedInvested)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("investments_with_tokens_received")}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Card 5: Rejected Investment */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">
-            {t("rejected_investment")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {formatCurrency(portfolio.rejectedInvested)}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {t("investments_that_were_refunded")}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Card 6: Current Value */}
+      {/* Card 2: Current Value */}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
@@ -126,6 +61,41 @@ export function PortfolioOverview() {
           </div>
           <p className="text-xs text-muted-foreground">
             {t("market_value_of_received_tokens")}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Card 3: Total Tokens */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">
+            {t("total_tokens")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-primary">
+            {formatNumber(portfolio.totalTokens)}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("tokens_held_across_offerings")}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Card 4: Profit/Loss */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">
+            {t("total_profit_loss")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold flex items-center gap-2 ${isPositive ? "text-green-500" : "text-red-500"}`}>
+            {isPositive ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
+            {formatCurrency(Math.abs(portfolio.totalProfitLoss))}
+          </div>
+          <p className={`text-xs ${isPositive ? "text-green-500" : "text-red-500"}`}>
+            {formatPercentage(portfolio.profitLossPercentage)}
           </p>
         </CardContent>
       </Card>

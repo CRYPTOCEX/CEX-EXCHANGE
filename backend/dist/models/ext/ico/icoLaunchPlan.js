@@ -25,7 +25,7 @@ class icoLaunchPlan extends sequelize_1.Model {
                 },
             },
             price: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 2),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "price: Must be a valid number" },

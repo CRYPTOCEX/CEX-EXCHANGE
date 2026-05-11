@@ -1,1 +1,350 @@
-"use strict";async function closeTrade(e,t,a){const r=await db_1.sequelize.transaction();try{const l=await db_1.models.copyTradingTrade.findByPk(e,{transaction:r,lock:r.LOCK.UPDATE,include:[{model:db_1.models.copyTradingFollower,as:"follower",include:[{model:db_1.models.copyTradingLeader,as:"leader"}]}]});if(!l){await r.rollback();return{success:!1,error:"Trade not found"}}const o=l;if("CLOSED"===o.status){await r.rollback();return{success:!1,error:"Trade already closed"}}const i=a||o.executedAmount||o.amount,d=o.executedPrice||o.price,s=o.cost;let n;n="BUY"===o.side?(t-d)*i:(d-t)*i;n-=o.fee||0;const c=s>0?n/s*100:0;await o.update({profit:n,profitPercent:c,status:"CLOSED",closedAt:new Date},{transaction:r});if(o.followerId&&o.follower){const e=o.follower,a=e.leader,[l,d]=o.symbol.split("/"),u=await db_1.models.copyTradingFollowerAllocation.findOne({where:{followerId:e.id,symbol:o.symbol},transaction:r,lock:r.LOCK.UPDATE});if("BUY"===o.side){const t=i;if(t>0){const a=await(0,wallet_1.getWalletByUserIdAndCurrency)(e.userId,l);a&&await(0,wallet_1.updateWalletBalance)(a,t,"add",`ct_fill_base_${o.id}`,r)}u&&await u.update({quoteUsedAmount:(0,sequelize_1.literal)(`GREATEST(0, "quoteUsedAmount" - ${s})`)},{transaction:r})}else{const t=s+n;if(t>0){const a=await(0,wallet_1.getWalletByUserIdAndCurrency)(e.userId,d);a&&await(0,wallet_1.updateWalletBalance)(a,t,"add",`ct_fill_quote_${o.id}`,r)}u&&await u.update({baseUsedAmount:(0,sequelize_1.literal)(`GREATEST(0, "baseUsedAmount" - ${i})`)},{transaction:r})}u&&await u.update({totalProfit:(0,sequelize_1.literal)(`"totalProfit" + ${n}`),winRate:n>0?(0,sequelize_1.literal)('(("winRate" * ("totalTrades" - 1) + 100) / "totalTrades")'):(0,sequelize_1.literal)('(("winRate" * ("totalTrades" - 1)) / "totalTrades")')},{transaction:r});await e.update({totalProfit:(0,sequelize_1.literal)(`"totalProfit" + ${n}`),winRate:n>0?(0,sequelize_1.literal)('(("winRate" * ("totalTrades" - 1) + 100) / "totalTrades")'):(0,sequelize_1.literal)('(("winRate" * ("totalTrades" - 1)) / "totalTrades")')},{transaction:r});n<0&&await(0,dailyLimits_1.recordLoss)(e.id,Math.abs(n));n>0&&a&&await(0,profitShare_1.distributeProfitShare)(o.id,e,a,n,d,r);await db_1.models.copyTradingTransaction.create({userId:e.userId,followerId:e.id,leaderId:o.leaderId,tradeId:o.id,type:n>=0?"TRADE_PROFIT":"TRADE_LOSS",amount:Math.abs(n),currency:d,fee:0,balanceBefore:0,balanceAfter:0,description:`Trade closed: ${n>=0?"+":""}${n.toFixed(2)} ${d}`,metadata:JSON.stringify({closePrice:t,profitPercent:c}),status:"COMPLETED"},{transaction:r})}await r.commit();(0,index_1.updateLeaderStats)(o.leaderId).catch(e=>console_1.logger.error("COPY_TRADING","Failed to update leader stats",e));o.followerId&&(0,index_1.updateFollowerStats)(o.followerId).catch(e=>console_1.logger.error("COPY_TRADING","Failed to update follower stats",e));await(0,index_1.createAuditLog)({entityType:"copyTradingTrade",entityId:e,action:"TRADE_CLOSED",metadata:{closePrice:t,profit:n,profitPercent:c}});return{success:!0,profit:n,profitPercent:c}}catch(e){await r.rollback();console_1.logger.error("COPY_TRADING","Failed to close trade",e);return{success:!1,error:e.message}}}async function closeLeaderTrade(e,t){var a;const r=[];let l=0;try{const o=await closeTrade(e,t);if(!o.success)return{closedCount:0,errors:[o.error||"Failed to close leader trade"]};const i=await db_1.models.copyTradingTrade.findAll({where:{leaderOrderId:null===(a=await db_1.models.copyTradingTrade.findByPk(e))||void 0===a?void 0:a.get("leaderOrderId"),isLeaderTrade:!1,status:{[sequelize_1.Op.in]:["OPEN","PARTIALLY_FILLED"]}}});for(const e of i){const a=await closeTrade(e.id,t);a.success?l++:r.push(`Trade ${e.id}: ${a.error}`)}return{closedCount:l,errors:r}}catch(e){console_1.logger.error("COPY_TRADING","Failed to close leader trade",e);return{closedCount:l,errors:[e.message]}}}async function handleOrderFilled(e,t,a,r,l,o,i,d){const s=FillMonitor.getInstance();await s.onOrderFilled({orderId:e,userId:t,symbol:a,side:r,filledAmount:l,filledPrice:o,fee:i,status:d,timestamp:new Date})}Object.defineProperty(exports,"__esModule",{value:!0});exports.FillMonitor=void 0;exports.closeTrade=closeTrade;exports.closeLeaderTrade=closeLeaderTrade;exports.handleOrderFilled=handleOrderFilled;const db_1=require("@b/db"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),profitShare_1=require("./profitShare"),dailyLimits_1=require("./dailyLimits"),index_1=require("./index");class FillMonitor{constructor(){this.isProcessing=!1;this.pollInterval=null}static getInstance(){FillMonitor.instance||(FillMonitor.instance=new FillMonitor);return FillMonitor.instance}start(e=5e3){if(!this.pollInterval){this.pollInterval=setInterval(async()=>{await this.checkPendingOrders()},e);console_1.logger.info("COPY_TRADING","FillMonitor started")}}stop(){if(this.pollInterval){clearInterval(this.pollInterval);this.pollInterval=null}console_1.logger.info("COPY_TRADING","FillMonitor stopped")}async onOrderFilled(e){try{const t=await db_1.models.copyTradingTrade.findOne({where:{leaderOrderId:e.orderId,isLeaderTrade:!0}});if(t){await this.handleLeaderOrderFill(t,e);return}const a=await db_1.models.copyTradingTrade.findOne({where:{leaderOrderId:e.orderId,isLeaderTrade:!1},include:[{model:db_1.models.copyTradingFollower,as:"follower",include:[{model:db_1.models.copyTradingLeader,as:"leader"}]}]});a&&await this.handleFollowerOrderFill(a,e)}catch(e){console_1.logger.error("COPY_TRADING","Fill monitor error on order filled",e)}}async handleLeaderOrderFill(e,t){const a=await db_1.sequelize.transaction();try{await e.update({executedAmount:t.filledAmount,executedPrice:t.filledPrice,fee:t.fee,status:"FILLED"===t.status?"OPEN":"CANCELLED"===t.status?"CANCELLED":"PARTIALLY_FILLED"},{transaction:a});"CANCELLED"===t.status&&await db_1.models.copyTradingTrade.update({status:"CANCELLED"},{where:{leaderOrderId:e.leaderOrderId,isLeaderTrade:!1,status:"PENDING"},transaction:a});await a.commit();await(0,index_1.createAuditLog)({entityType:"copyTradingTrade",entityId:e.id,action:"ORDER_FILLED",metadata:{filledAmount:t.filledAmount,filledPrice:t.filledPrice,status:t.status}})}catch(e){await a.rollback();console_1.logger.error("COPY_TRADING","Failed to handle leader order fill",e)}}async handleFollowerOrderFill(e,t){const a=await db_1.sequelize.transaction();try{const r=e.price>0?(t.filledPrice-e.price)/e.price*100:0;await e.update({executedAmount:t.filledAmount,executedPrice:t.filledPrice,slippage:r,fee:t.fee,status:"FILLED"===t.status?"OPEN":"CANCELLED"===t.status?"CANCELLED":"PARTIALLY_FILLED"},{transaction:a});await a.commit();await(0,index_1.createAuditLog)({entityType:"copyTradingTrade",entityId:e.id,action:"ORDER_FILLED",metadata:{filledAmount:t.filledAmount,filledPrice:t.filledPrice,slippage:r,status:t.status}})}catch(e){await a.rollback();console_1.logger.error("COPY_TRADING","Failed to handle follower order fill",e)}}async checkPendingOrders(){if(!this.isProcessing){this.isProcessing=!0;try{const e=new Date(Date.now()-3e4),t=await db_1.models.copyTradingTrade.findAll({where:{status:"PENDING",createdAt:{[sequelize_1.Op.lt]:e}},limit:100});for(const e of t)await e.update({status:"FAILED",errorMessage:"Order timeout - no fill received"})}catch(e){console_1.logger.error("COPY_TRADING","Failed to check pending orders",e)}finally{this.isProcessing=!1}}}}exports.FillMonitor=FillMonitor;FillMonitor.instance=null;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.FillMonitor = void 0;
+exports.closeTrade = closeTrade;
+exports.closeLeaderTrade = closeLeaderTrade;
+exports.handleOrderFilled = handleOrderFilled;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const profitShare_1 = require("./profitShare");
+const dailyLimits_1 = require("./dailyLimits");
+const index_1 = require("./index");
+class FillMonitor {
+    constructor() {
+        this.isProcessing = false;
+        this.pollInterval = null;
+    }
+    static getInstance() {
+        if (!FillMonitor.instance) {
+            FillMonitor.instance = new FillMonitor();
+        }
+        return FillMonitor.instance;
+    }
+    start(intervalMs = 5000) {
+        if (this.pollInterval) {
+            return;
+        }
+        this.pollInterval = setInterval(async () => {
+            await this.checkPendingOrders();
+        }, intervalMs);
+        console_1.logger.info("COPY_TRADING", "FillMonitor started");
+    }
+    stop() {
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+            this.pollInterval = null;
+        }
+        console_1.logger.info("COPY_TRADING", "FillMonitor stopped");
+    }
+    async onOrderFilled(event) {
+        try {
+            const leaderTrade = await db_1.models.copyTradingTrade.findOne({
+                where: {
+                    leaderOrderId: event.orderId,
+                    isLeaderTrade: true,
+                },
+            });
+            if (leaderTrade) {
+                await this.handleLeaderOrderFill(leaderTrade, event);
+                return;
+            }
+            const followerTrade = await db_1.models.copyTradingTrade.findOne({
+                where: {
+                    leaderOrderId: event.orderId,
+                    isLeaderTrade: false,
+                },
+                include: [
+                    {
+                        model: db_1.models.copyTradingFollower,
+                        as: "follower",
+                        include: [{ model: db_1.models.copyTradingLeader, as: "leader" }],
+                    },
+                ],
+            });
+            if (followerTrade) {
+                await this.handleFollowerOrderFill(followerTrade, event);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("COPY_TRADING", "Fill monitor error on order filled", error);
+        }
+    }
+    async handleLeaderOrderFill(trade, event) {
+        const t = await db_1.sequelize.transaction();
+        try {
+            await trade.update({
+                executedAmount: event.filledAmount,
+                executedPrice: event.filledPrice,
+                fee: event.fee,
+                status: event.status === "FILLED"
+                    ? "OPEN"
+                    : event.status === "CANCELLED"
+                        ? "CANCELLED"
+                        : "PARTIALLY_FILLED",
+            }, { transaction: t });
+            if (event.status === "CANCELLED") {
+                await db_1.models.copyTradingTrade.update({ status: "CANCELLED" }, {
+                    where: {
+                        leaderOrderId: trade.leaderOrderId,
+                        isLeaderTrade: false,
+                        status: "PENDING",
+                    },
+                    transaction: t,
+                });
+            }
+            await t.commit();
+            await (0, index_1.createAuditLog)({
+                entityType: "copyTradingTrade",
+                entityId: trade.id,
+                action: "ORDER_FILLED",
+                metadata: {
+                    filledAmount: event.filledAmount,
+                    filledPrice: event.filledPrice,
+                    status: event.status,
+                },
+            });
+        }
+        catch (error) {
+            await t.rollback();
+            console_1.logger.error("COPY_TRADING", "Failed to handle leader order fill", error);
+        }
+    }
+    async handleFollowerOrderFill(trade, event) {
+        const t = await db_1.sequelize.transaction();
+        try {
+            const slippage = trade.price > 0
+                ? ((event.filledPrice - trade.price) / trade.price) * 100
+                : 0;
+            await trade.update({
+                executedAmount: event.filledAmount,
+                executedPrice: event.filledPrice,
+                slippage,
+                fee: event.fee,
+                status: event.status === "FILLED"
+                    ? "OPEN"
+                    : event.status === "CANCELLED"
+                        ? "CANCELLED"
+                        : "PARTIALLY_FILLED",
+            }, { transaction: t });
+            await t.commit();
+            await (0, index_1.createAuditLog)({
+                entityType: "copyTradingTrade",
+                entityId: trade.id,
+                action: "ORDER_FILLED",
+                metadata: {
+                    filledAmount: event.filledAmount,
+                    filledPrice: event.filledPrice,
+                    slippage,
+                    status: event.status,
+                },
+            });
+        }
+        catch (error) {
+            await t.rollback();
+            console_1.logger.error("COPY_TRADING", "Failed to handle follower order fill", error);
+        }
+    }
+    async checkPendingOrders() {
+        if (this.isProcessing) {
+            return;
+        }
+        this.isProcessing = true;
+        try {
+            const cutoff = new Date(Date.now() - 30000);
+            const pendingTrades = await db_1.models.copyTradingTrade.findAll({
+                where: {
+                    status: "PENDING",
+                    createdAt: { [sequelize_1.Op.lt]: cutoff },
+                },
+                limit: 100,
+            });
+            for (const trade of pendingTrades) {
+                await trade.update({
+                    status: "FAILED",
+                    errorMessage: "Order timeout - no fill received",
+                });
+            }
+        }
+        catch (error) {
+            console_1.logger.error("COPY_TRADING", "Failed to check pending orders", error);
+        }
+        finally {
+            this.isProcessing = false;
+        }
+    }
+}
+exports.FillMonitor = FillMonitor;
+FillMonitor.instance = null;
+async function closeTrade(tradeId, closePrice, closeAmount) {
+    const t = await db_1.sequelize.transaction();
+    try {
+        const trade = await db_1.models.copyTradingTrade.findByPk(tradeId, {
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+            include: [
+                {
+                    model: db_1.models.copyTradingFollower,
+                    as: "follower",
+                    include: [{ model: db_1.models.copyTradingLeader, as: "leader" }],
+                },
+            ],
+        });
+        if (!trade) {
+            await t.rollback();
+            return { success: false, error: "Trade not found" };
+        }
+        const tradeData = trade;
+        if (tradeData.status === "CLOSED") {
+            await t.rollback();
+            return { success: false, error: "Trade already closed" };
+        }
+        const amount = closeAmount || tradeData.executedAmount || tradeData.amount;
+        const entryPrice = tradeData.executedPrice || tradeData.price;
+        const entryCost = tradeData.cost;
+        let profit;
+        if (tradeData.side === "BUY") {
+            profit = (closePrice - entryPrice) * amount;
+        }
+        else {
+            profit = (entryPrice - closePrice) * amount;
+        }
+        profit -= tradeData.fee || 0;
+        const profitPercent = entryCost > 0 ? (profit / entryCost) * 100 : 0;
+        await tradeData.update({
+            profit,
+            profitPercent,
+            status: "CLOSED",
+            closedAt: new Date(),
+        }, { transaction: t });
+        if (tradeData.followerId && tradeData.follower) {
+            const follower = tradeData.follower;
+            const leader = follower.leader;
+            const [baseCurrency, quoteCurrency] = tradeData.symbol.split("/");
+            const allocation = await db_1.models.copyTradingFollowerAllocation.findOne({
+                where: {
+                    followerId: follower.id,
+                    symbol: tradeData.symbol,
+                },
+                transaction: t,
+                lock: t.LOCK.UPDATE,
+            });
+            if (tradeData.side === "BUY") {
+                const receiveAmount = amount;
+                if (receiveAmount > 0) {
+                    const baseWallet = await (0, wallet_1.getWalletByUserIdAndCurrency)(follower.userId, baseCurrency);
+                    if (baseWallet) {
+                        await (0, wallet_1.updateWalletBalance)(baseWallet, receiveAmount, "add", `ct_fill_base_${tradeData.id}`, t);
+                    }
+                }
+                if (allocation) {
+                    await allocation.update({
+                        quoteUsedAmount: (0, sequelize_1.literal)(`GREATEST(0, "quoteUsedAmount" - ${entryCost})`),
+                    }, { transaction: t });
+                }
+            }
+            else {
+                const receiveAmount = entryCost + profit;
+                if (receiveAmount > 0) {
+                    const quoteWallet = await (0, wallet_1.getWalletByUserIdAndCurrency)(follower.userId, quoteCurrency);
+                    if (quoteWallet) {
+                        await (0, wallet_1.updateWalletBalance)(quoteWallet, receiveAmount, "add", `ct_fill_quote_${tradeData.id}`, t);
+                    }
+                }
+                if (allocation) {
+                    await allocation.update({
+                        baseUsedAmount: (0, sequelize_1.literal)(`GREATEST(0, "baseUsedAmount" - ${amount})`),
+                    }, { transaction: t });
+                }
+            }
+            if (profit < 0) {
+                await (0, dailyLimits_1.recordLoss)(follower.id, Math.abs(profit));
+            }
+            if (profit > 0 && leader) {
+                await (0, profitShare_1.distributeProfitShare)(tradeData.id, follower, leader, profit, quoteCurrency, t);
+            }
+            await db_1.models.copyTradingTransaction.create({
+                userId: follower.userId,
+                followerId: follower.id,
+                leaderId: tradeData.leaderId,
+                tradeId: tradeData.id,
+                type: profit >= 0 ? "TRADE_PROFIT" : "TRADE_LOSS",
+                amount: Math.abs(profit),
+                currency: quoteCurrency,
+                fee: 0,
+                balanceBefore: 0,
+                balanceAfter: 0,
+                description: `Trade closed: ${profit >= 0 ? "+" : ""}${profit.toFixed(2)} ${quoteCurrency}`,
+                metadata: JSON.stringify({
+                    closePrice,
+                    profitPercent,
+                }),
+                status: "COMPLETED",
+            }, { transaction: t });
+        }
+        await t.commit();
+        (0, index_1.updateLeaderStats)(tradeData.leaderId).catch((e) => console_1.logger.error("COPY_TRADING", "Failed to update leader stats", e));
+        if (tradeData.followerId) {
+            (0, index_1.updateFollowerStats)(tradeData.followerId).catch((e) => console_1.logger.error("COPY_TRADING", "Failed to update follower stats", e));
+        }
+        await (0, index_1.createAuditLog)({
+            entityType: "copyTradingTrade",
+            entityId: tradeId,
+            action: "TRADE_CLOSED",
+            metadata: { closePrice, profit, profitPercent },
+        });
+        return { success: true, profit, profitPercent };
+    }
+    catch (error) {
+        await t.rollback();
+        console_1.logger.error("COPY_TRADING", "Failed to close trade", error);
+        return { success: false, error: error.message };
+    }
+}
+async function closeLeaderTrade(leaderTradeId, closePrice) {
+    var _a;
+    const errors = [];
+    let closedCount = 0;
+    try {
+        const leaderResult = await closeTrade(leaderTradeId, closePrice);
+        if (!leaderResult.success) {
+            return { closedCount: 0, errors: [leaderResult.error || "Failed to close leader trade"] };
+        }
+        const followerTrades = await db_1.models.copyTradingTrade.findAll({
+            where: {
+                leaderOrderId: (_a = (await db_1.models.copyTradingTrade.findByPk(leaderTradeId))) === null || _a === void 0 ? void 0 : _a.get("leaderOrderId"),
+                isLeaderTrade: false,
+                status: { [sequelize_1.Op.in]: ["OPEN", "PARTIALLY_FILLED"] },
+            },
+        });
+        for (const trade of followerTrades) {
+            const result = await closeTrade(trade.id, closePrice);
+            if (result.success) {
+                closedCount++;
+            }
+            else {
+                errors.push(`Trade ${trade.id}: ${result.error}`);
+            }
+        }
+        return { closedCount, errors };
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", "Failed to close leader trade", error);
+        return { closedCount, errors: [error.message] };
+    }
+}
+async function handleOrderFilled(orderId, userId, symbol, side, filledAmount, filledPrice, fee, status) {
+    const monitor = FillMonitor.getInstance();
+    await monitor.onOrderFilled({
+        orderId,
+        userId,
+        symbol,
+        side,
+        filledAmount,
+        filledPrice,
+        fee,
+        status,
+        timestamp: new Date(),
+    });
+}

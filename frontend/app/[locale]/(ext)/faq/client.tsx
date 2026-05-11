@@ -148,7 +148,7 @@ export default function FAQClient() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -177,7 +177,6 @@ export default function FAQClient() {
         }, 100);
       }
     } catch (error) {
-      console.error("Error searching FAQs:", error);
       toast({
         title: "Search error",
         description: "An error occurred while searching.",
@@ -222,13 +221,34 @@ export default function FAQClient() {
     setShowSuggestions(false);
   };
 
-  const handleSelectSuggestion = (suggestion: string) => {
+  const handleSelectSuggestion = async (suggestion: string) => {
     setSearchTerm(suggestion);
     setShowSuggestions(false);
     setSelectedSuggestionIndex(-1);
-    setTimeout(() => {
-      handleSearch();
-    }, 100);
+    // Search with the suggestion directly instead of relying on stale state
+    setIsSearching(true);
+    try {
+      const results = await searchFAQs(
+        suggestion,
+        selectedCategory !== "all" ? selectedCategory : undefined
+      );
+      setSearchResults(results);
+      if (results.length > 0) {
+        setTimeout(() => {
+          document
+            .getElementById("search-results-section")
+            ?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    } catch (error) {
+      toast({
+        title: "Search error",
+        description: "An error occurred while searching.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const toggleSavedFAQ = useCallback(
@@ -609,9 +629,7 @@ export default function FAQClient() {
                             <CardContent>
                               <p className="line-clamp-3 text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
                                 {faq.answer && typeof faq.answer === "string"
-                                  ? faq.answer
-                                      .replace(/<[^>]*>/g, "")
-                                      .substring(0, 150) + "..."
+                                  ? (() => { const s = faq.answer.replace(/<[^>]*>/g, ""); return s.length > 150 ? s.substring(0, 150) + "..." : s; })()
                                   : "No answer provided"}
                               </p>
                               <div className="flex justify-between items-center">
@@ -750,31 +768,43 @@ export default function FAQClient() {
                           />
                         </PaginationItem>
 
-                        {[...Array(Math.min(5, pagination.totalPages))].map(
-                          (_, index) => {
-                            const pageNumber = index + 1;
-                            return (
-                              <PaginationItem key={pageNumber}>
-                                <PaginationLink
-                                  href="#"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    setCurrentPage(pageNumber);
-                                  }}
-                                  isActive={currentPage === pageNumber}
-                                >
-                                  {pageNumber}
-                                </PaginationLink>
+                        {(() => {
+                          const totalPages = pagination.totalPages;
+                          const maxVisible = 5;
+                          let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                          let endPage = startPage + maxVisible - 1;
+                          if (endPage > totalPages) {
+                            endPage = totalPages;
+                            startPage = Math.max(1, endPage - maxVisible + 1);
+                          }
+                          const pages: React.ReactNode[] = [];
+                          if (startPage > 1) {
+                            pages.push(
+                              <PaginationItem key={1}>
+                                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(1); }} isActive={currentPage === 1}>1</PaginationLink>
+                              </PaginationItem>
+                            );
+                            if (startPage > 2) pages.push(<PaginationItem key="start-ellipsis"><PaginationEllipsis /></PaginationItem>);
+                          }
+                          for (let i = startPage; i <= endPage; i++) {
+                            if (i === 1 && startPage > 1) continue;
+                            if (i === totalPages && endPage < totalPages) continue;
+                            pages.push(
+                              <PaginationItem key={i}>
+                                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(i); }} isActive={currentPage === i}>{i}</PaginationLink>
                               </PaginationItem>
                             );
                           }
-                        )}
-
-                        {pagination.totalPages > 5 && (
-                          <PaginationItem>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        )}
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) pages.push(<PaginationItem key="end-ellipsis"><PaginationEllipsis /></PaginationItem>);
+                            pages.push(
+                              <PaginationItem key={totalPages}>
+                                <PaginationLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(totalPages); }} isActive={currentPage === totalPages}>{totalPages}</PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+                          return pages;
+                        })()}
 
                         <PaginationItem>
                           <PaginationNext
@@ -879,7 +909,7 @@ export default function FAQClient() {
                                   {/* Answer Preview */}
                                   <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-4">
                                     {faq.answer && typeof faq.answer === "string"
-                                      ? faq.answer.replace(/<[^>]*>/g, "").substring(0, 100) + "..."
+                                      ? (() => { const s = faq.answer.replace(/<[^>]*>/g, ""); return s.length > 100 ? s.substring(0, 100) + "..." : s; })()
                                       : "No answer provided"}
                                   </p>
 
@@ -966,7 +996,7 @@ export default function FAQClient() {
                                   {/* Answer Preview */}
                                   <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
                                     {faq.answer && typeof faq.answer === "string"
-                                      ? faq.answer.replace(/<[^>]*>/g, "").substring(0, 80) + "..."
+                                      ? (() => { const s = faq.answer.replace(/<[^>]*>/g, ""); return s.length > 80 ? s.substring(0, 80) + "..." : s; })()
                                       : "No answer provided"}
                                   </p>
 

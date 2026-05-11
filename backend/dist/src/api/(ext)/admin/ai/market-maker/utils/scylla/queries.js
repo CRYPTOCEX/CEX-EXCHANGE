@@ -1,1 +1,1038 @@
-"use strict";function toBigIntSafe(e){return null==e?BigInt(0):"bigint"==typeof e?e:BigInt(e.toString())}function mapRowToOrder(e){var t,r,a,o;return{marketId:null===(t=e.market_id)||void 0===t?void 0:t.toString(),botId:null===(r=e.bot_id)||void 0===r?void 0:r.toString(),orderId:null===(a=e.order_id)||void 0===a?void 0:a.toString(),side:e.side,type:e.type,price:toBigIntSafe(e.price),amount:toBigIntSafe(e.amount),filledAmount:toBigIntSafe(e.filled_amount),status:e.status,purpose:e.purpose,matchedWithBotId:null===(o=e.matched_with_bot_id)||void 0===o?void 0:o.toString(),createdAt:e.created_at,updatedAt:e.updated_at}}function mapRowToTrade(e){var t,r,a,o,n,i;return{marketId:null===(t=e.market_id)||void 0===t?void 0:t.toString(),tradeDate:e.trade_date,tradeTime:e.trade_time,tradeId:null===(r=e.trade_id)||void 0===r?void 0:r.toString(),buyBotId:null===(a=e.buy_bot_id)||void 0===a?void 0:a.toString(),sellBotId:null===(o=e.sell_bot_id)||void 0===o?void 0:o.toString(),buyOrderId:null===(n=e.buy_order_id)||void 0===n?void 0:n.toString(),sellOrderId:null===(i=e.sell_order_id)||void 0===i?void 0:i.toString(),price:toBigIntSafe(e.price),amount:toBigIntSafe(e.amount)}}function mapRowToPriceHistory(e){var t;return{marketId:null===(t=e.market_id)||void 0===t?void 0:t.toString(),timestamp:e.timestamp,price:toBigIntSafe(e.price),volume:toBigIntSafe(e.volume),isAiTrade:e.is_ai_trade,source:e.source}}async function insertBotOrder(e){const t=(0,passwords_1.makeUuid)(),r=new Date,a=`\n    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_bot_orders (\n      market_id, bot_id, order_id, side, type, price, amount,\n      filled_amount, status, purpose, matched_with_bot_id, created_at, updated_at\n    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n  `,o=[cassandra_driver_1.types.Uuid.fromString(e.marketId),cassandra_driver_1.types.Uuid.fromString(e.botId),cassandra_driver_1.types.Uuid.fromString(t),e.side,e.type,e.price.toString(),e.amount.toString(),e.filledAmount.toString(),e.status,e.purpose,e.matchedWithBotId?cassandra_driver_1.types.Uuid.fromString(e.matchedWithBotId):null,r,r];await client_1.default.execute(a,o,{prepare:!0});return t}async function updateBotOrder(e,t,r,a){const o=[],n=[];if(void 0!==a.filledAmount){o.push("filled_amount = ?");n.push(a.filledAmount.toString())}if(void 0!==a.status){o.push("status = ?");n.push(a.status)}if(void 0!==a.matchedWithBotId){o.push("matched_with_bot_id = ?");n.push(cassandra_driver_1.types.Uuid.fromString(a.matchedWithBotId))}o.push("updated_at = ?");n.push(new Date);n.push(cassandra_driver_1.types.Uuid.fromString(e));n.push(r);n.push(cassandra_driver_1.types.Uuid.fromString(t));const i=`\n    UPDATE ${client_1.aiMarketMakerKeyspace}.ai_bot_orders\n    SET ${o.join(", ")}\n    WHERE market_id = ? AND created_at = ? AND order_id = ?\n  `;await client_1.default.execute(i,n,{prepare:!0})}async function getBotOrdersByMarket(e,t=100){const r=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders\n    WHERE market_id = ?\n    LIMIT ?\n  `;return(await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e),t],{prepare:!0})).rows.map(mapRowToOrder)}async function getBotOrdersByBot(e,t=100){const r=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders_by_bot\n    WHERE bot_id = ?\n    LIMIT ?\n  `;return(await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e),t],{prepare:!0})).rows.map(mapRowToOrder)}async function getOpenBotOrders(e){const t=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_open_orders\n    WHERE status = 'OPEN' AND market_id = ?\n  `;return(await client_1.default.execute(t,[cassandra_driver_1.types.Uuid.fromString(e)],{prepare:!0})).rows.map(mapRowToOrder)}async function cancelBotOrder(e,t,r){await updateBotOrder(e,t,r,{status:"CANCELLED"})}async function insertBotTrade(e){const t=(0,passwords_1.makeUuid)(),r=new Date,a=new cassandra_driver_1.types.LocalDate(r.getFullYear(),r.getMonth()+1,r.getDate()),o=`\n    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_bot_trades (\n      market_id, trade_date, trade_time, trade_id, buy_bot_id, sell_bot_id,\n      buy_order_id, sell_order_id, price, amount\n    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n  `,n=[cassandra_driver_1.types.Uuid.fromString(e.marketId),a,r,cassandra_driver_1.types.Uuid.fromString(t),cassandra_driver_1.types.Uuid.fromString(e.buyBotId),cassandra_driver_1.types.Uuid.fromString(e.sellBotId),cassandra_driver_1.types.Uuid.fromString(e.buyOrderId),cassandra_driver_1.types.Uuid.fromString(e.sellOrderId),e.price.toString(),e.amount.toString()];try{await client_1.default.execute(o,n,{prepare:!0})}catch(t){console_1.logger.error("AI_MM",`Failed to insert trade for market ${e.marketId}: ${t}`);throw t}return t}async function getBotTradesByMarket(e,t,r=100){const a=new cassandra_driver_1.types.LocalDate(t.getFullYear(),t.getMonth()+1,t.getDate()),o=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n    WHERE market_id = ? AND trade_date = ?\n    LIMIT ?\n  `;return(await client_1.default.execute(o,[cassandra_driver_1.types.Uuid.fromString(e),a,r],{prepare:!0})).rows.map(mapRowToTrade)}async function getBotTradesInRange(e,t,r,a=1e3){const o=[],n=new Date(t);for(;n<=r&&o.length<a;){const t=await getBotTradesByMarket(e,n,a-o.length);o.push(...t);n.setDate(n.getDate()+1)}return o}async function getDailyTradeVolume(e,t){return(await getBotTradesByMarket(e,t,1e4)).reduce((e,t)=>e+t.amount,BigInt(0))}async function insertPriceHistory(e){const t=`\n    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_price_history (\n      market_id, timestamp, price, volume, is_ai_trade, source\n    ) VALUES (?, ?, ?, ?, ?, ?)\n  `,r=[cassandra_driver_1.types.Uuid.fromString(e.marketId),new Date,e.price.toString(),e.volume.toString(),e.isAiTrade,e.source];await client_1.default.execute(t,r,{prepare:!0})}async function getPriceHistory(e,t=100){const r=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history\n    WHERE market_id = ?\n    LIMIT ?\n  `;return(await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e),t],{prepare:!0})).rows.map(mapRowToPriceHistory)}async function getPriceHistoryInRange(e,t,r,a=1e3){const o=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history\n    WHERE market_id = ? AND timestamp >= ? AND timestamp <= ?\n    LIMIT ?\n  `;return(await client_1.default.execute(o,[cassandra_driver_1.types.Uuid.fromString(e),t,r,a],{prepare:!0})).rows.map(mapRowToPriceHistory)}async function getLatestPrice(e){const t=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history\n    WHERE market_id = ?\n    LIMIT 1\n  `,r=await client_1.default.execute(t,[cassandra_driver_1.types.Uuid.fromString(e)],{prepare:!0});return 0===r.rows.length?null:mapRowToPriceHistory(r.rows[0])}async function calculateVolatility(e,t=60){const r=new Date,a=new Date(r.getTime()-60*t*1e3),o=await getPriceHistoryInRange(e,a,r,1e3);if(o.length<2)return 0;const n=o.map(e=>Number(e.price)),i=[];for(let e=1;e<n.length;e++)0!==n[e-1]&&i.push((n[e]-n[e-1])/n[e-1]);if(0===i.length)return 0;const s=i.reduce((e,t)=>e+t,0)/i.length,d=i.map(e=>Math.pow(e-s,2)).reduce((e,t)=>e+t,0)/i.length;return 100*Math.sqrt(d)}async function placeRealOrder(e,t,r,a,o,n,i){const[s,d]=e.split("/"),c=i,l=r*a/BigInt(10**18),u=BigInt(0),_="BUY"===t?d:s,p=await(0,queries_1.createOrder)({userId:c,symbol:e,amount:a,price:r,cost:l,type:"LIMIT",side:t,fee:u,feeCurrency:_,marketMakerId:n,botId:i});await(0,queries_1.addOrderToMatchingQueue)(p);await trackRealLiquidityOrder({aiBotOrderId:o,ecosystemOrderId:p.id,symbol:e,side:t,price:r,amount:a});return p}async function cancelRealOrder(e,t,r,a,o,n,i){await(0,queries_1.cancelOrderByUuid)(t,e,r,a,o,n,i);await updateRealLiquidityOrderStatus(e,"CANCELLED")}async function trackRealLiquidityOrder(e){const t=`\n    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders (\n      ai_order_id, ecosystem_order_id, symbol, side, price, amount, status, created_at\n    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)\n  `;await client_1.default.execute(t,[cassandra_driver_1.types.Uuid.fromString(e.aiBotOrderId),cassandra_driver_1.types.Uuid.fromString(e.ecosystemOrderId),e.symbol,e.side,e.price.toString(),e.amount.toString(),"OPEN",new Date],{prepare:!0})}async function updateRealLiquidityOrderStatus(e,t){const r=`\n    UPDATE ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders\n    SET status = ?\n    WHERE ecosystem_order_id = ?\n  `;await client_1.default.execute(r,[t,cassandra_driver_1.types.Uuid.fromString(e)],{prepare:!0})}async function syncOrderbookFromAiTrade(e,t,r){const a=orderbookUpdateLocks.get(e);if(a)try{await a}catch(e){}const o=syncOrderbookFromAiTradeInternal(e,t,r);orderbookUpdateLocks.set(e,o);try{await o}finally{orderbookUpdateLocks.get(e)===o&&orderbookUpdateLocks.delete(e)}}async function syncOrderbookFromAiTradeInternal(e,t,r){const a=[.001,.002,.003,.004,.005],o=[],n=[];for(const e of a){const a=t*(1-e),i=r*(.5+1*Math.random());o.push({price:a,amount:i});const s=t*(1+e),d=r*(.5+1*Math.random());n.push({price:s,amount:d})}const i=[],s=["BIDS","ASKS"];for(const t of s){const r=`\n      SELECT price FROM ${client_1.scyllaKeyspace}.orderbook\n      WHERE symbol = ? AND side = ?\n    `;try{const a=await client_1.default.execute(r,[e,t],{prepare:!0});for(const r of a.rows)i.push({query:`DELETE FROM ${client_1.scyllaKeyspace}.orderbook WHERE symbol = ? AND side = ? AND price = ?`,params:[e,t,r.price]})}catch(r){console_1.logger.error("AI_MM",`Failed to get orderbook entries for ${e} ${t}: ${r}`)}}for(const t of o)i.push({query:`INSERT INTO ${client_1.scyllaKeyspace}.orderbook (symbol, price, amount, side) VALUES (?, ?, ?, ?)`,params:[e,t.price,t.amount,"BIDS"]});for(const t of n)i.push({query:`INSERT INTO ${client_1.scyllaKeyspace}.orderbook (symbol, price, amount, side) VALUES (?, ?, ?, ?)`,params:[e,t.price,t.amount,"ASKS"]});if(i.length>0)try{await client_1.default.batch(i,{prepare:!0})}catch(t){console_1.logger.error("AI_MM",`Failed to update orderbook batch for ${e}: ${t}`);console_1.logger.warn("AI_MM",`Falling back to individual orderbook updates for ${e}`);await clearOrderbookForSymbol(e);for(const t of o)try{await(0,queries_1.updateOrderBookInDB)(e,t.price,t.amount,"BIDS")}catch(e){console_1.logger.error("AI_MM",`Failed to insert bid: ${e}`)}for(const t of n)try{await(0,queries_1.updateOrderBookInDB)(e,t.price,t.amount,"ASKS")}catch(e){console_1.logger.error("AI_MM",`Failed to insert ask: ${e}`)}}}async function syncTradeToEcosystem(e,t,r,a){await(0,queries_1.insertTrade)(e,t,r,a,!0)}async function clearCandlesForSymbol(e){const t=["1m","3m","5m","15m","30m","1h","2h","4h","6h","12h","1d","3d","1w"];for(const r of t)try{const t=`\n        SELECT "createdAt" FROM ${client_1.scyllaKeyspace}.candles\n        WHERE symbol = ? AND interval = ?\n      `,a=await client_1.default.execute(t,[e,r],{prepare:!0});for(const t of a.rows){const a=`\n          DELETE FROM ${client_1.scyllaKeyspace}.candles\n          WHERE symbol = ? AND interval = ? AND "createdAt" = ?\n        `;await client_1.default.execute(a,[e,r,t.createdAt],{prepare:!0})}a.rows.length>0&&console_1.logger.debug("AI_MM",`Cleared ${a.rows.length} ${r} candles for ${e}`)}catch(t){console_1.logger.error("AI_MM",`Failed to clear ${r} candles for ${e}: ${t}`)}}async function clearOrderbookForSymbol(e){const t=["BIDS","ASKS"];let r=0;for(const a of t){const t=`\n      SELECT price FROM ${client_1.scyllaKeyspace}.orderbook\n      WHERE symbol = ? AND side = ?\n    `;try{const o=await client_1.default.execute(t,[e,a],{prepare:!0});for(const t of o.rows){const o=`\n          DELETE FROM ${client_1.scyllaKeyspace}.orderbook\n          WHERE symbol = ? AND side = ? AND price = ?\n        `;await client_1.default.execute(o,[e,a,t.price],{prepare:!0});r++}console_1.logger.debug("AI_MM",`Cleared ${o.rows.length} ${a} orderbook entries for ${e}`)}catch(t){console_1.logger.error("AI_MM",`Failed to clear orderbook for ${e} ${a}: ${t}`)}}console_1.logger.debug("AI_MM",`Total cleared: ${r} orderbook entries for ${e}`)}async function forceCleanOrderbook(e){let t=0;try{const r=`\n      SELECT symbol, side, price FROM ${client_1.scyllaKeyspace}.orderbook_by_symbol\n      WHERE symbol = ?\n    `,a=await client_1.default.execute(r,[e],{prepare:!0});console_1.logger.debug("AI_MM",`Found ${a.rows.length} total orderbook entries to clear for ${e}`);for(const e of a.rows)try{const r=`\n          DELETE FROM ${client_1.scyllaKeyspace}.orderbook\n          WHERE symbol = ? AND side = ? AND price = ?\n        `;await client_1.default.execute(r,[e.symbol,e.side,e.price],{prepare:!0});t++}catch(e){console_1.logger.error("AI_MM",`Failed to delete entry: ${e}`)}console_1.logger.debug("AI_MM",`Force cleared ${t} orderbook entries for ${e}`);return t}catch(t){console_1.logger.error("AI_MM",`Force clean orderbook failed for ${e}: ${t}`);await clearOrderbookForSymbol(e);return-1}}async function getLastCandleClosePrice(e){try{const t=`\n      SELECT close FROM ${client_1.scyllaKeyspace}.candles\n      WHERE symbol = ? AND interval = '1m'\n      ORDER BY "createdAt" DESC\n      LIMIT 1\n    `,r=await client_1.default.execute(t,[e],{prepare:!0});return r.rows.length>0&&null!=r.rows[0].close?r.rows[0].close:null}catch(t){console_1.logger.error("AI_MM",`Failed to get last candle price for ${e}: ${t}`);return null}}function normalizeToIntervalBoundary(e,t){const r=new Date(e);switch(t){case"1w":const e=r.getUTCDay();r.setUTCDate(r.getUTCDate()-e);r.setUTCHours(0,0,0,0);break;case"3d":return 3*Math.floor(r.getTime()/2592e5)*24*60*60*1e3;case"1d":r.setUTCHours(0,0,0,0);break;case"12h":const t=12*Math.floor(r.getUTCHours()/12);r.setUTCHours(t,0,0,0);break;case"6h":const a=6*Math.floor(r.getUTCHours()/6);r.setUTCHours(a,0,0,0);break;case"4h":const o=4*Math.floor(r.getUTCHours()/4);r.setUTCHours(o,0,0,0);break;case"2h":const n=2*Math.floor(r.getUTCHours()/2);r.setUTCHours(n,0,0,0);break;case"1h":r.setUTCMinutes(0,0,0);break;case"30m":const i=30*Math.floor(r.getUTCMinutes()/30);r.setUTCMinutes(i,0,0);break;case"15m":const s=15*Math.floor(r.getUTCMinutes()/15);r.setUTCMinutes(s,0,0);break;case"5m":const d=5*Math.floor(r.getUTCMinutes()/5);r.setUTCMinutes(d,0,0);break;case"3m":const c=3*Math.floor(r.getUTCMinutes()/3);r.setUTCMinutes(c,0,0);break;case"1m":r.setUTCSeconds(0,0);break;default:r.setUTCMilliseconds(0)}return r.getTime()}async function syncCandlesFromAiTrade(e,t,r){const a=["1m","3m","5m","15m","30m","1h","2h","4h","6h","12h","1d","3d","1w"],o=new Date;for(const n of a){const a=normalizeToIntervalBoundary(o.getTime(),n),i=new Date(a);try{const a=`\n        SELECT open, high, low, close, volume FROM ${client_1.scyllaKeyspace}.candles\n        WHERE symbol = ? AND interval = ? AND "createdAt" = ?\n      `,s=await client_1.default.execute(a,[e,n,i],{prepare:!0});if(s.rows.length>0){const a=s.rows[0],d=Math.max(a.high,t),c=Math.min(a.low,t),l=(a.volume||0)+r,u=`\n          UPDATE ${client_1.scyllaKeyspace}.candles\n          SET high = ?, low = ?, close = ?, volume = ?, "updatedAt" = ?\n          WHERE symbol = ? AND interval = ? AND "createdAt" = ?\n        `;await client_1.default.execute(u,[d,c,t,l,o,e,n,i],{prepare:!0})}else{const a=getPreviousCandleTime(i,n),s=`\n          SELECT close FROM ${client_1.scyllaKeyspace}.candles\n          WHERE symbol = ? AND interval = ? AND "createdAt" = ?\n        `,d=await client_1.default.execute(s,[e,n,a],{prepare:!0}),c=d.rows.length>0?d.rows[0].close:t,l=`\n          INSERT INTO ${client_1.scyllaKeyspace}.candles (\n            symbol, interval, "createdAt", "updatedAt", open, high, low, close, volume\n          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n        `;await client_1.default.execute(l,[e,n,i,o,c,Math.max(c,t),Math.min(c,t),t,r],{prepare:!0})}}catch(t){console_1.logger.error("AI_MM",`Failed to sync candle for ${e} ${n}: ${t}`)}}}function getPreviousCandleTime(e,t){const r=intervalDurations[t]||intervalDurations["1m"];return new Date(e.getTime()-r)}function getCandleTime(e,t){return new Date(normalizeToIntervalBoundary(e.getTime(),t))}async function getRealLiquidityOrdersBySymbol(e,t){let r=`\n    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders\n    WHERE symbol = ?\n  `;const a=[e];if(t){r+=" AND status = ?";a.push(t)}r+=" ALLOW FILTERING";return(await client_1.default.execute(r,a,{prepare:!0})).rows.map(e=>{var t,r,a;return{id:null===(t=e.ai_order_id)||void 0===t?void 0:t.toString(),aiBotOrderId:null===(r=e.ai_order_id)||void 0===r?void 0:r.toString(),ecosystemOrderId:null===(a=e.ecosystem_order_id)||void 0===a?void 0:a.toString(),symbol:e.symbol,side:e.side,price:toBigIntSafe(e.price),amount:toBigIntSafe(e.amount),status:e.status,createdAt:e.created_at}})}function calculateLiquiditySplit(e,t){const r=Math.max(0,Math.min(100,t)),a=e*BigInt(Math.round(100*r))/BigInt(1e4);return{aiAmount:e-a,realAmount:a}}async function getBotTradeStats(e){var t,r;const a=new Map;try{const o=[];for(let e=0;e<7;e++){const t=new Date;t.setDate(t.getDate()-e);o.push(new cassandra_driver_1.types.LocalDate(t.getFullYear(),t.getMonth()+1,t.getDate()))}for(const n of o){const o=`\n        SELECT buy_bot_id, sell_bot_id, price, amount\n        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n        WHERE market_id = ? AND trade_date = ?\n      `,i=await client_1.default.execute(o,[cassandra_driver_1.types.Uuid.fromString(e),n],{prepare:!0});for(const e of i.rows){const o=null===(t=e.buy_bot_id)||void 0===t?void 0:t.toString();if(o){const t=a.get(o)||{tradeCount:0,totalVolume:0};t.tradeCount++;t.totalVolume+=Number(toBigIntSafe(e.amount))/1e18;a.set(o,t)}const n=null===(r=e.sell_bot_id)||void 0===r?void 0:r.toString();if(n){const t=a.get(n)||{tradeCount:0,totalVolume:0};t.tradeCount++;t.totalVolume+=Number(toBigIntSafe(e.amount))/1e18;a.set(n,t)}}}}catch(t){console_1.logger.error("AI_MM",`Failed to get bot trade stats for market ${e}: ${t}`)}return a}async function debugGetAllTrades(e=50){try{const t=`\n      SELECT market_id, trade_date, trade_time, buy_bot_id, sell_bot_id, price, amount\n      FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n      LIMIT ?\n      ALLOW FILTERING\n    `;return(await client_1.default.execute(t,[e],{prepare:!0})).rows.map(e=>{var t,r,a,o,n,i;return{marketId:null===(t=e.market_id)||void 0===t?void 0:t.toString(),tradeDate:null===(r=e.trade_date)||void 0===r?void 0:r.toString(),tradeTime:e.trade_time,buyBotId:null===(a=e.buy_bot_id)||void 0===a?void 0:a.toString(),sellBotId:null===(o=e.sell_bot_id)||void 0===o?void 0:o.toString(),price:null===(n=e.price)||void 0===n?void 0:n.toString(),amount:null===(i=e.amount)||void 0===i?void 0:i.toString()}})}catch(e){console_1.logger.error("AI_MM",`DEBUG: Failed to get all trades: ${e}`);return[]}}async function getRecentBotTrades(e,t=20){var r,a,o;const n=[];try{const i=[];for(let e=0;e<7;e++){const t=new Date;t.setDate(t.getDate()-e);i.push(new cassandra_driver_1.types.LocalDate(t.getFullYear(),t.getMonth()+1,t.getDate()))}for(const s of i){if(n.length>=t)break;const i=`\n        SELECT trade_id, trade_time, buy_bot_id, sell_bot_id, price, amount\n        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n        WHERE market_id = ? AND trade_date = ?\n        ORDER BY trade_time DESC\n        LIMIT ?\n      `,d=await client_1.default.execute(i,[cassandra_driver_1.types.Uuid.fromString(e),s,t-n.length],{prepare:!0});for(const e of d.rows)n.push({id:(null===(r=e.trade_id)||void 0===r?void 0:r.toString())||"",price:(Number(toBigIntSafe(e.price))/1e18).toFixed(8),amount:(Number(toBigIntSafe(e.amount))/1e18).toFixed(8),buyBotId:(null===(a=e.buy_bot_id)||void 0===a?void 0:a.toString())||"",sellBotId:(null===(o=e.sell_bot_id)||void 0===o?void 0:o.toString())||"",createdAt:e.trade_time})}n.sort((e,t)=>new Date(t.createdAt).getTime()-new Date(e.createdAt).getTime());return n.slice(0,t)}catch(t){console_1.logger.error("AI_MM",`Failed to get recent bot trades for market ${e}: ${t}`);return[]}}async function getMarketTradeStats(e){let t=0,r=0;try{const a=[];for(let e=0;e<7;e++){const t=new Date;t.setDate(t.getDate()-e);a.push(new cassandra_driver_1.types.LocalDate(t.getFullYear(),t.getMonth()+1,t.getDate()))}for(const o of a){const a=`\n        SELECT price, amount\n        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n        WHERE market_id = ? AND trade_date = ?\n      `,n=await client_1.default.execute(a,[cassandra_driver_1.types.Uuid.fromString(e),o],{prepare:!0});for(const e of n.rows){t++;r+=Number(toBigIntSafe(e.amount))/1e18}}}catch(t){console_1.logger.error("AI_MM",`Failed to get market trade stats for ${e}: ${t}`)}return{tradeCount:t,totalVolume:r}}async function deleteAiBotOrdersByMarket(e){let t=0;try{const r=`\n      SELECT order_id, created_at FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders\n      WHERE market_id = ?\n    `,a=await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e)],{prepare:!0});for(const r of a.rows){const a=`\n        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders\n        WHERE market_id = ? AND created_at = ? AND order_id = ?\n      `;await client_1.default.execute(a,[cassandra_driver_1.types.Uuid.fromString(e),r.created_at,r.order_id],{prepare:!0});t++}console_1.logger.info("AI_MM",`Cleanup: Deleted ${t} bot orders for market ${e}`)}catch(t){console_1.logger.error("AI_MM",`Cleanup: Failed to delete bot orders for market ${e}: ${t}`)}return t}async function deleteAiBotTradesByMarket(e){let t=0;try{const r=[];for(let e=0;e<365;e++){const t=new Date;t.setDate(t.getDate()-e);r.push(new cassandra_driver_1.types.LocalDate(t.getFullYear(),t.getMonth()+1,t.getDate()))}for(const a of r){const r=`\n        SELECT trade_time, trade_id FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n        WHERE market_id = ? AND trade_date = ?\n      `,o=await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e),a],{prepare:!0});for(const r of o.rows){const o=`\n          DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades\n          WHERE market_id = ? AND trade_date = ? AND trade_time = ? AND trade_id = ?\n        `;await client_1.default.execute(o,[cassandra_driver_1.types.Uuid.fromString(e),a,r.trade_time,r.trade_id],{prepare:!0});t++}}console_1.logger.info("AI_MM",`Cleanup: Deleted ${t} bot trades for market ${e}`)}catch(t){console_1.logger.error("AI_MM",`Cleanup: Failed to delete bot trades for market ${e}: ${t}`)}return t}async function deleteAiPriceHistoryByMarket(e){let t=0;try{const r=`\n      SELECT timestamp FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history\n      WHERE market_id = ?\n    `,a=await client_1.default.execute(r,[cassandra_driver_1.types.Uuid.fromString(e)],{prepare:!0});for(const r of a.rows){const a=`\n        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history\n        WHERE market_id = ? AND timestamp = ?\n      `;await client_1.default.execute(a,[cassandra_driver_1.types.Uuid.fromString(e),r.timestamp],{prepare:!0});t++}console_1.logger.info("AI_MM",`Cleanup: Deleted ${t} price history entries for market ${e}`)}catch(t){console_1.logger.error("AI_MM",`Cleanup: Failed to delete price history for market ${e}: ${t}`)}return t}async function deleteRealLiquidityOrdersBySymbol(e){let t=0;try{const r=`\n      SELECT ai_order_id, ecosystem_order_id FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders\n      WHERE symbol = ?\n      ALLOW FILTERING\n    `,a=await client_1.default.execute(r,[e],{prepare:!0});for(const e of a.rows){const r=`\n        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders\n        WHERE ecosystem_order_id = ?\n      `;await client_1.default.execute(r,[e.ecosystem_order_id],{prepare:!0});t++}console_1.logger.info("AI_MM",`Cleanup: Deleted ${t} real liquidity order records for ${e}`)}catch(t){console_1.logger.error("AI_MM",`Cleanup: Failed to delete real liquidity orders for ${e}: ${t}`)}return t}async function getOpenBotEcosystemOrderIds(e){const t=[];try{const r=`\n      SELECT ecosystem_order_id FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders\n      WHERE symbol = ? AND status = 'OPEN'\n      ALLOW FILTERING\n    `,a=await client_1.default.execute(r,[e],{prepare:!0});for(const e of a.rows)e.ecosystem_order_id&&t.push(e.ecosystem_order_id.toString());console_1.logger.info("AI_MM",`Cleanup: Found ${t.length} open bot orders for ${e}`)}catch(t){console_1.logger.error("AI_MM",`Cleanup: Failed to get open bot orders for ${e}: ${t}`)}return t}async function cleanupMarketMakerData(e,t){console_1.logger.info("AI_MM",`Cleanup: Starting cleanup for market ${e} (${t})`);const r=await deleteAiBotOrdersByMarket(e),a=await deleteAiBotTradesByMarket(e),o=await deleteAiPriceHistoryByMarket(e),n=await deleteRealLiquidityOrdersBySymbol(t),i=await forceCleanOrderbook(t);console_1.logger.info("AI_MM",`Cleanup: Completed cleanup for ${t}: orders=${r}, trades=${a}, priceHistory=${o}, realLiquidityOrders=${n}, orderbookEntries=${i}`);return{ordersDeleted:r,tradesDeleted:a,priceHistoryDeleted:o,realLiquidityOrdersDeleted:n,orderbookEntriesCleared:i}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,t,r,a){void 0===a&&(a=r);var o=Object.getOwnPropertyDescriptor(t,r);o&&!("get"in o?!t.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return t[r]}});Object.defineProperty(e,a,o)}:function(e,t,r,a){void 0===a&&(a=r);e[a]=t[r]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,t){Object.defineProperty(e,"default",{enumerable:!0,value:t})}:function(e,t){e.default=t}),__importStar=this&&this.__importStar||function(){var e=function(t){e=Object.getOwnPropertyNames||function(e){var t=[];for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&(t[t.length]=r);return t};return e(t)};return function(t){if(t&&t.__esModule)return t;var r={};if(null!=t)for(var a=e(t),o=0;o<a.length;o++)"default"!==a[o]&&__createBinding(r,t,a[o]);__setModuleDefault(r,t);return r}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.insertBotOrder=insertBotOrder;exports.updateBotOrder=updateBotOrder;exports.getBotOrdersByMarket=getBotOrdersByMarket;exports.getBotOrdersByBot=getBotOrdersByBot;exports.getOpenBotOrders=getOpenBotOrders;exports.cancelBotOrder=cancelBotOrder;exports.insertBotTrade=insertBotTrade;exports.getBotTradesByMarket=getBotTradesByMarket;exports.getBotTradesInRange=getBotTradesInRange;exports.getDailyTradeVolume=getDailyTradeVolume;exports.insertPriceHistory=insertPriceHistory;exports.getPriceHistory=getPriceHistory;exports.getPriceHistoryInRange=getPriceHistoryInRange;exports.getLatestPrice=getLatestPrice;exports.calculateVolatility=calculateVolatility;exports.placeRealOrder=placeRealOrder;exports.cancelRealOrder=cancelRealOrder;exports.syncOrderbookFromAiTrade=syncOrderbookFromAiTrade;exports.syncTradeToEcosystem=syncTradeToEcosystem;exports.clearCandlesForSymbol=clearCandlesForSymbol;exports.clearOrderbookForSymbol=clearOrderbookForSymbol;exports.forceCleanOrderbook=forceCleanOrderbook;exports.getLastCandleClosePrice=getLastCandleClosePrice;exports.syncCandlesFromAiTrade=syncCandlesFromAiTrade;exports.getRealLiquidityOrdersBySymbol=getRealLiquidityOrdersBySymbol;exports.calculateLiquiditySplit=calculateLiquiditySplit;exports.getBotTradeStats=getBotTradeStats;exports.debugGetAllTrades=debugGetAllTrades;exports.getRecentBotTrades=getRecentBotTrades;exports.getMarketTradeStats=getMarketTradeStats;exports.deleteAiBotOrdersByMarket=deleteAiBotOrdersByMarket;exports.deleteAiBotTradesByMarket=deleteAiBotTradesByMarket;exports.deleteAiPriceHistoryByMarket=deleteAiPriceHistoryByMarket;exports.deleteRealLiquidityOrdersBySymbol=deleteRealLiquidityOrdersBySymbol;exports.getOpenBotEcosystemOrderIds=getOpenBotEcosystemOrderIds;exports.cleanupMarketMakerData=cleanupMarketMakerData;const client_1=__importStar(require("./client")),passwords_1=require("@b/utils/passwords"),cassandra_driver_1=require("cassandra-driver"),console_1=require("@b/utils/console"),queries_1=require("@b/api/(ext)/ecosystem/utils/scylla/queries"),orderbookUpdateLocks=new Map,intervalDurations={"1m":6e4,"3m":18e4,"5m":3e5,"15m":9e5,"30m":18e5,"1h":36e5,"2h":72e5,"4h":144e5,"6h":216e5,"12h":432e5,"1d":864e5,"3d":2592e5,"1w":6048e5};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.insertBotOrder = insertBotOrder;
+exports.updateBotOrder = updateBotOrder;
+exports.getBotOrdersByMarket = getBotOrdersByMarket;
+exports.getBotOrdersByBot = getBotOrdersByBot;
+exports.getOpenBotOrders = getOpenBotOrders;
+exports.cancelBotOrder = cancelBotOrder;
+exports.insertBotTrade = insertBotTrade;
+exports.getBotTradesByMarket = getBotTradesByMarket;
+exports.getBotTradesInRange = getBotTradesInRange;
+exports.getDailyTradeVolume = getDailyTradeVolume;
+exports.insertPriceHistory = insertPriceHistory;
+exports.getPriceHistory = getPriceHistory;
+exports.getPriceHistoryInRange = getPriceHistoryInRange;
+exports.getLatestPrice = getLatestPrice;
+exports.calculateVolatility = calculateVolatility;
+exports.placeRealOrder = placeRealOrder;
+exports.cancelRealOrder = cancelRealOrder;
+exports.syncOrderbookFromAiTrade = syncOrderbookFromAiTrade;
+exports.syncTradeToEcosystem = syncTradeToEcosystem;
+exports.clearCandlesForSymbol = clearCandlesForSymbol;
+exports.clearOrderbookForSymbol = clearOrderbookForSymbol;
+exports.forceCleanOrderbook = forceCleanOrderbook;
+exports.getLastCandleClosePrice = getLastCandleClosePrice;
+exports.syncCandlesFromAiTrade = syncCandlesFromAiTrade;
+exports.getRealLiquidityOrdersBySymbol = getRealLiquidityOrdersBySymbol;
+exports.calculateLiquiditySplit = calculateLiquiditySplit;
+exports.getBotTradeStats = getBotTradeStats;
+exports.debugGetAllTrades = debugGetAllTrades;
+exports.getRecentBotTrades = getRecentBotTrades;
+exports.getMarketTradeStats = getMarketTradeStats;
+exports.deleteAiBotOrdersByMarket = deleteAiBotOrdersByMarket;
+exports.deleteAiBotTradesByMarket = deleteAiBotTradesByMarket;
+exports.deleteAiPriceHistoryByMarket = deleteAiPriceHistoryByMarket;
+exports.deleteRealLiquidityOrdersBySymbol = deleteRealLiquidityOrdersBySymbol;
+exports.getOpenBotEcosystemOrderIds = getOpenBotEcosystemOrderIds;
+exports.cleanupMarketMakerData = cleanupMarketMakerData;
+const client_1 = __importStar(require("./client"));
+const passwords_1 = require("@b/utils/passwords");
+const cassandra_driver_1 = require("cassandra-driver");
+const console_1 = require("@b/utils/console");
+const queries_1 = require("@b/api/(ext)/ecosystem/utils/scylla/queries");
+function toBigIntSafe(value) {
+    if (value === null || value === undefined) {
+        return BigInt(0);
+    }
+    if (typeof value === "bigint") {
+        return value;
+    }
+    return BigInt(value.toString());
+}
+function mapRowToOrder(row) {
+    var _a, _b, _c, _d;
+    return {
+        marketId: (_a = row.market_id) === null || _a === void 0 ? void 0 : _a.toString(),
+        botId: (_b = row.bot_id) === null || _b === void 0 ? void 0 : _b.toString(),
+        orderId: (_c = row.order_id) === null || _c === void 0 ? void 0 : _c.toString(),
+        side: row.side,
+        type: row.type,
+        price: toBigIntSafe(row.price),
+        amount: toBigIntSafe(row.amount),
+        filledAmount: toBigIntSafe(row.filled_amount),
+        status: row.status,
+        purpose: row.purpose,
+        matchedWithBotId: (_d = row.matched_with_bot_id) === null || _d === void 0 ? void 0 : _d.toString(),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+    };
+}
+function mapRowToTrade(row) {
+    var _a, _b, _c, _d, _e, _f;
+    return {
+        marketId: (_a = row.market_id) === null || _a === void 0 ? void 0 : _a.toString(),
+        tradeDate: row.trade_date,
+        tradeTime: row.trade_time,
+        tradeId: (_b = row.trade_id) === null || _b === void 0 ? void 0 : _b.toString(),
+        buyBotId: (_c = row.buy_bot_id) === null || _c === void 0 ? void 0 : _c.toString(),
+        sellBotId: (_d = row.sell_bot_id) === null || _d === void 0 ? void 0 : _d.toString(),
+        buyOrderId: (_e = row.buy_order_id) === null || _e === void 0 ? void 0 : _e.toString(),
+        sellOrderId: (_f = row.sell_order_id) === null || _f === void 0 ? void 0 : _f.toString(),
+        price: toBigIntSafe(row.price),
+        amount: toBigIntSafe(row.amount),
+    };
+}
+function mapRowToPriceHistory(row) {
+    var _a;
+    return {
+        marketId: (_a = row.market_id) === null || _a === void 0 ? void 0 : _a.toString(),
+        timestamp: row.timestamp,
+        price: toBigIntSafe(row.price),
+        volume: toBigIntSafe(row.volume),
+        isAiTrade: row.is_ai_trade,
+        source: row.source,
+    };
+}
+async function insertBotOrder(order) {
+    const orderId = (0, passwords_1.makeUuid)();
+    const now = new Date();
+    const query = `
+    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_bot_orders (
+      market_id, bot_id, order_id, side, type, price, amount,
+      filled_amount, status, purpose, matched_with_bot_id, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+    const params = [
+        cassandra_driver_1.types.Uuid.fromString(order.marketId),
+        cassandra_driver_1.types.Uuid.fromString(order.botId),
+        cassandra_driver_1.types.Uuid.fromString(orderId),
+        order.side,
+        order.type,
+        order.price.toString(),
+        order.amount.toString(),
+        order.filledAmount.toString(),
+        order.status,
+        order.purpose,
+        order.matchedWithBotId ? cassandra_driver_1.types.Uuid.fromString(order.matchedWithBotId) : null,
+        now,
+        now,
+    ];
+    await client_1.default.execute(query, params, { prepare: true });
+    return orderId;
+}
+async function updateBotOrder(marketId, orderId, createdAt, updates) {
+    const setClauses = [];
+    const params = [];
+    if (updates.filledAmount !== undefined) {
+        setClauses.push("filled_amount = ?");
+        params.push(updates.filledAmount.toString());
+    }
+    if (updates.status !== undefined) {
+        setClauses.push("status = ?");
+        params.push(updates.status);
+    }
+    if (updates.matchedWithBotId !== undefined) {
+        setClauses.push("matched_with_bot_id = ?");
+        params.push(cassandra_driver_1.types.Uuid.fromString(updates.matchedWithBotId));
+    }
+    setClauses.push("updated_at = ?");
+    params.push(new Date());
+    params.push(cassandra_driver_1.types.Uuid.fromString(marketId));
+    params.push(createdAt);
+    params.push(cassandra_driver_1.types.Uuid.fromString(orderId));
+    const query = `
+    UPDATE ${client_1.aiMarketMakerKeyspace}.ai_bot_orders
+    SET ${setClauses.join(", ")}
+    WHERE market_id = ? AND created_at = ? AND order_id = ?
+  `;
+    await client_1.default.execute(query, params, { prepare: true });
+}
+async function getBotOrdersByMarket(marketId, limit = 100) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders
+    WHERE market_id = ?
+    LIMIT ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), limit], { prepare: true });
+    return result.rows.map(mapRowToOrder);
+}
+async function getBotOrdersByBot(botId, limit = 100) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders_by_bot
+    WHERE bot_id = ?
+    LIMIT ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(botId), limit], { prepare: true });
+    return result.rows.map(mapRowToOrder);
+}
+async function getOpenBotOrders(marketId) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_open_orders
+    WHERE status = 'OPEN' AND market_id = ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId)], { prepare: true });
+    return result.rows.map(mapRowToOrder);
+}
+async function cancelBotOrder(marketId, orderId, createdAt) {
+    await updateBotOrder(marketId, orderId, createdAt, { status: "CANCELLED" });
+}
+async function insertBotTrade(trade) {
+    const tradeId = (0, passwords_1.makeUuid)();
+    const now = new Date();
+    const tradeDate = new cassandra_driver_1.types.LocalDate(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    const query = `
+    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_bot_trades (
+      market_id, trade_date, trade_time, trade_id, buy_bot_id, sell_bot_id,
+      buy_order_id, sell_order_id, price, amount
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+    const params = [
+        cassandra_driver_1.types.Uuid.fromString(trade.marketId),
+        tradeDate,
+        now,
+        cassandra_driver_1.types.Uuid.fromString(tradeId),
+        cassandra_driver_1.types.Uuid.fromString(trade.buyBotId),
+        cassandra_driver_1.types.Uuid.fromString(trade.sellBotId),
+        cassandra_driver_1.types.Uuid.fromString(trade.buyOrderId),
+        cassandra_driver_1.types.Uuid.fromString(trade.sellOrderId),
+        trade.price.toString(),
+        trade.amount.toString(),
+    ];
+    try {
+        await client_1.default.execute(query, params, { prepare: true });
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Failed to insert trade for market ${trade.marketId}: ${error}`);
+        throw error;
+    }
+    return tradeId;
+}
+async function getBotTradesByMarket(marketId, date, limit = 100) {
+    const tradeDate = new cassandra_driver_1.types.LocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+    WHERE market_id = ? AND trade_date = ?
+    LIMIT ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate, limit], { prepare: true });
+    return result.rows.map(mapRowToTrade);
+}
+async function getBotTradesInRange(marketId, startDate, endDate, limit = 1000) {
+    const trades = [];
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate && trades.length < limit) {
+        const dayTrades = await getBotTradesByMarket(marketId, currentDate, limit - trades.length);
+        trades.push(...dayTrades);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return trades;
+}
+async function getDailyTradeVolume(marketId, date) {
+    const trades = await getBotTradesByMarket(marketId, date, 10000);
+    return trades.reduce((sum, trade) => sum + trade.amount, BigInt(0));
+}
+async function insertPriceHistory(history) {
+    const query = `
+    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_price_history (
+      market_id, timestamp, price, volume, is_ai_trade, source
+    ) VALUES (?, ?, ?, ?, ?, ?)
+  `;
+    const params = [
+        cassandra_driver_1.types.Uuid.fromString(history.marketId),
+        new Date(),
+        history.price.toString(),
+        history.volume.toString(),
+        history.isAiTrade,
+        history.source,
+    ];
+    await client_1.default.execute(query, params, { prepare: true });
+}
+async function getPriceHistory(marketId, limit = 100) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history
+    WHERE market_id = ?
+    LIMIT ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), limit], { prepare: true });
+    return result.rows.map(mapRowToPriceHistory);
+}
+async function getPriceHistoryInRange(marketId, startTime, endTime, limit = 1000) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history
+    WHERE market_id = ? AND timestamp >= ? AND timestamp <= ?
+    LIMIT ?
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), startTime, endTime, limit], { prepare: true });
+    return result.rows.map(mapRowToPriceHistory);
+}
+async function getLatestPrice(marketId) {
+    const query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history
+    WHERE market_id = ?
+    LIMIT 1
+  `;
+    const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId)], { prepare: true });
+    if (result.rows.length === 0) {
+        return null;
+    }
+    return mapRowToPriceHistory(result.rows[0]);
+}
+async function calculateVolatility(marketId, minutes = 60) {
+    const endTime = new Date();
+    const startTime = new Date(endTime.getTime() - minutes * 60 * 1000);
+    const history = await getPriceHistoryInRange(marketId, startTime, endTime, 1000);
+    if (history.length < 2) {
+        return 0;
+    }
+    const prices = history.map((h) => Number(h.price));
+    const returns = [];
+    for (let i = 1; i < prices.length; i++) {
+        if (prices[i - 1] !== 0) {
+            returns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+        }
+    }
+    if (returns.length === 0) {
+        return 0;
+    }
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const squaredDiffs = returns.map((r) => Math.pow(r - mean, 2));
+    const variance = squaredDiffs.reduce((a, b) => a + b, 0) / returns.length;
+    return Math.sqrt(variance) * 100;
+}
+async function placeRealOrder(symbol, side, price, amount, aiBotOrderId, marketMakerId, botId) {
+    const [baseCurrency, quoteCurrency] = symbol.split("/");
+    const userId = botId;
+    const cost = (price * amount) / BigInt(10 ** 18);
+    const fee = BigInt(0);
+    const feeCurrency = side === "BUY" ? quoteCurrency : baseCurrency;
+    const order = await (0, queries_1.createOrder)({
+        userId,
+        symbol,
+        amount,
+        price,
+        cost,
+        type: "LIMIT",
+        side,
+        fee,
+        feeCurrency,
+        marketMakerId,
+        botId,
+    });
+    await (0, queries_1.addOrderToMatchingQueue)(order);
+    await trackRealLiquidityOrder({
+        aiBotOrderId,
+        ecosystemOrderId: order.id,
+        symbol,
+        side,
+        price,
+        amount,
+    });
+    return order;
+}
+async function cancelRealOrder(ecosystemOrderId, userId, createdAt, symbol, price, side, amount) {
+    await (0, queries_1.cancelOrderByUuid)(userId, ecosystemOrderId, createdAt, symbol, price, side, amount);
+    await updateRealLiquidityOrderStatus(ecosystemOrderId, "CANCELLED");
+}
+async function trackRealLiquidityOrder(params) {
+    const query = `
+    INSERT INTO ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders (
+      ai_order_id, ecosystem_order_id, symbol, side, price, amount, status, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+    await client_1.default.execute(query, [
+        cassandra_driver_1.types.Uuid.fromString(params.aiBotOrderId),
+        cassandra_driver_1.types.Uuid.fromString(params.ecosystemOrderId),
+        params.symbol,
+        params.side,
+        params.price.toString(),
+        params.amount.toString(),
+        "OPEN",
+        new Date(),
+    ], { prepare: true });
+}
+async function updateRealLiquidityOrderStatus(ecosystemOrderId, status) {
+    const query = `
+    UPDATE ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders
+    SET status = ?
+    WHERE ecosystem_order_id = ?
+  `;
+    await client_1.default.execute(query, [status, cassandra_driver_1.types.Uuid.fromString(ecosystemOrderId)], { prepare: true });
+}
+const orderbookUpdateLocks = new Map();
+async function syncOrderbookFromAiTrade(symbol, price, amount, _side) {
+    const existingLock = orderbookUpdateLocks.get(symbol);
+    if (existingLock) {
+        try {
+            await existingLock;
+        }
+        catch (_a) {
+        }
+    }
+    const updatePromise = syncOrderbookFromAiTradeInternal(symbol, price, amount);
+    orderbookUpdateLocks.set(symbol, updatePromise);
+    try {
+        await updatePromise;
+    }
+    finally {
+        if (orderbookUpdateLocks.get(symbol) === updatePromise) {
+            orderbookUpdateLocks.delete(symbol);
+        }
+    }
+}
+async function syncOrderbookFromAiTradeInternal(symbol, price, amount) {
+    const spreadLevels = [0.001, 0.002, 0.003, 0.004, 0.005];
+    const bidEntries = [];
+    const askEntries = [];
+    for (const spread of spreadLevels) {
+        const bidPrice = price * (1 - spread);
+        const bidAmount = amount * (0.5 + Math.random() * 1.0);
+        bidEntries.push({ price: bidPrice, amount: bidAmount });
+        const askPrice = price * (1 + spread);
+        const askAmount = amount * (0.5 + Math.random() * 1.0);
+        askEntries.push({ price: askPrice, amount: askAmount });
+    }
+    const batchQueries = [];
+    const sides = ["BIDS", "ASKS"];
+    for (const side of sides) {
+        const selectQuery = `
+      SELECT price FROM ${client_1.scyllaKeyspace}.orderbook
+      WHERE symbol = ? AND side = ?
+    `;
+        try {
+            const result = await client_1.default.execute(selectQuery, [symbol, side], { prepare: true });
+            for (const row of result.rows) {
+                batchQueries.push({
+                    query: `DELETE FROM ${client_1.scyllaKeyspace}.orderbook WHERE symbol = ? AND side = ? AND price = ?`,
+                    params: [symbol, side, row.price],
+                });
+            }
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Failed to get orderbook entries for ${symbol} ${side}: ${error}`);
+        }
+    }
+    for (const bid of bidEntries) {
+        batchQueries.push({
+            query: `INSERT INTO ${client_1.scyllaKeyspace}.orderbook (symbol, price, amount, side) VALUES (?, ?, ?, ?)`,
+            params: [symbol, bid.price, bid.amount, "BIDS"],
+        });
+    }
+    for (const ask of askEntries) {
+        batchQueries.push({
+            query: `INSERT INTO ${client_1.scyllaKeyspace}.orderbook (symbol, price, amount, side) VALUES (?, ?, ?, ?)`,
+            params: [symbol, ask.price, ask.amount, "ASKS"],
+        });
+    }
+    if (batchQueries.length > 0) {
+        try {
+            await client_1.default.batch(batchQueries, { prepare: true });
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Failed to update orderbook batch for ${symbol}: ${error}`);
+            console_1.logger.warn("AI_MM", `Falling back to individual orderbook updates for ${symbol}`);
+            await clearOrderbookForSymbol(symbol);
+            for (const bid of bidEntries) {
+                try {
+                    await (0, queries_1.updateOrderBookInDB)(symbol, bid.price, bid.amount, "BIDS");
+                }
+                catch (e) {
+                    console_1.logger.error("AI_MM", `Failed to insert bid: ${e}`);
+                }
+            }
+            for (const ask of askEntries) {
+                try {
+                    await (0, queries_1.updateOrderBookInDB)(symbol, ask.price, ask.amount, "ASKS");
+                }
+                catch (e) {
+                    console_1.logger.error("AI_MM", `Failed to insert ask: ${e}`);
+                }
+            }
+        }
+    }
+}
+async function syncTradeToEcosystem(symbol, price, amount, side) {
+    await (0, queries_1.insertTrade)(symbol, price, amount, side, true);
+}
+async function clearCandlesForSymbol(symbol) {
+    const intervals = [
+        "1m", "3m", "5m", "15m", "30m",
+        "1h", "2h", "4h", "6h", "12h",
+        "1d", "3d", "1w"
+    ];
+    for (const interval of intervals) {
+        try {
+            const query = `
+        SELECT "createdAt" FROM ${client_1.scyllaKeyspace}.candles
+        WHERE symbol = ? AND interval = ?
+      `;
+            const result = await client_1.default.execute(query, [symbol, interval], { prepare: true });
+            for (const row of result.rows) {
+                const deleteQuery = `
+          DELETE FROM ${client_1.scyllaKeyspace}.candles
+          WHERE symbol = ? AND interval = ? AND "createdAt" = ?
+        `;
+                await client_1.default.execute(deleteQuery, [symbol, interval, row.createdAt], { prepare: true });
+            }
+            if (result.rows.length > 0) {
+                console_1.logger.debug("AI_MM", `Cleared ${result.rows.length} ${interval} candles for ${symbol}`);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Failed to clear ${interval} candles for ${symbol}: ${error}`);
+        }
+    }
+}
+async function clearOrderbookForSymbol(symbol) {
+    const sides = ["BIDS", "ASKS"];
+    let totalCleared = 0;
+    for (const side of sides) {
+        const query = `
+      SELECT price FROM ${client_1.scyllaKeyspace}.orderbook
+      WHERE symbol = ? AND side = ?
+    `;
+        try {
+            const result = await client_1.default.execute(query, [symbol, side], { prepare: true });
+            for (const row of result.rows) {
+                const deleteQuery = `
+          DELETE FROM ${client_1.scyllaKeyspace}.orderbook
+          WHERE symbol = ? AND side = ? AND price = ?
+        `;
+                await client_1.default.execute(deleteQuery, [symbol, side, row.price], { prepare: true });
+                totalCleared++;
+            }
+            console_1.logger.debug("AI_MM", `Cleared ${result.rows.length} ${side} orderbook entries for ${symbol}`);
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Failed to clear orderbook for ${symbol} ${side}: ${error}`);
+        }
+    }
+    console_1.logger.debug("AI_MM", `Total cleared: ${totalCleared} orderbook entries for ${symbol}`);
+}
+async function forceCleanOrderbook(symbol) {
+    let totalCleared = 0;
+    try {
+        const query = `
+      SELECT symbol, side, price FROM ${client_1.scyllaKeyspace}.orderbook_by_symbol
+      WHERE symbol = ?
+    `;
+        const result = await client_1.default.execute(query, [symbol], { prepare: true });
+        console_1.logger.debug("AI_MM", `Found ${result.rows.length} total orderbook entries to clear for ${symbol}`);
+        for (const row of result.rows) {
+            try {
+                const deleteQuery = `
+          DELETE FROM ${client_1.scyllaKeyspace}.orderbook
+          WHERE symbol = ? AND side = ? AND price = ?
+        `;
+                await client_1.default.execute(deleteQuery, [row.symbol, row.side, row.price], { prepare: true });
+                totalCleared++;
+            }
+            catch (deleteErr) {
+                console_1.logger.error("AI_MM", `Failed to delete entry: ${deleteErr}`);
+            }
+        }
+        console_1.logger.debug("AI_MM", `Force cleared ${totalCleared} orderbook entries for ${symbol}`);
+        return totalCleared;
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Force clean orderbook failed for ${symbol}: ${error}`);
+        await clearOrderbookForSymbol(symbol);
+        return -1;
+    }
+}
+async function getLastCandleClosePrice(symbol) {
+    try {
+        const query = `
+      SELECT close FROM ${client_1.scyllaKeyspace}.candles
+      WHERE symbol = ? AND interval = '1m'
+      ORDER BY "createdAt" DESC
+      LIMIT 1
+    `;
+        const result = await client_1.default.execute(query, [symbol], { prepare: true });
+        if (result.rows.length > 0 && result.rows[0].close != null) {
+            return result.rows[0].close;
+        }
+        return null;
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Failed to get last candle price for ${symbol}: ${error}`);
+        return null;
+    }
+}
+const intervalDurations = {
+    "1m": 60 * 1000,
+    "3m": 3 * 60 * 1000,
+    "5m": 5 * 60 * 1000,
+    "15m": 15 * 60 * 1000,
+    "30m": 30 * 60 * 1000,
+    "1h": 60 * 60 * 1000,
+    "2h": 2 * 60 * 60 * 1000,
+    "4h": 4 * 60 * 60 * 1000,
+    "6h": 6 * 60 * 60 * 1000,
+    "12h": 12 * 60 * 60 * 1000,
+    "1d": 24 * 60 * 60 * 1000,
+    "3d": 3 * 24 * 60 * 60 * 1000,
+    "1w": 7 * 24 * 60 * 60 * 1000,
+};
+function normalizeToIntervalBoundary(timestamp, interval) {
+    const date = new Date(timestamp);
+    switch (interval) {
+        case "1w":
+            const dayOfWeek = date.getUTCDay();
+            date.setUTCDate(date.getUTCDate() - dayOfWeek);
+            date.setUTCHours(0, 0, 0, 0);
+            break;
+        case "3d":
+            const epochDays3 = Math.floor(date.getTime() / (3 * 24 * 60 * 60 * 1000));
+            return epochDays3 * 3 * 24 * 60 * 60 * 1000;
+        case "1d":
+            date.setUTCHours(0, 0, 0, 0);
+            break;
+        case "12h":
+            const hour12 = Math.floor(date.getUTCHours() / 12) * 12;
+            date.setUTCHours(hour12, 0, 0, 0);
+            break;
+        case "6h":
+            const hour6 = Math.floor(date.getUTCHours() / 6) * 6;
+            date.setUTCHours(hour6, 0, 0, 0);
+            break;
+        case "4h":
+            const hour4 = Math.floor(date.getUTCHours() / 4) * 4;
+            date.setUTCHours(hour4, 0, 0, 0);
+            break;
+        case "2h":
+            const hour2 = Math.floor(date.getUTCHours() / 2) * 2;
+            date.setUTCHours(hour2, 0, 0, 0);
+            break;
+        case "1h":
+            date.setUTCMinutes(0, 0, 0);
+            break;
+        case "30m":
+            const min30 = Math.floor(date.getUTCMinutes() / 30) * 30;
+            date.setUTCMinutes(min30, 0, 0);
+            break;
+        case "15m":
+            const min15 = Math.floor(date.getUTCMinutes() / 15) * 15;
+            date.setUTCMinutes(min15, 0, 0);
+            break;
+        case "5m":
+            const min5 = Math.floor(date.getUTCMinutes() / 5) * 5;
+            date.setUTCMinutes(min5, 0, 0);
+            break;
+        case "3m":
+            const min3 = Math.floor(date.getUTCMinutes() / 3) * 3;
+            date.setUTCMinutes(min3, 0, 0);
+            break;
+        case "1m":
+            date.setUTCSeconds(0, 0);
+            break;
+        default:
+            date.setUTCMilliseconds(0);
+    }
+    return date.getTime();
+}
+async function syncCandlesFromAiTrade(symbol, price, volume) {
+    const intervals = [
+        "1m", "3m", "5m", "15m", "30m",
+        "1h", "2h", "4h", "6h", "12h",
+        "1d", "3d", "1w"
+    ];
+    const now = new Date();
+    for (const interval of intervals) {
+        const candleTimestamp = normalizeToIntervalBoundary(now.getTime(), interval);
+        const candleTime = new Date(candleTimestamp);
+        try {
+            const checkQuery = `
+        SELECT open, high, low, close, volume FROM ${client_1.scyllaKeyspace}.candles
+        WHERE symbol = ? AND interval = ? AND "createdAt" = ?
+      `;
+            const existingResult = await client_1.default.execute(checkQuery, [symbol, interval, candleTime], { prepare: true });
+            if (existingResult.rows.length > 0) {
+                const existing = existingResult.rows[0];
+                const newHigh = Math.max(existing.high, price);
+                const newLow = Math.min(existing.low, price);
+                const newVolume = (existing.volume || 0) + volume;
+                const updateQuery = `
+          UPDATE ${client_1.scyllaKeyspace}.candles
+          SET high = ?, low = ?, close = ?, volume = ?, "updatedAt" = ?
+          WHERE symbol = ? AND interval = ? AND "createdAt" = ?
+        `;
+                await client_1.default.execute(updateQuery, [newHigh, newLow, price, newVolume, now, symbol, interval, candleTime], { prepare: true });
+            }
+            else {
+                const prevCandleTime = getPreviousCandleTime(candleTime, interval);
+                const prevQuery = `
+          SELECT close FROM ${client_1.scyllaKeyspace}.candles
+          WHERE symbol = ? AND interval = ? AND "createdAt" = ?
+        `;
+                const prevResult = await client_1.default.execute(prevQuery, [symbol, interval, prevCandleTime], { prepare: true });
+                const openPrice = prevResult.rows.length > 0 ? prevResult.rows[0].close : price;
+                const insertQuery = `
+          INSERT INTO ${client_1.scyllaKeyspace}.candles (
+            symbol, interval, "createdAt", "updatedAt", open, high, low, close, volume
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+                await client_1.default.execute(insertQuery, [
+                    symbol,
+                    interval,
+                    candleTime,
+                    now,
+                    openPrice,
+                    Math.max(openPrice, price),
+                    Math.min(openPrice, price),
+                    price,
+                    volume
+                ], { prepare: true });
+            }
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Failed to sync candle for ${symbol} ${interval}: ${error}`);
+        }
+    }
+}
+function getPreviousCandleTime(currentTime, interval) {
+    const duration = intervalDurations[interval] || intervalDurations["1m"];
+    return new Date(currentTime.getTime() - duration);
+}
+function getCandleTime(date, interval) {
+    return new Date(normalizeToIntervalBoundary(date.getTime(), interval));
+}
+async function getRealLiquidityOrdersBySymbol(symbol, status) {
+    let query = `
+    SELECT * FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders
+    WHERE symbol = ?
+  `;
+    const params = [symbol];
+    if (status) {
+        query += ` AND status = ?`;
+        params.push(status);
+    }
+    query += ` ALLOW FILTERING`;
+    const result = await client_1.default.execute(query, params, { prepare: true });
+    return result.rows.map((row) => {
+        var _a, _b, _c;
+        return ({
+            id: (_a = row.ai_order_id) === null || _a === void 0 ? void 0 : _a.toString(),
+            aiBotOrderId: (_b = row.ai_order_id) === null || _b === void 0 ? void 0 : _b.toString(),
+            ecosystemOrderId: (_c = row.ecosystem_order_id) === null || _c === void 0 ? void 0 : _c.toString(),
+            symbol: row.symbol,
+            side: row.side,
+            price: toBigIntSafe(row.price),
+            amount: toBigIntSafe(row.amount),
+            status: row.status,
+            createdAt: row.created_at,
+        });
+    });
+}
+function calculateLiquiditySplit(totalAmount, realLiquidityPercent) {
+    const percent = Math.max(0, Math.min(100, realLiquidityPercent));
+    const realAmount = (totalAmount * BigInt(Math.round(percent * 100))) / BigInt(10000);
+    const aiAmount = totalAmount - realAmount;
+    return { aiAmount, realAmount };
+}
+async function getBotTradeStats(marketId) {
+    var _a, _b;
+    const statsMap = new Map();
+    try {
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            dates.push(new cassandra_driver_1.types.LocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        }
+        for (const tradeDate of dates) {
+            const query = `
+        SELECT buy_bot_id, sell_bot_id, price, amount
+        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+        WHERE market_id = ? AND trade_date = ?
+      `;
+            const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate], { prepare: true });
+            for (const row of result.rows) {
+                const buyBotId = (_a = row.buy_bot_id) === null || _a === void 0 ? void 0 : _a.toString();
+                if (buyBotId) {
+                    const existing = statsMap.get(buyBotId) || { tradeCount: 0, totalVolume: 0 };
+                    existing.tradeCount++;
+                    existing.totalVolume += Number(toBigIntSafe(row.amount)) / 1e18;
+                    statsMap.set(buyBotId, existing);
+                }
+                const sellBotId = (_b = row.sell_bot_id) === null || _b === void 0 ? void 0 : _b.toString();
+                if (sellBotId) {
+                    const existing = statsMap.get(sellBotId) || { tradeCount: 0, totalVolume: 0 };
+                    existing.tradeCount++;
+                    existing.totalVolume += Number(toBigIntSafe(row.amount)) / 1e18;
+                    statsMap.set(sellBotId, existing);
+                }
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Failed to get bot trade stats for market ${marketId}: ${error}`);
+    }
+    return statsMap;
+}
+async function debugGetAllTrades(limit = 50) {
+    try {
+        const query = `
+      SELECT market_id, trade_date, trade_time, buy_bot_id, sell_bot_id, price, amount
+      FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+      LIMIT ?
+      ALLOW FILTERING
+    `;
+        const result = await client_1.default.execute(query, [limit], { prepare: true });
+        return result.rows.map((row) => {
+            var _a, _b, _c, _d, _e, _f;
+            return ({
+                marketId: (_a = row.market_id) === null || _a === void 0 ? void 0 : _a.toString(),
+                tradeDate: (_b = row.trade_date) === null || _b === void 0 ? void 0 : _b.toString(),
+                tradeTime: row.trade_time,
+                buyBotId: (_c = row.buy_bot_id) === null || _c === void 0 ? void 0 : _c.toString(),
+                sellBotId: (_d = row.sell_bot_id) === null || _d === void 0 ? void 0 : _d.toString(),
+                price: (_e = row.price) === null || _e === void 0 ? void 0 : _e.toString(),
+                amount: (_f = row.amount) === null || _f === void 0 ? void 0 : _f.toString(),
+            });
+        });
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `DEBUG: Failed to get all trades: ${error}`);
+        return [];
+    }
+}
+async function getRecentBotTrades(marketId, limit = 20) {
+    var _a, _b, _c;
+    const trades = [];
+    try {
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            dates.push(new cassandra_driver_1.types.LocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        }
+        for (const tradeDate of dates) {
+            if (trades.length >= limit)
+                break;
+            const query = `
+        SELECT trade_id, trade_time, buy_bot_id, sell_bot_id, price, amount
+        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+        WHERE market_id = ? AND trade_date = ?
+        ORDER BY trade_time DESC
+        LIMIT ?
+      `;
+            const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate, limit - trades.length], { prepare: true });
+            for (const row of result.rows) {
+                trades.push({
+                    id: ((_a = row.trade_id) === null || _a === void 0 ? void 0 : _a.toString()) || "",
+                    price: (Number(toBigIntSafe(row.price)) / 1e18).toFixed(8),
+                    amount: (Number(toBigIntSafe(row.amount)) / 1e18).toFixed(8),
+                    buyBotId: ((_b = row.buy_bot_id) === null || _b === void 0 ? void 0 : _b.toString()) || "",
+                    sellBotId: ((_c = row.sell_bot_id) === null || _c === void 0 ? void 0 : _c.toString()) || "",
+                    createdAt: row.trade_time,
+                });
+            }
+        }
+        trades.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        return trades.slice(0, limit);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Failed to get recent bot trades for market ${marketId}: ${error}`);
+        return [];
+    }
+}
+async function getMarketTradeStats(marketId) {
+    let tradeCount = 0;
+    let totalVolume = 0;
+    try {
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            dates.push(new cassandra_driver_1.types.LocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        }
+        for (const tradeDate of dates) {
+            const query = `
+        SELECT price, amount
+        FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+        WHERE market_id = ? AND trade_date = ?
+      `;
+            const result = await client_1.default.execute(query, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate], { prepare: true });
+            for (const row of result.rows) {
+                tradeCount++;
+                totalVolume += Number(toBigIntSafe(row.amount)) / 1e18;
+            }
+        }
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Failed to get market trade stats for ${marketId}: ${error}`);
+    }
+    return { tradeCount, totalVolume };
+}
+async function deleteAiBotOrdersByMarket(marketId) {
+    let deletedCount = 0;
+    try {
+        const selectQuery = `
+      SELECT order_id, created_at FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders
+      WHERE market_id = ?
+    `;
+        const result = await client_1.default.execute(selectQuery, [cassandra_driver_1.types.Uuid.fromString(marketId)], { prepare: true });
+        for (const row of result.rows) {
+            const deleteQuery = `
+        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_orders
+        WHERE market_id = ? AND created_at = ? AND order_id = ?
+      `;
+            await client_1.default.execute(deleteQuery, [cassandra_driver_1.types.Uuid.fromString(marketId), row.created_at, row.order_id], { prepare: true });
+            deletedCount++;
+        }
+        console_1.logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} bot orders for market ${marketId}`);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Cleanup: Failed to delete bot orders for market ${marketId}: ${error}`);
+    }
+    return deletedCount;
+}
+async function deleteAiBotTradesByMarket(marketId) {
+    let deletedCount = 0;
+    try {
+        const dates = [];
+        for (let i = 0; i < 365; i++) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            dates.push(new cassandra_driver_1.types.LocalDate(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+        }
+        for (const tradeDate of dates) {
+            const selectQuery = `
+        SELECT trade_time, trade_id FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+        WHERE market_id = ? AND trade_date = ?
+      `;
+            const result = await client_1.default.execute(selectQuery, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate], { prepare: true });
+            for (const row of result.rows) {
+                const deleteQuery = `
+          DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_bot_trades
+          WHERE market_id = ? AND trade_date = ? AND trade_time = ? AND trade_id = ?
+        `;
+                await client_1.default.execute(deleteQuery, [cassandra_driver_1.types.Uuid.fromString(marketId), tradeDate, row.trade_time, row.trade_id], { prepare: true });
+                deletedCount++;
+            }
+        }
+        console_1.logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} bot trades for market ${marketId}`);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Cleanup: Failed to delete bot trades for market ${marketId}: ${error}`);
+    }
+    return deletedCount;
+}
+async function deleteAiPriceHistoryByMarket(marketId) {
+    let deletedCount = 0;
+    try {
+        const selectQuery = `
+      SELECT timestamp FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history
+      WHERE market_id = ?
+    `;
+        const result = await client_1.default.execute(selectQuery, [cassandra_driver_1.types.Uuid.fromString(marketId)], { prepare: true });
+        for (const row of result.rows) {
+            const deleteQuery = `
+        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_price_history
+        WHERE market_id = ? AND timestamp = ?
+      `;
+            await client_1.default.execute(deleteQuery, [cassandra_driver_1.types.Uuid.fromString(marketId), row.timestamp], { prepare: true });
+            deletedCount++;
+        }
+        console_1.logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} price history entries for market ${marketId}`);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Cleanup: Failed to delete price history for market ${marketId}: ${error}`);
+    }
+    return deletedCount;
+}
+async function deleteRealLiquidityOrdersBySymbol(symbol) {
+    let deletedCount = 0;
+    try {
+        const selectQuery = `
+      SELECT ai_order_id, ecosystem_order_id FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders
+      WHERE symbol = ?
+      ALLOW FILTERING
+    `;
+        const result = await client_1.default.execute(selectQuery, [symbol], { prepare: true });
+        for (const row of result.rows) {
+            const deleteQuery = `
+        DELETE FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders
+        WHERE ecosystem_order_id = ?
+      `;
+            await client_1.default.execute(deleteQuery, [row.ecosystem_order_id], { prepare: true });
+            deletedCount++;
+        }
+        console_1.logger.info("AI_MM", `Cleanup: Deleted ${deletedCount} real liquidity order records for ${symbol}`);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Cleanup: Failed to delete real liquidity orders for ${symbol}: ${error}`);
+    }
+    return deletedCount;
+}
+async function getOpenBotEcosystemOrderIds(symbol) {
+    const orderIds = [];
+    try {
+        const query = `
+      SELECT ecosystem_order_id FROM ${client_1.aiMarketMakerKeyspace}.ai_real_liquidity_orders
+      WHERE symbol = ? AND status = 'OPEN'
+      ALLOW FILTERING
+    `;
+        const result = await client_1.default.execute(query, [symbol], { prepare: true });
+        for (const row of result.rows) {
+            if (row.ecosystem_order_id) {
+                orderIds.push(row.ecosystem_order_id.toString());
+            }
+        }
+        console_1.logger.info("AI_MM", `Cleanup: Found ${orderIds.length} open bot orders for ${symbol}`);
+    }
+    catch (error) {
+        console_1.logger.error("AI_MM", `Cleanup: Failed to get open bot orders for ${symbol}: ${error}`);
+    }
+    return orderIds;
+}
+async function cleanupMarketMakerData(marketId, symbol) {
+    console_1.logger.info("AI_MM", `Cleanup: Starting cleanup for market ${marketId} (${symbol})`);
+    const ordersDeleted = await deleteAiBotOrdersByMarket(marketId);
+    const tradesDeleted = await deleteAiBotTradesByMarket(marketId);
+    const priceHistoryDeleted = await deleteAiPriceHistoryByMarket(marketId);
+    const realLiquidityOrdersDeleted = await deleteRealLiquidityOrdersBySymbol(symbol);
+    const orderbookEntriesCleared = await forceCleanOrderbook(symbol);
+    console_1.logger.info("AI_MM", `Cleanup: Completed cleanup for ${symbol}: orders=${ordersDeleted}, trades=${tradesDeleted}, priceHistory=${priceHistoryDeleted}, realLiquidityOrders=${realLiquidityOrdersDeleted}, orderbookEntries=${orderbookEntriesCleared}`);
+    return {
+        ordersDeleted,
+        tradesDeleted,
+        priceHistoryDeleted,
+        realLiquidityOrdersDeleted,
+        orderbookEntriesCleared,
+    };
+}

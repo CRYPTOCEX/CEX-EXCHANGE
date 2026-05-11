@@ -40,6 +40,7 @@ const error_1 = require("@b/utils/error");
 const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const redis_1 = require("@b/utils/redis");
 exports.metadata = {
     summary: "Cancel Trade",
     description: "Cancels a trade with a provided cancellation reason.",
@@ -102,7 +103,24 @@ exports.default = async (data) => {
         });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding and locking trade");
-    const transaction = await sequelize.transaction();
+    let redis = null;
+    let lockAcquired = false;
+    try {
+        redis = redis_1.RedisSingleton.getInstance();
+        const lockKey = `p2p:trade:${id}:action_lock`;
+        lockAcquired = !!(await redis.set(lockKey, "1", "EX", 30, "NX"));
+        if (!lockAcquired) {
+            throw (0, error_1.createError)({ statusCode: 409, message: "Another operation is already in progress on this trade. Please try again." });
+        }
+    }
+    catch (lockError) {
+        if (lockError.statusCode === 409)
+            throw lockError;
+        throw (0, error_1.createError)({ statusCode: 503, message: "Service temporarily unavailable. Please retry." });
+    }
+    const transaction = await sequelize.transaction({
+        isolationLevel: sequelize.constructor.Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+    });
     try {
         const trade = await db_1.models.p2pTrade.findOne({
             where: {
@@ -118,26 +136,35 @@ exports.default = async (data) => {
             transaction,
         });
         if (!trade) {
-            await transaction.rollback();
             throw (0, error_1.createError)({ statusCode: 404, message: "Trade not found" });
         }
         const tradeOffer = trade.offer;
         if (!tradeOffer) {
-            await transaction.rollback();
             throw (0, error_1.createError)({ statusCode: 500, message: "Trade data incomplete - offer not found" });
         }
-        if (!validateTradeStatusTransition(trade.status, "CANCELLED")) {
+        if (trade.status === "PENDING" && user.id !== trade.buyerId) {
             await transaction.rollback();
+            if (redis) {
+                try {
+                    await redis.del(`p2p:trade:${id}:action_lock`);
+                }
+                catch (_) { }
+            }
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Only the buyer can cancel a pending trade. As a seller, you can pause your offer instead."
+            });
+        }
+        if (!validateTradeStatusTransition(trade.status, "CANCELLED")) {
             throw (0, error_1.createError)({
                 statusCode: 400,
                 message: `Cannot cancel trade from status: ${trade.status}`
             });
         }
-        if (trade.status === "PAYMENT_SENT" && user.id === trade.buyerId) {
-            await transaction.rollback();
+        if (trade.status === "PAYMENT_SENT") {
             throw (0, error_1.createError)({
                 statusCode: 403,
-                message: "Buyer cannot cancel after confirming payment. Please open a dispute instead."
+                message: "Cannot cancel trade after payment has been confirmed. Please open a dispute instead."
             });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing fund unlocking and offer restoration");
@@ -181,22 +208,48 @@ exports.default = async (data) => {
                 console_1.logger.info("P2P_CANCEL", `SELL offer - funds remain locked for offer ${trade.offerId}`);
             }
             if (trade.offerId) {
-                const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
-                    lock: true,
-                    transaction,
-                });
-                if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
-                    const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
-                    const originalTotal = (_b = amountConfig.originalTotal) !== null && _b !== void 0 ? _b : (amountConfig.total + trade.amount);
-                    const maxAllowedTotal = originalTotal;
-                    const proposedTotal = amountConfig.total + trade.amount;
-                    const safeTotal = Math.min(proposedTotal, maxAllowedTotal);
-                    if (safeTotal > amountConfig.total) {
-                        await offer.update({ amountConfig: { ...amountConfig, total: safeTotal, originalTotal } }, { transaction });
-                        console_1.logger.info("P2P_CANCEL", `Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
+                let existingTimeline = [];
+                const rawTimeline = trade.timeline;
+                if (Array.isArray(rawTimeline)) {
+                    existingTimeline = rawTimeline;
+                }
+                else if (typeof rawTimeline === "string") {
+                    try {
+                        existingTimeline = JSON.parse(rawTimeline) || [];
                     }
-                    else {
-                        console_1.logger.debug("P2P_CANCEL", `Skipped offer ${offer.id} restoration - at or above safe limit`);
+                    catch (_c) {
+                        existingTimeline = [];
+                    }
+                }
+                const alreadyRestored = existingTimeline.some((e) => e && e.event === "OFFER_AMOUNT_RESTORED");
+                if (alreadyRestored) {
+                    console_1.logger.info("P2P_CANCEL", `Offer restoration already recorded for trade ${trade.id} - skipping (idempotent)`);
+                }
+                else {
+                    const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
+                        lock: transaction.LOCK.UPDATE,
+                        transaction,
+                    });
+                    if (offer && ["ACTIVE", "PAUSED"].includes(offer.status)) {
+                        const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+                        const originalTotal = (_b = amountConfig.originalTotal) !== null && _b !== void 0 ? _b : (amountConfig.total + trade.amount);
+                        const maxAllowedTotal = originalTotal;
+                        const proposedTotal = amountConfig.total + trade.amount;
+                        const safeTotal = Math.min(proposedTotal, maxAllowedTotal);
+                        if (safeTotal > amountConfig.total) {
+                            await offer.update({ amountConfig: { ...amountConfig, total: safeTotal, originalTotal } }, { transaction });
+                            console_1.logger.info("P2P_CANCEL", `Restored offer ${offer.id} amount: ${amountConfig.total} -> ${safeTotal}`);
+                            existingTimeline.push({
+                                event: "OFFER_AMOUNT_RESTORED",
+                                message: `Restored ${safeTotal - amountConfig.total} ${tradeOffer.currency} to offer ${offer.id}`,
+                                userId: user.id,
+                                createdAt: new Date().toISOString(),
+                            });
+                            trade.timeline = existingTimeline;
+                        }
+                        else {
+                            console_1.logger.debug("P2P_CANCEL", `Skipped offer ${offer.id} restoration - at or above safe limit`);
+                        }
                     }
                 }
             }
@@ -220,6 +273,7 @@ exports.default = async (data) => {
             userId: user.id,
             createdAt: new Date().toISOString(),
         });
+        const previousStatus = trade.status;
         await trade.update({ status: "CANCELLED", cancelledBy: user.id, cancellationReason: sanitizedReason, cancelledAt: new Date(), timeline }, { transaction });
         await db_1.models.p2pActivityLog.create({
             userId: user.id,
@@ -228,7 +282,7 @@ exports.default = async (data) => {
             relatedEntity: "TRADE",
             relatedEntityId: trade.id,
             details: JSON.stringify({
-                previousStatus: trade.status,
+                previousStatus: previousStatus,
                 reason: sanitizedReason,
                 amount: trade.amount,
                 currency: tradeOffer.currency,
@@ -236,6 +290,12 @@ exports.default = async (data) => {
             }),
         }, { transaction });
         await transaction.commit();
+        if (redis) {
+            try {
+                await redis.del(`p2p:trade:${id}:action_lock`);
+            }
+            catch (_) { }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Cancelled trade ${trade.id.slice(0, 8)}... (${trade.amount} ${tradeOffer.currency})`);
         notifyTradeEvent(trade.id, "TRADE_CANCELLED", {
             buyerId: trade.buyerId,
@@ -249,7 +309,7 @@ exports.default = async (data) => {
             type: "STATUS_CHANGE",
             data: {
                 status: "CANCELLED",
-                previousStatus: trade.status,
+                previousStatus: previousStatus,
                 cancelledAt: trade.cancelledAt,
                 cancellationReason: sanitizedReason,
                 cancelledBy: user.id,
@@ -266,7 +326,16 @@ exports.default = async (data) => {
         };
     }
     catch (err) {
-        await transaction.rollback();
+        if (redis && lockAcquired) {
+            try {
+                await redis.del(`p2p:trade:${id}:action_lock`);
+            }
+            catch (_) { }
+        }
+        try {
+            await transaction.rollback();
+        }
+        catch (_) { }
         if (err.statusCode) {
             throw err;
         }

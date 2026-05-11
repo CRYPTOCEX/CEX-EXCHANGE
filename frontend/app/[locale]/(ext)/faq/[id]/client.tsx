@@ -36,8 +36,9 @@ export default function FAQDetailContent() {
   const tCommon = useTranslations("common");
   const { id } = useParams() as { id: string };
   const { toast } = useToast();
-  const [faq, setFaq] = useState<any>(null);
+  const [faq, setFaq] = useState<(faqAttributes & { relatedFaqs?: any[]; helpfulCount?: number }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
   const [helpfulCount, setHelpfulCount] = useState(0);
   const [hasVoted, setHasVoted] = useState(false);
   const [voteType, setVoteType] = useState<"helpful" | "not-helpful" | null>(null);
@@ -54,20 +55,21 @@ export default function FAQDetailContent() {
         setIsLoading(true);
         const faqData = await getFAQById(id);
         if (!faqData) {
-          notFound();
+          setNotFoundState(true);
+          return;
         }
 
         setFaq(faqData);
         setHelpfulCount(faqData.helpfulCount ?? 0);
       } catch (error) {
-        console.error("Error loading FAQ:", error);
+        setNotFoundState(true);
       } finally {
         setIsLoading(false);
       }
     }
 
     loadFAQ();
-  }, [id]);
+  }, [id, getFAQById]);
 
   const toggleSaved = () => {
     setSavedFAQs((prev) => {
@@ -91,18 +93,26 @@ export default function FAQDetailContent() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: faq.question,
+          title: faq?.question ?? "",
           url: window.location.href,
         });
       } catch (error) {
         console.error("Error sharing:", error);
       }
     } else {
-      await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied",
-        description: "FAQ link copied to clipboard.",
-      });
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link copied",
+          description: "FAQ link copied to clipboard.",
+        });
+      } catch {
+        toast({
+          title: "Copy failed",
+          description: "Unable to copy link to clipboard.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -118,7 +128,7 @@ export default function FAQDetailContent() {
     );
   }
 
-  if (!faq) {
+  if (notFoundState || !faq) {
     notFound();
   }
 
@@ -146,9 +156,18 @@ export default function FAQDetailContent() {
 
   const handleNotHelpfulClick = async () => {
     if (!hasVoted) {
-      setHasVoted(true);
-      setVoteType("not-helpful");
-      setShowFeedbackForm(true);
+      const success = await submitFeedback(faq.id, false);
+      if (success) {
+        setHasVoted(true);
+        setVoteType("not-helpful");
+        setShowFeedbackForm(true);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to record your vote.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -180,7 +199,7 @@ export default function FAQDetailContent() {
   };
 
   const formattedDate = new Date(
-    faq.updatedAt ? faq.updatedAt : faq.createdAt
+    (faq.updatedAt ? faq.updatedAt : faq.createdAt) as string | number
   ).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",

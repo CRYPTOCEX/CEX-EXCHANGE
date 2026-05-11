@@ -1,1 +1,205 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/(ext)/copy-trading/utils"),security_1=require("@b/api/(ext)/copy-trading/utils/security"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Stop Subscription",description:"Stops a subscription permanently and returns all allocated funds to wallet.",operationId:"stopCopyTradingSubscription",tags:["Copy Trading","Followers"],requiresAuth:!0,logModule:"COPY",logTitle:"Stop following",middleware:["copyTradingFollowerAction"],parameters:[{name:"id",in:"path",required:!0,schema:{type:"string",format:"uuid"},description:"Subscription ID"}],responses:{200:{description:"Subscription stopped successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},returnedFunds:{type:"array",items:{type:"object",properties:{currency:{type:"string"},amount:{type:"number"}}}}}}}}},400:{description:"Bad Request"},401:{description:"Unauthorized"},403:{description:"Forbidden"},404:{description:"Subscription not found"},429:{description:"Too Many Requests"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{user:t,params:r,ctx:o}=e,{id:s}=r;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});if(!(0,security_1.isValidUUID)(s))throw(0,error_1.createError)({statusCode:400,message:"Invalid subscription ID"});null==o||o.step("Fetching subscription");const a=await db_1.models.copyTradingFollower.findByPk(s,{include:[{model:db_1.models.copyTradingFollowerAllocation,as:"allocations",where:{isActive:!0},required:!1}]});if(!a)throw(0,error_1.createError)({statusCode:404,message:"Subscription not found"});if(a.userId!==t.id)throw(0,error_1.createError)({statusCode:403,message:"Access denied"});if("STOPPED"===a.status)throw(0,error_1.createError)({statusCode:400,message:"Subscription is already stopped"});const i=await db_1.models.copyTradingTrade.count({where:{followerId:s,status:"OPEN"}});if(i>0)throw(0,error_1.createError)({statusCode:400,message:`Cannot stop subscription with ${i} active trades. Please close all positions first.`});const n=a.leaderId,l=a.status,d=a.allocations||[],u=[];null==o||o.step("Stopping subscription and returning funds");await db_1.sequelize.transaction(async e=>{for(const r of d){const o=r,[i,n]=o.symbol.split("/"),l=o.baseAmount-o.baseUsedAmount;if(l>0){const r=`ct_stop_base_${s}_${o.id}`,n=await wallet_1.walletService.transfer({idempotencyKey:r,fromUserId:t.id,toUserId:t.id,fromWalletType:"COPY_TRADING",toWalletType:"ECO",fromCurrency:i,toCurrency:i,amount:l,description:`Transfer ${l} ${i} from CT to ECO wallet (stop subscription for ${o.symbol})`,metadata:{followerId:s,leaderId:a.leaderId,allocationId:o.id,symbol:o.symbol,currencyType:"BASE"},transaction:e});u.push({currency:i,amount:l});await(0,utils_1.createCopyTradingTransaction)({userId:t.id,leaderId:a.leaderId,followerId:s,type:"DEALLOCATION",amount:l,currency:i,balanceBefore:n.fromResult.previousBalance,balanceAfter:n.fromResult.newBalance,description:`Transfer ${l} ${i} from CT to ECO wallet (stop subscription for ${o.symbol})`},e)}const d=o.quoteAmount-o.quoteUsedAmount;if(d>0){const r=`ct_stop_quote_${s}_${o.id}`,i=await wallet_1.walletService.transfer({idempotencyKey:r,fromUserId:t.id,toUserId:t.id,fromWalletType:"COPY_TRADING",toWalletType:"ECO",fromCurrency:n,toCurrency:n,amount:d,description:`Transfer ${d} ${n} from CT to ECO wallet (stop subscription for ${o.symbol})`,metadata:{followerId:s,leaderId:a.leaderId,allocationId:o.id,symbol:o.symbol,currencyType:"QUOTE"},transaction:e});u.push({currency:n,amount:d});await(0,utils_1.createCopyTradingTransaction)({userId:t.id,leaderId:a.leaderId,followerId:s,type:"DEALLOCATION",amount:d,currency:n,balanceBefore:i.fromResult.previousBalance,balanceAfter:i.fromResult.newBalance,description:`Transfer ${d} ${n} from CT to ECO wallet (stop subscription for ${o.symbol})`},e)}await o.update({isActive:!1},{transaction:e})}await a.update({status:"STOPPED"},{transaction:e});await(0,utils_1.createAuditLog)({entityType:"FOLLOWER",entityId:s,action:"UNFOLLOW",oldValue:{status:l},newValue:{status:"STOPPED",returnedFunds:u},userId:t.id},e)});null==o||o.step("Updating leader stats");await(0,utils_1.updateLeaderStats)(n);null==o||o.step("Sending follower notification");await(0,utils_1.notifyFollowerSubscriptionEvent)(s,"STOPPED",void 0,o);null==o||o.step("Sending leader notification");await(0,utils_1.notifyLeaderFollowerStopped)(n,t.id,void 0,o);null==o||o.success("Subscription stopped");return{message:"Subscription stopped successfully",returnedFunds:u}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/(ext)/copy-trading/utils");
+const security_1 = require("@b/api/(ext)/copy-trading/utils/security");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Stop Subscription",
+    description: "Stops a subscription permanently and returns all allocated funds to wallet.",
+    operationId: "stopCopyTradingSubscription",
+    tags: ["Copy Trading", "Followers"],
+    requiresAuth: true,
+    logModule: "COPY",
+    logTitle: "Stop following",
+    middleware: ["copyTradingFollowerAction"],
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+            description: "Subscription ID",
+        },
+    ],
+    responses: {
+        200: {
+            description: "Subscription stopped successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            returnedFunds: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        currency: { type: "string" },
+                                        amount: { type: "number" },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Bad Request" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        404: { description: "Subscription not found" },
+        429: { description: "Too Many Requests" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { user, params, ctx } = data;
+    const { id } = params;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    if (!(0, security_1.isValidUUID)(id)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Invalid subscription ID" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching subscription");
+    const subscription = await db_1.models.copyTradingFollower.findByPk(id, {
+        include: [
+            {
+                model: db_1.models.copyTradingFollowerAllocation,
+                as: "allocations",
+                where: { isActive: true },
+                required: false,
+            },
+        ],
+    });
+    if (!subscription) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Subscription not found" });
+    }
+    if (subscription.userId !== user.id) {
+        throw (0, error_1.createError)({ statusCode: 403, message: "Access denied" });
+    }
+    if (subscription.status === "STOPPED") {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Subscription is already stopped",
+        });
+    }
+    const activeTrades = await db_1.models.copyTradingTrade.count({
+        where: { followerId: id, status: "OPEN" },
+    });
+    if (activeTrades > 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Cannot stop subscription with ${activeTrades} active trades. Please close all positions first.`,
+        });
+    }
+    const leaderId = subscription.leaderId;
+    const oldStatus = subscription.status;
+    const allocations = subscription.allocations || [];
+    const returnedFunds = [];
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Stopping subscription and returning funds");
+    await db_1.sequelize.transaction(async (transaction) => {
+        for (const allocation of allocations) {
+            const allocationData = allocation;
+            const [baseCurrency, quoteCurrency] = allocationData.symbol.split("/");
+            const baseToReturn = allocationData.baseAmount - allocationData.baseUsedAmount;
+            if (baseToReturn > 0) {
+                const transferIdempotencyKey = `ct_stop_base_${id}_${allocationData.id}`;
+                const transferResult = await wallet_1.walletService.transfer({
+                    idempotencyKey: transferIdempotencyKey,
+                    fromUserId: user.id,
+                    toUserId: user.id,
+                    fromWalletType: "COPY_TRADING",
+                    toWalletType: "ECO",
+                    fromCurrency: baseCurrency,
+                    toCurrency: baseCurrency,
+                    amount: baseToReturn,
+                    description: `Transfer ${baseToReturn} ${baseCurrency} from CT to ECO wallet (stop subscription for ${allocationData.symbol})`,
+                    metadata: {
+                        followerId: id,
+                        leaderId: subscription.leaderId,
+                        allocationId: allocationData.id,
+                        symbol: allocationData.symbol,
+                        currencyType: "BASE",
+                    },
+                    transaction,
+                });
+                returnedFunds.push({ currency: baseCurrency, amount: baseToReturn });
+                await (0, utils_1.createCopyTradingTransaction)({
+                    userId: user.id,
+                    leaderId: subscription.leaderId,
+                    followerId: id,
+                    type: "DEALLOCATION",
+                    amount: baseToReturn,
+                    currency: baseCurrency,
+                    balanceBefore: transferResult.fromResult.previousBalance,
+                    balanceAfter: transferResult.fromResult.newBalance,
+                    description: `Transfer ${baseToReturn} ${baseCurrency} from CT to ECO wallet (stop subscription for ${allocationData.symbol})`,
+                }, transaction);
+            }
+            const quoteToReturn = allocationData.quoteAmount - allocationData.quoteUsedAmount;
+            if (quoteToReturn > 0) {
+                const transferIdempotencyKey = `ct_stop_quote_${id}_${allocationData.id}`;
+                const transferResult = await wallet_1.walletService.transfer({
+                    idempotencyKey: transferIdempotencyKey,
+                    fromUserId: user.id,
+                    toUserId: user.id,
+                    fromWalletType: "COPY_TRADING",
+                    toWalletType: "ECO",
+                    fromCurrency: quoteCurrency,
+                    toCurrency: quoteCurrency,
+                    amount: quoteToReturn,
+                    description: `Transfer ${quoteToReturn} ${quoteCurrency} from CT to ECO wallet (stop subscription for ${allocationData.symbol})`,
+                    metadata: {
+                        followerId: id,
+                        leaderId: subscription.leaderId,
+                        allocationId: allocationData.id,
+                        symbol: allocationData.symbol,
+                        currencyType: "QUOTE",
+                    },
+                    transaction,
+                });
+                returnedFunds.push({
+                    currency: quoteCurrency,
+                    amount: quoteToReturn,
+                });
+                await (0, utils_1.createCopyTradingTransaction)({
+                    userId: user.id,
+                    leaderId: subscription.leaderId,
+                    followerId: id,
+                    type: "DEALLOCATION",
+                    amount: quoteToReturn,
+                    currency: quoteCurrency,
+                    balanceBefore: transferResult.fromResult.previousBalance,
+                    balanceAfter: transferResult.fromResult.newBalance,
+                    description: `Transfer ${quoteToReturn} ${quoteCurrency} from CT to ECO wallet (stop subscription for ${allocationData.symbol})`,
+                }, transaction);
+            }
+            await allocationData.update({ isActive: false }, { transaction });
+        }
+        await subscription.update({ status: "STOPPED" }, { transaction });
+        await (0, utils_1.createAuditLog)({
+            entityType: "FOLLOWER",
+            entityId: id,
+            action: "UNFOLLOW",
+            oldValue: { status: oldStatus },
+            newValue: { status: "STOPPED", returnedFunds },
+            userId: user.id,
+        }, transaction);
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating leader stats");
+    await (0, utils_1.updateLeaderStats)(leaderId);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending follower notification");
+    await (0, utils_1.notifyFollowerSubscriptionEvent)(id, "STOPPED", undefined, ctx);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending leader notification");
+    await (0, utils_1.notifyLeaderFollowerStopped)(leaderId, user.id, undefined, ctx);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Subscription stopped");
+    return {
+        message: "Subscription stopped successfully",
+        returnedFunds,
+    };
+};

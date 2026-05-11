@@ -1,1 +1,280 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.BotManager=void 0;const BotFactory_1=require("./BotFactory"),console_1=require("@b/utils/console"),error_1=require("@b/utils/error");class BotManager{constructor(){this.marketGroups=new Map;this.orderManagers=new Map;this.minLoopInterval=1e3;this.maxConcurrentTrades=3;this.factory=BotFactory_1.BotFactory.getInstance()}static getInstance(){BotManager.instance||(BotManager.instance=new BotManager);return BotManager.instance}async initializeMarket(t,e){const{marketId:r}=t;if(this.marketGroups.has(r)){console_1.logger.info("BOT_MANAGER",`Market ${r} already initialized`);return}const o=this.factory.createBotsForMarket(t);for(const t of o)t.setOrderManager(e);this.marketGroups.set(r,{marketId:r,bots:o,isRunning:!1,loopInterval:null});this.orderManagers.set(r,e);console_1.logger.info("BOT_MANAGER",`Initialized ${o.length} bots for market ${r}`)}async startMarket(t){const e=this.marketGroups.get(t);if(!e)throw(0,error_1.createError)({statusCode:404,message:`Market ${t} not initialized`});if(e.isRunning)console_1.logger.info("BOT_MANAGER",`Market ${t} already running`);else{for(const t of e.bots)await t.start();e.isRunning=!0;this.startTradingLoop(t);console_1.logger.info("BOT_MANAGER",`Started ${e.bots.length} bots for market ${t}`)}}async stopMarket(t){const e=this.marketGroups.get(t);if(e){if(e.loopInterval){clearInterval(e.loopInterval);e.loopInterval=null}for(const t of e.bots)await t.stop();e.isRunning=!1;console_1.logger.info("BOT_MANAGER",`Stopped bots for market ${t}`)}}async pauseMarket(t){const e=this.marketGroups.get(t);if(e){for(const t of e.bots)await t.pause();console_1.logger.info("BOT_MANAGER",`Paused bots for market ${t}`)}}async resumeMarket(t){const e=this.marketGroups.get(t);if(e){for(const t of e.bots)await t.resume();console_1.logger.info("BOT_MANAGER",`Resumed bots for market ${t}`)}}async removeMarket(t){const e=this.marketGroups.get(t);if(null==e?void 0:e.loopInterval){clearInterval(e.loopInterval);e.loopInterval=null}await this.stopMarket(t);e&&(e.bots=[]);this.marketGroups.delete(t);this.orderManagers.delete(t);console_1.logger.info("BOT_MANAGER",`Removed market ${t}`)}async addBot(t,e){const r=this.marketGroups.get(t);if(!r)throw(0,error_1.createError)({statusCode:404,message:`Market ${t} not initialized`});const o=this.orderManagers.get(t);o&&e.setOrderManager(o);r.bots.push(e);r.isRunning&&await e.start();console_1.logger.info("BOT_MANAGER",`Added bot ${e.getBotId()} to market ${t}`)}async removeBot(t,e){const r=this.marketGroups.get(t);if(!r)return;const o=r.bots.findIndex(t=>t.getBotId()===e);if(-1===o)return;const a=r.bots[o];await a.stop();r.bots.splice(o,1);console_1.logger.info("BOT_MANAGER",`Removed bot ${e} from market ${t}`)}getBots(t){var e;return(null===(e=this.marketGroups.get(t))||void 0===e?void 0:e.bots)||[]}getBot(t,e){const r=this.marketGroups.get(t);return null==r?void 0:r.bots.find(t=>t.getBotId()===e)}getMarketStats(t){const e=this.marketGroups.get(t);return e?e.bots.map(t=>({botId:t.getBotId(),personality:t.getPersonality(),status:t.getStatus(),totalTrades:t.getTotalTrades(),successfulTrades:t.getSuccessfulTrades(),failedTrades:t.getFailedTrades(),winRate:t.getWinRate(),lastTradeTime:t.getLastTradeTime(),pnl:t.getPnL()})):[]}getAggregateStats(t){const e=this.getMarketStats(t),r=e.length;return{totalBots:r,activeBots:e.filter(t=>"ACTIVE"===t.status).length,totalTrades:e.reduce((t,e)=>t+e.totalTrades,0),totalPnL:e.reduce((t,e)=>t+e.pnl,0),avgWinRate:r>0?e.reduce((t,e)=>t+e.winRate,0)/r:0}}async executeTradingRound(t,e){const r=this.marketGroups.get(t);if(!r||!r.isRunning)return[];const o=[];let a=0;const s=[...r.bots].sort(()=>Math.random()-.5);for(const t of s){if(a>=this.maxConcurrentTrades)break;if(t.canTrade())try{const r=t.decideTrade(e);o.push(r);if(r.shouldTrade){await t.executeTrade(r)&&a++}}catch(t){console_1.logger.error("BOT_MANAGER","Error executing trade",t instanceof Error?t:new Error(String(t)))}}return o}isMarketRunning(t){var e;return(null===(e=this.marketGroups.get(t))||void 0===e?void 0:e.isRunning)||!1}getActiveMarkets(){return Array.from(this.marketGroups.entries()).filter(([,t])=>t.isRunning).map(([t])=>t)}startTradingLoop(t){const e=this.marketGroups.get(t);if(!e)return;const r=this.calculateLoopInterval(e.bots);e.loopInterval=setInterval(async()=>{if(e.isRunning)try{const e=this.orderManagers.get(t);if(!e)return;const r=await this.buildMarketContext(t,e);await this.executeTradingRound(t,r)}catch(t){console_1.logger.error("BOT_MANAGER","Error in trading loop",t instanceof Error?t:new Error(String(t)))}},r)}calculateLoopInterval(t){if(0===t.length)return this.minLoopInterval;const e=Math.min(...t.map(t=>t.getCooldownTime()));return Math.max(this.minLoopInterval,Math.floor(e/2))}async buildMarketContext(t,e){var r,o,a,s,n;const i=e,l=(null===(r=i.getCurrentPrice)||void 0===r?void 0:r.call(i))||BigInt(0),c=(null===(o=i.getTargetPrice)||void 0===o?void 0:o.call(i))||l,g=(null===(a=i.getOrderbook)||void 0===a?void 0:a.call(i))||{bids:[],asks:[],spread:0,midPrice:Number(l)/1e18};return{currentPrice:l,targetPrice:c,priceRangeLow:.9*Number(l),priceRangeHigh:1.1*Number(l),volatility:0,recentTrend:"SIDEWAYS",spreadBps:1e4*g.spread,recentVolume:BigInt(0),orderbook:{bestBid:(null===(s=g.bids[0])||void 0===s?void 0:s.price)?BigInt(Math.floor(1e18*g.bids[0].price)):BigInt(0),bestAsk:(null===(n=g.asks[0])||void 0===n?void 0:n.price)?BigInt(Math.floor(1e18*g.asks[0].price)):BigInt(0)}}}async shutdown(){const t=Array.from(this.marketGroups.keys());for(const e of t)await this.stopMarket(e);this.marketGroups.clear();this.orderManagers.clear();console_1.logger.info("BOT_MANAGER","Shutdown complete")}}exports.BotManager=BotManager;exports.default=BotManager;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BotManager = void 0;
+const BotFactory_1 = require("./BotFactory");
+const console_1 = require("@b/utils/console");
+const error_1 = require("@b/utils/error");
+class BotManager {
+    constructor() {
+        this.marketGroups = new Map();
+        this.orderManagers = new Map();
+        this.minLoopInterval = 1000;
+        this.maxConcurrentTrades = 3;
+        this.factory = BotFactory_1.BotFactory.getInstance();
+    }
+    static getInstance() {
+        if (!BotManager.instance) {
+            BotManager.instance = new BotManager();
+        }
+        return BotManager.instance;
+    }
+    async initializeMarket(marketConfig, orderManager) {
+        const { marketId } = marketConfig;
+        if (this.marketGroups.has(marketId)) {
+            console_1.logger.info("BOT_MANAGER", `Market ${marketId} already initialized`);
+            return;
+        }
+        const bots = this.factory.createBotsForMarket(marketConfig);
+        for (const bot of bots) {
+            bot.setOrderManager(orderManager);
+        }
+        this.marketGroups.set(marketId, {
+            marketId,
+            bots,
+            isRunning: false,
+            loopInterval: null,
+        });
+        this.orderManagers.set(marketId, orderManager);
+        console_1.logger.info("BOT_MANAGER", `Initialized ${bots.length} bots for market ${marketId}`);
+    }
+    async startMarket(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group) {
+            throw (0, error_1.createError)({ statusCode: 404, message: `Market ${marketId} not initialized` });
+        }
+        if (group.isRunning) {
+            console_1.logger.info("BOT_MANAGER", `Market ${marketId} already running`);
+            return;
+        }
+        for (const bot of group.bots) {
+            await bot.start();
+        }
+        group.isRunning = true;
+        this.startTradingLoop(marketId);
+        console_1.logger.info("BOT_MANAGER", `Started ${group.bots.length} bots for market ${marketId}`);
+    }
+    async stopMarket(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group) {
+            return;
+        }
+        if (group.loopInterval) {
+            clearInterval(group.loopInterval);
+            group.loopInterval = null;
+        }
+        for (const bot of group.bots) {
+            await bot.stop();
+        }
+        group.isRunning = false;
+        console_1.logger.info("BOT_MANAGER", `Stopped bots for market ${marketId}`);
+    }
+    async pauseMarket(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group)
+            return;
+        for (const bot of group.bots) {
+            await bot.pause();
+        }
+        console_1.logger.info("BOT_MANAGER", `Paused bots for market ${marketId}`);
+    }
+    async resumeMarket(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group)
+            return;
+        for (const bot of group.bots) {
+            await bot.resume();
+        }
+        console_1.logger.info("BOT_MANAGER", `Resumed bots for market ${marketId}`);
+    }
+    async removeMarket(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (group === null || group === void 0 ? void 0 : group.loopInterval) {
+            clearInterval(group.loopInterval);
+            group.loopInterval = null;
+        }
+        await this.stopMarket(marketId);
+        if (group) {
+            group.bots = [];
+        }
+        this.marketGroups.delete(marketId);
+        this.orderManagers.delete(marketId);
+        console_1.logger.info("BOT_MANAGER", `Removed market ${marketId}`);
+    }
+    async addBot(marketId, bot) {
+        const group = this.marketGroups.get(marketId);
+        if (!group) {
+            throw (0, error_1.createError)({ statusCode: 404, message: `Market ${marketId} not initialized` });
+        }
+        const orderManager = this.orderManagers.get(marketId);
+        if (orderManager) {
+            bot.setOrderManager(orderManager);
+        }
+        group.bots.push(bot);
+        if (group.isRunning) {
+            await bot.start();
+        }
+        console_1.logger.info("BOT_MANAGER", `Added bot ${bot.getBotId()} to market ${marketId}`);
+    }
+    async removeBot(marketId, botId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group)
+            return;
+        const botIndex = group.bots.findIndex((b) => b.getBotId() === botId);
+        if (botIndex === -1)
+            return;
+        const bot = group.bots[botIndex];
+        await bot.stop();
+        group.bots.splice(botIndex, 1);
+        console_1.logger.info("BOT_MANAGER", `Removed bot ${botId} from market ${marketId}`);
+    }
+    getBots(marketId) {
+        var _a;
+        return ((_a = this.marketGroups.get(marketId)) === null || _a === void 0 ? void 0 : _a.bots) || [];
+    }
+    getBot(marketId, botId) {
+        const group = this.marketGroups.get(marketId);
+        return group === null || group === void 0 ? void 0 : group.bots.find((b) => b.getBotId() === botId);
+    }
+    getMarketStats(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group)
+            return [];
+        return group.bots.map((bot) => ({
+            botId: bot.getBotId(),
+            personality: bot.getPersonality(),
+            status: bot.getStatus(),
+            totalTrades: bot.getTotalTrades(),
+            successfulTrades: bot.getSuccessfulTrades(),
+            failedTrades: bot.getFailedTrades(),
+            winRate: bot.getWinRate(),
+            lastTradeTime: bot.getLastTradeTime(),
+            pnl: bot.getPnL(),
+        }));
+    }
+    getAggregateStats(marketId) {
+        const stats = this.getMarketStats(marketId);
+        const totalBots = stats.length;
+        const activeBots = stats.filter((s) => s.status === "ACTIVE").length;
+        const totalTrades = stats.reduce((sum, s) => sum + s.totalTrades, 0);
+        const totalPnL = stats.reduce((sum, s) => sum + s.pnl, 0);
+        const avgWinRate = totalBots > 0
+            ? stats.reduce((sum, s) => sum + s.winRate, 0) / totalBots
+            : 0;
+        return {
+            totalBots,
+            activeBots,
+            totalTrades,
+            totalPnL,
+            avgWinRate,
+        };
+    }
+    async executeTradingRound(marketId, context) {
+        const group = this.marketGroups.get(marketId);
+        if (!group || !group.isRunning) {
+            return [];
+        }
+        const decisions = [];
+        let tradesExecuted = 0;
+        const shuffledBots = [...group.bots].sort(() => Math.random() - 0.5);
+        for (const bot of shuffledBots) {
+            if (tradesExecuted >= this.maxConcurrentTrades) {
+                break;
+            }
+            if (!bot.canTrade()) {
+                continue;
+            }
+            try {
+                const decision = bot.decideTrade(context);
+                decisions.push(decision);
+                if (decision.shouldTrade) {
+                    const success = await bot.executeTrade(decision);
+                    if (success) {
+                        tradesExecuted++;
+                    }
+                }
+            }
+            catch (error) {
+                console_1.logger.error("BOT_MANAGER", "Error executing trade", error instanceof Error ? error : new Error(String(error)));
+            }
+        }
+        return decisions;
+    }
+    isMarketRunning(marketId) {
+        var _a;
+        return ((_a = this.marketGroups.get(marketId)) === null || _a === void 0 ? void 0 : _a.isRunning) || false;
+    }
+    getActiveMarkets() {
+        return Array.from(this.marketGroups.entries())
+            .filter(([, group]) => group.isRunning)
+            .map(([marketId]) => marketId);
+    }
+    startTradingLoop(marketId) {
+        const group = this.marketGroups.get(marketId);
+        if (!group)
+            return;
+        const interval = this.calculateLoopInterval(group.bots);
+        group.loopInterval = setInterval(async () => {
+            if (!group.isRunning)
+                return;
+            try {
+                const orderManager = this.orderManagers.get(marketId);
+                if (!orderManager)
+                    return;
+                const context = await this.buildMarketContext(marketId, orderManager);
+                await this.executeTradingRound(marketId, context);
+            }
+            catch (error) {
+                console_1.logger.error("BOT_MANAGER", "Error in trading loop", error instanceof Error ? error : new Error(String(error)));
+            }
+        }, interval);
+    }
+    calculateLoopInterval(bots) {
+        if (bots.length === 0)
+            return this.minLoopInterval;
+        const minCooldown = Math.min(...bots.map((bot) => bot.getCooldownTime()));
+        return Math.max(this.minLoopInterval, Math.floor(minCooldown / 2));
+    }
+    async buildMarketContext(marketId, orderManager) {
+        var _a, _b, _c, _d, _e;
+        const om = orderManager;
+        const currentPrice = ((_a = om.getCurrentPrice) === null || _a === void 0 ? void 0 : _a.call(om)) || BigInt(0);
+        const targetPrice = ((_b = om.getTargetPrice) === null || _b === void 0 ? void 0 : _b.call(om)) || currentPrice;
+        const orderbook = ((_c = om.getOrderbook) === null || _c === void 0 ? void 0 : _c.call(om)) || {
+            bids: [],
+            asks: [],
+            spread: 0,
+            midPrice: Number(currentPrice) / 1e18,
+        };
+        const volatility = 0;
+        const recentTrend = "SIDEWAYS";
+        return {
+            currentPrice,
+            targetPrice,
+            priceRangeLow: Number(currentPrice) * 0.9,
+            priceRangeHigh: Number(currentPrice) * 1.1,
+            volatility,
+            recentTrend,
+            spreadBps: orderbook.spread * 10000,
+            recentVolume: BigInt(0),
+            orderbook: {
+                bestBid: ((_d = orderbook.bids[0]) === null || _d === void 0 ? void 0 : _d.price)
+                    ? BigInt(Math.floor(orderbook.bids[0].price * 1e18))
+                    : BigInt(0),
+                bestAsk: ((_e = orderbook.asks[0]) === null || _e === void 0 ? void 0 : _e.price)
+                    ? BigInt(Math.floor(orderbook.asks[0].price * 1e18))
+                    : BigInt(0),
+            },
+        };
+    }
+    async shutdown() {
+        const markets = Array.from(this.marketGroups.keys());
+        for (const marketId of markets) {
+            await this.stopMarket(marketId);
+        }
+        this.marketGroups.clear();
+        this.orderManagers.clear();
+        console_1.logger.info("BOT_MANAGER", "Shutdown complete");
+    }
+}
+exports.BotManager = BotManager;
+exports.default = BotManager;

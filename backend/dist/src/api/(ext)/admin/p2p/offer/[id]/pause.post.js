@@ -38,11 +38,14 @@ const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const Middleware_1 = require("@b/handler/Middleware");
 const ownership_1 = require("../../../../p2p/utils/ownership");
+const json_parser_1 = require("../../../../p2p/utils/json-parser");
+const utils_1 = require("@b/api/finance/wallet/utils");
 const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
 const errors_1 = require("@b/utils/schema/errors");
 exports.metadata = {
     summary: "Pause P2P offer",
-    description: "Temporarily pauses an ACTIVE P2P offer. Sets the offer status to PAUSED and notifies the offer owner. Funds remain locked for SELL offers.",
+    description: "Temporarily pauses an ACTIVE P2P offer. Sets the offer status to PAUSED and notifies the offer owner. For SELL offers, locked funds are released back to the user's available balance.",
     operationId: "pauseAdminP2POffer",
     tags: ["Admin", "P2P", "Offer"],
     requiresAuth: true,
@@ -69,6 +72,7 @@ exports.metadata = {
     permission: "edit.p2p.offer",
 };
 exports.default = async (data) => {
+    var _a;
     const { params, user, ctx } = data;
     const { id } = params;
     const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
@@ -109,6 +113,37 @@ exports.default = async (data) => {
             ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
             : 'Admin';
         const previousStatus = offer.status;
+        let fundsReleased = false;
+        let releasedAmount = 0;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for locked funds to release");
+        if (offer.type === "SELL") {
+            const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+            const lockedAmount = amountConfig.total;
+            if (lockedAmount > 0) {
+                const wallet = await (0, utils_1.getWalletSafe)(offer.userId, offer.walletType, offer.currency, false, ctx);
+                if (wallet && ((_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0) >= lockedAmount) {
+                    ctx === null || ctx === void 0 ? void 0 : ctx.step("Releasing locked funds");
+                    const idempotencyKey = `p2p_admin_pause_offer_${offer.id}_${Date.now()}`;
+                    await wallet_1.walletService.release({
+                        idempotencyKey,
+                        userId: offer.userId,
+                        walletId: wallet.id,
+                        walletType: offer.walletType,
+                        currency: offer.currency,
+                        amount: lockedAmount,
+                        operationType: "P2P_OFFER_PAUSE",
+                        description: `Release ${lockedAmount} ${offer.currency} - P2P offer paused by admin`,
+                        metadata: {
+                            offerId: offer.id,
+                            adminId: user.id,
+                        },
+                        transaction,
+                    });
+                    fundsReleased = true;
+                    releasedAmount = lockedAmount;
+                }
+            }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Pausing offer");
         await offer.update({
             status: "PAUSED",
@@ -119,6 +154,8 @@ exports.default = async (data) => {
                     adminId: user.id,
                     adminName: adminName,
                     previousStatus,
+                    fundsReleased,
+                    releasedAmount,
                     createdAt: new Date().toISOString(),
                 },
             ],
@@ -130,11 +167,15 @@ exports.default = async (data) => {
             currency: offer.currency,
             previousStatus,
             pausedBy: adminName,
+            fundsReleased,
+            releasedAmount,
         });
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
         notifyOfferEvent(offer.id, "OFFER_PAUSED", {
             pausedBy: adminName,
+            fundsReleased,
+            releasedAmount,
         }).catch((error) => console_1.logger.error("P2P", "Failed to send offer paused notification", error));
         ctx === null || ctx === void 0 ? void 0 : ctx.success("Offer paused successfully");
         return {
@@ -142,6 +183,8 @@ exports.default = async (data) => {
             offer: {
                 id: offer.id,
                 status: "PAUSED",
+                fundsReleased,
+                releasedAmount,
             }
         };
     }

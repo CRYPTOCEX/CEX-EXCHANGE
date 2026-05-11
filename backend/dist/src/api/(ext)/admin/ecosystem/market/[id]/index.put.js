@@ -60,11 +60,22 @@ exports.metadata = {
 exports.default = async (data) => {
     const { body, params, ctx } = data;
     const { id } = params;
-    const { metadata } = body;
+    const { metadata, isTrending, isHot, status, currency, pair } = body;
+    const updatePayload = {};
+    if (metadata !== undefined)
+        updatePayload.metadata = metadata;
+    if (isTrending !== undefined)
+        updatePayload.isTrending = isTrending;
+    if (isHot !== undefined)
+        updatePayload.isHot = isHot;
+    if (status !== undefined)
+        updatePayload.status = status;
+    if (currency !== undefined)
+        updatePayload.currency = currency;
+    if (pair !== undefined)
+        updatePayload.pair = pair;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating market record");
-    const result = await (0, query_1.updateRecord)("ecosystemMarket", id, {
-        metadata,
-    });
+    const result = await (0, query_1.updateRecord)("ecosystemMarket", id, updatePayload);
     ctx === null || ctx === void 0 ? void 0 : ctx.success("Market updated successfully");
     return result;
 };

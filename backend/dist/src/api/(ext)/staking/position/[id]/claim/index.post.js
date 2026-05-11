@@ -32,8 +32,12 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
+const crypto_1 = __importDefault(require("crypto"));
 const cache_1 = require("@b/utils/cache");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
@@ -163,18 +167,6 @@ exports.default = async (data) => {
             message: "You don't have access to this position",
         });
     }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving unclaimed earnings");
-    const unclaimedEarnings = await db_1.models.stakingEarningRecord.findAll({
-        where: {
-            positionId: position.id,
-            isClaimed: false,
-        },
-    });
-    if (unclaimedEarnings.length === 0) {
-        throw (0, error_1.createError)({ statusCode: 400, message: "No earnings to claim" });
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating total claim amount");
-    const totalClaimAmount = unclaimedEarnings.reduce((sum, record) => sum + record.amount, 0);
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving or creating user wallet");
     let wallet;
     if (pool.walletType === "ECO") {
@@ -210,7 +202,31 @@ exports.default = async (data) => {
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing earnings claim");
     const transaction = await db_1.sequelize.transaction();
+    let transactionSettled = false;
     try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Locking unclaimed earnings");
+        const unclaimedEarnings = await db_1.models.stakingEarningRecord.findAll({
+            where: {
+                positionId: position.id,
+                isClaimed: false,
+            },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+        });
+        if (unclaimedEarnings.length === 0) {
+            await transaction.rollback();
+            transactionSettled = true;
+            throw (0, error_1.createError)({ statusCode: 400, message: "No earnings to claim" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating total claim amount");
+        const totalClaimAmount = unclaimedEarnings.reduce((sum, record) => sum + record.amount, 0);
+        const earningIds = unclaimedEarnings.map((e) => e.id).sort().join(",");
+        const hash = crypto_1.default
+            .createHash("sha256")
+            .update(earningIds)
+            .digest("hex")
+            .slice(0, 16);
+        const idempotencyKey = `staking_claim_${user.id}_${position.id}_${hash}`;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Marking earnings as claimed");
         await Promise.all(unclaimedEarnings.map((earning) => db_1.models.stakingEarningRecord.update({
             isClaimed: true,
@@ -221,7 +237,7 @@ exports.default = async (data) => {
         })));
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Crediting wallet with claimed earnings");
         await wallet_1.walletService.credit({
-            idempotencyKey: `staking_claim_${position.id}`,
+            idempotencyKey,
             userId: user.id,
             walletId: wallet.id,
             walletType: pool.walletType,
@@ -253,6 +269,7 @@ exports.default = async (data) => {
             ],
         }, ctx);
         await transaction.commit();
+        transactionSettled = true;
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Claimed ${totalClaimAmount} ${pool.symbol} in staking rewards`);
         return {
             success: true,
@@ -260,7 +277,13 @@ exports.default = async (data) => {
         };
     }
     catch (error) {
-        await transaction.rollback();
+        if (!transactionSettled) {
+            try {
+                await transaction.rollback();
+            }
+            catch (_a) {
+            }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.fail(error.message || "Failed to claim earnings");
         throw error;
     }

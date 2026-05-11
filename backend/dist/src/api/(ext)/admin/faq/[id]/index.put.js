@@ -1,9 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const errors_1 = require("@b/utils/schema/errors");
+const validator_1 = __importDefault(require("validator"));
+const faq_validation_1 = require("@b/api/(ext)/faq/utils/faq-validation");
 exports.metadata = {
     summary: "Update Single FAQ",
     description: "Updates an existing FAQ entry by ID. Allows partial updates of FAQ fields including question, answer, category, tags, status, order, and related FAQs.",
@@ -86,18 +91,27 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("pagePath cannot be empty");
         throw (0, error_1.createError)({ statusCode: 400, message: "pagePath cannot be empty" });
     }
+    const updateData = {};
+    if (question !== undefined)
+        updateData.question = typeof question === 'string' ? validator_1.default.escape(question.trim()) : question;
+    if (answer !== undefined)
+        updateData.answer = (0, faq_validation_1.sanitizeHTML)(answer);
+    if (image !== undefined)
+        updateData.image = image;
+    if (category !== undefined)
+        updateData.category = typeof category === 'string' ? validator_1.default.escape(category.trim()) : category;
+    if (tags !== undefined)
+        updateData.tags = tags;
+    if (status !== undefined)
+        updateData.status = status;
+    if (order !== undefined)
+        updateData.order = order;
+    if (pagePath !== undefined)
+        updateData.pagePath = pagePath;
+    if (relatedFaqIds !== undefined)
+        updateData.relatedFaqIds = relatedFaqIds;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating FAQ");
-    await faq.update({
-        question,
-        answer,
-        image,
-        category,
-        tags,
-        status,
-        order,
-        pagePath,
-        relatedFaqIds,
-    });
+    await faq.update(updateData);
     ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQ updated successfully");
     return faq;
 };

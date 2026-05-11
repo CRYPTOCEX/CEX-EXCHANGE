@@ -13,7 +13,6 @@ class nftMetadataBackup extends sequelize_1.Model {
             backupId: {
                 type: sequelize_1.DataTypes.STRING(255),
                 allowNull: false,
-                unique: true,
             },
             type: {
                 type: sequelize_1.DataTypes.STRING(50),

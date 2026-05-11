@@ -85,13 +85,12 @@ exports.default = async (data) => {
         return question;
     }
     catch (error) {
-        console.error("Error answering FAQ question:", error);
+        if (error.statusCode)
+            throw error;
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to answer FAQ question");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error
-                ? error.message
-                : "Failed to answer FAQ question",
+            message: "Failed to answer FAQ question",
         });
     }
 };

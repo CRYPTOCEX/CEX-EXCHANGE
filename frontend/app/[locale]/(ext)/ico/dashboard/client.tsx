@@ -16,7 +16,7 @@ export default function DashboardClientPage() {
   const t = useTranslations("ext_ico");
   const tExt = useTranslations("ext");
   const tCommon = useTranslations("common");
-  const { portfolio, fetchPortfolio } = usePortfolioStore();
+  const { portfolio, investments, fetchPortfolio } = usePortfolioStore();
 
   useEffect(() => {
     fetchPortfolio();
@@ -81,7 +81,7 @@ export default function DashboardClientPage() {
             {
               icon: Rocket,
               label: tCommon("active_investments"),
-              value: portfolio ? (portfolio as any).activeInvestments : 0,
+              value: investments?.length || 0,
               iconColor: "text-teal-500",
               iconBgColor: "bg-teal-500/10",
             },

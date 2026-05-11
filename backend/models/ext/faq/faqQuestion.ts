@@ -78,8 +78,4 @@ export default class faqQuestion
       }
     );
   }
-
-  public static associate(models: any) {
-    // Optionally associate questions with other models if needed.
-  }
 }

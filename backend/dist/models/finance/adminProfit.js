@@ -23,7 +23,7 @@ class adminProfit extends sequelize_1.Model {
                 comment: "ID of the transaction that generated this profit",
             },
             type: {
-                type: sequelize_1.DataTypes.ENUM("DEPOSIT", "WITHDRAW", "TRANSFER", "BINARY_ORDER", "EXCHANGE_ORDER", "INVESTMENT", "AI_INVESTMENT", "FOREX_DEPOSIT", "FOREX_WITHDRAW", "FOREX_INVESTMENT", "ICO_CONTRIBUTION", "STAKING", "P2P_TRADE", "NFT_SALE", "NFT_AUCTION", "NFT_OFFER", "GATEWAY_PAYMENT"),
+                type: sequelize_1.DataTypes.ENUM("DEPOSIT", "WITHDRAW", "TRANSFER", "BINARY_ORDER", "EXCHANGE_ORDER", "INVESTMENT", "AI_INVESTMENT", "FOREX_DEPOSIT", "FOREX_WITHDRAW", "FOREX_INVESTMENT", "ICO_CONTRIBUTION", "STAKING", "P2P_TRADE", "NFT_SALE", "NFT_AUCTION", "NFT_OFFER", "GATEWAY_PAYMENT", "TRADE"),
                 allowNull: false,
                 validate: {
                     isIn: {
@@ -46,6 +46,7 @@ class adminProfit extends sequelize_1.Model {
                                 "NFT_AUCTION",
                                 "NFT_OFFER",
                                 "GATEWAY_PAYMENT",
+                                "TRADE",
                             ],
                         ],
                         msg: "type: Type must be one of the defined transaction types",
@@ -96,6 +97,21 @@ class adminProfit extends sequelize_1.Model {
                     name: "adminProfitTransactionIdForeign",
                     using: "BTREE",
                     fields: [{ name: "transactionId" }],
+                },
+                {
+                    name: "idx_admin_profit_type",
+                    using: "BTREE",
+                    fields: [{ name: "type" }],
+                },
+                {
+                    name: "idx_admin_profit_created_at",
+                    using: "BTREE",
+                    fields: [{ name: "createdAt" }],
+                },
+                {
+                    name: "idx_admin_profit_summary",
+                    using: "BTREE",
+                    fields: [{ name: "type" }, { name: "createdAt" }, { name: "currency" }],
                 },
             ],
         });

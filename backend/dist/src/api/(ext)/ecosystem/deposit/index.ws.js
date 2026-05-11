@@ -92,18 +92,20 @@ exports.default = async (data, message) => {
         let monitor = monitorInstances.get(monitorKey);
         if (monitor) {
             const connection = activeConnections.get(monitorKey);
-            const isStaleMonitor = monitor.active === false ||
-                (connection &&
-                    (monitor.chain !== chain ||
-                        monitor.currency !== currency ||
-                        monitor.address !== finalAddress));
-            if (isStaleMonitor) {
-                console_1.logger.info("DEPOSIT_WS", `Monitor for user ${monitorKey} is stale or inactive. Creating a new monitor.`);
+            const isDifferentTarget = connection &&
+                (monitor.chain !== chain ||
+                    monitor.currency !== currency ||
+                    monitor.address !== finalAddress);
+            if (isDifferentTarget) {
+                console_1.logger.info("DEPOSIT_WS", `Monitor for user ${monitorKey} is for different target. Creating a new monitor.`);
                 if (typeof monitor.stopPolling === "function") {
                     monitor.stopPolling();
                 }
                 monitorInstances.delete(monitorKey);
                 monitor = null;
+            }
+            else if (monitor.active === false) {
+                console_1.logger.info("DEPOSIT_WS", `Monitor for user ${monitorKey} already completed (deposit found). Reusing.`);
             }
         }
         if (!monitor) {
@@ -115,6 +117,8 @@ exports.default = async (data, message) => {
                 currency,
                 address: finalAddress,
                 contractType,
+                contract: token.contract,
+                decimals: token.decimals,
             });
             if (monitor) {
                 await monitor.watchDeposits();
@@ -160,7 +164,7 @@ exports.default = async (data, message) => {
     }
 };
 function createMonitor(chain, options) {
-    const { wallet, currency, address, contractType } = options;
+    const { wallet, currency, address, contractType, contract, decimals } = options;
     try {
         if (["BTC", "LTC", "DOGE", "DASH"].includes(chain)) {
             return new UTXODeposits_1.UTXODeposits({ wallet, chain, address });
@@ -169,7 +173,7 @@ function createMonitor(chain, options) {
             return new SolanaDeposits_1.SolanaDeposits({ wallet, chain, currency, address });
         }
         else if (chain === "TRON") {
-            return new TronDeposits_1.TronDeposits({ wallet, chain, address });
+            return new TronDeposits_1.TronDeposits({ wallet, chain, address, currency, contractType, contract, decimals });
         }
         else if (chain === "XMR") {
             return new MoneroDeposits_1.MoneroDeposits({ wallet });

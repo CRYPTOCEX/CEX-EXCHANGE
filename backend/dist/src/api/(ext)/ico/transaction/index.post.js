@@ -1,18 +1,15 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
-const crypto_1 = __importDefault(require("crypto"));
 const utils_1 = require("@b/api/(ext)/admin/ico/utils");
 const notifications_1 = require("@b/utils/notifications");
 const Middleware_1 = require("@b/handler/Middleware");
 const sequelize_1 = require("sequelize");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 const affiliate_1 = require("@b/utils/affiliate");
 exports.metadata = {
     summary: "Create a New ICO Investment",
@@ -76,17 +73,20 @@ function validateWalletAddress(address, blockchain) {
         ethereum: /^0x[a-fA-F0-9]{40}$/,
         bsc: /^0x[a-fA-F0-9]{40}$/,
         polygon: /^0x[a-fA-F0-9]{40}$/,
-        bitcoin: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
+        bitcoin: /^(bc1[a-zA-HJ-NP-Z0-9]{25,87}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/,
         solana: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
     };
     const validator = validators[blockchain.toLowerCase()];
-    return validator ? validator.test(address) : true;
+    if (!validator) {
+        return address.length >= 20 && address.length <= 128 && !/\s/.test(address);
+    }
+    return validator.test(address);
 }
 async function getInvestmentLimits() {
     const settings = await db_1.models.settings.findAll({
         where: {
             key: {
-                [sequelize_1.Op.in]: ['icoMinInvestment', 'icoMaxInvestment', 'icoMaxPerUser']
+                [sequelize_1.Op.in]: ['icoMinInvestmentAmount', 'icoMaxInvestmentAmount', 'icoMaxPerUser', 'icoPlatformFeePercentage']
             }
         }
     });
@@ -96,12 +96,14 @@ async function getInvestmentLimits() {
         return acc;
     }, {});
     return {
-        minInvestment: limits.icoMinInvestment || 10,
-        maxInvestment: limits.icoMaxInvestment || 100000,
+        minInvestment: limits.icoMinInvestmentAmount || 10,
+        maxInvestment: limits.icoMaxInvestmentAmount || 100000,
         maxPerUser: limits.icoMaxPerUser || 50000,
+        feePercentage: limits.icoPlatformFeePercentage || 0,
     };
 }
 exports.default = async (data) => {
+    var _a, _b;
     await Middleware_1.rateLimiters.orderCreation(data);
     const { body, user, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
@@ -116,6 +118,7 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 400, message: "Invalid investment amount" });
     }
     const transaction = await db_1.sequelize.transaction();
+    let committed = false;
     try {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Retrieving ICO offering details");
         const offering = await db_1.models.icoTokenOffering.findByPk(offeringId, {
@@ -223,13 +226,19 @@ exports.default = async (data) => {
                 message: `Only ${activePhase.remaining} tokens remaining in current phase`
             });
         }
-        const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+        const totalRaisedResult = await db_1.models.icoTransaction.findOne({
             where: {
                 offeringId: offering.id,
                 status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED'] }
             },
+            attributes: [
+                [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised']
+            ],
+            raw: true,
             transaction,
-        }) || 0;
+            lock: transaction.LOCK.SHARE,
+        });
+        const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
         if (totalRaised + amount > offering.targetAmount) {
             const remainingCap = offering.targetAmount - totalRaised;
             throw (0, error_1.createError)({
@@ -254,35 +263,14 @@ exports.default = async (data) => {
             });
         }
         const availableBalance = wallet.balance || 0;
-        if (availableBalance < amount) {
+        const feeAmount = amount * (limits.feePercentage / 100);
+        if (availableBalance < amount + feeAmount) {
             throw (0, error_1.createError)({
                 statusCode: 400,
-                message: `Insufficient wallet balance. Required: ${amount} ${offering.purchaseWalletCurrency}, Available: ${availableBalance} ${offering.purchaseWalletCurrency}`,
+                message: `Insufficient wallet balance. Required: ${amount + feeAmount} ${offering.purchaseWalletCurrency} (${amount} + ${feeAmount} fee), Available: ${availableBalance} ${offering.purchaseWalletCurrency}`,
             });
         }
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting payment from wallet");
-        const idempotencyKey = `ico_invest_${offeringId}_${user.id}_${amount}`;
-        const walletResult = await wallet_1.walletService.debit({
-            idempotencyKey,
-            userId: user.id,
-            walletId: wallet.id,
-            walletType: offering.purchaseWalletType,
-            currency: offering.purchaseWalletCurrency,
-            amount,
-            operationType: "ICO_CONTRIBUTION",
-            description: `ICO Investment in ${offering.name} - ${tokenAmountNormalized} tokens at ${tokenPrice} ${offering.purchaseWalletCurrency} each`,
-            metadata: {
-                offeringId: offering.id,
-                offeringName: offering.name,
-                phase: activePhase.name,
-                tokenAmount: tokenAmountNormalized,
-                tokenPrice,
-                walletAddress,
-            },
-            transaction,
-        });
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Allocating tokens and creating ICO transaction record");
-        const transactionId = crypto_1.default.randomBytes(16).toString("hex");
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating ICO transaction record");
         const icoTransaction = await db_1.models.icoTransaction.create({
             userId: user.id,
             offeringId: offering.id,
@@ -295,16 +283,102 @@ exports.default = async (data) => {
                 decimals,
                 rawTokenAmount: tokenAmount.toString(),
                 investmentAmount: amount,
+                feePercentage: limits.feePercentage,
+                feeAmount,
                 currency: offering.purchaseWalletCurrency,
-                walletTransactionId: walletResult.transactionId,
-                transactionId,
             }),
         }, { transaction });
+        const transactionId = icoTransaction.id;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting payment from wallet");
+        const idempotencyKey = `ico_purchase_${icoTransaction.id}`;
+        const walletResult = await wallet_1.walletService.debit({
+            idempotencyKey,
+            userId: user.id,
+            walletId: wallet.id,
+            walletType: offering.purchaseWalletType,
+            currency: offering.purchaseWalletCurrency,
+            amount,
+            fee: feeAmount,
+            operationType: "ICO_CONTRIBUTION",
+            description: `ICO Investment in ${offering.name} - ${tokenAmountNormalized} tokens at ${tokenPrice} ${offering.purchaseWalletCurrency} each`,
+            metadata: {
+                offeringId: offering.id,
+                offeringName: offering.name,
+                phase: activePhase.name,
+                tokenAmount: tokenAmountNormalized,
+                tokenPrice,
+                walletAddress,
+                feePercentage: limits.feePercentage,
+                feeAmount,
+                icoTransactionId: icoTransaction.id,
+            },
+            transaction,
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Linking wallet transaction to ICO record");
+        const icoNotes = JSON.parse(icoTransaction.notes);
+        icoNotes.walletTransactionId = walletResult.transactionId;
+        icoNotes.transactionId = transactionId;
+        await icoTransaction.update({ notes: JSON.stringify(icoNotes) }, { transaction });
+        if (feeAmount > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Collecting ICO platform fee");
+            await (0, fees_1.collectPlatformFee)({
+                userId: user.id,
+                currency: offering.purchaseWalletCurrency,
+                walletType: offering.purchaseWalletType,
+                feeAmount,
+                type: "ICO_CONTRIBUTION",
+                description: `ICO purchase fee for ${offering.name}`,
+                referenceId: icoTransaction.id,
+                metadata: {
+                    offeringId: offering.id,
+                    offeringName: offering.name,
+                    phase: activePhase.name,
+                    feePercentage: limits.feePercentage,
+                    icoTransactionId: icoTransaction.id,
+                },
+                transaction,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Crediting ICO escrow wallet");
+        const escrowAdmin = await (0, fees_1.getSuperAdmin)();
+        if (!escrowAdmin) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "ICO escrow is not configured: no Super Admin wallet available to hold contributed funds.",
+            });
+        }
+        const escrowWalletResult = await wallet_1.walletCreationService.getOrCreateWallet(escrowAdmin.id, offering.purchaseWalletType, offering.purchaseWalletCurrency, transaction);
+        const escrowWalletId = (_b = (_a = escrowWalletResult === null || escrowWalletResult === void 0 ? void 0 : escrowWalletResult.wallet) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : escrowWalletResult === null || escrowWalletResult === void 0 ? void 0 : escrowWalletResult.id;
+        if (!escrowWalletId) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Failed to resolve ICO escrow wallet.",
+            });
+        }
+        await wallet_1.walletService.credit({
+            idempotencyKey: `ico_purchase_credit_${icoTransaction.id}`,
+            userId: escrowAdmin.id,
+            walletId: escrowWalletId,
+            walletType: offering.purchaseWalletType,
+            currency: offering.purchaseWalletCurrency,
+            amount,
+            operationType: "ICO_CONTRIBUTION",
+            referenceId: icoTransaction.id,
+            description: `ICO escrow hold for ${offering.name} (tx ${icoTransaction.id})`,
+            metadata: {
+                escrow: true,
+                offeringId: offering.id,
+                offeringName: offering.name,
+                buyerId: user.id,
+                icoTransactionId: icoTransaction.id,
+            },
+            transaction,
+        });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating phase and offering statistics");
-        await activePhase.update({ remaining: activePhase.remaining - tokenAmountNormalized }, { transaction });
+        await activePhase.update({ remaining: db_1.sequelize.literal(`remaining - ${parseFloat(String(tokenAmountNormalized))}`) }, { transaction });
         const isNewParticipant = existingInvestments.length === 0;
         if (isNewParticipant) {
-            await offering.update({ participants: offering.participants + 1 }, { transaction });
+            await offering.update({ participants: db_1.sequelize.literal('participants + 1') }, { transaction });
         }
         await db_1.models.icoAdminActivity.create({
             type: "INVESTMENT_CREATED",
@@ -320,6 +394,7 @@ exports.default = async (data) => {
             }),
         }, { transaction });
         await transaction.commit();
+        committed = true;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending email and in-app notifications");
         if (user.email) {
             await (0, utils_1.sendIcoBuyerEmail)(user.email, {
@@ -386,7 +461,7 @@ exports.default = async (data) => {
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Purchased ${tokenAmountNormalized.toFixed(4)} tokens for ${amount} ${offering.purchaseWalletCurrency}`);
         try {
-            await (0, affiliate_1.processRewards)(user.id, amount, "ICO_CONTRIBUTION", offering.purchaseWalletCurrency);
+            await (0, affiliate_1.processRewards)(user.id, amount, "ICO_CONTRIBUTION", offering.purchaseWalletCurrency, `ICO_CONTRIBUTION:ico_transaction:${icoTransaction.id}`);
         }
         catch (affiliateError) {
             console_1.logger.error("ICO_TRANSACTION", "Failed to process affiliate rewards", affiliateError);
@@ -398,7 +473,9 @@ exports.default = async (data) => {
         };
     }
     catch (err) {
-        await transaction.rollback();
+        if (!committed) {
+            await transaction.rollback();
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.fail(err.message || "Failed to process ICO investment");
         throw err;
     }

@@ -60,7 +60,6 @@ export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
         setSubmitting(false);
       }
     } catch (err) {
-      console.error("Error in handleFeedback:", err);
       setError("An error occurred. Please try again.");
       setSubmitting(false);
     }
@@ -81,7 +80,6 @@ export function FAQThumbs({ faqId, className }: FAQThumbsProps) {
         setError("Unable to submit feedback. Please try again.");
       }
     } catch (err) {
-      console.error("Error in handleSubmitComment:", err);
       setError("An error occurred. Please try again.");
     } finally {
       setSubmitting(false);

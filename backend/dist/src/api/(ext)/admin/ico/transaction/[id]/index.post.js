@@ -6,6 +6,9 @@ const error_1 = require("@b/utils/error");
 const utils_1 = require("@b/api/finance/wallet/utils");
 const notifications_1 = require("@b/utils/notifications");
 const utils_2 = require("../../utils");
+const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
+const console_1 = require("@b/utils/console");
 exports.metadata = {
     summary: "Update Transaction Action",
     description: "Performs an admin action on a transaction (verify, reject, save-note, remove-note). On verification approval, credits the seller’s wallet with the locked funds; on rejection, refunds the investor’s wallet.",
@@ -58,17 +61,55 @@ const updateActions = {
                 statusCode: 400,
                 message: "Seller wallet not found.",
             });
-        const sellerWalletForUpdate = await db_1.models.wallet.findOne({
-            where: { id: sellerWallet.id },
-            transaction: t,
-            lock: t.LOCK.UPDATE,
-        });
-        if (!sellerWalletForUpdate)
+        const escrowAdmin = await (0, fees_1.getSuperAdmin)();
+        if (!escrowAdmin) {
             throw (0, error_1.createError)({
-                statusCode: 400,
-                message: "Seller wallet not found for update.",
+                statusCode: 500,
+                message: "ICO escrow Super Admin wallet not configured.",
             });
-        await sellerWalletForUpdate.update({ balance: sellerWalletForUpdate.balance + fiatAmount }, { transaction: t });
+        }
+        try {
+            await wallet_1.walletService.debit({
+                idempotencyKey: `ico_escrow_release_${transaction.id}`,
+                userId: escrowAdmin.id,
+                walletType: transaction.offering.purchaseWalletType,
+                currency: transaction.offering.purchaseWalletCurrency,
+                amount: fiatAmount,
+                operationType: "ICO_CONTRIBUTION",
+                referenceId: transaction.id,
+                description: `ICO escrow release to seller for ${transaction.offering.name} (tx ${transaction.id})`,
+                metadata: {
+                    escrow: true,
+                    direction: "release",
+                    transactionId: transaction.id,
+                    offeringId: transaction.offering.id,
+                    action: "verify",
+                },
+                transaction: t,
+            });
+        }
+        catch (escrowErr) {
+            if ((escrowErr === null || escrowErr === void 0 ? void 0 : escrowErr.name) !== "DuplicateOperationError")
+                throw escrowErr;
+            console_1.logger.warn("ADMIN_ICO_VERIFY", `Escrow already released for ICO transaction ${transaction.id}; continuing.`);
+        }
+        await wallet_1.walletService.credit({
+            idempotencyKey: `ico_verify_${transaction.id}`,
+            userId: transaction.offering.userId,
+            walletId: sellerWallet.id,
+            walletType: transaction.offering.purchaseWalletType,
+            currency: transaction.offering.purchaseWalletCurrency,
+            amount: fiatAmount,
+            operationType: "ICO_CONTRIBUTION",
+            referenceId: transaction.id,
+            description: `ICO Transaction Verified: ${transaction.offering.name}`,
+            metadata: {
+                transactionId: transaction.id,
+                offeringId: transaction.offering.id,
+                action: 'verify',
+            },
+            transaction: t,
+        });
         await transaction.update({ status: "RELEASED" }, { transaction: t });
         return { message: "Transaction verified successfully." };
     },
@@ -79,22 +120,66 @@ const updateActions = {
                 message: "Transaction is not pending verification.",
             });
         const investorWallet = await (0, utils_1.getWallet)(transaction.userId, transaction.offering.purchaseWalletType, transaction.offering.purchaseWalletCurrency);
-        if (!investorWallet)
+        if (!investorWallet) {
+            await wallet_1.walletCreationService.getOrCreateWallet(transaction.userId, transaction.offering.purchaseWalletType, transaction.offering.purchaseWalletCurrency, t);
+        }
+        const escrowAdmin = await (0, fees_1.getSuperAdmin)();
+        if (!escrowAdmin) {
             throw (0, error_1.createError)({
-                statusCode: 400,
-                message: "Investor wallet not found.",
+                statusCode: 500,
+                message: "ICO escrow Super Admin wallet not configured.",
             });
-        const investorWalletForUpdate = await db_1.models.wallet.findOne({
-            where: { id: investorWallet.id },
+        }
+        try {
+            await wallet_1.walletService.debit({
+                idempotencyKey: `ico_escrow_refund_${transaction.id}`,
+                userId: escrowAdmin.id,
+                walletType: transaction.offering.purchaseWalletType,
+                currency: transaction.offering.purchaseWalletCurrency,
+                amount: fiatAmount,
+                operationType: "REFUND",
+                referenceId: transaction.id,
+                description: `ICO escrow refund to buyer for ${transaction.offering.name} (tx ${transaction.id})`,
+                metadata: {
+                    escrow: true,
+                    direction: "refund",
+                    transactionId: transaction.id,
+                    offeringId: transaction.offering.id,
+                    action: "reject",
+                },
+                transaction: t,
+            });
+        }
+        catch (escrowErr) {
+            if ((escrowErr === null || escrowErr === void 0 ? void 0 : escrowErr.name) !== "DuplicateOperationError")
+                throw escrowErr;
+            console_1.logger.warn("ADMIN_ICO_REJECT", `Escrow already refunded for ICO transaction ${transaction.id}; continuing.`);
+        }
+        const refundWallet = investorWallet ||
+            (await (0, utils_1.getWallet)(transaction.userId, transaction.offering.purchaseWalletType, transaction.offering.purchaseWalletCurrency));
+        if (!refundWallet) {
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: "Unable to resolve investor wallet for refund.",
+            });
+        }
+        await wallet_1.walletService.credit({
+            idempotencyKey: `ico_reject_${transaction.id}`,
+            userId: transaction.userId,
+            walletId: refundWallet.id,
+            walletType: transaction.offering.purchaseWalletType,
+            currency: transaction.offering.purchaseWalletCurrency,
+            amount: fiatAmount,
+            operationType: "REFUND",
+            referenceId: transaction.id,
+            description: `ICO Transaction Rejected: ${transaction.offering.name}`,
+            metadata: {
+                transactionId: transaction.id,
+                offeringId: transaction.offering.id,
+                action: 'reject',
+            },
             transaction: t,
-            lock: t.LOCK.UPDATE,
         });
-        if (!investorWalletForUpdate)
-            throw (0, error_1.createError)({
-                statusCode: 400,
-                message: "Investor wallet not found for update.",
-            });
-        await investorWalletForUpdate.update({ balance: investorWalletForUpdate.balance + fiatAmount }, { transaction: t });
         await transaction.update({ status: "REJECTED", notes: note || transaction.notes }, { transaction: t });
         return { message: "Transaction rejected successfully." };
     },
@@ -201,36 +286,42 @@ exports.default = async (data) => {
             message: "Invalid or missing action.",
         });
     ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching transaction for action: ${action}`);
-    const transaction = await db_1.models.icoTransaction.findOne({
-        where: { id: params.id },
-        include: [
-            {
-                model: db_1.models.icoTokenOffering,
-                as: "offering",
-                attributes: [
-                    "id",
-                    "name",
-                    "userId",
-                    "purchaseWalletType",
-                    "purchaseWalletCurrency",
-                ],
-            },
-        ],
-    });
-    if (!transaction)
-        throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found." });
-    if (!transaction.offering)
-        throw (0, error_1.createError)({
-            statusCode: 404,
-            message: "Transaction offering not found.",
-        });
-    const offering = transaction.offering;
-    const fiatAmount = transaction.amount * transaction.price;
-    const note = body.note;
-    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing ${action} action on transaction`);
     const t = await db_1.sequelize.transaction();
     let result;
+    let transaction;
+    let offering;
+    let fiatAmount;
+    let note;
     try {
+        transaction = await db_1.models.icoTransaction.findOne({
+            where: { id: params.id },
+            include: [
+                {
+                    model: db_1.models.icoTokenOffering,
+                    as: "offering",
+                    attributes: [
+                        "id",
+                        "name",
+                        "userId",
+                        "purchaseWalletType",
+                        "purchaseWalletCurrency",
+                    ],
+                },
+            ],
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        });
+        if (!transaction)
+            throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found." });
+        if (!transaction.offering)
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "Transaction offering not found.",
+            });
+        offering = transaction.offering;
+        fiatAmount = transaction.amount * transaction.price;
+        note = body.note;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Processing ${action} action on transaction`);
         result = await updateActions[action](transaction, t, fiatAmount, note);
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging admin activity");
         await db_1.models.icoAdminActivity.create({
@@ -244,8 +335,8 @@ exports.default = async (data) => {
     catch (err) {
         await t.rollback();
         throw (0, error_1.createError)({
-            statusCode: 500,
-            message: "Internal Server Error: " + err.message,
+            statusCode: err.statusCode || 500,
+            message: err.message || "Internal Server Error",
         });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending emails and notifications");
@@ -269,7 +360,7 @@ exports.default = async (data) => {
                 OFFERING_NAME: offering.name,
                 TRANSACTION_ID: transaction.id,
                 AMOUNT: fiatAmount.toString(),
-                NOTE: note ? `<p>Note: ${note}</p>` : "",
+                NOTE: note ? `<p>Note: ${note.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] || c))}</p>` : "",
             });
         if (sellerTemplate && seller)
             await sendEmailIfNeeded(sellerTemplate, seller, {
@@ -277,7 +368,7 @@ exports.default = async (data) => {
                 OFFERING_NAME: offering.name,
                 TRANSACTION_ID: transaction.id,
                 AMOUNT: fiatAmount.toString(),
-                NOTE: note ? `<p>Note: ${note}</p>` : "",
+                NOTE: note ? `<p>Note: ${note.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] || c))}</p>` : "",
             });
     }
     const sendNotif = async (userId, notifData) => {

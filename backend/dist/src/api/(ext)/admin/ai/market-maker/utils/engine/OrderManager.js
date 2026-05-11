@@ -1,1 +1,248 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.OrderManager=void 0;const console_1=require("@b/utils/console"),queries_1=require("../scylla/queries"),AI_ORDER_EXPIRATION_MS=3e5,REAL_ORDER_EXPIRATION_MS=36e5;class OrderManager{constructor(e,r){this.openOrders=new Map;this.ordersCreated=0;this.ordersCanceled=0;this.ordersFilled=0;this.config=e;this.engine=r}async initialize(){try{if(this.config.realLiquidityPercent>0){const e=await(0,queries_1.getRealLiquidityOrdersBySymbol)(this.config.symbol,"OPEN");for(const r of e)this.trackOrder({orderId:r.ecosystemOrderId,botId:r.aiBotOrderId,side:r.side,price:r.price,amount:r.amount,filledAmount:BigInt(0),isRealLiquidity:!0,createdAt:r.createdAt,expiresAt:new Date(r.createdAt.getTime()+36e5)})}console_1.logger.debug("AI_MM",`OrderManager initialized with ${this.openOrders.size} real liquidity orders for ${this.config.symbol}`)}catch(e){console_1.logger.error("AI_MM","OrderManager initialization error",e);throw e}}async createOrder(e){try{return e.isRealLiquidity?this.createRealOrder(e):this.createAiOrder(e)}catch(e){console_1.logger.error("AI_MM","Order creation error",e);return null}}async createAiOrder(e){const r=await(0,queries_1.insertBotOrder)({marketId:this.config.marketId,botId:e.botId,side:e.side,type:e.type,price:e.price,amount:e.amount,filledAmount:BigInt(0),status:"OPEN",purpose:e.purpose}),t=new Date;this.trackOrder({orderId:r,botId:e.botId,side:e.side,price:e.price,amount:e.amount,filledAmount:BigInt(0),isRealLiquidity:!1,createdAt:t,expiresAt:new Date(t.getTime()+3e5)});this.ordersCreated++;return r}async createRealOrder(e){const r=await(0,queries_1.insertBotOrder)({marketId:this.config.marketId,botId:e.botId,side:e.side,type:e.type,price:e.price,amount:e.amount,filledAmount:BigInt(0),status:"OPEN",purpose:e.purpose}),t=await(0,queries_1.placeRealOrder)(this.config.symbol,e.side,e.price,e.amount,r,this.config.id,e.botId),i=new Date;this.trackOrder({orderId:t.id,botId:e.botId,side:e.side,price:e.price,amount:e.amount,filledAmount:BigInt(0),isRealLiquidity:!0,createdAt:i,expiresAt:new Date(i.getTime()+36e5)});this.ordersCreated++;return t.id}async cancelOrder(e){try{const r=this.openOrders.get(e);if(!r)return!1;r.isRealLiquidity?await(0,queries_1.cancelRealOrder)(e,r.botId,r.createdAt.toISOString(),this.config.symbol,r.price,r.side,r.amount-r.filledAmount):await(0,queries_1.cancelBotOrder)(this.config.marketId,e,r.createdAt);this.openOrders.delete(e);this.ordersCanceled++;return!0}catch(e){console_1.logger.error("AI_MM","Order cancellation error",e);return!1}}async cancelAllOrders(){const e=Array.from(this.openOrders.keys());await Promise.all(e.map(e=>this.cancelOrder(e)));this.openOrders.clear()}async cleanupExpiredOrders(){const e=new Date,r=[];for(const[t,i]of this.openOrders)i.expiresAt<=e&&r.push(t);if(0===r.length)return;let t=0,i=0;for(const e of r){const r=this.openOrders.get(e);if(r){try{r.isRealLiquidity?await(0,queries_1.cancelRealOrder)(e,r.botId,r.createdAt.toISOString(),this.config.symbol,r.price,r.side,r.amount-r.filledAmount):await(0,queries_1.cancelBotOrder)(this.config.marketId,e,r.createdAt);t++}catch(e){i++}this.openOrders.delete(e);this.ordersCanceled++}}console_1.logger.debug("AI_MM",`Cleaned up ${r.length} expired orders for ${this.config.symbol} (cancelled: ${t}, already processed: ${i})`)}async updateOrderFill(e,r,t){const i=this.openOrders.get(e);if(i){i.isRealLiquidity||await(0,queries_1.updateBotOrder)(this.config.marketId,e,i.createdAt,{filledAmount:r,status:t});i.filledAmount=r;if("FILLED"===t){this.openOrders.delete(e);this.ordersFilled++}}}findMatchingOrders(e,r,t){const i="BUY"===e?"SELL":"BUY",s=[];let o=t;for(const[,t]of this.openOrders){if(t.isRealLiquidity)continue;if(t.side!==i)continue;if("BUY"===e&&t.price>r)continue;if("SELL"===e&&t.price<r)continue;const d=t.amount-t.filledAmount;if(!(d<=BigInt(0))){s.push(t);o-=d;if(o<=BigInt(0))break}}return s}getOpenOrderCount(){return this.openOrders.size}getOrderCounts(){let e=0,r=0;for(const[,t]of this.openOrders)"BUY"===t.side?e++:r++;return{buys:e,sells:r}}getStats(){return{openOrders:this.openOrders.size,ordersCreated:this.ordersCreated,ordersCanceled:this.ordersCanceled,ordersFilled:this.ordersFilled}}trackOrder(e){this.openOrders.set(e.orderId,e)}getOpenOrders(){return Array.from(this.openOrders.values())}}exports.OrderManager=OrderManager;exports.default=OrderManager;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OrderManager = void 0;
+const console_1 = require("@b/utils/console");
+const queries_1 = require("../scylla/queries");
+const AI_ORDER_EXPIRATION_MS = 5 * 60 * 1000;
+const REAL_ORDER_EXPIRATION_MS = 60 * 60 * 1000;
+class OrderManager {
+    constructor(config, engine) {
+        this.openOrders = new Map();
+        this.ordersCreated = 0;
+        this.ordersCanceled = 0;
+        this.ordersFilled = 0;
+        this.config = config;
+        this.engine = engine;
+    }
+    async initialize() {
+        try {
+            if (this.config.realLiquidityPercent > 0) {
+                const realOrders = await (0, queries_1.getRealLiquidityOrdersBySymbol)(this.config.symbol, "OPEN");
+                for (const order of realOrders) {
+                    this.trackOrder({
+                        orderId: order.ecosystemOrderId,
+                        botId: order.aiBotOrderId,
+                        side: order.side,
+                        price: order.price,
+                        amount: order.amount,
+                        filledAmount: BigInt(0),
+                        isRealLiquidity: true,
+                        createdAt: order.createdAt,
+                        expiresAt: new Date(order.createdAt.getTime() + REAL_ORDER_EXPIRATION_MS),
+                    });
+                }
+            }
+            console_1.logger.debug("AI_MM", `OrderManager initialized with ${this.openOrders.size} real liquidity orders for ${this.config.symbol}`);
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", "OrderManager initialization error", error);
+            throw error;
+        }
+    }
+    async createOrder(params) {
+        try {
+            if (params.isRealLiquidity) {
+                return this.createRealOrder(params);
+            }
+            else {
+                return this.createAiOrder(params);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", "Order creation error", error);
+            return null;
+        }
+    }
+    async createAiOrder(params) {
+        const orderId = await (0, queries_1.insertBotOrder)({
+            marketId: this.config.marketId,
+            botId: params.botId,
+            side: params.side,
+            type: params.type,
+            price: params.price,
+            amount: params.amount,
+            filledAmount: BigInt(0),
+            status: "OPEN",
+            purpose: params.purpose,
+        });
+        const now = new Date();
+        this.trackOrder({
+            orderId,
+            botId: params.botId,
+            side: params.side,
+            price: params.price,
+            amount: params.amount,
+            filledAmount: BigInt(0),
+            isRealLiquidity: false,
+            createdAt: now,
+            expiresAt: new Date(now.getTime() + AI_ORDER_EXPIRATION_MS),
+        });
+        this.ordersCreated++;
+        return orderId;
+    }
+    async createRealOrder(params) {
+        const aiOrderId = await (0, queries_1.insertBotOrder)({
+            marketId: this.config.marketId,
+            botId: params.botId,
+            side: params.side,
+            type: params.type,
+            price: params.price,
+            amount: params.amount,
+            filledAmount: BigInt(0),
+            status: "OPEN",
+            purpose: params.purpose,
+        });
+        const ecosystemOrder = await (0, queries_1.placeRealOrder)(this.config.symbol, params.side, params.price, params.amount, aiOrderId, this.config.id, params.botId);
+        const now = new Date();
+        this.trackOrder({
+            orderId: ecosystemOrder.id,
+            botId: params.botId,
+            side: params.side,
+            price: params.price,
+            amount: params.amount,
+            filledAmount: BigInt(0),
+            isRealLiquidity: true,
+            createdAt: now,
+            expiresAt: new Date(now.getTime() + REAL_ORDER_EXPIRATION_MS),
+        });
+        this.ordersCreated++;
+        return ecosystemOrder.id;
+    }
+    async cancelOrder(orderId) {
+        try {
+            const order = this.openOrders.get(orderId);
+            if (!order) {
+                return false;
+            }
+            if (order.isRealLiquidity) {
+                await (0, queries_1.cancelRealOrder)(orderId, order.botId, order.createdAt.toISOString(), this.config.symbol, order.price, order.side, order.amount - order.filledAmount);
+            }
+            else {
+                await (0, queries_1.cancelBotOrder)(this.config.marketId, orderId, order.createdAt);
+            }
+            this.openOrders.delete(orderId);
+            this.ordersCanceled++;
+            return true;
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", "Order cancellation error", error);
+            return false;
+        }
+    }
+    async cancelAllOrders() {
+        const orderIds = Array.from(this.openOrders.keys());
+        await Promise.all(orderIds.map((id) => this.cancelOrder(id)));
+        this.openOrders.clear();
+    }
+    async cleanupExpiredOrders() {
+        const now = new Date();
+        const expiredOrderIds = [];
+        for (const [orderId, order] of this.openOrders) {
+            if (order.expiresAt <= now) {
+                expiredOrderIds.push(orderId);
+            }
+        }
+        if (expiredOrderIds.length === 0)
+            return;
+        let cancelledCount = 0;
+        let alreadyGoneCount = 0;
+        for (const orderId of expiredOrderIds) {
+            const order = this.openOrders.get(orderId);
+            if (!order)
+                continue;
+            try {
+                if (order.isRealLiquidity) {
+                    await (0, queries_1.cancelRealOrder)(orderId, order.botId, order.createdAt.toISOString(), this.config.symbol, order.price, order.side, order.amount - order.filledAmount);
+                }
+                else {
+                    await (0, queries_1.cancelBotOrder)(this.config.marketId, orderId, order.createdAt);
+                }
+                cancelledCount++;
+            }
+            catch (error) {
+                alreadyGoneCount++;
+            }
+            this.openOrders.delete(orderId);
+            this.ordersCanceled++;
+        }
+        console_1.logger.debug("AI_MM", `Cleaned up ${expiredOrderIds.length} expired orders for ${this.config.symbol} (cancelled: ${cancelledCount}, already processed: ${alreadyGoneCount})`);
+    }
+    async updateOrderFill(orderId, filledAmount, status) {
+        const order = this.openOrders.get(orderId);
+        if (!order) {
+            return;
+        }
+        if (!order.isRealLiquidity) {
+            await (0, queries_1.updateBotOrder)(this.config.marketId, orderId, order.createdAt, {
+                filledAmount,
+                status,
+            });
+        }
+        order.filledAmount = filledAmount;
+        if (status === "FILLED") {
+            this.openOrders.delete(orderId);
+            this.ordersFilled++;
+        }
+    }
+    findMatchingOrders(side, price, maxAmount) {
+        const oppositeSide = side === "BUY" ? "SELL" : "BUY";
+        const matches = [];
+        let remainingAmount = maxAmount;
+        for (const [, order] of this.openOrders) {
+            if (order.isRealLiquidity) {
+                continue;
+            }
+            if (order.side !== oppositeSide) {
+                continue;
+            }
+            if (side === "BUY" && order.price > price) {
+                continue;
+            }
+            if (side === "SELL" && order.price < price) {
+                continue;
+            }
+            const available = order.amount - order.filledAmount;
+            if (available <= BigInt(0)) {
+                continue;
+            }
+            matches.push(order);
+            remainingAmount -= available;
+            if (remainingAmount <= BigInt(0)) {
+                break;
+            }
+        }
+        return matches;
+    }
+    getOpenOrderCount() {
+        return this.openOrders.size;
+    }
+    getOrderCounts() {
+        let buys = 0;
+        let sells = 0;
+        for (const [, order] of this.openOrders) {
+            if (order.side === "BUY") {
+                buys++;
+            }
+            else {
+                sells++;
+            }
+        }
+        return { buys, sells };
+    }
+    getStats() {
+        return {
+            openOrders: this.openOrders.size,
+            ordersCreated: this.ordersCreated,
+            ordersCanceled: this.ordersCanceled,
+            ordersFilled: this.ordersFilled,
+        };
+    }
+    trackOrder(order) {
+        this.openOrders.set(order.orderId, order);
+    }
+    getOpenOrders() {
+        return Array.from(this.openOrders.values());
+    }
+}
+exports.OrderManager = OrderManager;
+exports.default = OrderManager;

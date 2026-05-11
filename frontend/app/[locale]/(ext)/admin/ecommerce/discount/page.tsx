@@ -26,6 +26,7 @@ export default function EcommerceDiscountPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("product_discounts")}
       description={t("configure_promotional_discounts")}
       itemTitle="Discount"

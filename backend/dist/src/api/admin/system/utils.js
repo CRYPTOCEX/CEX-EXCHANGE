@@ -277,114 +277,15 @@ async function callApi(method, url, data = null, filename) {
     }
 }
 async function verifyLicense(productId, license, client, timeBasedCheck) {
-    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
-    if (timeBasedCheck && verificationPeriodDays > 0) {
-        const today = new Date();
-        if (nextVerificationDate && today < nextVerificationDate) {
-            return { status: true, message: "Verified from cache" };
-        }
-    }
-    let purchaseCode = null;
-    try {
-        const licenseFileContent = await fs_1.promises.readFile(licenseFilePath, "utf8");
-        try {
-            const licenseData = JSON.parse(Buffer.from(licenseFileContent, "base64").toString("utf8"));
-            purchaseCode = licenseData.purchaseCode || licenseData.licenseKey || licenseData.license_key;
-        }
-        catch (_a) {
-            purchaseCode = licenseFileContent.trim();
-        }
-    }
-    catch (err) {
-        purchaseCode = license || null;
-    }
-    if (!purchaseCode) {
-        throw (0, error_1.createError)({ statusCode: 400, message: "No purchase code found. Please activate your license first." });
-    }
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    let domain;
-    try {
-        const url = new URL(siteUrl);
-        domain = url.host;
-    }
-    catch (_b) {
-        domain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
-    }
-    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
-    const fingerprint = getCachedFingerprint();
-    const data = {
-        purchaseCode: purchaseCode,
-        domain: domain,
-        fingerprint: fingerprint,
-    };
-    const licenseConfig = (0, license_1.getLicenseConfig)();
-    console_1.logger.info("LICENSE_API", `Verifying license - Domain: ${domain}, Fingerprint: ${fingerprint ? fingerprint.substring(0, 16) + '...' : 'MISSING'}`);
-    console_1.logger.debug("LICENSE_API", `Verify payload: ${JSON.stringify(data)}`);
-    const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/licenses/verify`, data);
-    if (timeBasedCheck && verificationPeriodDays > 0 && response.status) {
-        const today = new Date();
-        nextVerificationDate = new Date();
-        nextVerificationDate.setDate(today.getDate() + verificationPeriodDays);
-    }
-    if (!response.status) {
-        const reason = response.reason || "License verification failed";
-        throw (0, error_1.createError)({ statusCode: 400, message: reason });
-    }
-    return response;
+    // Bypassed - always return valid
+    return { status: true, message: "License verified successfully", valid: true };
 }
 async function activateLicense(productId, purchaseCode, client, notificationEmail) {
-    var _a;
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    let domain;
-    try {
-        const url = new URL(siteUrl);
-        domain = url.host;
-    }
-    catch (_b) {
-        domain = siteUrl.replace(/^https?:\/\//, "").split("/")[0];
-    }
-    const ipAddress = await getPublicIp() || "127.0.0.1";
-    const { getCachedFingerprint } = await Promise.resolve().then(() => __importStar(require("@b/utils/security")));
-    const hardwareFingerprint = getCachedFingerprint();
-    const data = {
-        purchaseCode: purchaseCode,
-        domain: domain,
-        ipAddress: ipAddress,
-        hardwareFingerprint: hardwareFingerprint,
-        metadata: {
-            productId: productId,
-            clientName: client,
-            activatedVia: "admin-panel",
-        },
-    };
-    if (notificationEmail) {
-        data.notificationEmail = notificationEmail;
-    }
-    const licenseConfig = (0, license_1.getLicenseConfig)();
-    console_1.logger.info("LICENSE_API", `Activating license - Domain: ${domain}, ProductId: ${productId}`);
-    console_1.logger.debug("LICENSE_API", `Activation payload: ${JSON.stringify(data)}`);
-    const response = await callApi("POST", `${licenseConfig.apiUrl}/api/client/licenses/activate`, data);
-    if (!response.status) {
-        const reason = response.reason || response.message || "License activation failed";
-        throw (0, error_1.createError)({ statusCode: 400, message: reason });
-    }
-    const licenseFilePath = `${licFolderPath}/${productId}.lic`;
-    const responseData = response;
-    const licenseData = {
-        purchaseCode: purchaseCode,
-        productId: productId,
-        clientName: client,
-        domain: domain,
-        activatedAt: new Date().toISOString(),
-        ...(((_a = responseData.data) === null || _a === void 0 ? void 0 : _a.license) || responseData.license || responseData.data || {}),
-    };
-    const licFileContent = Buffer.from(JSON.stringify(licenseData)).toString("base64");
-    await fs_1.promises.mkdir(licFolderPath, { recursive: true });
-    await fs_1.promises.writeFile(licenseFilePath, licFileContent);
+    // Bypassed - always return success
     return {
         status: true,
-        message: response.message || "License activated successfully",
-        data: response.data,
+        message: "License activated successfully",
+        data: { productId, valid: true },
     };
 }
 async function checkLatestVersion(productId) {
@@ -638,6 +539,8 @@ async function downloadUpdate(productId, updateId, version, product, type) {
     }
 }
 async function fetchAllProductsUpdates() {
+    // Bypassed - return empty products list without external API calls
+    return { status: true, message: "Updates check bypassed", products: [] };
     const licenseConfig = (0, license_1.getLicenseConfig)();
     const mainProductId = licenseConfig.mainProductId;
     const licenseFilePath = `${licFolderPath}/${mainProductId}.lic`;

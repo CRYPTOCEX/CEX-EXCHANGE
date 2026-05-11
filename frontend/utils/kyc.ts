@@ -32,11 +32,21 @@ export function isKycEnabled(settings: Record<string, any>): boolean {
   return settings?.kycStatus === true || settings?.kycStatus === "true";
 }
 
-// User has completed KYC (e.g. "APPROVED")
+/**
+ * Checks if user has an approved KYC status.
+ *
+ * NOTE: The backend computes the effective KYC status from ALL applications
+ * and returns the highest approved level. This function simply checks
+ * if that effective status is APPROVED.
+ *
+ * @param user - The user object from the store/API
+ * @returns true if user has at least one approved KYC application
+ */
 export function isUserKycApproved(user: User | null): boolean {
   if (!user) return false;
-  
-  // Check the kyc object for approved status
+
+  // user.kyc is the EFFECTIVE status computed by backend
+  // (highest approved application)
   return !!user.kyc && user.kyc.status === "APPROVED";
 }
 
@@ -53,82 +63,39 @@ export function hasFeature(user: User | null, feature: string): boolean {
   
   // Normalize feature name to handle case variations
   const normalizedFeature = feature.toLowerCase();
-  
-  // Get the user's KYC level
-  const userLevel = user.kycLevel || user.kyc?.level?.level || 0;
-  
-  // IMPORTANT: Special handling for high-level KYC users
-  // Many sites configure their highest level differently (3, 4, 5, etc.)
-  // If user has level >= 3, they should have access to all features
-  if (userLevel >= 3) {
-    return true;
-  }
-  
-  // For sites that have many features configured (20+ features)
-  // This likely means they want to give access to most/all features
-  const MIN_FEATURES_FOR_FULL_ACCESS = 20;
-  
+
+  // Collect all features from available sources
+  let allFeatures: string[] = [];
+
   // Check featureAccess array (primary source set by backend)
-  if (Array.isArray(user.featureAccess)) {
-    // If user has many features (20+), grant access to all
-    if (user.featureAccess.length >= MIN_FEATURES_FOR_FULL_ACCESS) {
-      return true;
-    }
-    
-    // Empty array with approved KYC and level > 0 means all features
-    if (user.featureAccess.length === 0 && userLevel > 0) {
-      return true;
-    }
-    
-    // Check if specific feature is in the array
-    const hasFeatureInArray = user.featureAccess.some(f => 
-      f.toLowerCase() === normalizedFeature
-    );
-    if (hasFeatureInArray) {
-      return true;
-    }
+  if (Array.isArray(user.featureAccess) && user.featureAccess.length > 0) {
+    allFeatures = user.featureAccess;
   }
-  
-  // Check features from kyc.level (fallback)
-  if (user.kyc?.level?.features) {
-    let features: string[] = [];
+
+  // Fallback: check features from kyc.level
+  if (allFeatures.length === 0 && user.kyc?.level?.features) {
     try {
-      features = typeof user.kyc.level.features === 'string'
+      const parsed = typeof user.kyc.level.features === 'string'
         ? JSON.parse(user.kyc.level.features)
         : user.kyc.level.features;
+      if (Array.isArray(parsed)) {
+        allFeatures = parsed;
+      }
     } catch {
-      // If parsing fails, assume no features
-      features = [];
-    }
-    
-    if (Array.isArray(features)) {
-      // If user has many features (20+), grant access to all
-      if (features.length >= MIN_FEATURES_FOR_FULL_ACCESS) {
-        return true;
-      }
-      
-      // Empty features with approved KYC and level > 0 means all features
-      if (features.length === 0 && userLevel > 0) {
-        return true;
-      }
-      
-      // Check if specific feature is in the array
-      const hasFeatureInLevel = features.some(f => 
-        (typeof f === 'string' ? f.toLowerCase() : '') === normalizedFeature
-      );
-      if (hasFeatureInLevel) {
-        return true;
-      }
+      allFeatures = [];
     }
   }
-  
-  // Final fallback: If KYC is approved, user has a level > 0, 
-  // but no features are configured, grant access (misconfigured site)
-  if (!user.featureAccess && !user.kyc?.level?.features && userLevel > 0) {
-    return true;
+
+  // If no features are configured at all, deny access
+  // This prevents Level 1 users from accessing Level 2+ features
+  if (allFeatures.length === 0) {
+    return false;
   }
-  
-  return false;
+
+  // Check if specific feature is in the user's feature list
+  return allFeatures.some(f =>
+    (typeof f === 'string' ? f.toLowerCase() : '') === normalizedFeature
+  );
 }
 
 // Get user's KYC level

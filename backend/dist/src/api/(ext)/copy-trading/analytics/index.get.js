@@ -1,1 +1,248 @@
-"use strict";function getPeriodDate(e){const t=new Date;switch(e){case"24h":return new Date(t.getTime()-864e5);case"7d":return new Date(t.getTime()-6048e5);case"30d":return new Date(t.getTime()-2592e6);case"90d":return new Date(t.getTime()-7776e6);case"1y":return new Date(t.getTime()-31536e6);default:return null}}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),utils_1=require("@b/api/finance/currency/utils");exports.metadata={summary:"Get My Copy Trading Analytics",description:"Retrieves comprehensive analytics for the user's copy trading activities.",operationId:"getMyCopyTradingAnalytics",tags:["Copy Trading","Analytics"],requiresAuth:!0,logModule:"COPY",logTitle:"Get analytics",parameters:[{name:"period",in:"query",required:!1,schema:{type:"string",enum:["24h","7d","30d","90d","1y","all"]},description:"Time period for analytics"}],responses:{200:{description:"Analytics retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{summary:{type:"object",properties:{totalAllocated:{type:"number"},totalProfit:{type:"number"},overallROI:{type:"number"},activeSubscriptions:{type:"number"},totalTrades:{type:"number"},winRate:{type:"number"}}},byLeader:{type:"array"},profitChart:{type:"array"},tradeDistribution:{type:"object"}}}}}},401:{description:"Unauthorized"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{user:t,query:r,ctx:o}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const i=getPeriodDate(r.period||"30d");null==o||o.step("Fetching user subscriptions");const a=await db_1.models.copyTradingFollower.findAll({where:{userId:t.id},include:[{model:db_1.models.copyTradingLeader,as:"leader",include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","avatar"]}]},{model:db_1.models.copyTradingFollowerAllocation,as:"allocations",where:{isActive:!0},required:!1}]}),s=a.map(e=>e.id),n=a.filter(e=>"ACTIVE"===e.status).length;if(0===s.length){null==o||o.success("No subscriptions found");return{summary:{totalAllocated:0,totalProfit:0,overallROI:0,activeSubscriptions:0,totalTrades:0,winRate:0},byLeader:[],profitChart:[],tradeDistribution:{bySymbol:[],bySide:{buy:{count:0,profit:0},sell:{count:0,profit:0}}}}}null==o||o.step("Fetching trades");const l={followerId:{[sequelize_1.Op.in]:s},status:"CLOSED"};i&&(l.createdAt={[sequelize_1.Op.gte]:i});const d=await db_1.models.copyTradingTrade.findAll({where:l,include:[{model:db_1.models.copyTradingLeader,as:"leader",attributes:["id","displayName"]}]});null==o||o.step("Calculating analytics");const c=d.length,u=d.filter(e=>(e.profit||0)>0).length,p=d.reduce((e,t)=>e+(t.profit||0),0),y=c>0?u/c*100:0;let f=0;for(const e of a)if(e.allocations)for(const t of e.allocations)try{const[e,r]=t.symbol.split("/"),o=await(0,utils_1.getEcoPriceInUSD)(e),i=parseFloat(t.baseAmount||0)*o,a=await(0,utils_1.getEcoPriceInUSD)(r);f+=i+parseFloat(t.quoteAmount||0)*a}catch(e){console.error(`Failed to get price for ${t.symbol}:`,e)}const m=f>0?p/f*100:0,b={};d.forEach(e=>{var t;const r=e.leaderId;if(!b[r]){const o=a.find(e=>e.leaderId===r);b[r]={leader:(null===(t=e.leader)||void 0===t?void 0:t.toJSON())||{id:r},subscription:o?{id:o.id,status:o.status}:null,trades:0,wins:0,profit:0,volume:0}}b[r].trades++;(e.profit||0)>0&&b[r].wins++;b[r].profit+=e.profit||0;b[r].volume+=e.cost||0});const h=Object.values(b).map(e=>({...e,winRate:e.trades>0?e.wins/e.trades*100:0,roi:0,profit:Math.round(100*e.profit)/100,volume:Math.round(100*e.volume)/100})),g={};d.forEach(e=>{const t=new Date(e.createdAt).toISOString().split("T")[0];g[t]=(g[t]||0)+(e.profit||0)});const v=Object.keys(g).sort();let w=0;const T=v.map(e=>{w+=g[e];return{date:e,dailyProfit:Math.round(100*g[e])/100,cumulativeProfit:Math.round(100*w)/100}}),A={};d.forEach(e=>{const t=e.symbol||"UNKNOWN";A[t]||(A[t]={count:0,profit:0});A[t].count++;A[t].profit+=e.profit||0});const _=d.filter(e=>"BUY"===e.side),D=d.filter(e=>"SELL"===e.side);null==o||o.success("Analytics retrieved successfully");return{summary:{totalAllocated:Math.round(100*f)/100,totalProfit:Math.round(100*p)/100,overallROI:Math.round(100*m)/100,activeSubscriptions:n,totalTrades:c,winRate:Math.round(100*y)/100},byLeader:h,profitChart:T,tradeDistribution:{bySymbol:Object.entries(A).map(([e,t])=>({symbol:e,...t,profit:Math.round(100*t.profit)/100})),bySide:{buy:{count:_.length,profit:_.reduce((e,t)=>e+(t.profit||0),0)},sell:{count:D.length,profit:D.reduce((e,t)=>e+(t.profit||0),0)}}}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const utils_1 = require("@b/api/finance/currency/utils");
+exports.metadata = {
+    summary: "Get My Copy Trading Analytics",
+    description: "Retrieves comprehensive analytics for the user's copy trading activities.",
+    operationId: "getMyCopyTradingAnalytics",
+    tags: ["Copy Trading", "Analytics"],
+    requiresAuth: true,
+    logModule: "COPY",
+    logTitle: "Get analytics",
+    parameters: [
+        {
+            name: "period",
+            in: "query",
+            required: false,
+            schema: { type: "string", enum: ["24h", "7d", "30d", "90d", "1y", "all"] },
+            description: "Time period for analytics",
+        },
+    ],
+    responses: {
+        200: {
+            description: "Analytics retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            summary: {
+                                type: "object",
+                                properties: {
+                                    totalAllocated: { type: "number" },
+                                    totalProfit: { type: "number" },
+                                    overallROI: { type: "number" },
+                                    activeSubscriptions: { type: "number" },
+                                    totalTrades: { type: "number" },
+                                    winRate: { type: "number" },
+                                },
+                            },
+                            byLeader: { type: "array" },
+                            profitChart: { type: "array" },
+                            tradeDistribution: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+        401: { description: "Unauthorized" },
+        500: { description: "Internal Server Error" },
+    },
+};
+function getPeriodDate(period) {
+    const now = new Date();
+    switch (period) {
+        case "24h":
+            return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        case "7d":
+            return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        case "30d":
+            return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        case "90d":
+            return new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        case "1y":
+            return new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        case "all":
+        default:
+            return null;
+    }
+}
+exports.default = async (data) => {
+    const { user, query, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const period = query.period || "30d";
+    const periodDate = getPeriodDate(period);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user subscriptions");
+    const subscriptions = await db_1.models.copyTradingFollower.findAll({
+        where: { userId: user.id },
+        include: [
+            {
+                model: db_1.models.copyTradingLeader,
+                as: "leader",
+                include: [
+                    {
+                        model: db_1.models.user,
+                        as: "user",
+                        attributes: ["id", "firstName", "lastName", "avatar"],
+                    },
+                ],
+            },
+            {
+                model: db_1.models.copyTradingFollowerAllocation,
+                as: "allocations",
+                where: { isActive: true },
+                required: false,
+            },
+        ],
+    });
+    const followerIds = subscriptions.map((s) => s.id);
+    const activeSubscriptions = subscriptions.filter((s) => s.status === "ACTIVE").length;
+    if (followerIds.length === 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("No subscriptions found");
+        return {
+            summary: {
+                totalAllocated: 0,
+                totalProfit: 0,
+                overallROI: 0,
+                activeSubscriptions: 0,
+                totalTrades: 0,
+                winRate: 0,
+            },
+            byLeader: [],
+            profitChart: [],
+            tradeDistribution: {
+                bySymbol: [],
+                bySide: {
+                    buy: { count: 0, profit: 0 },
+                    sell: { count: 0, profit: 0 },
+                },
+            },
+        };
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching trades");
+    const tradeWhere = {
+        followerId: { [sequelize_1.Op.in]: followerIds },
+        status: "CLOSED",
+    };
+    if (periodDate) {
+        tradeWhere.createdAt = { [sequelize_1.Op.gte]: periodDate };
+    }
+    const trades = await db_1.models.copyTradingTrade.findAll({
+        where: tradeWhere,
+        include: [
+            {
+                model: db_1.models.copyTradingLeader,
+                as: "leader",
+                attributes: ["id", "displayName"],
+            },
+        ],
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating analytics");
+    const totalTrades = trades.length;
+    const winningTrades = trades.filter((t) => (t.profit || 0) > 0).length;
+    const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+    const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+    let totalAllocated = 0;
+    for (const sub of subscriptions) {
+        if (!sub.allocations)
+            continue;
+        for (const alloc of sub.allocations) {
+            try {
+                const [baseCurrency, quoteCurrency] = alloc.symbol.split("/");
+                const basePrice = await (0, utils_1.getEcoPriceInUSD)(baseCurrency);
+                const baseInUSDT = parseFloat(alloc.baseAmount || 0) * basePrice;
+                const quotePrice = await (0, utils_1.getEcoPriceInUSD)(quoteCurrency);
+                const quoteInUSDT = parseFloat(alloc.quoteAmount || 0) * quotePrice;
+                totalAllocated += baseInUSDT + quoteInUSDT;
+            }
+            catch (error) {
+                console.error(`Failed to get price for ${alloc.symbol}:`, error);
+            }
+        }
+    }
+    const overallROI = totalAllocated > 0 ? (totalProfit / totalAllocated) * 100 : 0;
+    const byLeaderMap = {};
+    trades.forEach((trade) => {
+        var _a;
+        const leaderId = trade.leaderId;
+        if (!byLeaderMap[leaderId]) {
+            const sub = subscriptions.find((s) => s.leaderId === leaderId);
+            byLeaderMap[leaderId] = {
+                leader: ((_a = trade.leader) === null || _a === void 0 ? void 0 : _a.toJSON()) || { id: leaderId },
+                subscription: sub ? { id: sub.id, status: sub.status } : null,
+                trades: 0,
+                wins: 0,
+                profit: 0,
+                volume: 0,
+            };
+        }
+        byLeaderMap[leaderId].trades++;
+        if ((trade.profit || 0) > 0)
+            byLeaderMap[leaderId].wins++;
+        byLeaderMap[leaderId].profit += trade.profit || 0;
+        byLeaderMap[leaderId].volume += trade.cost || 0;
+    });
+    const byLeader = Object.values(byLeaderMap).map((item) => ({
+        ...item,
+        winRate: item.trades > 0 ? (item.wins / item.trades) * 100 : 0,
+        roi: 0,
+        profit: Math.round(item.profit * 100) / 100,
+        volume: Math.round(item.volume * 100) / 100,
+    }));
+    const profitByDate = {};
+    trades.forEach((trade) => {
+        const date = new Date(trade.createdAt).toISOString().split("T")[0];
+        profitByDate[date] = (profitByDate[date] || 0) + (trade.profit || 0);
+    });
+    const sortedDates = Object.keys(profitByDate).sort();
+    let cumulative = 0;
+    const profitChart = sortedDates.map((date) => {
+        cumulative += profitByDate[date];
+        return {
+            date,
+            dailyProfit: Math.round(profitByDate[date] * 100) / 100,
+            cumulativeProfit: Math.round(cumulative * 100) / 100,
+        };
+    });
+    const symbolDistribution = {};
+    trades.forEach((trade) => {
+        const symbol = trade.symbol || "UNKNOWN";
+        if (!symbolDistribution[symbol]) {
+            symbolDistribution[symbol] = { count: 0, profit: 0 };
+        }
+        symbolDistribution[symbol].count++;
+        symbolDistribution[symbol].profit += trade.profit || 0;
+    });
+    const buyTrades = trades.filter((t) => t.side === "BUY");
+    const sellTrades = trades.filter((t) => t.side === "SELL");
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Analytics retrieved successfully");
+    return {
+        summary: {
+            totalAllocated: Math.round(totalAllocated * 100) / 100,
+            totalProfit: Math.round(totalProfit * 100) / 100,
+            overallROI: Math.round(overallROI * 100) / 100,
+            activeSubscriptions,
+            totalTrades,
+            winRate: Math.round(winRate * 100) / 100,
+        },
+        byLeader,
+        profitChart,
+        tradeDistribution: {
+            bySymbol: Object.entries(symbolDistribution).map(([symbol, data]) => ({
+                symbol,
+                ...data,
+                profit: Math.round(data.profit * 100) / 100,
+            })),
+            bySide: {
+                buy: { count: buyTrades.length, profit: buyTrades.reduce((s, t) => s + (t.profit || 0), 0) },
+                sell: { count: sellTrades.length, profit: sellTrades.reduce((s, t) => s + (t.profit || 0), 0) },
+            },
+        },
+    };
+};

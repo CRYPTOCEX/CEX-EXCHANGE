@@ -1,1 +1,84 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Get Copy Trading Leader Details (Admin)",description:"Retrieves detailed information about a leader.",operationId:"adminGetCopyTradingLeader",tags:["Admin","Copy Trading"],requiresAuth:!0,logModule:"ADMIN_COPY",logTitle:"Get Copy Trading Leader",permission:"access.copy_trading",demoMask:["user.email","followers.user.email"],parameters:[{name:"id",in:"path",required:!0,schema:{type:"string"}}],responses:{200:{description:"Leader details retrieved successfully"},401:{description:"Unauthorized"},403:{description:"Forbidden"},404:{description:"Leader not found"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{params:r,ctx:d}=e,{id:a}=r;null==d||d.step("Get Copy Trading Leader");const t=await db_1.models.copyTradingLeader.findByPk(a,{include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email","avatar","createdAt"]}],paranoid:!1});if(!t)throw(0,error_1.createError)({statusCode:404,message:"Leader not found"});const i=await db_1.models.copyTradingFollower.findAll({where:{leaderId:a},include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName","email"]}],order:[["createdAt","DESC"]]}),s=await db_1.models.copyTradingTrade.findAll({where:{leaderId:a,followerId:null},order:[["createdAt","DESC"]],limit:50}),o=await db_1.models.copyTradingAuditLog.findAll({where:{entityType:"LEADER",entityId:a},include:[{model:db_1.models.user,as:"user",attributes:["id","firstName","lastName"]}],order:[["createdAt","DESC"]],limit:50});null==d||d.success("Get Copy Trading Leader retrieved successfully");return{...t.toJSON(),followers:i.map(e=>e.toJSON()),trades:s.map(e=>e.toJSON()),auditLog:o.map(e=>e.toJSON())}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Get Copy Trading Leader Details (Admin)",
+    description: "Retrieves detailed information about a leader.",
+    operationId: "adminGetCopyTradingLeader",
+    tags: ["Admin", "Copy Trading"],
+    requiresAuth: true,
+    logModule: "ADMIN_COPY",
+    logTitle: "Get Copy Trading Leader",
+    permission: "access.copy_trading",
+    demoMask: ["user.email", "followers.user.email"],
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    responses: {
+        200: { description: "Leader details retrieved successfully" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        404: { description: "Leader not found" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { params, ctx } = data;
+    const { id } = params;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Get Copy Trading Leader");
+    const leader = await db_1.models.copyTradingLeader.findByPk(id, {
+        include: [
+            {
+                model: db_1.models.user,
+                as: "user",
+                attributes: ["id", "firstName", "lastName", "email", "avatar", "createdAt"],
+            },
+        ],
+        paranoid: false,
+    });
+    if (!leader) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Leader not found" });
+    }
+    const followers = await db_1.models.copyTradingFollower.findAll({
+        where: { leaderId: id },
+        include: [
+            {
+                model: db_1.models.user,
+                as: "user",
+                attributes: ["id", "firstName", "lastName", "email"],
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+    });
+    const trades = await db_1.models.copyTradingTrade.findAll({
+        where: { leaderId: id, followerId: null },
+        order: [["createdAt", "DESC"]],
+        limit: 50,
+    });
+    const auditLog = await db_1.models.copyTradingAuditLog.findAll({
+        where: { entityType: "LEADER", entityId: id },
+        include: [
+            {
+                model: db_1.models.user,
+                as: "user",
+                attributes: ["id", "firstName", "lastName"],
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+        limit: 50,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Get Copy Trading Leader retrieved successfully");
+    return {
+        ...leader.toJSON(),
+        followers: followers.map((f) => f.toJSON()),
+        trades: trades.map((t) => t.toJSON()),
+        auditLog: auditLog.map((a) => a.toJSON()),
+    };
+};

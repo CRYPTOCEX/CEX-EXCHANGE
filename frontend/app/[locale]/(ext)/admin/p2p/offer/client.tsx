@@ -231,7 +231,7 @@ export default function AdminOffersPage() {
         canCreate={false}
         canEdit={true}
         editLink="/admin/p2p/offer/[id]/edit"
-        canDelete={true}
+        canDelete={false}
         canView={true}
         viewLink="/admin/p2p/offer/[id]"
         title={t("p2p_offer_management")}
@@ -240,7 +240,7 @@ export default function AdminOffersPage() {
         columns={columns}
         formConfig={formConfig}
         analytics={offersAnalytics}
-        isParanoid={true}
+        isParanoid={false}
         extraRowActions={extraRowActions}
         design={{
           animation: "orbs",

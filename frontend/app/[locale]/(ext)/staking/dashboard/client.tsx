@@ -183,19 +183,13 @@ export default function StakingDashboard() {
               <Tabs defaultValue="active" className="mt-6">
                 <TabsList className="grid w-full grid-cols-3 mb-8 bg-zinc-100 dark:bg-zinc-800/50 p-1 rounded-xl">
                   <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-900 data-[state=active]:shadow-sm">
-                    {tCommon("active")}
-                    {activePositions.length}
-                    )
+                    {tCommon("active")} ({activePositions.length})
                   </TabsTrigger>
                   <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-900 data-[state=active]:shadow-sm">
-                    {tExt("pending_withdrawal")}
-                    {pendingWithdrawalPositions.length}
-                    )
+                    {tExt("pending_withdrawal")} ({pendingWithdrawalPositions.length})
                   </TabsTrigger>
                   <TabsTrigger value="completed" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-900 data-[state=active]:shadow-sm">
-                    {tCommon("completed")}
-                    {completedPositions.length}
-                    )
+                    {tCommon("completed")} ({completedPositions.length})
                   </TabsTrigger>
                 </TabsList>
 

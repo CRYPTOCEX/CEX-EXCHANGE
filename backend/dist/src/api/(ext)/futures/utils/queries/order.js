@@ -376,7 +376,7 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
         console_1.logger.warn("FUTURES", `${walletCurrency} wallet not found for user ID: ${userId}`);
         return;
     }
-    await updateWalletBalance(wallet, refundAmount, "add");
+    await updateWalletBalance(wallet, refundAmount, "add", `futures_order_${id}_settle`);
 }
 async function getOrders(userId, symbol, isOpen) {
     if (!client || !scyllaFuturesKeyspace || !fromBigInt) {

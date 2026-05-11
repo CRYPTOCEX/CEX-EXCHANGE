@@ -244,6 +244,14 @@ export const P2P_FIELD_DEFINITIONS: FieldDefinition[] = [
     subcategory: "Payment Methods",
   },
   {
+    key: "p2pAutoApproveOffers",
+    label: "Auto Approve Offers",
+    type: "switch",
+    description: "Automatically approve new and edited offers. When disabled, offers require admin moderation.",
+    category: "platform",
+    subcategory: "Offers",
+  },
+  {
     key: "p2pMaxActiveOffersPerUser",
     label: "Max Active Offers Per User",
     type: "number",
@@ -327,6 +335,7 @@ export const P2P_DEFAULT_SETTINGS: Record<string, any> = {
   p2pAllowNewOffers: true,
   p2pAllowGuestBrowsing: true,
   p2pAllowCustomPaymentMethods: false,
+  p2pAutoApproveOffers: false,
   p2pMaxActiveOffersPerUser: 5,
   p2pMaxActiveTrades: 10,
   p2pEnableDisputeSystem: true,

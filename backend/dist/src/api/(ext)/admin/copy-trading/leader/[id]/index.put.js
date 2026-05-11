@@ -1,1 +1,101 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/(ext)/copy-trading/utils");exports.metadata={summary:"Update Leader (Admin)",description:"Updates leader profile and settings.",operationId:"adminUpdateCopyTradingLeader",tags:["Admin","Copy Trading"],requiresAuth:!0,permission:"access.copy_trading",middleware:["copyTradingAdmin"],logModule:"ADMIN_COPY",logTitle:"Update copy trading leader",parameters:[{name:"id",in:"path",required:!0,schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{displayName:{type:"string"},bio:{type:"string"},tradingStyle:{type:"string"},riskLevel:{type:"string"},profitSharePercent:{type:"number"},minFollowAmount:{type:"number"},maxFollowers:{type:"number"},isPublic:{type:"boolean"}}}}}},responses:{200:{description:"Leader updated successfully"},400:{description:"Bad Request"},401:{description:"Unauthorized"},403:{description:"Forbidden"},404:{description:"Leader not found"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{params:r,body:t,user:a,ctx:i}=e,{id:d}=r;if(!(0,utils_1.isValidUUID)(d))throw(0,error_1.createError)({statusCode:400,message:"Invalid leader ID format"});null==i||i.step("Fetching leader");const s=await db_1.models.copyTradingLeader.findByPk(d);if(!s){null==i||i.fail("Leader not found");throw(0,error_1.createError)({statusCode:404,message:"Leader not found"})}null==i||i.step("Preparing update data");const o=["displayName","bio","tradingStyle","riskLevel","profitSharePercent","minFollowAmount","maxFollowers","isPublic"],n={},l={};for(const e of o)if(void 0!==t[e]){l[e]=s[e];n[e]=t[e]}null==i||i.step("Updating leader");await s.update(n);null==i||i.step("Creating audit log");await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:d,action:"UPDATE",oldValue:l,newValue:n,adminId:null==a?void 0:a.id});null==i||i.success("Leader updated successfully");return{message:"Leader updated successfully",leader:s.toJSON()}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/(ext)/copy-trading/utils");
+exports.metadata = {
+    summary: "Update Leader (Admin)",
+    description: "Updates leader profile and settings.",
+    operationId: "adminUpdateCopyTradingLeader",
+    tags: ["Admin", "Copy Trading"],
+    requiresAuth: true,
+    permission: "access.copy_trading",
+    middleware: ["copyTradingAdmin"],
+    logModule: "ADMIN_COPY",
+    logTitle: "Update copy trading leader",
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        displayName: { type: "string" },
+                        bio: { type: "string" },
+                        tradingStyle: { type: "string" },
+                        riskLevel: { type: "string" },
+                        profitSharePercent: { type: "number" },
+                        minFollowAmount: { type: "number" },
+                        maxFollowers: { type: "number" },
+                        isPublic: { type: "boolean" },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: { description: "Leader updated successfully" },
+        400: { description: "Bad Request" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        404: { description: "Leader not found" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { params, body, user, ctx } = data;
+    const { id } = params;
+    if (!(0, utils_1.isValidUUID)(id)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Invalid leader ID format" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching leader");
+    const leader = await db_1.models.copyTradingLeader.findByPk(id);
+    if (!leader) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Leader not found");
+        throw (0, error_1.createError)({ statusCode: 404, message: "Leader not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Preparing update data");
+    const allowedFields = [
+        "displayName",
+        "bio",
+        "tradingStyle",
+        "riskLevel",
+        "profitSharePercent",
+        "minFollowAmount",
+        "maxFollowers",
+        "isPublic",
+    ];
+    const updateData = {};
+    const oldValues = {};
+    for (const field of allowedFields) {
+        if (body[field] !== undefined) {
+            oldValues[field] = leader[field];
+            updateData[field] = body[field];
+        }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating leader");
+    await leader.update(updateData);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating audit log");
+    await (0, utils_1.createAuditLog)({
+        entityType: "LEADER",
+        entityId: id,
+        action: "UPDATE",
+        oldValue: oldValues,
+        newValue: updateData,
+        adminId: user === null || user === void 0 ? void 0 : user.id,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Leader updated successfully");
+    return {
+        message: "Leader updated successfully",
+        leader: leader.toJSON(),
+    };
+};

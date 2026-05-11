@@ -56,6 +56,7 @@ exports.metadata = {
     logTitle: "Cancel exchange order",
 };
 exports.default = async (data) => {
+    var _a;
     const { user, params, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id))
         throw (0, error_1.createError)(401, "Unauthorized");
@@ -112,23 +113,28 @@ exports.default = async (data) => {
             await exchange.cancelOrder(order.referenceId, order.symbol);
             ctx === null || ctx === void 0 ? void 0 : ctx.step("Refunding wallet balance and removing order");
             const idempotencyKey = `exchange_cancel_${id}`;
+            const remainingAmount = Number((_a = orderData.remaining) !== null && _a !== void 0 ? _a : order.amount);
             await db_1.sequelize.transaction(async (transaction) => {
+                var _a, _b;
                 if (order.side.toUpperCase() === "BUY") {
-                    const cost = Number(order.amount) * Number(order.price);
+                    const refundCost = remainingAmount * Number(order.price);
                     await wallet_1.walletService.credit({
                         idempotencyKey: `${idempotencyKey}_refund`,
                         userId: user.id,
                         walletId: pairWallet.id,
                         walletType: "SPOT",
                         currency: pair,
-                        amount: cost,
+                        amount: refundCost,
                         operationType: "EXCHANGE_ORDER_CANCEL",
-                        description: `Refund for cancelled buy order ${order.symbol}`,
+                        description: `Refund for cancelled buy order ${order.symbol} (remaining: ${remainingAmount})`,
                         metadata: {
                             orderId: id,
                             referenceId: order.referenceId,
                             symbol: order.symbol,
                             side: order.side,
+                            originalAmount: Number(order.amount),
+                            filledAmount: Number((_a = orderData.filled) !== null && _a !== void 0 ? _a : 0),
+                            remainingAmount,
                         },
                         transaction,
                     });
@@ -140,14 +146,17 @@ exports.default = async (data) => {
                         walletId: currencyWallet.id,
                         walletType: "SPOT",
                         currency: currency,
-                        amount: Number(order.amount),
+                        amount: remainingAmount,
                         operationType: "EXCHANGE_ORDER_CANCEL",
-                        description: `Refund for cancelled sell order ${order.symbol}`,
+                        description: `Refund for cancelled sell order ${order.symbol} (remaining: ${remainingAmount})`,
                         metadata: {
                             orderId: id,
                             referenceId: order.referenceId,
                             symbol: order.symbol,
                             side: order.side,
+                            originalAmount: Number(order.amount),
+                            filledAmount: Number((_b = orderData.filled) !== null && _b !== void 0 ? _b : 0),
+                            remainingAmount,
                         },
                         transaction,
                     });

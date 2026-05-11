@@ -1,1 +1,175 @@
-"use strict";async function calculateTransactionFees(e,r,t,a,n,c){var o,l,s,i,u,d,f,v,h,w,p,g,y;try{null===(o=null==c?void 0:c.step)||void 0===o||o.call(c,`Calculating transaction fees for ${e} currency ${r}`);let y,_=0,x=8;switch(e){case"FIAT":null===(l=null==c?void 0:c.step)||void 0===l||l.call(c,"Fetching FIAT currency data");y=await db_1.models.currency.findOne({where:{id:r},transaction:n});if(!y||!y.price){null===(s=null==c?void 0:c.step)||void 0===s||s.call(c,"Currency data not found, fetching FIAT prices");await(0,cron_1.fetchFiatCurrencyPrices)();y=await db_1.models.currency.findOne({where:{id:r},transaction:n});if(!y||!y.price)throw(0,error_1.createError)({statusCode:500,message:"Currency processing failed"})}x=2;break;case"SPOT":null===(i=null==c?void 0:c.step)||void 0===i||i.call(c,"Fetching SPOT currency data");y=await db_1.models.exchangeCurrency.findOne({where:{currency:r},transaction:n});if(!y||!y.price){null===(u=null==c?void 0:c.step)||void 0===u||u.call(c,"Currency data not found, processing currencies prices");await(0,cron_1.processCurrenciesPrices)();y=await db_1.models.exchangeCurrency.findOne({where:{currency:r},transaction:n});if(!y||!y.price)throw(0,error_1.createError)({statusCode:500,message:"Currency processing failed"})}null===(d=null==c?void 0:c.step)||void 0===d||d.call(c,"Starting exchange manager");const e=await exchange_1.default.startExchange(c),o=await exchange_1.default.getProvider();if(!e)throw(0,error_1.createError)(500,"Exchange not found");null===(f=null==c?void 0:c.step)||void 0===f||f.call(c,"Fetching exchange currencies");const g=await e.fetchCurrencies(),m="xt"===o,F=Object.values(g).find(e=>m?e.code===r:e.id===r);if(!F)throw(0,error_1.createError)(404,"Currency not found");null===(v=null==c?void 0:c.step)||void 0===v||v.call(c,"Calculating transaction fees");let C=0;switch(o){case"binance":case"kucoin":t&&F.networks&&(C=(null===(h=F.networks[t])||void 0===h?void 0:h.fee)||(null===(p=null===(w=F.networks[t])||void 0===w?void 0:w.fees)||void 0===p?void 0:p.withdraw)||0)}const b=parseFloat(a.toString()),O=y.fee||0;_=parseFloat(Math.max(b*O/100+C,0).toFixed(2));x=y.precision||8;break;default:throw(0,error_1.createError)({statusCode:400,message:"Invalid wallet type"})}const m=a+_;null===(g=null==c?void 0:c.success)||void 0===g||g.call(c,`Transaction fees calculated successfully: ${_}`);return{currencyData:y,taxAmount:_,total:m,precision:x}}catch(e){null===(y=null==c?void 0:c.fail)||void 0===y||y.call(c,e.message);throw e}}async function validateAccountOwnership(e,r,t,a){var n,c,o,l;try{null===(n=null==a?void 0:a.step)||void 0===n||n.call(a,`Validating account ownership for account ${e}`);const l=await db_1.models.forexAccount.findByPk(e,{transaction:t});if(!l)throw(0,error_1.createError)({statusCode:404,message:"Account not found"});null===(c=null==a?void 0:a.step)||void 0===c||c.call(a,"Checking account ownership");if(l.userId!==r)throw(0,error_1.createError)({statusCode:403,message:"Access denied: You can only access your own forex accounts"});null===(o=null==a?void 0:a.success)||void 0===o||o.call(a,"Account ownership validated successfully");return l}catch(e){null===(l=null==a?void 0:a.fail)||void 0===l||l.call(a,e.message);throw e}}async function getUserWallet(e,r,t,a,n){var c,o,l;try{null===(c=null==n?void 0:n.step)||void 0===c||c.call(n,`Fetching wallet for user ${e} (${r} ${t})`);const l=await db_1.models.wallet.findOne({where:{userId:e,type:r,currency:t},transaction:a});if(!l)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});null===(o=null==n?void 0:n.success)||void 0===o||o.call(n,"Wallet fetched successfully");return l}catch(e){null===(l=null==n?void 0:n.fail)||void 0===l||l.call(n,e.message);throw e}}async function createForexTransaction(e,r,t,a,n,c,o,l,s){var i,u,d;try{null===(i=null==s?void 0:s.step)||void 0===i||i.call(s,`Creating ${t} transaction for account ${c}`);const d="FOREX_DEPOSIT"===t?`Deposit to Forex account ${c}`:`Withdraw from Forex account ${c}`,f=await db_1.models.transaction.create({userId:e,walletId:r,type:t,status:"PENDING",amount:a,fee:n,description:d,metadata:JSON.stringify(o)},{transaction:l});null===(u=null==s?void 0:s.success)||void 0===u||u.call(s,"Forex transaction created successfully");return f}catch(e){null===(d=null==s?void 0:s.fail)||void 0===d||d.call(s,e.message);throw e}}var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.calculateTransactionFees=calculateTransactionFees;exports.validateAccountOwnership=validateAccountOwnership;exports.getUserWallet=getUserWallet;exports.createForexTransaction=createForexTransaction;const exchange_1=__importDefault(require("@b/utils/exchange")),db_1=require("@b/db"),error_1=require("@b/utils/error"),cron_1=require("@b/cron");
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.calculateTransactionFees = calculateTransactionFees;
+exports.validateAccountOwnership = validateAccountOwnership;
+exports.getUserWallet = getUserWallet;
+exports.createForexTransaction = createForexTransaction;
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const cron_1 = require("@b/cron");
+async function calculateTransactionFees(type, currency, chain, amount, transaction, ctx) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Calculating transaction fees for ${type} currency ${currency}`);
+        let currencyData;
+        let taxAmount = 0;
+        let precision = 8;
+        switch (type) {
+            case "FIAT":
+                (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Fetching FIAT currency data");
+                currencyData = await db_1.models.currency.findOne({
+                    where: { id: currency },
+                    transaction,
+                });
+                if (!currencyData || !currencyData.price) {
+                    (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Currency data not found, fetching FIAT prices");
+                    await (0, cron_1.fetchFiatCurrencyPrices)();
+                    currencyData = await db_1.models.currency.findOne({
+                        where: { id: currency },
+                        transaction,
+                    });
+                    if (!currencyData || !currencyData.price)
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Currency processing failed" });
+                }
+                precision = 2;
+                if (currencyData.fee) {
+                    taxAmount = parseFloat(Math.max((amount * currencyData.fee) / 100, 0).toFixed(2));
+                }
+                break;
+            case "SPOT":
+                (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Fetching SPOT currency data");
+                currencyData = await db_1.models.exchangeCurrency.findOne({
+                    where: { currency: currency },
+                    transaction,
+                });
+                if (!currencyData || !currencyData.price) {
+                    (_e = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _e === void 0 ? void 0 : _e.call(ctx, "Currency data not found, processing currencies prices");
+                    await (0, cron_1.processCurrenciesPrices)();
+                    currencyData = await db_1.models.exchangeCurrency.findOne({
+                        where: { currency: currency },
+                        transaction,
+                    });
+                    if (!currencyData || !currencyData.price)
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Currency processing failed" });
+                }
+                (_f = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _f === void 0 ? void 0 : _f.call(ctx, "Starting exchange manager");
+                const exchange = await exchange_1.default.startExchange(ctx);
+                const provider = await exchange_1.default.getProvider();
+                if (!exchange)
+                    throw (0, error_1.createError)(500, "Exchange not found");
+                (_g = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _g === void 0 ? void 0 : _g.call(ctx, "Fetching exchange currencies");
+                const currencies = await exchange.fetchCurrencies();
+                const isXt = provider === "xt";
+                const exchangeCurrency = Object.values(currencies).find((c) => isXt ? c.code === currency : c.id === currency);
+                if (!exchangeCurrency)
+                    throw (0, error_1.createError)(404, "Currency not found");
+                (_h = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _h === void 0 ? void 0 : _h.call(ctx, "Calculating transaction fees");
+                let fixedFee = 0;
+                switch (provider) {
+                    case "binance":
+                    case "kucoin":
+                        if (chain && exchangeCurrency.networks) {
+                            fixedFee =
+                                ((_j = exchangeCurrency.networks[chain]) === null || _j === void 0 ? void 0 : _j.fee) ||
+                                    ((_l = (_k = exchangeCurrency.networks[chain]) === null || _k === void 0 ? void 0 : _k.fees) === null || _l === void 0 ? void 0 : _l.withdraw) ||
+                                    0;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                const parsedAmount = parseFloat(amount.toString());
+                const percentageFee = currencyData.fee || 0;
+                taxAmount = parseFloat(Math.max((parsedAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2));
+                precision = currencyData.precision || 8;
+                break;
+            default:
+                throw (0, error_1.createError)({ statusCode: 400, message: "Invalid wallet type" });
+        }
+        const total = amount + taxAmount;
+        (_m = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _m === void 0 ? void 0 : _m.call(ctx, `Transaction fees calculated successfully: ${taxAmount}`);
+        return {
+            currencyData,
+            taxAmount,
+            total,
+            precision,
+        };
+    }
+    catch (error) {
+        (_o = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _o === void 0 ? void 0 : _o.call(ctx, error.message);
+        throw error;
+    }
+}
+async function validateAccountOwnership(accountId, userId, transaction, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Validating account ownership for account ${accountId}`);
+        const account = await db_1.models.forexAccount.findByPk(accountId, {
+            transaction,
+        });
+        if (!account) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Account not found" });
+        }
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Checking account ownership");
+        if (account.userId !== userId) {
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Access denied: You can only access your own forex accounts"
+            });
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, "Account ownership validated successfully");
+        return account;
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        throw error;
+    }
+}
+async function getUserWallet(userId, type, currency, transaction, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Fetching wallet for user ${userId} (${type} ${currency})`);
+        const wallet = await db_1.models.wallet.findOne({
+            where: { userId, type, currency },
+            transaction,
+        });
+        if (!wallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        }
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Wallet fetched successfully");
+        return wallet;
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}
+async function createForexTransaction(userId, walletId, type, amount, fee, accountId, metadata, transaction, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Creating ${type} transaction for account ${accountId}`);
+        const description = type === "FOREX_DEPOSIT"
+            ? `Deposit to Forex account ${accountId}`
+            : `Withdraw from Forex account ${accountId}`;
+        const result = await db_1.models.transaction.create({
+            userId,
+            walletId,
+            type,
+            status: "PENDING",
+            amount,
+            fee,
+            description,
+            metadata: JSON.stringify(metadata),
+        }, { transaction });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Forex transaction created successfully");
+        return result;
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        throw error;
+    }
+}

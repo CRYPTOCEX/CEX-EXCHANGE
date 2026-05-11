@@ -52,8 +52,18 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("No FAQ IDs provided");
         throw (0, error_1.createError)({ statusCode: 400, message: "No FAQ IDs provided" });
     }
+    const allowedFields = ['question', 'answer', 'image', 'category', 'tags', 'status', 'order', 'pagePath', 'relatedFaqIds'];
+    const safeData = {};
+    for (const key of allowedFields) {
+        if (updateData[key] !== undefined)
+            safeData[key] = updateData[key];
+    }
+    if (Object.keys(safeData).length === 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("No valid fields to update");
+        throw (0, error_1.createError)({ statusCode: 400, message: "No valid fields to update" });
+    }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating FAQs");
-    await db_1.models.faq.update(updateData, { where: { id: ids } });
+    await db_1.models.faq.update(safeData, { where: { id: ids } });
     ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQs updated successfully");
     return { message: "FAQs updated successfully" };
 };

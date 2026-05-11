@@ -92,11 +92,11 @@ class forexPlan extends sequelize_1.Model {
                 },
             },
             defaultProfit: {
-                type: sequelize_1.DataTypes.INTEGER,
+                type: sequelize_1.DataTypes.DOUBLE,
                 allowNull: false,
                 defaultValue: 0,
                 validate: {
-                    isInt: { msg: "defaultProfit: Default profit must be an integer" },
+                    isFloat: { msg: "defaultProfit: Default profit must be a number" },
                 },
             },
             defaultResult: {

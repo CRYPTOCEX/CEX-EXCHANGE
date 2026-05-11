@@ -14,6 +14,7 @@ interface Market {
   sparklineData?: number[];
   category?: string;
   isNew?: boolean;
+  isEco?: boolean;
   metadata?: {
     precision?: {
       price?: number;
@@ -68,6 +69,7 @@ export const MarketRow = memo(function MarketRow({
         "cursor-pointer",
         "border-b border-[var(--tp-border)]",
         "transition-colors",
+        market.isEco ? "border-l-2 border-l-green-500/60" : "border-l-2 border-l-transparent",
         isSelected
           ? "bg-[var(--tp-blue)]/10"
           : "hover:bg-[var(--tp-bg-tertiary)]"

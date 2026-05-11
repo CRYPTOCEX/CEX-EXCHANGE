@@ -4,6 +4,7 @@ exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const errors_1 = require("@b/utils/schema/errors");
+const faq_validation_1 = require("@b/api/(ext)/faq/utils/faq-validation");
 exports.metadata = {
     summary: "Submit Feedback for FAQ",
     description: "Creates a new feedback record for a specific FAQ. Users can indicate if the FAQ was helpful and optionally provide a comment.",
@@ -78,23 +79,43 @@ exports.default = async (data) => {
             message: "User authentication required",
         });
     }
+    if (body.comment !== undefined) {
+        const commentValidation = (0, faq_validation_1.validateFeedbackComment)(body.comment);
+        if (!commentValidation.isValid) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(commentValidation.errors.join(", "));
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: commentValidation.errors.join(", "),
+            });
+        }
+    }
     try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying FAQ exists");
+        const faq = await db_1.models.faq.findByPk(id);
+        if (!faq) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("FAQ not found");
+            throw (0, error_1.createError)({ statusCode: 404, message: "FAQ not found" });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating feedback record");
+        const sanitizedComment = body.comment
+            ? (0, faq_validation_1.sanitizeInput)(body.comment)
+            : body.comment;
         const feedback = await db_1.models.faqFeedback.create({
             faqId: id,
             userId: user.id,
             isHelpful: body.isHelpful,
-            comment: body.comment,
+            comment: sanitizedComment,
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.success("Feedback submitted successfully");
         return feedback;
     }
     catch (error) {
-        console.error("Error submitting FAQ feedback:", error);
+        if (error.statusCode)
+            throw error;
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to submit feedback");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error ? error.message : "Failed to submit feedback",
+            message: "Failed to submit feedback",
         });
     }
 };

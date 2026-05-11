@@ -122,6 +122,7 @@ export default class icoTokenOffering
             "CANCELLED"
           ),
           allowNull: false,
+          defaultValue: "PENDING",
           validate: {
             isIn: {
               args: [
@@ -159,7 +160,7 @@ export default class icoTokenOffering
           },
         },
         tokenPrice: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "tokenPrice: Must be a valid number" },
@@ -167,7 +168,7 @@ export default class icoTokenOffering
           },
         },
         targetAmount: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "targetAmount: Must be a valid number" },
@@ -191,13 +192,14 @@ export default class icoTokenOffering
         participants: {
           type: DataTypes.INTEGER,
           allowNull: false,
+          defaultValue: 0,
           validate: {
             isInt: { msg: "participants: Must be an integer" },
             min: { args: [0], msg: "participants: Cannot be negative" },
           },
         },
         currentPrice: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: true,
           validate: {
             isFloat: { msg: "currentPrice: Must be a valid number" },
@@ -205,7 +207,7 @@ export default class icoTokenOffering
           },
         },
         priceChange: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: true,
           validate: {
             isFloat: { msg: "priceChange: Must be a valid number" },
@@ -233,7 +235,7 @@ export default class icoTokenOffering
           },
         },
         reviewNotes: {
-          type: DataTypes.STRING(191),
+          type: DataTypes.TEXT,
           allowNull: true,
         },
         isPaused: {
@@ -249,6 +251,7 @@ export default class icoTokenOffering
         featured: {
           type: DataTypes.BOOLEAN,
           allowNull: true,
+          defaultValue: false,
         },
         website: {
           type: DataTypes.STRING(191),
@@ -283,6 +286,22 @@ export default class icoTokenOffering
             name: "icoTokenOfferingSymbolKey",
             unique: true,
             fields: [{ name: "symbol" }],
+          },
+          {
+            name: "icoTokenOfferingUserIdIdx",
+            fields: [{ name: "userId" }],
+          },
+          {
+            name: "icoTokenOfferingPlanIdIdx",
+            fields: [{ name: "planId" }],
+          },
+          {
+            name: "icoTokenOfferingTypeIdIdx",
+            fields: [{ name: "typeId" }],
+          },
+          {
+            name: "icoTokenOfferingStatusIdx",
+            fields: [{ name: "status" }],
           },
         ],
       }

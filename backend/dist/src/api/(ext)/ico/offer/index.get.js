@@ -353,21 +353,30 @@ exports.default = async (data) => {
         });
         const now = new Date();
         const transformedOfferings = rows.map((offering) => {
+            var _a, _b;
             const phases = offering.phases || [];
-            let cumulativeDays = 0;
             let currentPhase = null;
             let nextPhase = null;
             const startDate = new Date(offering.startDate);
-            const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+            const daysSinceStart = (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+            let cumulativeDays = 0;
+            const phaseTimeInfo = {};
             for (let i = 0; i < phases.length; i++) {
                 cumulativeDays += phases[i].duration;
-                if (daysSinceStart < cumulativeDays) {
-                    const phaseEndsIn = cumulativeDays - daysSinceStart;
-                    currentPhase = { ...phases[i].toJSON(), endsIn: phaseEndsIn };
+                phaseTimeInfo[phases[i].id] = {
+                    endsIn: Math.max(0, Math.ceil(cumulativeDays - daysSinceStart)),
+                };
+            }
+            for (let i = 0; i < phases.length; i++) {
+                if (phases[i].remaining > 0) {
+                    currentPhase = {
+                        ...phases[i].toJSON(),
+                        endsIn: ((_a = phaseTimeInfo[phases[i].id]) === null || _a === void 0 ? void 0 : _a.endsIn) || 0,
+                    };
                     if (i + 1 < phases.length) {
                         nextPhase = {
                             ...phases[i + 1].toJSON(),
-                            endsIn: phases[i + 1].duration,
+                            endsIn: ((_b = phaseTimeInfo[phases[i + 1].id]) === null || _b === void 0 ? void 0 : _b.endsIn) || phases[i + 1].duration,
                         };
                     }
                     break;

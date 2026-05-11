@@ -10,6 +10,7 @@ const notifications_1 = require("@b/utils/notifications");
 const query_1 = require("@b/utils/query");
 const Middleware_1 = require("@b/handler/Middleware");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 exports.metadata = {
     summary: "Creates a new order",
     description: "Processes a new order for the logged-in user, checking inventory, wallet balance, and applying any available discounts.",
@@ -77,164 +78,208 @@ exports.default = async (data) => {
     if (!amount || amount <= 0 || !Number.isInteger(amount)) {
         throw (0, error_1.createError)({ statusCode: 400, message: "Invalid quantity" });
     }
-    const transaction = await db_1.sequelize.transaction();
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying user account");
     const userPk = await db_1.models.user.findByPk(user.id);
     if (!userPk) {
         throw (0, error_1.createError)({ statusCode: 404, message: "User not found" });
     }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking product availability");
-    const product = await db_1.models.ecommerceProduct.findByPk(productId, { transaction });
-    if (!product) {
-        await transaction.rollback();
-        throw (0, error_1.createError)({ statusCode: 404, message: "Product not found" });
-    }
-    if (!product.status) {
-        await transaction.rollback();
-        throw (0, error_1.createError)({ statusCode: 400, message: "Product is not available" });
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying inventory stock");
-    if (product.type === "PHYSICAL" && product.inventoryQuantity < amount) {
-        await transaction.rollback();
-        throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient inventory" });
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Loading system settings for tax and shipping");
-    const systemSettings = await db_1.models.settings.findAll();
-    const settings = systemSettings.reduce((acc, setting) => {
-        acc[setting.key] = setting.value;
-        return acc;
-    }, {});
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating order total");
-    let subtotal = product.price * amount;
-    let userDiscount = null;
-    let discountAmount = 0;
-    if (discountId && discountId !== "null") {
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Applying discount code");
-        userDiscount = await db_1.models.ecommerceUserDiscount.findOne({
+    const order = await db_1.sequelize.transaction(async (transaction) => {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking product availability");
+        const product = await db_1.models.ecommerceProduct.findByPk(productId, { transaction });
+        if (!product) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Product not found" });
+        }
+        if (!product.status) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Product is not available" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying inventory stock");
+        if (product.type === "PHYSICAL" && product.inventoryQuantity < amount) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient inventory" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Loading system settings for tax and shipping");
+        const systemSettings = await db_1.models.settings.findAll({ transaction });
+        const settings = systemSettings.reduce((acc, setting) => {
+            acc[setting.key] = setting.value;
+            return acc;
+        }, {});
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating order total");
+        const originalSubtotal = product.price * amount;
+        let subtotal = originalSubtotal;
+        let discountAmount = 0;
+        let discountRecord = null;
+        if (discountId && discountId !== "null") {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Applying discount code");
+            discountRecord = await db_1.models.ecommerceDiscount.findOne({
+                where: {
+                    id: discountId,
+                    productId: productId,
+                    status: true,
+                    validUntil: { [sequelize_1.Op.gte]: new Date() },
+                },
+                lock: transaction.LOCK.UPDATE,
+                transaction,
+            });
+            if (!discountRecord) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Discount not found or not applicable to this product" });
+            }
+            if (discountRecord.maxUses !== null) {
+                const usageCount = await db_1.models.ecommerceUserDiscount.count({
+                    where: { discountId: discountRecord.id, status: true },
+                    transaction,
+                });
+                if (usageCount >= discountRecord.maxUses) {
+                    throw (0, error_1.createError)({ statusCode: 400, message: "Discount usage limit reached" });
+                }
+            }
+            const existingUsage = await db_1.models.ecommerceUserDiscount.findOne({
+                where: { userId: user.id, discountId: discountRecord.id, status: true },
+                transaction,
+            });
+            if (existingUsage) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "You have already used this discount" });
+            }
+            if (discountRecord.type === "PERCENTAGE") {
+                discountAmount = subtotal * (discountRecord.percentage / 100);
+            }
+            else if (discountRecord.type === "FIXED") {
+                discountAmount = Math.min(discountRecord.amount || 0, subtotal);
+            }
+            subtotal -= discountAmount;
+        }
+        let shippingCost = 0;
+        if (product.type === "PHYSICAL" && settings.ecommerceShippingEnabled === "true") {
+            if ((discountRecord === null || discountRecord === void 0 ? void 0 : discountRecord.type) === "FREE_SHIPPING") {
+                shippingCost = 0;
+            }
+            else {
+                shippingCost = parseFloat(settings.ecommerceDefaultShippingCost || "0");
+            }
+        }
+        let taxAmount = 0;
+        if (settings.ecommerceTaxEnabled === "true") {
+            const taxRate = parseFloat(settings.ecommerceDefaultTaxRate || "0") / 100;
+            taxAmount = subtotal * taxRate;
+        }
+        const cost = subtotal + shippingCost + taxAmount;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking wallet balance");
+        const wallet = await db_1.models.wallet.findOne({
             where: {
                 userId: user.id,
-                discountId: discountId,
+                type: product.walletType,
+                currency: product.currency,
             },
-            include: [
-                {
-                    model: db_1.models.ecommerceDiscount,
-                    as: "discount",
-                },
-            ],
+            transaction,
+            lock: transaction.LOCK.UPDATE,
         });
-        if (!userDiscount) {
-            throw (0, error_1.createError)({ statusCode: 404, message: "Discount not found" });
+        if (!wallet || wallet.balance < cost) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient balance" });
         }
-        if (userDiscount.discount.type === "PERCENTAGE") {
-            discountAmount = subtotal * (userDiscount.discount.percentage / 100);
-        }
-        else if (userDiscount.discount.type === "FIXED") {
-            discountAmount = Math.min(userDiscount.discount.value, subtotal);
-        }
-        subtotal -= discountAmount;
-    }
-    let shippingCost = 0;
-    if (product.type === "PHYSICAL" && settings.ecommerceShippingEnabled === "true") {
-        shippingCost = parseFloat(settings.ecommerceDefaultShippingCost || "0");
-    }
-    let taxAmount = 0;
-    if (settings.ecommerceTaxEnabled === "true") {
-        const taxRate = parseFloat(settings.ecommerceDefaultTaxRate || "0") / 100;
-        taxAmount = subtotal * taxRate;
-    }
-    const cost = subtotal + shippingCost + taxAmount;
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking wallet balance");
-    const wallet = await db_1.models.wallet.findOne({
-        where: {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating order record");
+        const initialStatus = product.type === "DOWNLOADABLE" ? "COMPLETED" : "PENDING";
+        const newOrder = await db_1.models.ecommerceOrder.create({
             userId: user.id,
-            type: product.walletType,
-            currency: product.currency,
-        },
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-    });
-    if (!wallet || wallet.balance < cost) {
-        await transaction.rollback();
-        throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient balance" });
-    }
-    const newBalance = wallet.balance - cost;
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating order record");
-    const order = await db_1.models.ecommerceOrder.create({
-        userId: user.id,
-        status: "PENDING",
-    }, { transaction });
-    await db_1.models.ecommerceOrderItem.create({
-        orderId: order.id,
-        productId: productId,
-        quantity: amount,
-    }, { transaction });
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating inventory");
-    if (product.type === "PHYSICAL") {
-        const [updatedRows] = await db_1.models.ecommerceProduct.update({ inventoryQuantity: (0, sequelize_1.literal)(`inventoryQuantity - ${amount}`) }, {
-            where: {
-                id: productId,
-                inventoryQuantity: { [sequelize_1.Op.gte]: amount }
-            },
-            transaction
-        });
-        if (updatedRows === 0) {
-            await transaction.rollback();
-            throw (0, error_1.createError)({ statusCode: 400, message: "Product inventory changed during checkout" });
-        }
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing payment");
-    const description = `Purchase of ${product.name} x${amount} (${(product.price * amount).toFixed(2)}${discountAmount > 0 ? ` - ${discountAmount.toFixed(2)} discount` : ''}${shippingCost > 0 ? ` + ${shippingCost.toFixed(2)} shipping` : ''}${taxAmount > 0 ? ` + ${taxAmount.toFixed(2)} tax` : ''}) = ${cost.toFixed(2)} ${product.currency}`;
-    const idempotencyKey = `ecom_order_${order.id}`;
-    await wallet_1.walletService.debit({
-        idempotencyKey,
-        userId: user.id,
-        walletId: wallet.id,
-        walletType: product.walletType,
-        currency: product.currency,
-        amount: cost,
-        operationType: "ECOMMERCE_PURCHASE",
-        referenceId: order.id,
-        description,
-        metadata: {
-            orderId: order.id,
-            productId: product.id,
-            productName: product.name,
-            quantity: amount,
-            subtotal: subtotal + discountAmount,
-            discountAmount,
+            status: initialStatus,
+            subtotal: originalSubtotal,
+            discount: discountAmount,
             shippingCost,
-            taxAmount,
-        },
-        transaction,
-    });
-    if (userDiscount) {
-        await userDiscount.update({ status: true }, { transaction });
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating shipping address");
-    if (product.type !== "DOWNLOADABLE" && shippingAddress) {
-        await db_1.models.ecommerceShippingAddress.create({
-            userId: user.id,
-            orderId: order.id,
-            ...shippingAddress,
+            tax: taxAmount,
+            total: cost,
+            currency: product.currency,
+            walletType: product.walletType,
         }, { transaction });
-    }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finalizing order");
-    await order.update({ status: "COMPLETED" }, { transaction });
-    await transaction.commit();
+        await db_1.models.ecommerceOrderItem.create({
+            orderId: newOrder.id,
+            productId: productId,
+            quantity: amount,
+        }, { transaction });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating inventory");
+        if (product.type === "PHYSICAL") {
+            const [updatedRows] = await db_1.models.ecommerceProduct.update({ inventoryQuantity: (0, sequelize_1.literal)(`inventoryQuantity - ${amount}`) }, {
+                where: {
+                    id: productId,
+                    inventoryQuantity: { [sequelize_1.Op.gte]: amount },
+                },
+                transaction,
+            });
+            if (updatedRows === 0) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "Product inventory changed during checkout" });
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing payment");
+        const description = `Purchase of ${product.name} x${amount} (${originalSubtotal.toFixed(2)}${discountAmount > 0 ? ` - ${discountAmount.toFixed(2)} discount` : ''}${shippingCost > 0 ? ` + ${shippingCost.toFixed(2)} shipping` : ''}${taxAmount > 0 ? ` + ${taxAmount.toFixed(2)} tax` : ''}) = ${cost.toFixed(2)} ${product.currency}`;
+        const idempotencyKey = `ecom_order_${newOrder.id}`;
+        await wallet_1.walletService.debit({
+            idempotencyKey,
+            userId: user.id,
+            walletId: wallet.id,
+            walletType: product.walletType,
+            currency: product.currency,
+            amount: cost,
+            operationType: "ECOMMERCE_PURCHASE",
+            referenceId: newOrder.id,
+            description,
+            metadata: {
+                orderId: newOrder.id,
+                productId: product.id,
+                productName: product.name,
+                quantity: amount,
+                subtotal: originalSubtotal,
+                discountAmount,
+                shippingCost,
+                taxAmount,
+            },
+            transaction,
+        });
+        const platformRevenue = subtotal;
+        if (platformRevenue > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Collecting ecommerce platform revenue");
+            await (0, fees_1.collectPlatformFee)({
+                userId: user.id,
+                currency: product.currency,
+                walletType: product.walletType,
+                feeAmount: platformRevenue,
+                type: "TRADE",
+                description: `Ecommerce order revenue: ${product.name} x${amount}`,
+                referenceId: newOrder.id,
+                metadata: {
+                    orderId: newOrder.id,
+                    productId: product.id,
+                    productName: product.name,
+                    quantity: amount,
+                    subtotal: originalSubtotal,
+                    discountAmount,
+                    shippingCost,
+                    taxAmount,
+                },
+                transaction,
+            });
+        }
+        if (discountRecord) {
+            await db_1.models.ecommerceUserDiscount.upsert({ userId: user.id, discountId: discountRecord.id, status: true }, { transaction });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating shipping address");
+        if (product.type === "PHYSICAL" && shippingAddress) {
+            await db_1.models.ecommerceShippingAddress.create({
+                userId: user.id,
+                orderId: newOrder.id,
+                ...shippingAddress,
+            }, { transaction });
+        }
+        return { order: newOrder, product, wallet, cost };
+    });
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending confirmation email");
     try {
-        await (0, emails_1.sendOrderConfirmationEmail)(userPk, order, product, ctx);
+        await (0, emails_1.sendOrderConfirmationEmail)(userPk, order.order, order.product, ctx);
         await (0, notifications_1.createNotification)({
             userId: user.id,
-            relatedId: order.id,
+            relatedId: order.order.id,
             title: "Order Confirmation",
-            message: `Your order for ${product.name} x${amount} has been confirmed.`,
+            message: `Your order for ${order.product.name} x${amount} has been confirmed.`,
             type: "system",
-            link: `/ecommerce/orders/${order.id}`,
+            link: `/ecommerce/orders/${order.order.id}`,
             actions: [
                 {
                     label: "View Order",
-                    link: `/ecommerce/orders/${order.id}`,
+                    link: `/ecommerce/orders/${order.order.id}`,
                     primary: true,
                 },
             ],
@@ -243,17 +288,15 @@ exports.default = async (data) => {
     catch (error) {
         console.error("Error sending order confirmation email or creating notification:", error);
     }
-    if (product.type === "DOWNLOADABLE") {
-        try {
-            await (0, affiliate_1.processRewards)(user.id, cost, "ECOMMERCE_PURCHASE", wallet.currency, ctx);
-        }
-        catch (error) {
-            console.error(`Error processing rewards: ${error.message}`);
-        }
+    try {
+        await (0, affiliate_1.processRewards)(user.id, order.cost, "ECOMMERCE_PURCHASE", order.wallet.currency, `ECOMMERCE_PURCHASE:ecommerce_order:${order.order.id}`, ctx);
     }
-    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Order #${order.id} created for ${cost.toFixed(2)} ${product.currency}`);
+    catch (error) {
+        console.error(`Error processing rewards: ${error.message}`);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Order #${order.order.id} created for ${order.cost.toFixed(2)} ${order.product.currency}`);
     return {
-        id: order.id,
+        id: order.order.id,
         message: "Order created successfully",
     };
 };

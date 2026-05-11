@@ -263,6 +263,30 @@ export function GuidedMatchingWizard({
     fetchInitialData();
   }, []);
 
+  // Refetch currencies when trade type changes to "sell" (filter to sellable only)
+  useEffect(() => {
+    async function refetchCurrencies() {
+      try {
+        setLoading((prev) => ({ ...prev, currencies: true }));
+        const url = formData.tradeType === "sell"
+          ? "/api/finance/currency/valid?sellable=true"
+          : "/api/finance/currency/valid";
+        const { data, error } = await $fetch({ url, silentSuccess: true });
+        if (!error && data) {
+          setCurrencies(data);
+        }
+      } catch (err) {
+        console.error("Error refetching currencies:", err);
+      } finally {
+        setLoading((prev) => ({ ...prev, currencies: false }));
+      }
+    }
+    // Only refetch after initial load
+    if (!loading.walletOptions) {
+      refetchCurrencies();
+    }
+  }, [formData.tradeType]);
+
   // Fetch wallet data when selling and both wallet type and cryptocurrency are selected
   useEffect(() => {
     async function fetchWalletData() {
@@ -278,7 +302,7 @@ export function GuidedMatchingWizard({
           }));
           const { data, error } = await $fetch({
             url: `/api/finance/wallet/${formData.walletType}/${formData.cryptocurrency}`,
-            silentSuccess: true,
+            silent: true,
           });
           if (!error) {
             setWalletData(data);
@@ -318,7 +342,7 @@ export function GuidedMatchingWizard({
           }));
           const { data, error } = await $fetch({
             url: `/api/finance/currency/price?currency=${formData.cryptocurrency}&type=${formData.walletType}`,
-            silentSuccess: true,
+            silent: true,
           });
           if (!error) {
             setCurrencyPrice(data.data);
@@ -415,6 +439,7 @@ export function GuidedMatchingWizard({
   };
 
   // Get available cryptocurrencies based on selected wallet type
+  // When selling, the backend already filters to only currencies with balance
   const getAvailableCryptocurrencies = () => {
     if (!formData.walletType) return [];
     switch (formData.walletType) {
@@ -444,10 +469,11 @@ export function GuidedMatchingWizard({
     return currencyPrice || 1;
   };
 
-  // Get maximum sellable amount
+  // Get maximum sellable amount.
+  // HOLD model: wallet.balance is the available/free amount directly.
   const getMaxSellAmount = () => {
     if (formData.tradeType === "sell" && walletData) {
-      return walletData.balance - (walletData.inOrder || 0);
+      return walletData.balance;
     }
     return null;
   };
@@ -845,7 +871,7 @@ export function GuidedMatchingWizard({
                           </span>
                         </span>
                       </div>
-                      {getMaxSellAmount() && getMaxSellAmount()! > 0 && (
+                      {getMaxSellAmount() !== null && getMaxSellAmount()! > 0 && (
                         <div className="flex gap-2">
                           <Button
                             variant="outline"

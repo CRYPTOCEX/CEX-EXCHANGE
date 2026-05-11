@@ -1,1 +1,890 @@
-"use strict";async function processFollowerCopy(e,t,a,o){var r,s,i,d,c,n,l;let u=0;for(;u<MAX_RETRY_ATTEMPTS;){const p=await db_1.sequelize.transaction({isolationLevel:sequelize_1.Transaction.ISOLATION_LEVELS.SERIALIZABLE});try{const u=await db_1.models.copyTradingFollower.findByPk(t.id,{transaction:p,lock:p.LOCK.UPDATE});if(!u||"ACTIVE"!==u.status){await p.rollback();return!0}const g=u,y=await db_1.models.copyTradingFollowerAllocation.findOne({where:{followerId:t.id,symbol:e.symbol,isActive:!0},transaction:p,lock:p.LOCK.UPDATE});if(!y){await p.rollback();(0,broadcast_1.broadcastLog)(o,`Skipping follower ${t.id}: no allocation for ${e.symbol}`,"info");return!0}const _=y,f="BUY"===e.side?_.quoteAmount-_.quoteUsedAmount:_.baseAmount-_.baseUsedAmount;if(f<=0){await p.rollback();(0,broadcast_1.broadcastLog)(o,`Skipping follower ${t.id}: insufficient ${e.symbol} allocation for ${e.side}`,"info");return!0}const{amount:b,cost:m,reason:w}=(0,copyProcessor_1.calculateCopyAmount)(e.amount,e.price,a,g,f);if(b<=0){await p.rollback();(0,broadcast_1.broadcastLog)(o,`Skipping follower ${t.id}: ${w||"zero copy amount calculated"}`,"info");return!0}const T=(0,currency_1.getBaseCurrency)(e.symbol),L=(0,currency_1.getQuoteCurrency)(e.symbol),A=await db_1.models.ecosystemMarket.findOne({where:{currency:T,pair:L},transaction:p});if(!A){await p.rollback();throw(0,error_1.createError)({statusCode:404,message:`Market not found: ${e.symbol}`})}const $=A,C=Number((null===(i=null===(s=null===(r=$.metadata)||void 0===r?void 0:r.limits)||void 0===s?void 0:s.amount)||void 0===i?void 0:i.min)||0);if(b<C){await p.rollback();(0,broadcast_1.broadcastLog)(o,`Skipping follower ${t.id}: copy amount ${b} below minimum ${C}`,"info");return!0}const{spend:D}=(0,currency_1.getTradeCurrency)(e.symbol,e.side),I=await(0,safe_imports_1.getWalletByUserIdAndCurrency)(t.userId,D);if(!I){await p.rollback();throw(0,error_1.createError)({statusCode:404,message:`Wallet not found for user ${t.userId} currency ${D}`})}let S=e.price;if("market"===e.type.toLowerCase()){const{asks:t,bids:a}=await(0,safe_imports_1.getOrderBook)(e.symbol);S="BUY"===e.side?t&&t.length>0?t[0][0]:e.price:a&&a.length>0?a[0][0]:e.price}const h=Number((null===(c=null===(d=$.metadata)||void 0===d?void 0:d.precision)||void 0===c?void 0:c.price)||8),E=Number((null===(n=$.metadata)||void 0===n?void 0:n.taker)||.1),P=parseFloat((b*S*E/100).toFixed(h)),R="BUY"===e.side?parseFloat((b*S+P).toFixed(h)):b,O=parseFloat(I.balance.toString())-parseFloat((null===(l=I.inOrder)||void 0===l?void 0:l.toString())||"0");if(O<R){await p.rollback();(0,broadcast_1.broadcastLog)(o,`Skipping follower ${t.id}: insufficient ${D} balance (${O} < ${R})`,"warning");return!0}const k=await(0,safe_imports_1.createOrder)({userId:t.userId,symbol:e.symbol,amount:await(0,safe_imports_1.toBigIntFloat)(b),price:await(0,safe_imports_1.toBigIntFloat)(S),cost:await(0,safe_imports_1.toBigIntFloat)(R),type:"market"===e.type.toLowerCase()?"MARKET":"LIMIT",side:e.side,fee:await(0,safe_imports_1.toBigIntFloat)(P),feeCurrency:L});await(0,safe_imports_1.updateWalletBalance)(I,R,"subtract");await db_1.models.copyTradingTrade.create({followerId:t.id,leaderId:e.leaderId,leaderTradeId:e.id,symbol:e.symbol,side:e.side,type:e.type,amount:b,price:S,cost:R,fee:P,feeCurrency:L,profitCurrency:L,status:"OPEN",orderId:k.id,isLeaderTrade:!1},{transaction:p});"BUY"===e.side?await _.update({quoteUsedAmount:(0,sequelize_1.literal)(`"quoteUsedAmount" + ${R}`)},{transaction:p}):await _.update({baseUsedAmount:(0,sequelize_1.literal)(`"baseUsedAmount" + ${b}`)},{transaction:p});await db_1.models.copyTradingTransaction.create({userId:t.userId,followerId:t.id,leaderId:e.leaderId,type:"TRADE_OPEN",amount:R,currency:D,description:`Copied ${e.side} trade: ${b.toFixed(6)} ${T} @ ${S} ${L}`,metadata:JSON.stringify({leaderTradeId:e.id,orderId:k.id,symbol:e.symbol,allocationId:_.id}),status:"COMPLETED"},{transaction:p});await p.commit();(0,broadcast_1.broadcastLog)(o,`Follower ${t.id} copied trade: ${e.side} ${b.toFixed(6)} ${T} @ ${S} ${L}`,"success");return!0}catch(e){await p.rollback();u++;console_1.logger.error("COPY_TRADING",`Failed to process follower ${t.id} copy`,e);if(!(u<MAX_RETRY_ATTEMPTS)){console_1.logger.error("COPY_TRADING",`Failed to copy for follower ${t.id}: ${e.message}`,e);(0,broadcast_1.broadcastLog)(o,`Failed to copy for follower ${t.id}: ${e.message}`,"error");return!1}(0,broadcast_1.broadcastLog)(o,`Retrying follower ${t.id} copy (Attempt ${u+1}/${MAX_RETRY_ATTEMPTS}): ${e.message}`,"warning");await new Promise(e=>setTimeout(e,RETRY_DELAY_MS))}}return!1}async function replicateLeaderTrade(e,t){const a="replicateLeaderTrade";try{(0,broadcast_1.broadcastLog)(a,`Replicating trade ${e.id} for leader ${e.leaderId}`);const o=await db_1.models.copyTradingFollower.findAll({where:{leaderId:e.leaderId,status:"ACTIVE"},include:[{model:db_1.models.user,as:"user"}]});if(0===o.length){(0,broadcast_1.broadcastLog)(a,`No active followers for leader ${e.leaderId}`,"info");return}(0,broadcast_1.broadcastLog)(a,`Found ${o.length} active followers to replicate to`);const r=await processWithConcurrency(o,MAX_CONCURRENCY,async o=>processFollowerCopy(e,o,t,a)),s=r.filter(e=>e).length,i=r.filter(e=>!e).length;(0,broadcast_1.broadcastLog)(a,`Trade replication complete: ${s} successful, ${i} failed`,s>0?"success":"warning")}catch(e){console_1.logger.error("COPY_TRADING",`Trade replication failed: ${e.message}`,e);(0,broadcast_1.broadcastLog)(a,`Trade replication failed: ${e.message}`,"error");throw e}}async function processPendingCopyTrades(){const e="processPendingCopyTrades",t=Date.now();let a=0,o=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting copy trade replication process");const r=await db_1.models.settings.findOne({where:{key:"copyTradingEnabled"}});if(!r||"true"!==r.value){(0,broadcast_1.broadcastLog)(e,"Copy trading is disabled, skipping","info");(0,broadcast_1.broadcastStatus)(e,"completed",{skipped:!0});return}const s=await db_1.models.copyTradingTrade.findAll({where:{followerId:null,status:"PENDING_REPLICATION"},include:[{model:db_1.models.copyTradingLeader,as:"leader",include:[{model:db_1.models.user,as:"user"}]}],order:[["createdAt","ASC"]],limit:50});if(0===s.length){(0,broadcast_1.broadcastLog)(e,"No pending trades to replicate","info");(0,broadcast_1.broadcastStatus)(e,"completed",{processed:0});return}(0,broadcast_1.broadcastLog)(e,`Found ${s.length} pending trades to replicate`);for(const t of s)try{const o=t.leader;if(!o){(0,broadcast_1.broadcastLog)(e,`Leader not found for trade ${t.id}`,"warning");continue}const r=await(0,safe_imports_1.getWalletByUserIdAndCurrency)(o.userId,t.symbol.split("/")[1]),s=r?parseFloat(r.balance.toString()):0;await replicateLeaderTrade(t,s);await t.update({status:"REPLICATED"});a++}catch(a){console_1.logger.error("COPY_TRADING",`Failed to replicate trade ${t.id}`,a);(0,broadcast_1.broadcastLog)(e,`Failed to replicate trade ${t.id}: ${a.message}`,"error");await t.update({status:"REPLICATION_FAILED"});o++}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:a,failed:o});(0,broadcast_1.broadcastLog)(e,`Copy trade replication completed: ${a} processed, ${o} failed`,"success")}catch(r){console_1.logger.error("COPY_TRADING",`Copy trade replication failed: ${r.message}`,r);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,processed:a,failed:o,error:r.message});(0,broadcast_1.broadcastLog)(e,`Copy trade replication failed: ${r.message}`,"error");throw r}}async function processClosedCopyTrades(){const e="processClosedCopyTrades",t=Date.now();let a=0,o=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting closed copy trade processing");const r=await db_1.models.copyTradingTrade.findAll({where:{followerId:{[sequelize_1.Op.ne]:null},status:"CLOSED",profit:null},include:[{model:db_1.models.copyTradingFollower,as:"follower",include:[{model:db_1.models.copyTradingLeader,as:"leader"},{model:db_1.models.user,as:"user"}]}],limit:100});if(0===r.length){(0,broadcast_1.broadcastLog)(e,"No closed trades to process","info");(0,broadcast_1.broadcastStatus)(e,"completed",{processed:0});return}(0,broadcast_1.broadcastLog)(e,`Found ${r.length} closed trades to process`);for(const t of r){const r=await db_1.sequelize.transaction();try{const o=t.follower,s=null==o?void 0:o.leader;if(!o||!s){await r.rollback();continue}const i=t.closedProfit||0,d=t.cost>0?i/t.cost*100:0,c=2,n=s.profitSharePercent||20;let l=0,u=0,p=i;if(i>0){u=i*(c/100);l=n/100*(i-u);p=i-u-l}await t.update({profit:p,profitPercent:d},{transaction:r});const g=await db_1.models.copyTradingFollowerAllocation.findOne({where:{followerId:o.id,symbol:t.symbol},transaction:r});if(g){const e=g;"BUY"===t.side?await e.update({quoteUsedAmount:(0,sequelize_1.literal)(`GREATEST(0, "quoteUsedAmount" - ${t.cost})`)},{transaction:r}):await e.update({baseUsedAmount:(0,sequelize_1.literal)(`GREATEST(0, "baseUsedAmount" - ${t.amount})`)},{transaction:r})}if(i>0){const e=t.profitCurrency||t.symbol.split("/")[1]||"USDT";await db_1.models.copyTradingTransaction.create({followerId:o.id,type:"PLATFORM_FEE",amount:u,currency:e,description:`Platform fee for trade ${t.id}`,metadata:{tradeId:t.id}},{transaction:r});await db_1.models.copyTradingTransaction.create({followerId:o.id,type:"PROFIT_SHARE",amount:l,currency:e,description:`Leader profit share for trade ${t.id}`,metadata:{tradeId:t.id,leaderId:s.id}},{transaction:r});const a=await(0,safe_imports_1.getWalletByUserIdAndCurrency)(s.userId,e);a&&await(0,safe_imports_1.updateWalletBalance)(a,l,"add")}const[,y]=t.symbol.split("/"),_=t.cost+p,f=await(0,safe_imports_1.getWalletByUserIdAndCurrency)(o.userId,y);f&&_>0&&await(0,safe_imports_1.updateWalletBalance)(f,_,"add");await(0,notifications_1.createNotification)({userId:o.userId,type:"system",title:i>0?"Copy Trade Profit":"Copy Trade Closed",message:i>0?`Your copied trade made ${p.toFixed(2)} ${y} profit!`:`Your copied trade closed with ${p.toFixed(2)} ${y} ${i<0?"loss":""}.`,link:"/copy-trading/subscriptions"});await r.commit();a++;try{await(0,stats_calculator_1.invalidateTradeRelatedCaches)(s.id,o.id,t.symbol)}catch(e){console_1.logger.warn("COPY_TRADING",`Failed to invalidate cache for trade ${t.id}`,e)}(0,broadcast_1.broadcastLog)(e,`Processed trade ${t.id}: profit=${i.toFixed(2)}, followerShare=${p.toFixed(2)}, leaderShare=${l.toFixed(2)}`,"success")}catch(a){await r.rollback();console_1.logger.error("COPY_TRADING",`Failed to process closed trade ${t.id}`,a);(0,broadcast_1.broadcastLog)(e,`Failed to process trade ${t.id}: ${a.message}`,"error");o++}}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:a,failed:o});(0,broadcast_1.broadcastLog)(e,`Closed trade processing completed: ${a} processed, ${o} failed`,"success")}catch(r){console_1.logger.error("COPY_TRADING",`Closed trade processing failed: ${r.message}`,r);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,processed:a,failed:o,error:r.message});(0,broadcast_1.broadcastLog)(e,`Closed trade processing failed: ${r.message}`,"error");throw r}}async function updateLeaderDailyStats(){const e="updateLeaderDailyStats",t=Date.now();try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting leader daily stats update");const a=new Date;a.setHours(0,0,0,0);const o=await db_1.models.copyTradingLeader.findAll({where:{status:"ACTIVE"}});for(const t of o)try{const o=await db_1.models.copyTradingTrade.findAll({where:{leaderId:t.id,followerId:null,createdAt:{[sequelize_1.Op.gte]:a}},attributes:["id","profit","amount","price","symbol","profitCurrency"]}),r=o.length,s=o.filter(e=>(e.profit||0)>0).length;let i=0,d=0;for(const e of o){const t=e.profit||0,a=(e.amount||0)*(e.price||0);let o=e.profitCurrency;!o&&e.symbol&&(o=(0,currency_1.getQuoteCurrency)(e.symbol));o||(o="USDT");try{const e=await(0,currency_1.convertToUSDT)(t,o),r=await(0,currency_1.convertToUSDT)(a,o);i+=e;d+=r}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${o}`,e);i+=t;d+=a}}await db_1.models.copyTradingLeaderStats.upsert({leaderId:t.id,date:a,trades:r,winningTrades:s,losingTrades:r-s,profit:i,volume:d,fees:0,startEquity:0,endEquity:0,highEquity:0,lowEquity:0});(0,broadcast_1.broadcastLog)(e,`Updated stats for leader ${t.id}: trades=${r}, profit=${(0,currency_1.formatCurrencyAmount)(i,"USDT")}`,"info")}catch(a){console_1.logger.error("COPY_TRADING",`Failed to update stats for leader ${t.id}`,a);(0,broadcast_1.broadcastLog)(e,`Failed to update stats for leader ${t.id}: ${a.message}`,"error")}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,leaders:o.length});(0,broadcast_1.broadcastLog)(e,`Leader stats update completed for ${o.length} leaders`,"success")}catch(a){console_1.logger.error("COPY_TRADING",`Leader stats update failed: ${a.message}`,a);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,error:a.message});throw a}}async function processWithConcurrency(e,t,a){const o=new Array(e.length);let r=0;const s=new Array(t).fill(0).map(async()=>{for(;r<e.length;){const t=r++;try{o[t]=await a(e[t])}catch(e){o[t]=e}}});await Promise.all(s);return o}async function resetDailyLimits(){const e="resetDailyLimits",t=Date.now();let a=0,o=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting daily limits reset");const r=await db_1.models.copyTradingFollower.findAll({where:{status:"PAUSED"}});for(const t of r){if(await db_1.models.copyTradingAuditLog.findOne({where:{entityType:"copyTradingFollower",entityId:t.id,action:"DAILY_LOSS_LIMIT_REACHED",createdAt:{[sequelize_1.Op.gte]:new Date(Date.now()-864e5)}}})){await t.update({status:"ACTIVE"});o++;await(0,notifications_1.createNotification)({userId:t.userId,type:"system",title:"Copy Trading Resumed",message:"Your copy trading subscription has been automatically reactivated for the new trading day.",link:"/copy-trading/subscription"});(0,broadcast_1.broadcastLog)(e,`Reactivated follower ${t.id}`,"info")}}a=1;(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,reset:a,reactivated:o});(0,broadcast_1.broadcastLog)(e,`Daily limits reset: ${o} followers reactivated`,"success")}catch(a){console_1.logger.error("COPY_TRADING",`Daily limits reset failed: ${a.message}`,a);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,error:a.message});throw a}}async function aggregateWeeklyAnalytics(){const e="aggregateWeeklyAnalytics",t=Date.now();let a=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting weekly analytics aggregation");const o=new Date;o.setDate(o.getDate()-7);o.setHours(0,0,0,0);const r=await db_1.models.copyTradingLeader.findAll({where:{status:"ACTIVE"}});for(const t of r)try{const r=await db_1.models.copyTradingTrade.findAll({where:{leaderId:t.id,isLeaderTrade:!0,status:"CLOSED",closedAt:{[sequelize_1.Op.gte]:o}},attributes:["id","profit","cost","symbol","profitCurrency"]}),s=r.length;r.filter(e=>(e.profit||0)>0).length;let i=0,d=0;for(const e of r){const t=e.profit||0,a=e.cost||0;let o=e.profitCurrency;!o&&e.symbol&&(o=(0,currency_1.getQuoteCurrency)(e.symbol));o||(o="USDT");try{const e=await(0,currency_1.convertToUSDT)(t,o),r=await(0,currency_1.convertToUSDT)(a,o);i+=e;d+=r}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${o}`,e);i+=t;d+=a}}a++;(0,broadcast_1.broadcastLog)(e,`Aggregated stats for leader ${t.id}: weekly trades=${s}, profit=${(0,currency_1.formatCurrencyAmount)(i,"USDT")}`,"info")}catch(e){console_1.logger.error("COPY_TRADING",`Failed to aggregate stats for leader ${t.id}`,e)}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:a});(0,broadcast_1.broadcastLog)(e,`Weekly analytics aggregation completed for ${a} leaders`,"success")}catch(a){console_1.logger.error("COPY_TRADING",`Weekly analytics aggregation failed: ${a.message}`,a);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,error:a.message});throw a}}async function monitorStopLevels(){const e="monitorStopLevels",t=Date.now();let a=0,o=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting stop-loss/take-profit monitoring");const r=await db_1.models.copyTradingTrade.findAll({where:{followerId:{[sequelize_1.Op.ne]:null},status:"OPEN"},include:[{model:db_1.models.copyTradingFollower,as:"follower",where:{[sequelize_1.Op.or]:[{stopLossPercent:{[sequelize_1.Op.ne]:null}},{takeProfitPercent:{[sequelize_1.Op.ne]:null}}]}}]});for(const t of r){a++;const r=t.follower;if(!r)continue;const[s,i]=t.symbol.split("/");let d=t.price;try{const{asks:e,bids:a}=await(0,safe_imports_1.getOrderBook)(t.symbol);d="BUY"===t.side?a&&a.length>0?a[0][0]:t.price:e&&e.length>0?e[0][0]:t.price}catch(e){}const c=t.executedPrice||t.price,n="BUY"===t.side;if(r.stopLossPercent){const a=n?c*(1-r.stopLossPercent/100):c*(1+r.stopLossPercent/100);if(n?d<=a:d>=a){(0,broadcast_1.broadcastLog)(e,`Stop-loss triggered for trade ${t.id} at ${d}`,"warning");o++;continue}}if(r.takeProfitPercent){const a=n?c*(1+r.takeProfitPercent/100):c*(1-r.takeProfitPercent/100);if(n?d>=a:d<=a){(0,broadcast_1.broadcastLog)(e,`Take-profit triggered for trade ${t.id} at ${d}`,"success");o++}}}(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,checked:a,triggered:o});(0,broadcast_1.broadcastLog)(e,`Stop-loss/take-profit monitoring: ${a} checked, ${o} triggered`,"success")}catch(a){console_1.logger.error("COPY_TRADING",`Stop-loss/take-profit monitoring failed: ${a.message}`,a);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,error:a.message});throw a}}async function checkDailyLossLimits(){var e,t;const a="checkDailyLossLimits",o=Date.now();let r=0,s=0,i=0;for(;i<MAX_RETRY_ATTEMPTS;)try{(0,broadcast_1.broadcastStatus)(a,"running");i>0?(0,broadcast_1.broadcastLog)(a,`Retrying daily loss limit check (attempt ${i+1}/${MAX_RETRY_ATTEMPTS})`):(0,broadcast_1.broadcastLog)(a,"Checking daily loss limits");const e=new Date;e.setHours(0,0,0,0);const t=await db_1.models.copyTradingFollower.findAll({where:{status:"ACTIVE",maxDailyLoss:{[sequelize_1.Op.gt]:0}}});for(const o of t){r++;const t=await db_1.models.copyTradingTrade.findAll({where:{followerId:o.id,status:"CLOSED",closedAt:{[sequelize_1.Op.gte]:e},profit:{[sequelize_1.Op.lt]:0}},attributes:["profit","symbol","profitCurrency"]});let i=0;for(const e of t){const t=Math.abs(e.profit||0);let a=e.profitCurrency;!a&&e.symbol&&(a=(0,currency_1.getQuoteCurrency)(e.symbol));a||(a="USDT");try{i+=await(0,currency_1.convertToUSDT)(t,a)}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${a}`,e);i+=t}}if(i>=o.maxDailyLoss){await o.update({status:"PAUSED"});s++;await(0,notifications_1.createNotification)({userId:o.userId,type:"system",title:"Copy Trading Paused",message:`Your copy trading has been paused due to reaching your daily loss limit of ${(0,currency_1.formatCurrencyAmount)(o.maxDailyLoss,"USDT")}. Current loss: ${(0,currency_1.formatCurrencyAmount)(i,"USDT")}`,link:"/copy-trading/subscription"});await db_1.models.copyTradingAuditLog.create({entityType:"copyTradingFollower",entityId:o.id,action:"DAILY_LOSS_LIMIT_REACHED",userId:o.userId,metadata:JSON.stringify({totalLoss:i,maxDailyLoss:o.maxDailyLoss,currency:"USDT"})});(0,broadcast_1.broadcastLog)(a,`Paused follower ${o.id} due to daily loss limit: ${(0,currency_1.formatCurrencyAmount)(i,"USDT")} >= ${(0,currency_1.formatCurrencyAmount)(o.maxDailyLoss,"USDT")}`,"warning")}}(0,broadcast_1.broadcastStatus)(a,"completed",{duration:Date.now()-o,checked:r,paused:s});(0,broadcast_1.broadcastLog)(a,`Daily loss limit check: ${r} checked, ${s} paused`,"success");return}catch(d){i++;if(("ECONNRESET"===d.code||"ETIMEDOUT"===d.code||"ENOTFOUND"===d.code||"ECONNREFUSED"===d.code||(null===(e=d.message)||void 0===e?void 0:e.includes("ECONNRESET"))||(null===(t=d.message)||void 0===t?void 0:t.includes("read ECONNRESET")))&&i<MAX_RETRY_ATTEMPTS){console_1.logger.warn("COPY_TRADING",`Connection error in daily loss limit check, retrying (${i}/${MAX_RETRY_ATTEMPTS}): ${d.message}`);(0,broadcast_1.broadcastLog)(a,`Connection error, retrying in ${RETRY_DELAY_MS}ms...`,"warning");await new Promise(e=>setTimeout(e,RETRY_DELAY_MS*i));r=0;s=0;continue}console_1.logger.error("COPY_TRADING",`Daily loss limit check failed: ${d.message}`,d);(0,broadcast_1.broadcastStatus)(a,"failed",{duration:Date.now()-o,error:d.message,retryAttempts:i});throw d}}Object.defineProperty(exports,"__esModule",{value:!0});exports.replicateLeaderTrade=replicateLeaderTrade;exports.processPendingCopyTrades=processPendingCopyTrades;exports.processClosedCopyTrades=processClosedCopyTrades;exports.updateLeaderDailyStats=updateLeaderDailyStats;exports.resetDailyLimits=resetDailyLimits;exports.aggregateWeeklyAnalytics=aggregateWeeklyAnalytics;exports.monitorStopLevels=monitorStopLevels;exports.checkDailyLossLimits=checkDailyLossLimits;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize"),broadcast_1=require("@b/cron/broadcast"),console_1=require("@b/utils/console"),notifications_1=require("@b/utils/notifications"),safe_imports_1=require("@b/utils/safe-imports"),currency_1=require("./currency"),copyProcessor_1=require("./copyProcessor"),stats_calculator_1=require("@b/api/(ext)/copy-trading/utils/stats-calculator"),MAX_CONCURRENCY=3,MAX_RETRY_ATTEMPTS=3,RETRY_DELAY_MS=2e3;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.replicateLeaderTrade = replicateLeaderTrade;
+exports.processPendingCopyTrades = processPendingCopyTrades;
+exports.processClosedCopyTrades = processClosedCopyTrades;
+exports.updateLeaderDailyStats = updateLeaderDailyStats;
+exports.resetDailyLimits = resetDailyLimits;
+exports.aggregateWeeklyAnalytics = aggregateWeeklyAnalytics;
+exports.monitorStopLevels = monitorStopLevels;
+exports.checkDailyLossLimits = checkDailyLossLimits;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+const broadcast_1 = require("@b/cron/broadcast");
+const console_1 = require("@b/utils/console");
+const notifications_1 = require("@b/utils/notifications");
+const safe_imports_1 = require("@b/utils/safe-imports");
+const currency_1 = require("./currency");
+const copyProcessor_1 = require("./copyProcessor");
+const stats_calculator_1 = require("@b/api/(ext)/copy-trading/utils/stats-calculator");
+const MAX_CONCURRENCY = 3;
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 2000;
+async function processFollowerCopy(trade, follower, leaderBalance, cronName) {
+    var _a, _b, _c, _d, _e, _f, _g;
+    let retryCount = 0;
+    while (retryCount < MAX_RETRY_ATTEMPTS) {
+        const t = await db_1.sequelize.transaction({
+            isolationLevel: sequelize_1.Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+        });
+        try {
+            const followerWithLock = await db_1.models.copyTradingFollower.findByPk(follower.id, {
+                transaction: t,
+                lock: t.LOCK.UPDATE,
+            });
+            if (!followerWithLock || followerWithLock.status !== "ACTIVE") {
+                await t.rollback();
+                return true;
+            }
+            const lockedFollower = followerWithLock;
+            const allocation = await db_1.models.copyTradingFollowerAllocation.findOne({
+                where: {
+                    followerId: follower.id,
+                    symbol: trade.symbol,
+                    isActive: true,
+                },
+                transaction: t,
+                lock: t.LOCK.UPDATE,
+            });
+            if (!allocation) {
+                await t.rollback();
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping follower ${follower.id}: no allocation for ${trade.symbol}`, "info");
+                return true;
+            }
+            const allocationData = allocation;
+            const availableAmount = trade.side === "BUY"
+                ? allocationData.quoteAmount - allocationData.quoteUsedAmount
+                : allocationData.baseAmount - allocationData.baseUsedAmount;
+            if (availableAmount <= 0) {
+                await t.rollback();
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping follower ${follower.id}: insufficient ${trade.symbol} allocation for ${trade.side}`, "info");
+                return true;
+            }
+            const { amount: copyAmount, cost, reason } = (0, copyProcessor_1.calculateCopyAmount)(trade.amount, trade.price, leaderBalance, lockedFollower, availableAmount);
+            if (copyAmount <= 0) {
+                await t.rollback();
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping follower ${follower.id}: ${reason || 'zero copy amount calculated'}`, "info");
+                return true;
+            }
+            const baseCurrency = (0, currency_1.getBaseCurrency)(trade.symbol);
+            const quoteCurrency = (0, currency_1.getQuoteCurrency)(trade.symbol);
+            const market = await db_1.models.ecosystemMarket.findOne({
+                where: { currency: baseCurrency, pair: quoteCurrency },
+                transaction: t,
+            });
+            if (!market) {
+                await t.rollback();
+                throw (0, error_1.createError)({ statusCode: 404, message: `Market not found: ${trade.symbol}` });
+            }
+            const marketData = market;
+            const minAmount = Number(((_c = (_b = (_a = marketData.metadata) === null || _a === void 0 ? void 0 : _a.limits) === null || _b === void 0 ? void 0 : _b.amount) === null || _c === void 0 ? void 0 : _c.min) || 0);
+            if (copyAmount < minAmount) {
+                await t.rollback();
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping follower ${follower.id}: copy amount ${copyAmount} below minimum ${minAmount}`, "info");
+                return true;
+            }
+            const { spend: spendCurrency } = (0, currency_1.getTradeCurrency)(trade.symbol, trade.side);
+            const wallet = await (0, safe_imports_1.getWalletByUserIdAndCurrency)(follower.userId, spendCurrency);
+            if (!wallet) {
+                await t.rollback();
+                throw (0, error_1.createError)({ statusCode: 404, message: `Wallet not found for user ${follower.userId} currency ${spendCurrency}` });
+            }
+            let effectivePrice = trade.price;
+            if (trade.type.toLowerCase() === "market") {
+                const { asks, bids } = await (0, safe_imports_1.getOrderBook)(trade.symbol);
+                if (trade.side === "BUY") {
+                    effectivePrice = asks && asks.length > 0 ? asks[0][0] : trade.price;
+                }
+                else {
+                    effectivePrice = bids && bids.length > 0 ? bids[0][0] : trade.price;
+                }
+            }
+            const precision = Number(((_e = (_d = marketData.metadata) === null || _d === void 0 ? void 0 : _d.precision) === null || _e === void 0 ? void 0 : _e.price) || 8);
+            const feeRate = Number(((_f = marketData.metadata) === null || _f === void 0 ? void 0 : _f.taker) || 0.1);
+            const fee = parseFloat(((copyAmount * effectivePrice * feeRate) / 100).toFixed(precision));
+            const totalCost = trade.side === "BUY"
+                ? parseFloat((copyAmount * effectivePrice + fee).toFixed(precision))
+                : copyAmount;
+            const walletBalance = parseFloat(wallet.balance.toString()) - parseFloat(((_g = wallet.inOrder) === null || _g === void 0 ? void 0 : _g.toString()) || "0");
+            if (walletBalance < totalCost) {
+                await t.rollback();
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping follower ${follower.id}: insufficient ${spendCurrency} balance (${walletBalance} < ${totalCost})`, "warning");
+                return true;
+            }
+            const newOrder = await (0, safe_imports_1.createOrder)({
+                userId: follower.userId,
+                symbol: trade.symbol,
+                amount: await (0, safe_imports_1.toBigIntFloat)(copyAmount),
+                price: await (0, safe_imports_1.toBigIntFloat)(effectivePrice),
+                cost: await (0, safe_imports_1.toBigIntFloat)(totalCost),
+                type: trade.type.toLowerCase() === "market" ? "MARKET" : "LIMIT",
+                side: trade.side,
+                fee: await (0, safe_imports_1.toBigIntFloat)(fee),
+                feeCurrency: quoteCurrency,
+            });
+            await (0, safe_imports_1.updateWalletBalance)(wallet, totalCost, "subtract");
+            await db_1.models.copyTradingTrade.create({
+                followerId: follower.id,
+                leaderId: trade.leaderId,
+                leaderOrderId: trade.id,
+                symbol: trade.symbol,
+                side: trade.side,
+                type: trade.type,
+                amount: copyAmount,
+                price: effectivePrice,
+                cost: totalCost,
+                fee,
+                feeCurrency: quoteCurrency,
+                profitCurrency: quoteCurrency,
+                status: "OPEN",
+                isLeaderTrade: false,
+            }, { transaction: t });
+            if (trade.side === "BUY") {
+                await allocationData.update({
+                    quoteUsedAmount: (0, sequelize_1.literal)(`"quoteUsedAmount" + ${totalCost}`),
+                }, { transaction: t });
+            }
+            else {
+                await allocationData.update({
+                    baseUsedAmount: (0, sequelize_1.literal)(`"baseUsedAmount" + ${copyAmount}`),
+                }, { transaction: t });
+            }
+            await db_1.models.copyTradingTransaction.create({
+                userId: follower.userId,
+                followerId: follower.id,
+                leaderId: trade.leaderId,
+                type: "ALLOCATION",
+                amount: totalCost,
+                currency: spendCurrency,
+                fee: 0,
+                balanceBefore: walletBalance,
+                balanceAfter: walletBalance - totalCost,
+                description: `Copied ${trade.side} trade: ${copyAmount.toFixed(6)} ${baseCurrency} @ ${effectivePrice} ${quoteCurrency}`,
+                metadata: JSON.stringify({
+                    leaderTradeId: trade.id,
+                    orderId: newOrder.id,
+                    symbol: trade.symbol,
+                    allocationId: allocationData.id,
+                }),
+                status: "COMPLETED",
+            }, { transaction: t });
+            await t.commit();
+            (0, broadcast_1.broadcastLog)(cronName, `Follower ${follower.id} copied trade: ${trade.side} ${copyAmount.toFixed(6)} ${baseCurrency} @ ${effectivePrice} ${quoteCurrency}`, "success");
+            return true;
+        }
+        catch (error) {
+            await t.rollback();
+            retryCount++;
+            console_1.logger.error("COPY_TRADING", `Failed to process follower ${follower.id} copy`, error);
+            if (retryCount < MAX_RETRY_ATTEMPTS) {
+                (0, broadcast_1.broadcastLog)(cronName, `Retrying follower ${follower.id} copy (Attempt ${retryCount + 1}/${MAX_RETRY_ATTEMPTS}): ${error.message}`, "warning");
+                await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+            }
+            else {
+                console_1.logger.error("COPY_TRADING", `Failed to copy for follower ${follower.id}: ${error.message}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Failed to copy for follower ${follower.id}: ${error.message}`, "error");
+                return false;
+            }
+        }
+    }
+    return false;
+}
+async function replicateLeaderTrade(trade, leaderBalance) {
+    const cronName = "replicateLeaderTrade";
+    try {
+        (0, broadcast_1.broadcastLog)(cronName, `Replicating trade ${trade.id} for leader ${trade.leaderId}`);
+        const followers = await db_1.models.copyTradingFollower.findAll({
+            where: {
+                leaderId: trade.leaderId,
+                status: "ACTIVE",
+            },
+            include: [{ model: db_1.models.user, as: "user" }],
+        });
+        if (followers.length === 0) {
+            (0, broadcast_1.broadcastLog)(cronName, `No active followers for leader ${trade.leaderId}`, "info");
+            return;
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${followers.length} active followers to replicate to`);
+        const results = await processWithConcurrency(followers, MAX_CONCURRENCY, async (follower) => {
+            return processFollowerCopy(trade, follower, leaderBalance, cronName);
+        });
+        const successCount = results.filter((r) => r).length;
+        const failCount = results.filter((r) => !r).length;
+        (0, broadcast_1.broadcastLog)(cronName, `Trade replication complete: ${successCount} successful, ${failCount} failed`, successCount > 0 ? "success" : "warning");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Trade replication failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastLog)(cronName, `Trade replication failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function processPendingCopyTrades() {
+    const cronName = "processPendingCopyTrades";
+    const startTime = Date.now();
+    let processedCount = 0;
+    let failedCount = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting copy trade replication process");
+        const settings = await db_1.models.settings.findOne({
+            where: { key: "copyTradingEnabled" },
+        });
+        if (!settings || settings.value !== "true") {
+            (0, broadcast_1.broadcastLog)(cronName, "Copy trading is disabled, skipping", "info");
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", { skipped: true });
+            return;
+        }
+        const pendingTrades = await db_1.models.copyTradingTrade.findAll({
+            where: {
+                followerId: null,
+                status: "PENDING_REPLICATION",
+            },
+            include: [
+                {
+                    model: db_1.models.copyTradingLeader,
+                    as: "leader",
+                    include: [{ model: db_1.models.user, as: "user" }],
+                },
+            ],
+            order: [["createdAt", "ASC"]],
+            limit: 50,
+        });
+        if (pendingTrades.length === 0) {
+            (0, broadcast_1.broadcastLog)(cronName, "No pending trades to replicate", "info");
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", { processed: 0 });
+            return;
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${pendingTrades.length} pending trades to replicate`);
+        for (const trade of pendingTrades) {
+            try {
+                const leader = trade.leader;
+                if (!leader) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Leader not found for trade ${trade.id}`, "warning");
+                    continue;
+                }
+                const leaderWallet = await (0, safe_imports_1.getWalletByUserIdAndCurrency)(leader.userId, trade.symbol.split("/")[1]);
+                const leaderBalance = leaderWallet
+                    ? parseFloat(leaderWallet.balance.toString())
+                    : 0;
+                await replicateLeaderTrade(trade, leaderBalance);
+                await trade.update({ status: "REPLICATED" });
+                processedCount++;
+            }
+            catch (error) {
+                console_1.logger.error("COPY_TRADING", `Failed to replicate trade ${trade.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Failed to replicate trade ${trade.id}: ${error.message}`, "error");
+                await trade.update({ status: "REPLICATION_FAILED" });
+                failedCount++;
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Copy trade replication completed: ${processedCount} processed, ${failedCount} failed`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Copy trade replication failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+            error: error.message,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Copy trade replication failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function processClosedCopyTrades() {
+    const cronName = "processClosedCopyTrades";
+    const startTime = Date.now();
+    let processedCount = 0;
+    let failedCount = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting closed copy trade processing");
+        const closedTrades = await db_1.models.copyTradingTrade.findAll({
+            where: {
+                followerId: { [sequelize_1.Op.ne]: null },
+                status: "CLOSED",
+                profit: null,
+            },
+            include: [
+                {
+                    model: db_1.models.copyTradingFollower,
+                    as: "follower",
+                    include: [
+                        { model: db_1.models.copyTradingLeader, as: "leader" },
+                        { model: db_1.models.user, as: "user" },
+                    ],
+                },
+            ],
+            limit: 100,
+        });
+        if (closedTrades.length === 0) {
+            (0, broadcast_1.broadcastLog)(cronName, "No closed trades to process", "info");
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", { processed: 0 });
+            return;
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${closedTrades.length} closed trades to process`);
+        for (const trade of closedTrades) {
+            const t = await db_1.sequelize.transaction();
+            try {
+                const follower = trade.follower;
+                const leader = follower === null || follower === void 0 ? void 0 : follower.leader;
+                if (!follower || !leader) {
+                    await t.rollback();
+                    continue;
+                }
+                const profit = trade.closedProfit || 0;
+                const profitPercent = trade.cost > 0 ? (profit / trade.cost) * 100 : 0;
+                const platformFeePercent = 2;
+                const leaderSharePercent = leader.profitSharePercent || 20;
+                let leaderProfit = 0;
+                let platformFee = 0;
+                let followerProfit = profit;
+                if (profit > 0) {
+                    platformFee = profit * (platformFeePercent / 100);
+                    leaderProfit = (profit - platformFee) * (leaderSharePercent / 100);
+                    followerProfit = profit - platformFee - leaderProfit;
+                }
+                await trade.update({
+                    profit: followerProfit,
+                    profitPercent,
+                }, { transaction: t });
+                const allocation = await db_1.models.copyTradingFollowerAllocation.findOne({
+                    where: {
+                        followerId: follower.id,
+                        symbol: trade.symbol,
+                    },
+                    transaction: t,
+                });
+                if (allocation) {
+                    const allocationData = allocation;
+                    if (trade.side === "BUY") {
+                        await allocationData.update({
+                            quoteUsedAmount: (0, sequelize_1.literal)(`GREATEST(0, "quoteUsedAmount" - ${trade.cost})`),
+                        }, { transaction: t });
+                    }
+                    else {
+                        await allocationData.update({
+                            baseUsedAmount: (0, sequelize_1.literal)(`GREATEST(0, "baseUsedAmount" - ${trade.amount})`),
+                        }, { transaction: t });
+                    }
+                }
+                if (profit > 0) {
+                    const profitCurrency = trade.profitCurrency || trade.symbol.split("/")[1] || "USDT";
+                    await db_1.models.copyTradingTransaction.create({
+                        userId: follower.userId,
+                        followerId: follower.id,
+                        leaderId: leader.id,
+                        tradeId: trade.id,
+                        type: "FEE",
+                        amount: platformFee,
+                        currency: profitCurrency,
+                        fee: 0,
+                        balanceBefore: 0,
+                        balanceAfter: 0,
+                        description: `Platform fee for trade ${trade.id}`,
+                        metadata: JSON.stringify({ tradeId: trade.id }),
+                        status: "COMPLETED",
+                    }, { transaction: t });
+                    await db_1.models.copyTradingTransaction.create({
+                        userId: follower.userId,
+                        followerId: follower.id,
+                        leaderId: leader.id,
+                        tradeId: trade.id,
+                        type: "PROFIT_SHARE",
+                        amount: leaderProfit,
+                        currency: profitCurrency,
+                        fee: 0,
+                        balanceBefore: 0,
+                        balanceAfter: 0,
+                        description: `Leader profit share for trade ${trade.id}`,
+                        metadata: JSON.stringify({ tradeId: trade.id, leaderId: leader.id }),
+                        status: "COMPLETED",
+                    }, { transaction: t });
+                    const leaderWallet = await (0, safe_imports_1.getWalletByUserIdAndCurrency)(leader.userId, profitCurrency);
+                    if (leaderWallet) {
+                        await (0, safe_imports_1.updateWalletBalance)(leaderWallet, leaderProfit, "add");
+                    }
+                }
+                const [, pair] = trade.symbol.split("/");
+                const returnAmount = trade.cost + followerProfit;
+                const followerWallet = await (0, safe_imports_1.getWalletByUserIdAndCurrency)(follower.userId, pair);
+                if (followerWallet && returnAmount > 0) {
+                    await (0, safe_imports_1.updateWalletBalance)(followerWallet, returnAmount, "add");
+                }
+                await (0, notifications_1.createNotification)({
+                    userId: follower.userId,
+                    type: "system",
+                    title: profit > 0 ? "Copy Trade Profit" : "Copy Trade Closed",
+                    message: profit > 0
+                        ? `Your copied trade made ${followerProfit.toFixed(2)} ${pair} profit!`
+                        : `Your copied trade closed with ${followerProfit.toFixed(2)} ${pair} ${profit < 0 ? "loss" : ""}.`,
+                    link: `/copy-trading/subscriptions`,
+                });
+                await t.commit();
+                processedCount++;
+                try {
+                    await (0, stats_calculator_1.invalidateTradeRelatedCaches)(leader.id, follower.id, trade.symbol);
+                }
+                catch (cacheError) {
+                    console_1.logger.warn("COPY_TRADING", `Failed to invalidate cache for trade ${trade.id}`, cacheError);
+                }
+                (0, broadcast_1.broadcastLog)(cronName, `Processed trade ${trade.id}: profit=${profit.toFixed(2)}, followerShare=${followerProfit.toFixed(2)}, leaderShare=${leaderProfit.toFixed(2)}`, "success");
+            }
+            catch (error) {
+                await t.rollback();
+                console_1.logger.error("COPY_TRADING", `Failed to process closed trade ${trade.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Failed to process trade ${trade.id}: ${error.message}`, "error");
+                failedCount++;
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Closed trade processing completed: ${processedCount} processed, ${failedCount} failed`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Closed trade processing failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+            error: error.message,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Closed trade processing failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function updateLeaderDailyStats() {
+    const cronName = "updateLeaderDailyStats";
+    const startTime = Date.now();
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting leader daily stats update");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const leaders = await db_1.models.copyTradingLeader.findAll({
+            where: { status: "ACTIVE" },
+        });
+        for (const leader of leaders) {
+            try {
+                const todayTrades = await db_1.models.copyTradingTrade.findAll({
+                    where: {
+                        leaderId: leader.id,
+                        followerId: null,
+                        createdAt: { [sequelize_1.Op.gte]: today },
+                    },
+                    attributes: ["id", "profit", "amount", "price", "symbol", "profitCurrency"],
+                });
+                const trades = todayTrades;
+                const totalTrades = trades.length;
+                const winningTrades = trades.filter((t) => (t.profit || 0) > 0).length;
+                let totalProfitUSDT = 0;
+                let totalVolumeUSDT = 0;
+                for (const trade of trades) {
+                    const profit = trade.profit || 0;
+                    const volume = (trade.amount || 0) * (trade.price || 0);
+                    let profitCurrency = trade.profitCurrency;
+                    if (!profitCurrency && trade.symbol) {
+                        profitCurrency = (0, currency_1.getQuoteCurrency)(trade.symbol);
+                    }
+                    if (!profitCurrency) {
+                        profitCurrency = "USDT";
+                    }
+                    try {
+                        const profitInUSDT = await (0, currency_1.convertToUSDT)(profit, profitCurrency);
+                        const volumeInUSDT = await (0, currency_1.convertToUSDT)(volume, profitCurrency);
+                        totalProfitUSDT += profitInUSDT;
+                        totalVolumeUSDT += volumeInUSDT;
+                    }
+                    catch (conversionError) {
+                        console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${profitCurrency}`, conversionError);
+                        totalProfitUSDT += profit;
+                        totalVolumeUSDT += volume;
+                    }
+                }
+                await db_1.models.copyTradingLeaderStats.upsert({
+                    leaderId: leader.id,
+                    date: today.toISOString().split("T")[0],
+                    trades: totalTrades,
+                    winningTrades,
+                    losingTrades: totalTrades - winningTrades,
+                    profit: totalProfitUSDT,
+                    volume: totalVolumeUSDT,
+                    fees: 0,
+                    startEquity: 0,
+                    endEquity: 0,
+                    highEquity: 0,
+                    lowEquity: 0,
+                });
+                (0, broadcast_1.broadcastLog)(cronName, `Updated stats for leader ${leader.id}: trades=${totalTrades}, profit=${(0, currency_1.formatCurrencyAmount)(totalProfitUSDT, "USDT")}`, "info");
+            }
+            catch (error) {
+                console_1.logger.error("COPY_TRADING", `Failed to update stats for leader ${leader.id}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Failed to update stats for leader ${leader.id}: ${error.message}`, "error");
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            leaders: leaders.length,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Leader stats update completed for ${leaders.length} leaders`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Leader stats update failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            error: error.message,
+        });
+        throw error;
+    }
+}
+async function processWithConcurrency(items, concurrencyLimit, asyncFn) {
+    const results = new Array(items.length);
+    let index = 0;
+    const workers = new Array(concurrencyLimit).fill(0).map(async () => {
+        while (index < items.length) {
+            const currentIndex = index++;
+            try {
+                results[currentIndex] = await asyncFn(items[currentIndex]);
+            }
+            catch (error) {
+                results[currentIndex] = error;
+            }
+        }
+    });
+    await Promise.all(workers);
+    return results;
+}
+async function resetDailyLimits() {
+    const cronName = "resetDailyLimits";
+    const startTime = Date.now();
+    let reset = 0;
+    let reactivated = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting daily limits reset");
+        const pausedFollowers = await db_1.models.copyTradingFollower.findAll({
+            where: { status: "PAUSED" },
+        });
+        for (const follower of pausedFollowers) {
+            const recentPause = await db_1.models.copyTradingAuditLog.findOne({
+                where: {
+                    entityType: "copyTradingFollower",
+                    entityId: follower.id,
+                    action: "DAILY_LOSS_LIMIT_REACHED",
+                    createdAt: { [sequelize_1.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+                },
+            });
+            if (recentPause) {
+                await follower.update({ status: "ACTIVE" });
+                reactivated++;
+                await (0, notifications_1.createNotification)({
+                    userId: follower.userId,
+                    type: "system",
+                    title: "Copy Trading Resumed",
+                    message: "Your copy trading subscription has been automatically reactivated for the new trading day.",
+                    link: "/copy-trading/subscription",
+                });
+                (0, broadcast_1.broadcastLog)(cronName, `Reactivated follower ${follower.id}`, "info");
+            }
+        }
+        reset = 1;
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            reset,
+            reactivated,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Daily limits reset: ${reactivated} followers reactivated`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Daily limits reset failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            error: error.message,
+        });
+        throw error;
+    }
+}
+async function aggregateWeeklyAnalytics() {
+    const cronName = "aggregateWeeklyAnalytics";
+    const startTime = Date.now();
+    let processed = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting weekly analytics aggregation");
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - 7);
+        weekStart.setHours(0, 0, 0, 0);
+        const leaders = await db_1.models.copyTradingLeader.findAll({
+            where: { status: "ACTIVE" },
+        });
+        for (const leader of leaders) {
+            try {
+                const trades = await db_1.models.copyTradingTrade.findAll({
+                    where: {
+                        leaderId: leader.id,
+                        isLeaderTrade: true,
+                        status: "CLOSED",
+                        closedAt: { [sequelize_1.Op.gte]: weekStart },
+                    },
+                    attributes: ["id", "profit", "cost", "symbol", "profitCurrency"],
+                });
+                const tradesData = trades;
+                const totalTrades = tradesData.length;
+                const winningTrades = tradesData.filter((t) => (t.profit || 0) > 0).length;
+                let totalProfitUSDT = 0;
+                let totalVolumeUSDT = 0;
+                for (const trade of tradesData) {
+                    const profit = trade.profit || 0;
+                    const cost = trade.cost || 0;
+                    let profitCurrency = trade.profitCurrency;
+                    if (!profitCurrency && trade.symbol) {
+                        profitCurrency = (0, currency_1.getQuoteCurrency)(trade.symbol);
+                    }
+                    if (!profitCurrency) {
+                        profitCurrency = "USDT";
+                    }
+                    try {
+                        const profitInUSDT = await (0, currency_1.convertToUSDT)(profit, profitCurrency);
+                        const costInUSDT = await (0, currency_1.convertToUSDT)(cost, profitCurrency);
+                        totalProfitUSDT += profitInUSDT;
+                        totalVolumeUSDT += costInUSDT;
+                    }
+                    catch (conversionError) {
+                        console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${profitCurrency}`, conversionError);
+                        totalProfitUSDT += profit;
+                        totalVolumeUSDT += cost;
+                    }
+                }
+                const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+                const roi = totalVolumeUSDT > 0 ? (totalProfitUSDT / totalVolumeUSDT) * 100 : 0;
+                processed++;
+                (0, broadcast_1.broadcastLog)(cronName, `Aggregated stats for leader ${leader.id}: weekly trades=${totalTrades}, profit=${(0, currency_1.formatCurrencyAmount)(totalProfitUSDT, "USDT")}`, "info");
+            }
+            catch (error) {
+                console_1.logger.error("COPY_TRADING", `Failed to aggregate stats for leader ${leader.id}`, error);
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            processed,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Weekly analytics aggregation completed for ${processed} leaders`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Weekly analytics aggregation failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            error: error.message,
+        });
+        throw error;
+    }
+}
+async function monitorStopLevels() {
+    const cronName = "monitorStopLevels";
+    const startTime = Date.now();
+    let checked = 0;
+    let triggered = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting stop-loss/take-profit monitoring");
+        const openTrades = await db_1.models.copyTradingTrade.findAll({
+            where: {
+                followerId: { [sequelize_1.Op.ne]: null },
+                status: "OPEN",
+            },
+            include: [
+                {
+                    model: db_1.models.copyTradingFollower,
+                    as: "follower",
+                    where: {
+                        [sequelize_1.Op.or]: [
+                            { stopLossPercent: { [sequelize_1.Op.ne]: null } },
+                            { takeProfitPercent: { [sequelize_1.Op.ne]: null } },
+                        ],
+                    },
+                },
+            ],
+        });
+        for (const trade of openTrades) {
+            checked++;
+            const follower = trade.follower;
+            if (!follower)
+                continue;
+            const [currency, pair] = trade.symbol.split("/");
+            let currentPrice = trade.price;
+            try {
+                const { asks, bids } = await (0, safe_imports_1.getOrderBook)(trade.symbol);
+                if (trade.side === "BUY") {
+                    currentPrice = bids && bids.length > 0 ? bids[0][0] : trade.price;
+                }
+                else {
+                    currentPrice = asks && asks.length > 0 ? asks[0][0] : trade.price;
+                }
+            }
+            catch (e) {
+            }
+            const entryPrice = trade.executedPrice || trade.price;
+            const isLong = trade.side === "BUY";
+            if (follower.stopLossPercent) {
+                const stopPrice = isLong
+                    ? entryPrice * (1 - follower.stopLossPercent / 100)
+                    : entryPrice * (1 + follower.stopLossPercent / 100);
+                const triggered_sl = isLong
+                    ? currentPrice <= stopPrice
+                    : currentPrice >= stopPrice;
+                if (triggered_sl) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Stop-loss triggered for trade ${trade.id} at ${currentPrice}`, "warning");
+                    triggered++;
+                    continue;
+                }
+            }
+            if (follower.takeProfitPercent) {
+                const tpPrice = isLong
+                    ? entryPrice * (1 + follower.takeProfitPercent / 100)
+                    : entryPrice * (1 - follower.takeProfitPercent / 100);
+                const triggered_tp = isLong
+                    ? currentPrice >= tpPrice
+                    : currentPrice <= tpPrice;
+                if (triggered_tp) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Take-profit triggered for trade ${trade.id} at ${currentPrice}`, "success");
+                    triggered++;
+                }
+            }
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            checked,
+            triggered,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Stop-loss/take-profit monitoring: ${checked} checked, ${triggered} triggered`, "success");
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", `Stop-loss/take-profit monitoring failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            error: error.message,
+        });
+        throw error;
+    }
+}
+async function checkDailyLossLimits() {
+    var _a, _b;
+    const cronName = "checkDailyLossLimits";
+    const startTime = Date.now();
+    let checked = 0;
+    let paused = 0;
+    let retryAttempt = 0;
+    while (retryAttempt < MAX_RETRY_ATTEMPTS) {
+        try {
+            (0, broadcast_1.broadcastStatus)(cronName, "running");
+            if (retryAttempt > 0) {
+                (0, broadcast_1.broadcastLog)(cronName, `Retrying daily loss limit check (attempt ${retryAttempt + 1}/${MAX_RETRY_ATTEMPTS})`);
+            }
+            else {
+                (0, broadcast_1.broadcastLog)(cronName, "Checking daily loss limits");
+            }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const followers = await db_1.models.copyTradingFollower.findAll({
+                where: {
+                    status: "ACTIVE",
+                    maxDailyLoss: { [sequelize_1.Op.gt]: 0 },
+                },
+            });
+            for (const follower of followers) {
+                checked++;
+                const todayTrades = await db_1.models.copyTradingTrade.findAll({
+                    where: {
+                        followerId: follower.id,
+                        status: "CLOSED",
+                        closedAt: { [sequelize_1.Op.gte]: today },
+                        profit: { [sequelize_1.Op.lt]: 0 },
+                    },
+                    attributes: ["profit", "symbol", "profitCurrency"],
+                });
+                let totalLossUSDT = 0;
+                for (const trade of todayTrades) {
+                    const loss = Math.abs(trade.profit || 0);
+                    let profitCurrency = trade.profitCurrency;
+                    if (!profitCurrency && trade.symbol) {
+                        profitCurrency = (0, currency_1.getQuoteCurrency)(trade.symbol);
+                    }
+                    if (!profitCurrency) {
+                        profitCurrency = "USDT";
+                    }
+                    try {
+                        const lossInUSDT = await (0, currency_1.convertToUSDT)(loss, profitCurrency);
+                        totalLossUSDT += lossInUSDT;
+                    }
+                    catch (conversionError) {
+                        console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${profitCurrency}`, conversionError);
+                        totalLossUSDT += loss;
+                    }
+                }
+                if (totalLossUSDT >= follower.maxDailyLoss) {
+                    await follower.update({ status: "PAUSED" });
+                    paused++;
+                    await (0, notifications_1.createNotification)({
+                        userId: follower.userId,
+                        type: "system",
+                        title: "Copy Trading Paused",
+                        message: `Your copy trading has been paused due to reaching your daily loss limit of ${(0, currency_1.formatCurrencyAmount)(follower.maxDailyLoss, "USDT")}. Current loss: ${(0, currency_1.formatCurrencyAmount)(totalLossUSDT, "USDT")}`,
+                        link: "/copy-trading/subscription",
+                    });
+                    await db_1.models.copyTradingAuditLog.create({
+                        entityType: "copyTradingFollower",
+                        entityId: follower.id,
+                        action: "DAILY_LOSS_LIMIT_REACHED",
+                        userId: follower.userId,
+                        metadata: JSON.stringify({
+                            totalLoss: totalLossUSDT,
+                            maxDailyLoss: follower.maxDailyLoss,
+                            currency: "USDT",
+                        }),
+                    });
+                    (0, broadcast_1.broadcastLog)(cronName, `Paused follower ${follower.id} due to daily loss limit: ${(0, currency_1.formatCurrencyAmount)(totalLossUSDT, "USDT")} >= ${(0, currency_1.formatCurrencyAmount)(follower.maxDailyLoss, "USDT")}`, "warning");
+                }
+            }
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+                duration: Date.now() - startTime,
+                checked,
+                paused,
+            });
+            (0, broadcast_1.broadcastLog)(cronName, `Daily loss limit check: ${checked} checked, ${paused} paused`, "success");
+            return;
+        }
+        catch (error) {
+            retryAttempt++;
+            const isConnectionError = error.code === "ECONNRESET" ||
+                error.code === "ETIMEDOUT" ||
+                error.code === "ENOTFOUND" ||
+                error.code === "ECONNREFUSED" ||
+                ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes("ECONNRESET")) ||
+                ((_b = error.message) === null || _b === void 0 ? void 0 : _b.includes("read ECONNRESET"));
+            if (isConnectionError && retryAttempt < MAX_RETRY_ATTEMPTS) {
+                console_1.logger.warn("COPY_TRADING", `Connection error in daily loss limit check, retrying (${retryAttempt}/${MAX_RETRY_ATTEMPTS}): ${error.message}`);
+                (0, broadcast_1.broadcastLog)(cronName, `Connection error, retrying in ${RETRY_DELAY_MS}ms...`, "warning");
+                await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * retryAttempt));
+                checked = 0;
+                paused = 0;
+                continue;
+            }
+            console_1.logger.error("COPY_TRADING", `Daily loss limit check failed: ${error.message}`, error);
+            (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+                duration: Date.now() - startTime,
+                error: error.message,
+                retryAttempts: retryAttempt,
+            });
+            throw error;
+        }
+    }
+}

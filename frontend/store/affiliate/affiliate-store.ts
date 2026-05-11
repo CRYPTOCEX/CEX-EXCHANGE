@@ -7,7 +7,7 @@ export interface Affiliate {
   email: string;
   phone?: string;
   location?: string;
-  status: "active" | "pending" | "suspended" | "inactive";
+  status: "ACTIVE" | "PENDING" | "REJECTED";
   joinDate: string;
   referralCode?: string;
   referrals: number;
@@ -82,7 +82,7 @@ interface AffiliateStore {
   fetchDashboardData: (period?: string) => Promise<void>;
   updateAffiliateStatus: (
     id: string,
-    status: "active" | "suspended" | "inactive"
+    status: "ACTIVE" | "PENDING" | "REJECTED"
   ) => Promise<boolean>;
 }
 
@@ -92,7 +92,7 @@ export interface Stats {
   pendingReferrals: number;
   conversionRate: number;
   totalEarnings: number;
-  weeklyGrowth: number;
+  periodGrowth: number;
 }
 
 export const useAffiliateStore = create<AffiliateStore>((set, get) => ({
@@ -114,7 +114,7 @@ export const useAffiliateStore = create<AffiliateStore>((set, get) => ({
       pendingReferrals: 0,
       conversionRate: 0,
       totalEarnings: 0,
-      weeklyGrowth: 0,
+      periodGrowth: 0,
     },
     previousStats: {
       totalReferrals: 0,
@@ -200,7 +200,7 @@ export const useAffiliateStore = create<AffiliateStore>((set, get) => ({
   },
   updateAffiliateStatus: async (
     id: string,
-    status: "active" | "suspended" | "inactive"
+    status: "ACTIVE" | "PENDING" | "REJECTED"
   ) => {
     const { data, error } = await $fetch({
       url: `/api/admin/affiliate/referral/${id}/status`,

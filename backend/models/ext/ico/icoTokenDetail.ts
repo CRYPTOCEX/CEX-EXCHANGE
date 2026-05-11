@@ -54,7 +54,7 @@ export default class icoTokenDetail
           },
         },
         totalSupply: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "totalSupply: Must be a valid number" },
@@ -62,7 +62,7 @@ export default class icoTokenDetail
           },
         },
         tokensForSale: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "tokensForSale: Must be a valid number" },
@@ -70,7 +70,7 @@ export default class icoTokenDetail
           },
         },
         salePercentage: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(5, 2),
           allowNull: false,
           validate: {
             isFloat: { msg: "salePercentage: Must be a valid number" },

@@ -440,8 +440,16 @@ export default function EditOfferClient() {
 
     try {
       // Prepare the form data with proper structure
+      // Normalize priceConfig.model to backend-expected uppercase values
+      const normalizedPriceConfig = formData.priceConfig ? {
+        ...formData.priceConfig,
+        model: formData.priceConfig.model === "dynamic" ? "MARGIN"
+          : (formData.priceConfig.model || "fixed").toUpperCase(),
+      } : formData.priceConfig;
+
       const submitData = {
         ...formData,
+        priceConfig: normalizedPriceConfig,
         paymentMethodIds: selectedPaymentMethods,
       };
 

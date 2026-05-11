@@ -4,6 +4,7 @@ exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const query_1 = require("@b/utils/query");
+const Middleware_1 = require("@b/handler/Middleware");
 exports.metadata = {
     summary: "Creates or updates a review for a product",
     description: "Allows a user to submit a review for a product they have purchased. Users can only review products once, but they can update their review.",
@@ -46,6 +47,7 @@ exports.metadata = {
     requiresAuth: true,
 };
 exports.default = async (data) => {
+    await Middleware_1.rateLimiters.moderate(data);
     const { user, params, body, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });

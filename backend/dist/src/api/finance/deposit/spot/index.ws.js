@@ -408,7 +408,7 @@ async function verifyTransaction(userId, trx, payload) {
             console_1.logger.error("SPOT_DEPOSIT", `Deposit confirmation email failed: ${error.message}`);
         }
         try {
-            await (0, affiliate_1.processRewards)(userData.id, amount, "WELCOME_BONUS", wallet.currency);
+            await (0, affiliate_1.processRewards)(userData.id, amount, "WELCOME_BONUS", wallet.currency, `WELCOME_BONUS:deposit:${updatedTransaction.id}`);
             console_1.logger.debug("SPOT_DEPOSIT", "Processed welcome bonus rewards");
         }
         catch (error) {

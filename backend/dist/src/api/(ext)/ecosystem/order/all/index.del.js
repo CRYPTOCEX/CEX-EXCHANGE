@@ -60,8 +60,7 @@ exports.default = async (data) => {
             try {
                 const totalAmount = BigInt(order.amount);
                 const remaining = BigInt(order.remaining);
-                const totalFee = BigInt(order.fee);
-                const price = BigInt(order.price);
+                const totalCost = BigInt(order.cost);
                 const side = order.side;
                 const symbol = order.symbol;
                 if (remaining === BigInt(0)) {
@@ -70,10 +69,13 @@ exports.default = async (data) => {
                 const [currency, pair] = symbol.split("/");
                 let refundAmount = 0;
                 if (side === "BUY") {
-                    const fillRatio = Number(remaining) / Number(totalAmount);
-                    const remainingCost = (remaining * price) / BigInt(1e18);
-                    const remainingFee = (totalFee * BigInt(Math.floor(fillRatio * 1e18))) / BigInt(1e18);
-                    refundAmount = (0, blockchain_1.fromBigInt)(remainingCost + remainingFee);
+                    if (remaining === totalAmount) {
+                        refundAmount = (0, blockchain_1.fromBigInt)(totalCost);
+                    }
+                    else {
+                        const remainingCost = (totalCost * remaining) / totalAmount;
+                        refundAmount = (0, blockchain_1.fromBigInt)(remainingCost);
+                    }
                 }
                 else {
                     refundAmount = (0, blockchain_1.fromBigInt)(remaining);

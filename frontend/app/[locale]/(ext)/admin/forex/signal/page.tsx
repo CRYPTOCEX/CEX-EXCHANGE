@@ -25,6 +25,7 @@ export default function ForexSignalPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("forex_trading_signals")}
       description={t("manage_and_distribute_forex_trading_signals")}
       itemTitle="Signal"

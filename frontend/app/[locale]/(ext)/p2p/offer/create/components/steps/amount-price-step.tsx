@@ -110,7 +110,10 @@ const useMarketPrice = (currency: string, walletType: string) => {
         const data = await response.json();
 
         if (data.status && data.data) {
-          setPrice(data.data);
+          // Parse and limit to reasonable precision (8 significant digits)
+          const rawPrice = parseFloat(data.data);
+          const formattedPrice = parseFloat(rawPrice.toPrecision(8));
+          setPrice(formattedPrice);
           setLastUpdated(new Date());
         }
       } catch (error) {
@@ -184,9 +187,11 @@ export function AmountPriceStep() {
     }
   }, [tradeData.currency]);
 
-  // Get the current market price
+  // Get the current market price (formatted to reasonable precision)
   const getMarketPrice = useCallback(() => {
-    return marketPrice || 0;
+    if (!marketPrice || marketPrice === 0) return 0;
+    // Format to 8 significant figures to avoid excessive decimals
+    return parseFloat(marketPrice.toPrecision(8));
   }, [marketPrice]);
 
   // Calculate price based on model
@@ -966,10 +971,18 @@ export function AmountPriceStep() {
 
   // Get the price value to display in the input
   const getPriceValue = useCallback(() => {
+    let value: number | string = "";
     if (tradeData.priceConfig && tradeData.priceConfig.value !== undefined) {
-      return tradeData.priceConfig.value;
+      value = tradeData.priceConfig.value;
+    } else if (tradeData.price) {
+      value = tradeData.price;
     }
-    return tradeData.price || "";
+
+    // Format to remove excessive decimals (max 8 significant figures)
+    if (typeof value === "number" && value > 0) {
+      return parseFloat(value.toPrecision(8));
+    }
+    return value;
   }, [tradeData.price, tradeData.priceConfig]);
 
   return (

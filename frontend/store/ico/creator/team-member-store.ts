@@ -30,7 +30,7 @@ export const useTeamMemberStore = create<TeamMemberStore>((set, get) => ({
 
   fetchTeamMembers: async (tokenId: string) => {
     // If we've already fetched team members for this token and the list is not empty, skip refetch.
-    if (get().lastTokenIdFetched === tokenId && get().teamMembers.length > 0) {
+    if (get().lastTokenIdFetched === tokenId) {
       return;
     }
     set({ isLoading: true, error: null });

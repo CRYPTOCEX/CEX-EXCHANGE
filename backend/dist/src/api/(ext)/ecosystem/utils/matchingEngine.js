@@ -315,7 +315,7 @@ class MatchingEngine {
                             const sellerInOrder = parseFloat(((_a = sellerWallet.inOrder) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
                             const sellerBalance = parseFloat(((_b = sellerWallet.balance) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
                             if (sellerInOrder < orderAmount) {
-                                const availableBalance = sellerBalance - sellerInOrder;
+                                const availableBalance = sellerBalance;
                                 if (availableBalance >= orderAmount) {
                                     try {
                                         const idempotencyKey = `eco_order_lock_${order.id}_${sellerWallet.id}`;
@@ -342,7 +342,7 @@ class MatchingEngine {
                             const buyerInOrder = parseFloat(((_c = buyerWallet.inOrder) === null || _c === void 0 ? void 0 : _c.toString()) || "0");
                             const buyerBalance = parseFloat(((_d = buyerWallet.balance) === null || _d === void 0 ? void 0 : _d.toString()) || "0");
                             if (buyerInOrder < orderCost) {
-                                const availableBalance = buyerBalance - buyerInOrder;
+                                const availableBalance = buyerBalance;
                                 if (availableBalance >= orderCost) {
                                     try {
                                         const idempotencyKey = `eco_order_lock_${order.id}_${buyerWallet.id}`;

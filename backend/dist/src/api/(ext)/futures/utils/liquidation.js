@@ -27,6 +27,41 @@ const emails_1 = require("../../../../utils/emails");
 const db_1 = require("@b/db");
 const ws_1 = require("./ws");
 const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const isScyllaValidationError = (err) => {
+    var _a;
+    if (!err)
+        return false;
+    const code = typeof err.code === "number" ? err.code : undefined;
+    if (code !== undefined) {
+        if (code >= 0x2000 && code <= 0x2500)
+            return true;
+    }
+    const name = err.name || ((_a = err.constructor) === null || _a === void 0 ? void 0 : _a.name) || "";
+    if (/SyntaxError|InvalidQueryException|ResponseError/i.test(name) && code === undefined) {
+        return true;
+    }
+    return false;
+};
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const executeScyllaWithRetry = async (run, maxAttempts = 3) => {
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await run();
+            return;
+        }
+        catch (err) {
+            lastErr = err;
+            if (isScyllaValidationError(err))
+                throw err;
+            if (attempt < maxAttempts) {
+                await sleep(100 * Math.pow(2, attempt - 1));
+            }
+        }
+    }
+    throw lastErr;
+};
 const calculateMargin = (position, matchedPrice) => {
     if (!toBigIntFloat) {
         throw (0, error_1.createError)({ statusCode: 500, message: "Ecosystem extension not available" });
@@ -70,16 +105,37 @@ const liquidatePosition = async (position, matchedPrice, partial = false) => {
     const amountToLiquidate = partial
         ? (position.amount * BigInt(80)) / BigInt(100)
         : position.amount;
-    await client.execute(`UPDATE ${scyllaFuturesKeyspace}.position SET amount = ?, status = ? WHERE "userId" = ? AND id = ?`, [
-        partial ? amountToLiquidate.toString() : "0",
-        partial ? "PARTIALLY_LIQUIDATED" : "LIQUIDATED",
-        position.userId,
-        position.id,
-    ], { prepare: true });
-    const wallet = await getWalletByUserIdAndCurrency(position.userId, position.symbol.split("/")[1]);
+    const baseCurrency = position.symbol.split("/")[1];
+    const wallet = await getWalletByUserIdAndCurrency(position.userId, baseCurrency);
+    const idempotencyKey = `futures_liquidation_${position.id}`;
     if (wallet) {
         const amountToRefund = fromBigInt(amountToLiquidate) * fromBigInt(position.entryPrice);
-        await updateWalletBalance(wallet, amountToRefund, "add");
+        await db_1.sequelize.transaction(async (t) => {
+            await updateWalletBalance(wallet, amountToRefund, "add", idempotencyKey, t);
+        });
+        try {
+            await executeScyllaWithRetry(async () => {
+                await client.execute(`UPDATE ${scyllaFuturesKeyspace}.position SET amount = ?, status = ? WHERE "userId" = ? AND id = ?`, [
+                    partial ? amountToLiquidate.toString() : "0",
+                    partial ? "PARTIALLY_LIQUIDATED" : "LIQUIDATED",
+                    position.userId,
+                    position.id,
+                ], { prepare: true });
+            });
+        }
+        catch (scyllaErr) {
+            console_1.logger.error("FUTURES_LIQUIDATION", `Scylla position update FAILED after wallet credit succeeded. Money is safe; position still shows open. reconcileFuturesPositions will replay. idempotencyKey=${idempotencyKey} positionId=${position.id} userId=${position.userId} amount=${amountToRefund} partial=${partial}`, scyllaErr);
+        }
+    }
+    else {
+        await executeScyllaWithRetry(async () => {
+            await client.execute(`UPDATE ${scyllaFuturesKeyspace}.position SET amount = ?, status = ? WHERE "userId" = ? AND id = ?`, [
+                partial ? amountToLiquidate.toString() : "0",
+                partial ? "PARTIALLY_LIQUIDATED" : "LIQUIDATED",
+                position.userId,
+                position.id,
+            ], { prepare: true });
+        });
     }
     await (0, ws_1.handlePositionBroadcast)(position);
     const user = await db_1.models.user.findOne({ where: { id: position.userId } });

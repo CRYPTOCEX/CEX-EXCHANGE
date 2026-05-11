@@ -37,14 +37,14 @@ class icoTokenVesting extends sequelize_1.Model {
                 onDelete: "CASCADE",
             },
             totalAmount: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     min: 0,
                 },
             },
             releasedAmount: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 defaultValue: 0,
                 validate: {

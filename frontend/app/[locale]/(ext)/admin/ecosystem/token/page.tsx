@@ -51,6 +51,7 @@ export default function EcosystemTokenPage() {
         editLink="/admin/ecosystem/token/[id]"
         canDelete
         canView
+        isParanoid={false}
         title={t("ecosystem_token_management")}
         description={t("manage_blockchain_tokens_and_digital_assets")}
         itemTitle="Token"

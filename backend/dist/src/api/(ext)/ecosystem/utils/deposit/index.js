@@ -116,8 +116,8 @@ async function checkDepositsForChain(chain, addressesData) {
                             chain: chain,
                             contractType: data.contractType,
                         });
-                        if ((response === null || response === void 0 ? void 0 : response.transactionId) && (0, Websocket_1.hasClients)(`/ws/ecosystem/deposit`)) {
-                            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", {
+                        if ((response === null || response === void 0 ? void 0 : response.transactionId) && (0, Websocket_1.hasClients)(`/api/ecosystem/deposit`)) {
+                            Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", {
                                 currency: (_a = response.wallet) === null || _a === void 0 ? void 0 : _a.currency,
                                 chain: chain,
                                 address: data.address,

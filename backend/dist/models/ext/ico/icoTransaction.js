@@ -29,8 +29,15 @@ class icoTransaction extends sequelize_1.Model {
                     },
                 },
             },
+            phaseId: {
+                type: sequelize_1.DataTypes.UUID,
+                allowNull: true,
+                validate: {
+                    isUUID: { args: 4, msg: "phaseId: Phase ID must be a valid UUID" },
+                },
+            },
             amount: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "amount: Must be a valid number" },
@@ -38,7 +45,7 @@ class icoTransaction extends sequelize_1.Model {
                 },
             },
             price: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "price: Must be a valid number" },
@@ -46,13 +53,13 @@ class icoTransaction extends sequelize_1.Model {
                 },
             },
             status: {
-                type: sequelize_1.DataTypes.ENUM("PENDING", "VERIFICATION", "RELEASED", "REJECTED"),
+                type: sequelize_1.DataTypes.ENUM("PENDING", "VERIFICATION", "RELEASED", "REJECTED", "REFUNDED"),
                 allowNull: false,
                 defaultValue: "PENDING",
                 validate: {
                     isIn: {
-                        args: [["PENDING", "VERIFICATION", "RELEASED", "REJECTED"]],
-                        msg: "status: Must be 'PENDING', 'VERIFICATION', 'RELEASED' or 'REJECTED'",
+                        args: [["PENDING", "VERIFICATION", "RELEASED", "REJECTED", "REFUNDED"]],
+                        msg: "status: Must be 'PENDING', 'VERIFICATION', 'RELEASED', 'REJECTED' or 'REFUNDED'",
                     },
                 },
             },
@@ -84,6 +91,10 @@ class icoTransaction extends sequelize_1.Model {
                     name: "icoTransactionOfferingIdUserIdKey",
                     fields: [{ name: "offeringId" }, { name: "userId" }],
                 },
+                {
+                    name: "icoTransactionStatusIdx",
+                    fields: [{ name: "status" }],
+                },
             ],
         });
     }
@@ -98,6 +109,12 @@ class icoTransaction extends sequelize_1.Model {
             as: "user",
             foreignKey: "userId",
             onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+        });
+        icoTransaction.belongsTo(models.icoTokenOfferingPhase, {
+            as: "phase",
+            foreignKey: "phaseId",
+            onDelete: "SET NULL",
             onUpdate: "CASCADE",
         });
     }

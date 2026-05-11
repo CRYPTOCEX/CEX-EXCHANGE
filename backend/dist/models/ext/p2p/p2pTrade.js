@@ -114,16 +114,6 @@ class p2pTrade extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.STRING(50),
                 allowNull: true,
             },
-            buyerFee: {
-                type: sequelize_1.DataTypes.DOUBLE,
-                allowNull: true,
-                defaultValue: 0,
-            },
-            sellerFee: {
-                type: sequelize_1.DataTypes.DOUBLE,
-                allowNull: true,
-                defaultValue: 0,
-            },
             escrowTime: {
                 type: sequelize_1.DataTypes.STRING(50),
                 allowNull: true,

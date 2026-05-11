@@ -25,6 +25,7 @@ export default function ForexDurationPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("forex_plan_durations")}
       description={t("configure_and_manage_forex_investment_plan")}
       itemTitle="Duration"

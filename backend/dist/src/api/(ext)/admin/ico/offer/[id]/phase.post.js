@@ -105,7 +105,7 @@ exports.default = async (data) => {
         if (!offering) {
             throw (0, error_1.createError)({ statusCode: 404, message: "ICO offering not found." });
         }
-        if (!["ACTIVE", "PENDING", "UPCOMING", "SUCCESS"].includes(offering.status)) {
+        if (!["ACTIVE", "PENDING", "UPCOMING"].includes(offering.status)) {
             throw (0, error_1.createError)({
                 statusCode: 400,
                 message: `Cannot add phase to offering with status: ${offering.status}`,
@@ -129,6 +129,19 @@ exports.default = async (data) => {
         const phaseStartDate = currentEndDate > now ? currentEndDate : now;
         const phaseEndDate = new Date(phaseStartDate);
         phaseEndDate.setDate(phaseEndDate.getDate() + duration);
+        const tokenDetail = await db_1.models.icoTokenDetail.findOne({
+            where: { offeringId: id },
+            transaction,
+        });
+        if (tokenDetail) {
+            const existingAllocation = existingPhases.reduce((sum, phase) => sum + (phase.allocation || 0), 0);
+            if (existingAllocation + allocation > tokenDetail.totalSupply) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Total allocation (${existingAllocation + allocation}) exceeds total supply (${tokenDetail.totalSupply}). Available: ${tokenDetail.totalSupply - existingAllocation}`,
+                });
+            }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Create new phase");
         const newPhase = await db_1.models.icoTokenOfferingPhase.create({
             offeringId: id,
@@ -143,7 +156,7 @@ exports.default = async (data) => {
         }, { transaction });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Update offering end date and status");
         const updateData = { endDate: phaseEndDate };
-        if (offering.status === "SUCCESS" || currentEndDate <= now) {
+        if (currentEndDate <= now && offering.status !== "SUCCESS") {
             updateData.status = "ACTIVE";
         }
         await offering.update(updateData, { transaction });

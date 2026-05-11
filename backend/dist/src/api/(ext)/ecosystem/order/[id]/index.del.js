@@ -126,10 +126,13 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating refund amount");
         let refundAmount = 0;
         if (side === "BUY") {
-            const fillRatio = Number(remaining) / Number(totalAmount);
-            const remainingCost = (remaining * price) / BigInt(1e18);
-            const remainingFee = (totalFee * BigInt(Math.floor(fillRatio * 1e18))) / BigInt(1e18);
-            refundAmount = (0, blockchain_1.fromBigInt)(remainingCost + remainingFee);
+            if (remaining === totalAmount) {
+                refundAmount = (0, blockchain_1.fromBigInt)(totalCost);
+            }
+            else {
+                const remainingCost = (totalCost * remaining) / totalAmount;
+                refundAmount = (0, blockchain_1.fromBigInt)(remainingCost);
+            }
         }
         else {
             refundAmount = (0, blockchain_1.fromBigInt)(remaining);

@@ -62,11 +62,10 @@ export default class faqFeedback
           { name: "PRIMARY", unique: true, fields: [{ name: "id" }] },
           { name: "faq_feedbacks_faqId_idx", fields: [{ name: "faqId" }] },
           { name: "faq_feedbacks_userId_idx", fields: [{ name: "userId" }] },
-          { 
-            name: "faq_feedbacks_unique_user_faq", 
-            unique: true, 
+          {
+            name: "faq_feedbacks_unique_user_faq",
+            unique: true,
             fields: [{ name: "userId" }, { name: "faqId" }],
-            where: { deletedAt: null }
           },
         ],
       }

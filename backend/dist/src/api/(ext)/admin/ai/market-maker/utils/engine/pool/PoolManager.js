@@ -1,1 +1,150 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.PoolManager=void 0;const db_1=require("@b/db"),console_1=require("@b/utils/console"),BalanceTracker_1=require("./BalanceTracker"),PnLCalculator_1=require("./PnLCalculator");class PoolManager{constructor(){this.balanceTrackers=new Map;this.pnlCalculator=new PnLCalculator_1.PnLCalculator}getBalanceTracker(a){let e=this.balanceTrackers.get(a);if(!e){e=new BalanceTracker_1.BalanceTracker(a);this.balanceTrackers.set(a,e)}return e}async getBalance(a){return this.getBalanceTracker(a).getBalance()}async deposit(a,e,t){try{const r=this.getBalanceTracker(a);await r.deposit(e,t);await this.updatePoolInDatabase(a);await this.logPoolAction(a,"DEPOSIT",{currency:e,amount:t});return!0}catch(a){console_1.logger.error("AI_MM_POOL","Failed to deposit to pool",a);return!1}}async withdraw(a,e,t){try{const r=this.getBalanceTracker(a);if(!await r.canWithdraw(e,t)){console_1.logger.warn("AI_MM","Insufficient balance for withdrawal");return!1}await r.withdraw(e,t);await this.updatePoolInDatabase(a);await this.logPoolAction(a,"WITHDRAW",{currency:e,amount:t});return!0}catch(a){console_1.logger.error("AI_MM_POOL","Failed to withdraw from pool",a);return!1}}async canWithdraw(a,e,t){const r=this.getBalanceTracker(a),o=await db_1.models.aiMarketMaker.findByPk(a);return o&&"ACTIVE"===o.status?{allowed:!1,reason:"Cannot withdraw while market maker is active. Please pause first."}:await r.canWithdraw(e,t)?{allowed:!0}:{allowed:!1,reason:"Insufficient available balance"}}async rebalance(a,e){try{const t=this.getBalanceTracker(a);await t.rebalance(e);await this.updatePoolInDatabase(a);await this.logPoolAction(a,"REBALANCE",{targetRatio:e});return!0}catch(a){console_1.logger.error("AI_MM_POOL","Failed to rebalance pool",a);return!1}}async updateAllBalances(){for(const[a,e]of this.balanceTrackers)try{await e.syncFromDatabase();await this.pnlCalculator.calculatePnL(a,e)}catch(a){}}async getPnL(a){return this.pnlCalculator.getPnL(a)}async recordTradePnL(a,e,t){this.pnlCalculator.recordPnL(a,e,t)}async getAllPoolStats(){const a=new Map;for(const[e,t]of this.balanceTrackers)a.set(e,{balance:await t.getBalance(),pnl:await this.getPnL(e)});return a}async updatePoolInDatabase(a){try{const e=this.getBalanceTracker(a),t=await e.getBalance();await db_1.models.aiMarketMakerPool.update({baseCurrencyBalance:t.baseCurrency,quoteCurrencyBalance:t.quoteCurrency,totalValueLocked:t.totalValueLocked},{where:{marketMakerId:a}})}catch(a){console_1.logger.error("AI_MM_POOL","Failed to update pool in database",a)}}async logPoolAction(a,e,t){try{const r=this.getBalanceTracker(a),o=await r.getBalance();await db_1.models.aiMarketMakerHistory.create({marketMakerId:a,action:e,details:t,priceAtAction:0,poolValueAtAction:o.totalValueLocked})}catch(a){}}}exports.PoolManager=PoolManager;exports.default=PoolManager;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PoolManager = void 0;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const BalanceTracker_1 = require("./BalanceTracker");
+const PnLCalculator_1 = require("./PnLCalculator");
+class PoolManager {
+    constructor() {
+        this.balanceTrackers = new Map();
+        this.pnlCalculator = new PnLCalculator_1.PnLCalculator();
+    }
+    getBalanceTracker(marketMakerId) {
+        let tracker = this.balanceTrackers.get(marketMakerId);
+        if (!tracker) {
+            tracker = new BalanceTracker_1.BalanceTracker(marketMakerId);
+            this.balanceTrackers.set(marketMakerId, tracker);
+        }
+        return tracker;
+    }
+    async getBalance(marketMakerId) {
+        const tracker = this.getBalanceTracker(marketMakerId);
+        return tracker.getBalance();
+    }
+    async deposit(marketMakerId, currency, amount) {
+        try {
+            const tracker = this.getBalanceTracker(marketMakerId);
+            await tracker.deposit(currency, amount);
+            await this.updatePoolInDatabase(marketMakerId);
+            await this.logPoolAction(marketMakerId, "DEPOSIT", {
+                currency,
+                amount,
+            });
+            return true;
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM_POOL", "Failed to deposit to pool", error);
+            return false;
+        }
+    }
+    async withdraw(marketMakerId, currency, amount) {
+        try {
+            const tracker = this.getBalanceTracker(marketMakerId);
+            if (!await tracker.canWithdraw(currency, amount)) {
+                console_1.logger.warn("AI_MM", "Insufficient balance for withdrawal");
+                return false;
+            }
+            await tracker.withdraw(currency, amount);
+            await this.updatePoolInDatabase(marketMakerId);
+            await this.logPoolAction(marketMakerId, "WITHDRAW", {
+                currency,
+                amount,
+            });
+            return true;
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM_POOL", "Failed to withdraw from pool", error);
+            return false;
+        }
+    }
+    async canWithdraw(marketMakerId, currency, amount) {
+        const tracker = this.getBalanceTracker(marketMakerId);
+        const maker = await db_1.models.aiMarketMaker.findByPk(marketMakerId);
+        if (maker && maker.status === "ACTIVE") {
+            return {
+                allowed: false,
+                reason: "Cannot withdraw while market maker is active. Please pause first.",
+            };
+        }
+        if (!await tracker.canWithdraw(currency, amount)) {
+            return {
+                allowed: false,
+                reason: "Insufficient available balance",
+            };
+        }
+        return { allowed: true };
+    }
+    async rebalance(marketMakerId, targetRatio) {
+        try {
+            const tracker = this.getBalanceTracker(marketMakerId);
+            await tracker.rebalance(targetRatio);
+            await this.updatePoolInDatabase(marketMakerId);
+            await this.logPoolAction(marketMakerId, "REBALANCE", {
+                targetRatio,
+            });
+            return true;
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM_POOL", "Failed to rebalance pool", error);
+            return false;
+        }
+    }
+    async updateAllBalances() {
+        for (const [marketMakerId, tracker] of this.balanceTrackers) {
+            try {
+                await tracker.syncFromDatabase();
+                await this.pnlCalculator.calculatePnL(marketMakerId, tracker);
+            }
+            catch (error) {
+            }
+        }
+    }
+    async getPnL(marketMakerId) {
+        return this.pnlCalculator.getPnL(marketMakerId);
+    }
+    async recordTradePnL(marketMakerId, pnl, isRealized) {
+        this.pnlCalculator.recordPnL(marketMakerId, pnl, isRealized);
+    }
+    async getAllPoolStats() {
+        const stats = new Map();
+        for (const [marketMakerId, tracker] of this.balanceTrackers) {
+            stats.set(marketMakerId, {
+                balance: await tracker.getBalance(),
+                pnl: await this.getPnL(marketMakerId),
+            });
+        }
+        return stats;
+    }
+    async updatePoolInDatabase(marketMakerId) {
+        try {
+            const tracker = this.getBalanceTracker(marketMakerId);
+            const balance = await tracker.getBalance();
+            await db_1.models.aiMarketMakerPool.update({
+                baseCurrencyBalance: balance.baseCurrency,
+                quoteCurrencyBalance: balance.quoteCurrency,
+                totalValueLocked: balance.totalValueLocked,
+            }, { where: { marketMakerId } });
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM_POOL", "Failed to update pool in database", error);
+        }
+    }
+    async logPoolAction(marketMakerId, action, details) {
+        try {
+            const tracker = this.getBalanceTracker(marketMakerId);
+            const balance = await tracker.getBalance();
+            await db_1.models.aiMarketMakerHistory.create({
+                marketMakerId,
+                action,
+                details,
+                priceAtAction: 0,
+                poolValueAtAction: balance.totalValueLocked,
+            });
+        }
+        catch (error) {
+        }
+    }
+}
+exports.PoolManager = PoolManager;
+exports.default = PoolManager;

@@ -339,8 +339,6 @@ function WithdrawClientContent() {
 
   // Render success step after a successful withdrawal.
   function renderSuccessStep() {
-  const tCommon = useTranslations("common");
-  const tExt = useTranslations("ext");
     if (!selectedCurrency) return null;
     return (
       <>
@@ -451,8 +449,6 @@ function WithdrawClientContent() {
 
   // Render step content based on the current step.
   function renderStepContent() {
-  const tCommon = useTranslations("common");
-  const tExt = useTranslations("ext");
     if (withdraw) {
       return renderSuccessStep();
     }
@@ -667,8 +663,6 @@ function WithdrawClientContent() {
   // Render "Enter Amount" step – includes extra input fields (uncontrolled) for wallet address (non-FIAT)
   // or bank details (FIAT). Consider storing these values in state if you need them for your API.
   function renderAmountStep() {
-  const tCommon = useTranslations("common");
-  const tExt = useTranslations("ext");
     if (!selectedCurrency) return null;
     return (
       <>
@@ -768,8 +762,6 @@ function WithdrawClientContent() {
 
   // Render confirmation step where the user reviews all withdrawal details.
   function renderConfirmStep() {
-  const tCommon = useTranslations("common");
-  const tExt = useTranslations("ext");
     if (!selectedCurrency) return null;
     return (
       <>

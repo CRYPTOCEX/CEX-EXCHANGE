@@ -93,7 +93,7 @@ async function getBestPriceFromOrderBook(symbol, side) {
     }
 }
 exports.default = async (data) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     const { body, user, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
@@ -247,7 +247,7 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating order cost and fees");
         const feeCalculated = (amount * effectivePrice * feeRate) / 100;
         const fee = parseFloat(feeCalculated.toFixed(precision));
-        const costCalculated = side.toUpperCase() === "BUY" ? amount * effectivePrice + fee : amount;
+        const costCalculated = side.toUpperCase() === "BUY" ? amount * effectivePrice : amount;
         const cost = parseFloat(costCalculated.toFixed(precision));
         if (side.toUpperCase() === "BUY" && (isNaN(cost) || cost <= 0)) {
             throw (0, error_1.createError)({
@@ -274,7 +274,7 @@ exports.default = async (data) => {
         ]);
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying wallet balance");
         if (side.toUpperCase() === "SELL") {
-            const spendableBalance = parseFloat(currencyWallet.balance.toString()) - (parseFloat(((_u = currencyWallet.inOrder) === null || _u === void 0 ? void 0 : _u.toString()) || "0"));
+            const spendableBalance = parseFloat(currencyWallet.balance.toString());
             if (!currencyWallet || spendableBalance < amount) {
                 ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient ${currency} balance`);
                 throw (0, error_1.createError)({
@@ -284,7 +284,7 @@ exports.default = async (data) => {
             }
         }
         else {
-            const spendableBalance = parseFloat(pairWallet.balance.toString()) - (parseFloat(((_v = pairWallet.inOrder) === null || _v === void 0 ? void 0 : _v.toString()) || "0"));
+            const spendableBalance = parseFloat(pairWallet.balance.toString());
             if (!pairWallet || spendableBalance < cost) {
                 ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient ${pair} balance`);
                 throw (0, error_1.createError)({

@@ -10,6 +10,10 @@ class TronDeposits {
         this.wallet = options.wallet;
         this.chain = options.chain;
         this.address = options.address;
+        this.currency = options.currency || "TRX";
+        this.contractType = options.contractType || "NATIVE";
+        this.contract = options.contract;
+        this.decimals = options.decimals || 6;
     }
     async watchDeposits() {
         if (!this.active) {
@@ -21,12 +25,17 @@ class TronDeposits {
             throw (0, error_1.createError)({ statusCode: 503, message: "Tron service not available" });
         }
         const tronService = await TronService.getInstance();
-        await tronService.monitorTronDeposits(this.wallet, this.address);
+        if (this.contractType !== "NATIVE" && this.contract) {
+            await tronService.monitorTrc20Deposits(this.wallet, this.address, this.contract, this.currency, this.decimals);
+        }
+        else {
+            await tronService.monitorTronDeposits(this.wallet, this.address);
+        }
     }
     stopPolling() {
-        console_1.logger.info("TRON_DEPOSIT", `Stopping TRON deposit monitoring for ${this.chain}`);
+        console_1.logger.info("TRON_DEPOSIT", `Stopping TRON deposit monitoring for ${this.chain} (${this.currency})`);
         this.active = false;
-        console_1.logger.success("TRON_DEPOSIT", `TRON deposit monitoring stopped for ${this.chain}`);
+        console_1.logger.success("TRON_DEPOSIT", `TRON deposit monitoring stopped for ${this.chain} (${this.currency})`);
     }
 }
 exports.TronDeposits = TronDeposits;

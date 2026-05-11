@@ -66,7 +66,7 @@ exports.default = async (data) => {
             where: {
                 offeringId: id,
                 status: {
-                    [sequelize_1.Op.in]: ["PENDING", "VERIFICATION"],
+                    [sequelize_1.Op.in]: ["PENDING", "VERIFICATION", "RELEASED"],
                 },
             },
             transaction,
@@ -83,6 +83,12 @@ exports.default = async (data) => {
                 message: "Cannot delete successful offerings. They are kept for historical records.",
             });
         }
+        if (offering.status === "ACTIVE") {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Cannot delete active offerings. Cancel the offering first.",
+            });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting associated records");
         await db_1.models.icoTokenOfferingPhase.destroy({
             where: { offeringId: id },
@@ -97,10 +103,6 @@ exports.default = async (data) => {
             transaction,
         });
         await db_1.models.icoTokenOfferingUpdate.destroy({
-            where: { offeringId: id },
-            transaction,
-        });
-        await db_1.models.icoAdminActivity.destroy({
             where: { offeringId: id },
             transaction,
         });

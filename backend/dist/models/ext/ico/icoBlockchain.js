@@ -41,6 +41,11 @@ class icoBlockchain extends sequelize_1.Model {
                     unique: true,
                     fields: [{ name: "id" }],
                 },
+                {
+                    name: "icoBlockchainNameKey",
+                    unique: true,
+                    fields: [{ name: "name" }],
+                },
             ],
         });
     }

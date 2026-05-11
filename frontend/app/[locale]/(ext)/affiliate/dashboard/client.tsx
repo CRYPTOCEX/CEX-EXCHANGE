@@ -719,7 +719,7 @@ export default function AffiliateDashboardClient() {
                     stats.totalReferrals,
                     dashboardData.previousStats.totalReferrals
                   )
-                : stats.weeklyGrowth
+                : stats.periodGrowth
             }
             changeLabel="vs last period"
             isPercent
@@ -1156,7 +1156,7 @@ export default function AffiliateDashboardClient() {
               {t("recent_referrals")}
             </CardTitle>
               <Link
-                href="/affiliate/referrals"
+                href="/affiliate/referral"
                 className="flex items-center gap-1 text-xs md:text-sm"
               >
               <Button variant="outline" size="sm">
@@ -1229,7 +1229,7 @@ export default function AffiliateDashboardClient() {
               {t("available_affiliate_programs")}
             </CardTitle>
               <Link
-                href="/affiliate/conditions"
+                href="/affiliate/condition"
                 className="flex items-center gap-1 text-xs md:text-sm"
               >
               <Button variant="outline" size="sm">

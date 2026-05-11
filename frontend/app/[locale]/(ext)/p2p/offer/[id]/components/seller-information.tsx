@@ -15,15 +15,24 @@ import { useTranslations } from "next-intl";
 interface SellerInformationProps {
   seller: any;
   currency?: string;
+  offerType?: "BUY" | "SELL"; // BUY offer = user is buyer, SELL offer = user is seller
 }
 
-export function SellerInformation({ seller, currency }: SellerInformationProps) {
+export function SellerInformation({ seller, currency, offerType }: SellerInformationProps) {
   const t = useTranslations("ext_p2p");
   const tCommon = useTranslations("common");
   const tExtAdmin = useTranslations("ext_admin");
   if (!seller) {
     return null;
   }
+
+  // Determine the correct role label based on offer type
+  // BUY offer: the offer creator wants to BUY, so they are the Buyer
+  // SELL offer: the offer creator wants to SELL, so they are the Seller
+  const isBuyer = offerType === "BUY";
+  const roleLabel = isBuyer ? t("buyer_information") : t("seller_information");
+  const ratingsLabel = isBuyer ? t("buyer_ratings") : t("seller_ratings");
+  const verifiedLabel = isBuyer ? t("verified_buyer") : t("verified_seller");
 
   // Get display name from user data
   const displayName =
@@ -72,7 +81,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl">{t("seller_information")}</CardTitle>
+        <CardTitle className="text-xl">{roleLabel}</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex flex-col md:flex-row md:items-start">
@@ -96,7 +105,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
                         <BadgeCheck className="h-5 w-5 ml-1 text-primary" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{t("verified_seller")}</p>
+                        <p>{verifiedLabel}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -154,7 +163,7 @@ export function SellerInformation({ seller, currency }: SellerInformationProps) 
         <Separator className="my-6" />
 
         <div className="space-y-4">
-          <h3 className="text-sm font-medium">{t("seller_ratings")}</h3>
+          <h3 className="text-sm font-medium">{ratingsLabel}</h3>
           <div className="space-y-3">
             <div className="flex items-center">
               <span className="text-sm w-32">{t("communication")}</span>

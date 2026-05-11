@@ -3,7 +3,9 @@ import { $fetch } from "@/lib/api";
 
 interface FeedbackState {
   feedbacks: faqFeedbackAttributes[];
+  currentFaqFeedbacks: faqFeedbackAttributes[];
   isLoading: boolean;
+  isSubmitting: boolean;
   error: string | null;
   submitFeedback: (
     feedback: Omit<faqFeedbackAttributes, "id" | "createdAt">
@@ -14,7 +16,9 @@ interface FeedbackState {
 
 export const useFeedbackStore = create<FeedbackState>((set) => ({
   feedbacks: [],
+  currentFaqFeedbacks: [],
   isLoading: false,
+  isSubmitting: false,
   error: null,
 
   fetchFeedback: async () => {
@@ -45,7 +49,7 @@ export const useFeedbackStore = create<FeedbackState>((set) => ({
         silentSuccess: true,
       });
       if (data && !error) {
-        set({ feedbacks: data, isLoading: false });
+        set({ currentFaqFeedbacks: data, isLoading: false });
       } else {
         throw new Error(error || "Failed to fetch feedback");
       }
@@ -58,7 +62,7 @@ export const useFeedbackStore = create<FeedbackState>((set) => ({
   },
 
   submitFeedback: async (feedback) => {
-    set({ isLoading: true, error: null });
+    set({ isSubmitting: true, error: null });
     try {
       const { data, error } = await $fetch<faqFeedbackAttributes>({
         url: `/api/admin/faq/${feedback.faqId}/feedback`,
@@ -72,14 +76,14 @@ export const useFeedbackStore = create<FeedbackState>((set) => ({
       if (data && !error) {
         set((state) => ({
           feedbacks: [...state.feedbacks, data],
-          isLoading: false,
+          isSubmitting: false,
         }));
       } else {
         throw new Error(error || "Failed to submit feedback");
       }
     } catch (err) {
       set({
-        isLoading: false,
+        isSubmitting: false,
         error: err instanceof Error ? err.message : "An unknown error occurred",
       });
     }

@@ -95,7 +95,22 @@ export const useForexStore = create<ForexState>((set, get) => ({
   },
 
   selectDuration: (durationId) => {
-    const duration = get().durations.find((d) => d.id === durationId) || null;
+    let duration = get().durations.find((d) => d.id === durationId) || null;
+    if (!duration) {
+      const selectedPlan = get().selectedPlan as any;
+      if (selectedPlan?.durations) {
+        duration = selectedPlan.durations.find((d: any) => d.id === durationId) || null;
+      }
+    }
+    if (!duration) {
+      for (const plan of get().plans) {
+        const found = plan.durations?.find((d) => d.id === durationId);
+        if (found) {
+          duration = found;
+          break;
+        }
+      }
+    }
     set({ selectedDuration: duration });
   },
 
@@ -205,6 +220,7 @@ export const useForexStore = create<ForexState>((set, get) => ({
         planId: selectedPlan.id,
         durationId: selectedDuration.id,
         amount: investmentAmount,
+        acceptTerms: true,
       },
       successMessage: "Investment created successfully!",
     });

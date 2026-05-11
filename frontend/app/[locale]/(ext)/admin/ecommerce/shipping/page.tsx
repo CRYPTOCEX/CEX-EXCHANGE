@@ -26,6 +26,7 @@ export default function EcommerceShippingPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("shipping_records")}
       description={t("manage_shipping_methods_and_rates")}
       itemTitle="Shipping"

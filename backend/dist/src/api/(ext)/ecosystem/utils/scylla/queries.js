@@ -724,9 +724,22 @@ async function cancelAndRefundOrder(userId, id, createdAt) {
     if (order.status !== "OPEN" || BigInt(order.remaining) === BigInt(0)) {
         return;
     }
-    const refundAmount = order.side === "BUY"
-        ? (0, blockchain_1.fromBigIntMultiply)(BigInt(order.remaining) + BigInt(order.fee), BigInt(order.price))
-        : (0, blockchain_1.fromBigInt)(BigInt(order.remaining) + BigInt(order.fee));
+    const totalAmount = BigInt(order.amount);
+    const remaining = BigInt(order.remaining);
+    const totalCost = BigInt(order.cost);
+    let refundAmount;
+    if (order.side === "BUY") {
+        if (remaining === totalAmount) {
+            refundAmount = (0, blockchain_1.fromBigInt)(totalCost);
+        }
+        else {
+            const remainingCost = (totalCost * remaining) / totalAmount;
+            refundAmount = (0, blockchain_1.fromBigInt)(remainingCost);
+        }
+    }
+    else {
+        refundAmount = (0, blockchain_1.fromBigInt)(remaining);
+    }
     const walletCurrency = order.side === "BUY"
         ? order.symbol.split("/")[1]
         : order.symbol.split("/")[0];
@@ -848,7 +861,15 @@ async function getRecentTrades(symbol, limit = 50) {
         catch (tradesTableError) {
             console_1.logger.debug("SCYLLA", `Trades table query failed (may not exist yet): ${tradesTableError.message}`);
         }
-        return sortedTrades.slice(0, limit);
+        const seen = new Set();
+        const deduped = sortedTrades.filter((trade) => {
+            const key = `${trade.timestamp}_${trade.price}_${trade.amount}_${trade.side}`;
+            if (seen.has(key))
+                return false;
+            seen.add(key);
+            return true;
+        });
+        return deduped.slice(0, limit);
     }
     catch (error) {
         console_1.logger.error("SCYLLA", `Failed to fetch recent trades for ${symbol}: ${error.message}`, error);

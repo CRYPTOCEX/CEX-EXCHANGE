@@ -60,12 +60,16 @@ exports.default = async (data) => {
     const users = await db_1.models.user.findAll({
         include: [
             { model: db_1.models.role, as: "role" },
-            { model: db_1.models.kycApplication, as: "kyc" },
+            { model: db_1.models.kycApplication, as: "kycApplications" },
         ],
     });
     const userData = users.map((user) => {
-        var _a, _b, _c, _d;
-        return ({
+        var _a, _b, _c;
+        const kycApps = user.kycApplications || [];
+        const approvedKyc = kycApps.find((app) => app.status === "APPROVED");
+        const latestKyc = kycApps.length > 0 ? kycApps[kycApps.length - 1] : null;
+        const effectiveKyc = approvedKyc || latestKyc;
+        return {
             ID: user.id,
             FirstName: user.firstName || "N/A",
             LastName: user.lastName || "N/A",
@@ -74,10 +78,10 @@ exports.default = async (data) => {
             Phone: user.phone || "N/A",
             Role: ((_a = user.role) === null || _a === void 0 ? void 0 : _a.name) || "N/A",
             Status: user.status,
-            KYC_Status: ((_b = user.kyc) === null || _b === void 0 ? void 0 : _b.status) || "N/A",
-            CreatedAt: ((_c = user.createdAt) === null || _c === void 0 ? void 0 : _c.toISOString()) || "N/A",
-            LastLogin: ((_d = user.lastLogin) === null || _d === void 0 ? void 0 : _d.toISOString()) || "N/A",
-        });
+            KYC_Status: (effectiveKyc === null || effectiveKyc === void 0 ? void 0 : effectiveKyc.status) || "N/A",
+            CreatedAt: ((_b = user.createdAt) === null || _b === void 0 ? void 0 : _b.toISOString()) || "N/A",
+            LastLogin: ((_c = user.lastLogin) === null || _c === void 0 ? void 0 : _c.toISOString()) || "N/A",
+        };
     });
     const maskedData = (0, demoMask_1.applyDemoMask)(userData, ["Email", "Phone"]);
     const worksheet = XLSX.utils.json_to_sheet(maskedData);

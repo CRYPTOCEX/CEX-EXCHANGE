@@ -19,7 +19,7 @@ const validator_1 = __importDefault(require("validator"));
 const error_1 = require("@b/utils/error");
 const TRADE_STATUS_TRANSITIONS = {
     PENDING: ["PAYMENT_SENT", "CANCELLED", "EXPIRED"],
-    PAYMENT_SENT: ["COMPLETED", "DISPUTED", "CANCELLED"],
+    PAYMENT_SENT: ["COMPLETED", "DISPUTED"],
     COMPLETED: ["DISPUTED"],
     DISPUTED: ["COMPLETED", "CANCELLED"],
     CANCELLED: [],
@@ -260,10 +260,16 @@ function validatePriceConfig(data, marketPrice) {
             message: "Price model must be FIXED or MARGIN"
         });
     }
-    if (typeof data.value !== "number" || data.value <= 0) {
+    if (typeof data.value !== "number") {
         throw (0, error_1.createError)({
             statusCode: 400,
-            message: "Price value must be a positive number"
+            message: "Price value must be a number"
+        });
+    }
+    if (data.model === "FIXED" && data.value <= 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Fixed price must be a positive number"
         });
     }
     let finalPrice;

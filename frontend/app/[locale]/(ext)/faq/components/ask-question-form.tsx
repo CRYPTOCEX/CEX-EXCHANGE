@@ -90,7 +90,6 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
           "Thank you for your question. We'll review it and may add it to our FAQ section.",
       });
     } catch (error) {
-      console.error("Error submitting question:", error);
       toast({
         title: "Error",
         description:
@@ -119,7 +118,7 @@ export function AskQuestionForm({ onCancel }: AskQuestionFormProps) {
             {t("when_we_have_an_answer_for_you")}.
           </p>
         )}
-        <Button className="mt-4" onClick={onCancel}>
+        <Button className="mt-4" onClick={() => onCancel?.()}>
           {t("ask_another_question")}
         </Button>
       </div>

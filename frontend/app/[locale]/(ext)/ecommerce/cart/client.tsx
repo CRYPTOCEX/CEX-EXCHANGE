@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useEcommerceStore } from "@/store/ecommerce/ecommerce";
 import { useConfigStore } from "@/store/config";
 import { getBooleanSetting } from "@/utils/formatters";
+import { $fetch } from "@/lib/api";
 import {
   Trash2,
   ShoppingBag,
@@ -116,18 +117,22 @@ export default function CartClient() {
     if (!couponCode.trim()) return;
     setIsApplyingCoupon(true);
     try {
-      const response = await fetch("/api/ecommerce/discount/validate", {
+      const { data, error } = await $fetch<DiscountData>({
+        url: "/api/ecommerce/discount/validate",
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           code: couponCode,
-        }),
+        },
+        silent: true,
       });
-      const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.error || "Failed to apply coupon");
+      if (error || !data) {
+        toast.error(error || "Failed to apply coupon");
+        setDiscount(null);
+        return;
+      }
+      // Backend returns { isValid: false, error } in the body on invalid codes
+      if ((data as any).isValid === false) {
+        toast.error((data as any).error || "Invalid coupon code");
         setDiscount(null);
         return;
       }

@@ -84,10 +84,7 @@ export function RoadmapStats({
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">{t("progress")}</span>
               <span className="font-medium">
-                {completedItems}
-                {t("of")}
-                {totalItems}
-                {tExt("items")}
+                {completedItems} {t("of")} {totalItems} {tExt("items")}
               </span>
             </div>
             <div className="relative h-4 w-full overflow-hidden rounded-full bg-muted">

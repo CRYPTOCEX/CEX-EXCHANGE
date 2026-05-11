@@ -67,6 +67,7 @@ const chains_1 = require("./chains");
 const custodialWallet_1 = require("./custodialWallet");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const uuid_1 = require("uuid");
 async function checkBlockchainExtensions() {
     const solanaService = await (0, safe_imports_1.getSolanaService)();
     const tronService = await (0, safe_imports_1.getTronService)();
@@ -138,7 +139,7 @@ async function getWalletByUserIdAndCurrency(userId, currency, type = "ECO", tran
             currency,
             type,
         },
-        attributes: ["id", "type", "currency", "balance", "inOrder", "address"],
+        attributes: ["id", "userId", "type", "currency", "balance", "inOrder", "address"],
         ...(transaction && { transaction }),
         ...(transaction && lock && { lock: transaction.LOCK.UPDATE }),
     });
@@ -196,7 +197,7 @@ async function getWalletByUserIdAndCurrency(userId, currency, type = "ECO", tran
         }
         const updatedWallet = await db_1.models.wallet.findOne({
             where: { id: wallet.id },
-            attributes: ["id", "type", "currency", "balance", "inOrder", "address"],
+            attributes: ["id", "userId", "type", "currency", "balance", "inOrder", "address"],
         });
         if (!updatedWallet) {
             throw (0, error_1.createError)(500, "Failed to update wallet with new addresses");
@@ -666,12 +667,14 @@ async function checkEcosystemAvailableFunds(userWallet, walletData, totalAmount)
     }
 }
 const getTotalAvailable = async (userWallet, walletData) => {
+    const network = process.env[`${walletData.chain}_NETWORK`] || "mainnet";
     const pvEntry = await db_1.models.ecosystemPrivateLedger.findOne({
         where: {
             walletId: userWallet.id,
             index: walletData.index,
             currency: userWallet.currency,
             chain: walletData.chain,
+            network,
         },
     });
     return userWallet.balance + (pvEntry ? pvEntry.offchainDifference : 0);
@@ -954,16 +957,36 @@ const executePermit = async (tokenContract, tokenContractAddress, gasPayer, toke
 exports.executePermit = executePermit;
 const executeNativeWithdrawal = async (payer, toAddress, amount, provider) => {
     try {
+        console_1.logger.info("EVM_WITHDRAW", `Checking balance for ${payer.address}...`);
         const balance = await provider.getBalance(payer.address);
-        if (balance < amount) {
-            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds for withdrawal" });
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || feeData.maxFeePerGas || BigInt(0);
+        const gasLimit = BigInt(21000);
+        const gasCost = gasPrice * gasLimit;
+        console_1.logger.info("EVM_WITHDRAW", `Balance: ${balance}, required: ${amount}, gasCost: ${gasCost}, gasPrice: ${gasPrice}`);
+        if (balance < amount + gasCost) {
+            const adjustedAmount = balance - gasCost;
+            if (adjustedAmount <= BigInt(0)) {
+                throw (0, error_1.createError)({ statusCode: 400, message: `Insufficient funds: balance ${balance} cannot cover gas cost ${gasCost}` });
+            }
+            console_1.logger.warn("EVM_WITHDRAW", `Adjusting withdrawal amount from ${amount} to ${adjustedAmount} to cover gas (${gasCost})`);
+            amount = adjustedAmount;
         }
         const tx = {
             to: toAddress,
             value: amount,
+            gasLimit: gasLimit,
         };
+        if (feeData.gasPrice) {
+            tx.gasPrice = feeData.gasPrice;
+            tx.type = 0;
+        }
+        console_1.logger.info("EVM_WITHDRAW", `Sending transaction to ${toAddress} with value=${amount}, gasLimit=${gasLimit}, gasPrice=${tx.gasPrice || 'auto'}...`);
         const response = await payer.sendTransaction(tx);
-        await response.wait(2);
+        console_1.logger.info("EVM_WITHDRAW", `Transaction broadcast: ${response.hash}, waiting for 2 confirmations...`);
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error(`WITHDRAWAL_STATUS_UNKNOWN: Transaction ${response.hash} broadcast but confirmation timed out after 300s. Manual review required.`)), 300000));
+        await Promise.race([response.wait(2), timeoutPromise]);
+        console_1.logger.success("EVM_WITHDRAW", `Transaction ${response.hash} confirmed`);
         return response;
     }
     catch (error) {
@@ -1008,16 +1031,25 @@ async function findAlternativeWalletData(walletData, amount) {
         const result = await sequelize.query(`
       SELECT wd.*,
              COALESCE(epl.offchainDifference, 0) as offchainDiff,
-             (wd.balance - COALESCE(epl.offchainDifference, 0)) as availableBalance
+             COALESCE(w.balance, 0) as walletBalance,
+             GREATEST(
+               wd.balance - COALESCE(epl.offchainDifference, 0),
+               COALESCE(w.balance, 0) - COALESCE(epl.offchainDifference, 0)
+             ) as availableBalance
       FROM wallet_data wd
       LEFT JOIN ecosystem_private_ledger epl
         ON wd.walletId = epl.walletId
         AND wd.chain = epl.chain
         AND wd.currency = epl.currency
         AND epl.network = :network
+      LEFT JOIN wallet w
+        ON wd.walletId = w.id
       WHERE wd.currency = :currency
         AND wd.chain = :chain
-        AND (wd.balance - COALESCE(epl.offchainDifference, 0)) >= :amount
+        AND GREATEST(
+              wd.balance - COALESCE(epl.offchainDifference, 0),
+              COALESCE(w.balance, 0) - COALESCE(epl.offchainDifference, 0)
+            ) >= :amount
       ORDER BY availableBalance DESC
       LIMIT 1
     `, {
@@ -1036,7 +1068,7 @@ async function findAlternativeWalletData(walletData, amount) {
                 message: "No alternative wallet with sufficient available balance found"
             });
         }
-        console_1.logger.info("WALLET", `Alternative wallet selected: walletId=${result[0].walletId}, balance=${result[0].balance}, offchainDiff=${result[0].offchainDiff}, available=${result[0].availableBalance}`);
+        console_1.logger.info("WALLET", `Alternative wallet selected: walletId=${result[0].walletId}, walletDataBalance=${result[0].balance}, walletBalance=${result[0].walletBalance}, offchainDiff=${result[0].offchainDiff}, available=${result[0].availableBalance}`);
         return result[0];
     }
     catch (error) {
@@ -1173,35 +1205,6 @@ const handleEcosystemDeposit = async (trx) => {
         const updatedWallet = await db_1.models.wallet.findOne({
             where: { id: wallet.id },
         });
-        console_1.logger.debug("DEPOSIT", `Updating wallet_data for walletId: ${wallet.id}, chain: ${trx.chain}`);
-        const walletData = await db_1.models.walletData.findOne({
-            where: {
-                walletId: wallet.id,
-                chain: trx.chain,
-            },
-        });
-        if (walletData) {
-            console_1.logger.debug("DEPOSIT", `Current wallet_data balance: ${walletData.balance}`);
-            console_1.logger.debug("DEPOSIT", `Deposit amount: ${trx.amount}`);
-            const currentBalance = parseFloat(String(walletData.balance)) || 0;
-            const depositAmount = parseFloat(trx.amount);
-            console_1.logger.debug("DEPOSIT", `Parsed current balance: ${currentBalance}`);
-            console_1.logger.debug("DEPOSIT", `Parsed deposit amount: ${depositAmount}`);
-            const newBalance = updateBalancePrecision(currentBalance + depositAmount, trx.chain);
-            console_1.logger.debug("DEPOSIT", `New wallet_data balance: ${newBalance}`);
-            await db_1.models.walletData.update({
-                balance: newBalance,
-            }, {
-                where: {
-                    walletId: wallet.id,
-                    chain: trx.chain,
-                },
-            });
-            console_1.logger.debug("DEPOSIT", `Successfully updated wallet_data balance`);
-        }
-        else {
-            console_1.logger.error("DEPOSIT", `No wallet_data found for walletId: ${wallet.id}, chain: ${trx.chain}`);
-        }
         return {
             transactionId: result.transactionId,
             wallet: updatedWallet,
@@ -1214,7 +1217,7 @@ const handleEcosystemDeposit = async (trx) => {
 };
 exports.handleEcosystemDeposit = handleEcosystemDeposit;
 const satoshiToBTC = (value) => value / 1e8;
-async function updatePrivateLedger(wallet_id, index, currency, chain, difference) {
+async function updatePrivateLedger(wallet_id, index, currency, chain, difference, transaction) {
     try {
         return await wallet_1.ledgerService.updateLedger({
             walletId: wallet_id,
@@ -1222,6 +1225,7 @@ async function updatePrivateLedger(wallet_id, index, currency, chain, difference
             currency,
             chain: chain,
             amount: difference,
+            transaction,
         });
     }
     catch (error) {
@@ -1254,9 +1258,10 @@ const updateBalancePrecision = (balance, chain) => {
     }
     return balance;
 };
-const decrementWalletBalance = async (userWallet, chain, amount, dbTransaction) => {
+const decrementWalletBalance = async (userWallet, chain, amount, dbTransaction, transactionId) => {
     try {
-        const idempotencyKey = `eco_debit_${userWallet.id}_${chain}_${amount}`;
+        const nonce = transactionId || (0, uuid_1.v4)();
+        const idempotencyKey = `eco_debit_${userWallet.id}_${chain}_${amount}_${nonce}`;
         const result = await wallet_1.walletService.ecoDebit({
             idempotencyKey,
             userId: userWallet.userId,
@@ -1276,7 +1281,8 @@ const decrementWalletBalance = async (userWallet, chain, amount, dbTransaction) 
     }
 };
 exports.decrementWalletBalance = decrementWalletBalance;
-async function createPendingTransaction(userId, walletId, currency, chain, amount, toAddress, withdrawalFee, token, dbTransaction) {
+async function createPendingTransaction(userId, walletId, currency, chain, amount, toAddress, withdrawalFee, token, dbTransaction, feeBreakdown) {
+    var _a, _b, _c;
     try {
         const createOptions = {
             userId: userId,
@@ -1292,6 +1298,10 @@ async function createPendingTransaction(userId, walletId, currency, chain, amoun
                 contractType: token.contractType,
                 contract: token.contract,
                 decimals: token.decimals,
+                withdrawalFee: withdrawalFee,
+                activationFee: (_a = feeBreakdown === null || feeBreakdown === void 0 ? void 0 : feeBreakdown.activationFee) !== null && _a !== void 0 ? _a : 0,
+                estimatedFee: (_b = feeBreakdown === null || feeBreakdown === void 0 ? void 0 : feeBreakdown.estimatedFee) !== null && _b !== void 0 ? _b : 0,
+                totalAmount: (_c = feeBreakdown === null || feeBreakdown === void 0 ? void 0 : feeBreakdown.totalAmount) !== null && _c !== void 0 ? _c : amount + withdrawalFee,
             }),
         };
         if (dbTransaction) {
@@ -1319,7 +1329,13 @@ const refundUser = async (transaction) => {
             throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
         }
         const metadata = JSON.parse(transaction.metadata);
-        const amount = transaction.amount + transaction.fee;
+        const storedTotal = Number(metadata === null || metadata === void 0 ? void 0 : metadata.totalAmount);
+        const amount = Number.isFinite(storedTotal) && storedTotal > 0
+            ? storedTotal
+            : transaction.amount
+                + transaction.fee
+                + (Number(metadata === null || metadata === void 0 ? void 0 : metadata.activationFee) || 0)
+                + (Number(metadata === null || metadata === void 0 ? void 0 : metadata.estimatedFee) || 0);
         const chain = metadata === null || metadata === void 0 ? void 0 : metadata.chain;
         const idempotencyKey = `eco_refund_${transaction.id}`;
         await wallet_1.walletService.ecoRefund({
@@ -1344,24 +1360,51 @@ const refundUser = async (transaction) => {
     }
 };
 exports.refundUser = refundUser;
-const updateAlternativeWallet = async (currency, chain, amount) => {
-    try {
-        const alternativeWalletData = await db_1.models.walletData.findOne({
+const updateAlternativeWallet = async (currency, chain, amount, transaction) => {
+    const run = async (t) => {
+        const altBootstrap = await db_1.models.walletData.findOne({
             where: {
                 currency: currency,
                 chain: chain,
             },
+            transaction: t,
+        });
+        if (!altBootstrap) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Alternative wallet not found" });
+        }
+        const alternativeWalletData = await db_1.models.walletData.findOne({
+            where: { id: altBootstrap.id },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
         });
         if (!alternativeWalletData) {
             throw (0, error_1.createError)({ statusCode: 404, message: "Alternative wallet not found" });
         }
-        const newBalance = updateBalancePrecision(parseFloat(String(alternativeWalletData.balance)) - amount, chain);
+        const rawNewBalance = parseFloat(String(alternativeWalletData.balance)) - amount;
+        if (rawNewBalance < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Alternative wallet balance would go negative (have=${alternativeWalletData.balance}, debit=${amount})`,
+            });
+        }
+        const newBalance = updateBalancePrecision(rawNewBalance, chain);
         await db_1.models.walletData.update({
             balance: newBalance,
         }, {
             where: { id: alternativeWalletData.id },
+            transaction: t,
         });
-        await updatePrivateLedger(alternativeWalletData.walletId, alternativeWalletData.index, currency, chain, -amount);
+        await updatePrivateLedger(alternativeWalletData.walletId, alternativeWalletData.index, currency, chain, -amount, t);
+    };
+    try {
+        if (transaction) {
+            await run(transaction);
+        }
+        else {
+            await db_1.sequelize.transaction(async (t) => {
+                await run(t);
+            });
+        }
     }
     catch (error) {
         console_1.logger.error("WALLET", "Failed to update alternative wallet", error);
@@ -1370,15 +1413,26 @@ const updateAlternativeWallet = async (currency, chain, amount) => {
 };
 exports.updateAlternativeWallet = updateAlternativeWallet;
 async function updateWalletBalance(wallet, balanceChange, type, idempotencyKey, transaction) {
+    var _a;
     try {
         if (!wallet)
             throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
         if (!idempotencyKey)
             throw (0, error_1.createError)({ statusCode: 400, message: "idempotencyKey is required for updateWalletBalance" });
+        let userId = wallet.userId;
+        if (!userId) {
+            const freshWallet = await db_1.models.wallet.findByPk(wallet.id, {
+                attributes: ["userId"],
+            });
+            if (!freshWallet || !freshWallet.userId) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found or has no userId" });
+            }
+            userId = freshWallet.userId;
+        }
         if (type === "subtract") {
             await wallet_1.walletService.hold({
                 idempotencyKey,
-                userId: wallet.userId,
+                userId,
                 walletId: wallet.id,
                 walletType: wallet.type || "ECO",
                 currency: wallet.currency,
@@ -1388,16 +1442,34 @@ async function updateWalletBalance(wallet, balanceChange, type, idempotencyKey, 
             });
         }
         else {
-            await wallet_1.walletService.release({
-                idempotencyKey,
-                userId: wallet.userId,
-                walletId: wallet.id,
-                walletType: wallet.type || "ECO",
-                currency: wallet.currency,
-                amount: balanceChange,
-                reason: "Order cancelled/filled",
-                transaction,
-            });
+            const heldAvailable = Number((_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+            const heldPortion = Math.max(0, Math.min(balanceChange, heldAvailable));
+            const creditPortion = balanceChange - heldPortion;
+            if (heldPortion > 0) {
+                await wallet_1.walletService.release({
+                    idempotencyKey: `${idempotencyKey}_release`,
+                    userId,
+                    walletId: wallet.id,
+                    walletType: wallet.type || "ECO",
+                    currency: wallet.currency,
+                    amount: heldPortion,
+                    reason: "Order cancelled/filled",
+                    transaction,
+                });
+            }
+            if (creditPortion > 0) {
+                await wallet_1.walletService.credit({
+                    idempotencyKey: `${idempotencyKey}_credit`,
+                    userId,
+                    walletId: wallet.id,
+                    walletType: wallet.type || "ECO",
+                    currency: wallet.currency,
+                    amount: creditPortion,
+                    operationType: "TRADE_CREDIT",
+                    description: "Order payout surplus (PnL beyond held margin)",
+                    transaction,
+                });
+            }
         }
     }
     catch (error) {
@@ -1405,40 +1477,53 @@ async function updateWalletBalance(wallet, balanceChange, type, idempotencyKey, 
         throw error;
     }
 }
-async function updateWalletForFill(wallet, balanceChange, inOrderChange, operation, idempotencyKey) {
+async function updateWalletForFill(wallet, balanceChange, inOrderChange, operation, idempotencyKey, transaction) {
     try {
         if (!wallet)
             throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
         if (!idempotencyKey)
             throw (0, error_1.createError)({ statusCode: 400, message: "idempotencyKey is required for updateWalletForFill" });
+        let userId = wallet.userId;
+        if (!userId) {
+            const freshWallet = await db_1.models.wallet.findByPk(wallet.id, {
+                attributes: ["userId"],
+                transaction,
+            });
+            if (!freshWallet || !freshWallet.userId) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found or has no userId" });
+            }
+            userId = freshWallet.userId;
+        }
         if (balanceChange > 0) {
             await wallet_1.walletService.credit({
                 idempotencyKey: `${idempotencyKey}_credit`,
-                userId: wallet.userId,
+                userId,
                 walletId: wallet.id,
                 walletType: wallet.type || "ECO",
                 currency: wallet.currency,
                 amount: balanceChange,
                 operationType: "TRADE_CREDIT",
                 description: operation,
+                transaction,
             });
         }
         else if (balanceChange < 0) {
             await wallet_1.walletService.debit({
                 idempotencyKey: `${idempotencyKey}_debit`,
-                userId: wallet.userId,
+                userId,
                 walletId: wallet.id,
                 walletType: wallet.type || "ECO",
                 currency: wallet.currency,
                 amount: Math.abs(balanceChange),
                 operationType: "TRADE_DEBIT",
                 description: operation,
+                transaction,
             });
         }
         if (inOrderChange < 0) {
             await wallet_1.walletService.executeFromHold({
                 idempotencyKey: `${idempotencyKey}_execute`,
-                userId: wallet.userId,
+                userId,
                 walletId: wallet.id,
                 walletType: wallet.type || "ECO",
                 currency: wallet.currency,
@@ -1446,6 +1531,7 @@ async function updateWalletForFill(wallet, balanceChange, inOrderChange, operati
                 operationType: "RELEASE",
                 description: `Execute from hold: ${operation}`,
                 reason: operation,
+                transaction,
             });
         }
     }

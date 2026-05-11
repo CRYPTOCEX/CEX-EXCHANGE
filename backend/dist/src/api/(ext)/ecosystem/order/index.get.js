@@ -88,6 +88,13 @@ exports.default = async (data) => {
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     }
+    const safeParam = /^[a-zA-Z0-9._-]{1,20}$/;
+    if (currency && !safeParam.test(currency))
+        throw (0, error_1.createError)(400, "Invalid currency");
+    if (pair && !safeParam.test(pair))
+        throw (0, error_1.createError)(400, "Invalid pair");
+    if (type && !["OPEN", "CLOSED", "CANCELLED"].includes(type))
+        throw (0, error_1.createError)(400, "Invalid order type");
     if (!currency || !pair) {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching all user orders");
         const { getOrdersByUserId } = await Promise.resolve().then(() => __importStar(require("@b/api/(ext)/ecosystem/utils/scylla/queries")));

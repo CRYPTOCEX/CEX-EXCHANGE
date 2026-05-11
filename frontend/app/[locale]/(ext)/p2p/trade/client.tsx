@@ -10,6 +10,7 @@ import { ActiveTradesTab } from "./components/active-trades-tab";
 import { PendingTradesTab } from "./components/pending-trades-tab";
 import { CompletedTradesTab } from "./components/completed-trades-tab";
 import { DisputedTradesTab } from "./components/disputed-trades-tab";
+import { CancelledTradesTab } from "./components/cancelled-trades-tab";
 import { RecentActivity } from "./components/recent-activity";
 import { SafetyTips } from "./components/safety-tips";
 import { LoadingSkeleton } from "./components/loading-skeleton";
@@ -86,6 +87,7 @@ export default function TradeDashboardClient() {
     activeTrades,
     completedTrades,
     disputedTrades,
+    cancelledTrades,
     pendingTrades,
     availableCurrencies,
   } = tradeDashboardData || {
@@ -94,6 +96,7 @@ export default function TradeDashboardClient() {
     activeTrades: [],
     completedTrades: [],
     disputedTrades: [],
+    cancelledTrades: [],
     pendingTrades: [],
     availableCurrencies: [],
   };
@@ -177,6 +180,7 @@ export default function TradeDashboardClient() {
   const filteredActiveTrades = useMemo(() => filterTrades(activeTrades), [filterTrades, activeTrades]);
   const filteredCompletedTrades = useMemo(() => filterTrades(completedTrades), [filterTrades, completedTrades]);
   const filteredDisputedTrades = useMemo(() => filterTrades(disputedTrades), [filterTrades, disputedTrades]);
+  const filteredCancelledTrades = useMemo(() => filterTrades(cancelledTrades), [filterTrades, cancelledTrades]);
 
   // Loading state - after all hooks
   if (isLoadingTradeDashboardData && !tradeDashboardData) {
@@ -219,7 +223,7 @@ export default function TradeDashboardClient() {
           {/* Trades Section */}
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="active">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="active">
                   {t("active")}
                   <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
@@ -243,6 +247,14 @@ export default function TradeDashboardClient() {
                     </span>
                   )}
                 </TabsTrigger>
+                <TabsTrigger value="cancelled">
+                  {t("cancelled")}
+                  {filteredCancelledTrades && filteredCancelledTrades.length > 0 && (
+                    <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
+                      {filteredCancelledTrades.length}
+                    </span>
+                  )}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="active" className="mt-4 space-y-4">
@@ -262,6 +274,10 @@ export default function TradeDashboardClient() {
 
               <TabsContent value="disputed" className="mt-4 space-y-4">
                 <DisputedTradesTab disputedTrades={filteredDisputedTrades} />
+              </TabsContent>
+
+              <TabsContent value="cancelled" className="mt-4 space-y-4">
+                <CancelledTradesTab cancelledTrades={filteredCancelledTrades} />
               </TabsContent>
             </Tabs>
           </div>

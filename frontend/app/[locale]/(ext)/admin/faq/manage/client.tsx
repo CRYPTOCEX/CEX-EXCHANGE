@@ -69,6 +69,7 @@ export default function AdminFAQClient() {
     toggleFAQActive,
     reorderFAQs,
     bulkUpdateFAQs,
+    bulkDeleteFAQs,
     pageLinks,
     fetchPageLinks,
     setCurrentPageContext,
@@ -79,10 +80,6 @@ export default function AdminFAQClient() {
     disablePageFAQs,
   } = useFAQAdminStore();
 
-  const [editingFaq, setEditingFaq] = useState<Partial<faqAttributes> | null>(
-    null
-  );
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("manage");
   const [viewMode, setViewMode] = useState<"all" | "byPage">("byPage");
   const [selectedFaqs, setSelectedFaqs] = useState<string[]>([]);
@@ -311,21 +308,26 @@ export default function AdminFAQClient() {
     if (!bulkActionToConfirm || selectedFaqs.length === 0) return;
 
     try {
-      const data: Partial<faqAttributes> = {};
-      if (bulkActionToConfirm === "activate") {
-        data.status = true;
-      } else if (bulkActionToConfirm === "deactivate") {
-        data.status = false;
+      if (bulkActionToConfirm === "delete") {
+        await bulkDeleteFAQs(selectedFaqs);
+      } else {
+        const data: Partial<faqAttributes> = {};
+        if (bulkActionToConfirm === "activate") {
+          data.status = true;
+        } else if (bulkActionToConfirm === "deactivate") {
+          data.status = false;
+        }
+        await bulkUpdateFAQs(selectedFaqs, data);
       }
 
-      await bulkUpdateFAQs(selectedFaqs, data);
+      const count = selectedFaqs.length;
       setBulkActionDialogOpen(false);
       setBulkActionToConfirm(null);
       setSelectedFaqs([]);
 
       toast({
         title: "Bulk action completed",
-        description: `${selectedFaqs.length} FAQs have been updated.`,
+        description: `${count} FAQs have been ${bulkActionToConfirm === "delete" ? "deleted" : "updated"}.`,
       });
     } catch (err) {
       toast({
@@ -334,7 +336,7 @@ export default function AdminFAQClient() {
         variant: "destructive",
       });
     }
-  }, [bulkActionToConfirm, selectedFaqs, bulkUpdateFAQs, toast]);
+  }, [bulkActionToConfirm, selectedFaqs, bulkUpdateFAQs, bulkDeleteFAQs, toast]);
 
   /**
    * Searching
@@ -971,10 +973,6 @@ export default function AdminFAQClient() {
           onOpenChange={setPreviewDialogOpen}
           onEdit={() => {
             setPreviewDialogOpen(false);
-            if (previewFaq) {
-              setEditingFaq(previewFaq);
-              setEditDialogOpen(true);
-            }
           }}
         />
 

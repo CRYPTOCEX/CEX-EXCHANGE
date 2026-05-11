@@ -1,7 +1,7 @@
 "use client";
 import DataTable from "@/components/blocks/data-table";
 import { ArrowDownCircle } from "lucide-react";
-import { useAnalytics } from "../../../../(dashboard)/admin/finance/transaction/analytics";
+import { useAnalytics } from "./analytics";
 import { useColumns } from "../../../../(dashboard)/admin/finance/deposit/log/columns";
 import { useTranslations } from "next-intl";
 
@@ -31,6 +31,7 @@ export default function DepositLogPage() {
       editCondition={(item) => ["PENDING", "PROCESSING"].includes(item.status)}
       canDelete={true}
       canView={true}
+      isParanoid={true}
       title={t("forex_deposit_management")}
       itemTitle="Forex Deposit"
       columns={columns}

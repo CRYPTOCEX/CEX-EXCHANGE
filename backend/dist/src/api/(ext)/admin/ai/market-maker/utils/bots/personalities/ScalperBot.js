@@ -1,1 +1,73 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.ScalperBot=void 0;const BaseBot_1=require("../BaseBot");class ScalperBot extends BaseBot_1.BaseBot{constructor(e){super({...e,personality:"SCALPER",tradeFrequency:"HIGH"});this.minSpreadBps=5;this.maxSpreadBps=20;this.targetProfitBps=3}decideTrade(e){if(!this.canTrade())return{shouldTrade:!1,reason:"Cannot trade"};const r=Number(e.currentPrice)/1e18,t=Number(e.targetPrice)/1e18;if(e.spreadBps>this.maxSpreadBps)return{shouldTrade:!1,reason:`Spread too wide: ${e.spreadBps}bps`};if(e.volatility>3)return{shouldTrade:!1,reason:`Volatility too high: ${e.volatility}%`};const a=(t-r)/r>0?"BUY":"SELL",o=this.calculatePrice(e,a),s=this.calculateOrderSize(e);return Math.random()>.6?{shouldTrade:!1,reason:"Random skip for unpredictability"}:{shouldTrade:!0,side:a,price:o,amount:s,purpose:"SPREAD_MAINTENANCE",confidence:.7+.2*Math.random(),reason:`Scalping ${a} for micro profit`}}calculateOrderSize(e){const r=.5*this.config.avgOrderSize,t=this.addVariance(r,.4);return BigInt(Math.floor(1e18*t))}calculatePrice(e,r){const t=Number(e.currentPrice)/1e18,a=this.targetProfitBps/1e4*(.5+.5*Math.random());let o;o="BUY"===r?t*(1-a):t*(1+a);return BigInt(Math.floor(1e18*o))}getCooldownTime(){return 1e4}}exports.ScalperBot=ScalperBot;exports.default=ScalperBot;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ScalperBot = void 0;
+const BaseBot_1 = require("../BaseBot");
+class ScalperBot extends BaseBot_1.BaseBot {
+    constructor(config) {
+        super({
+            ...config,
+            personality: "SCALPER",
+            tradeFrequency: "HIGH",
+        });
+        this.minSpreadBps = 5;
+        this.maxSpreadBps = 20;
+        this.targetProfitBps = 3;
+    }
+    decideTrade(context) {
+        if (!this.canTrade()) {
+            return { shouldTrade: false, reason: "Cannot trade" };
+        }
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const targetPriceNum = Number(context.targetPrice) / 1e18;
+        if (context.spreadBps > this.maxSpreadBps) {
+            return {
+                shouldTrade: false,
+                reason: `Spread too wide: ${context.spreadBps}bps`,
+            };
+        }
+        if (context.volatility > 3) {
+            return {
+                shouldTrade: false,
+                reason: `Volatility too high: ${context.volatility}%`,
+            };
+        }
+        const priceDiff = (targetPriceNum - currentPriceNum) / currentPriceNum;
+        const side = priceDiff > 0 ? "BUY" : "SELL";
+        const price = this.calculatePrice(context, side);
+        const amount = this.calculateOrderSize(context);
+        if (Math.random() > 0.6) {
+            return { shouldTrade: false, reason: "Random skip for unpredictability" };
+        }
+        return {
+            shouldTrade: true,
+            side,
+            price,
+            amount,
+            purpose: "SPREAD_MAINTENANCE",
+            confidence: 0.7 + Math.random() * 0.2,
+            reason: `Scalping ${side} for micro profit`,
+        };
+    }
+    calculateOrderSize(context) {
+        const baseSize = this.config.avgOrderSize * 0.5;
+        const variedSize = this.addVariance(baseSize, 0.4);
+        return BigInt(Math.floor(variedSize * 1e18));
+    }
+    calculatePrice(context, side) {
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const offsetPercent = (this.targetProfitBps / 10000) * (0.5 + Math.random() * 0.5);
+        let price;
+        if (side === "BUY") {
+            price = currentPriceNum * (1 - offsetPercent);
+        }
+        else {
+            price = currentPriceNum * (1 + offsetPercent);
+        }
+        return BigInt(Math.floor(price * 1e18));
+    }
+    getCooldownTime() {
+        return 10000;
+    }
+}
+exports.ScalperBot = ScalperBot;
+exports.default = ScalperBot;

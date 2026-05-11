@@ -23,6 +23,7 @@ export default function EcosystemMasterWalletPage() {
       pageSize={12}
       canCreate
       canView
+      isParanoid={true}
       title={t("master_wallet_management")}
       description={t("configure_and_manage_platform_master_wallets")}
       itemTitle="Master Wallet"

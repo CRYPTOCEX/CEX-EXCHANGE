@@ -86,7 +86,7 @@ exports.metadata = {
     permission: "edit.p2p.offer",
 };
 exports.default = async (data) => {
-    var _a;
+    var _a, _b;
     const { params, body, user, ctx } = data;
     const { id } = params;
     const { reason } = body;
@@ -151,6 +151,9 @@ exports.default = async (data) => {
                     fundsReleased = true;
                     releasedAmount = lockedAmount;
                 }
+                else {
+                    console_1.logger.warn("P2P_ADMIN", `Insufficient inOrder to release for offer ${offer.id}: available=${(_b = wallet === null || wallet === void 0 ? void 0 : wallet.inOrder) !== null && _b !== void 0 ? _b : 0}, required=${lockedAmount}`);
+                }
             }
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Rejecting offer");
@@ -179,7 +182,7 @@ exports.default = async (data) => {
             rejectedBy: adminName,
             fundsReleased,
             releasedAmount,
-        });
+        }, undefined, transaction);
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
         notifyOfferEvent(offer.id, "OFFER_REJECTED", {

@@ -23,8 +23,9 @@ export default function EcosystemLedgerPage() {
       pageSize={12}
       canCreate={false}
       canEdit
-      canDelete
+      canDelete={false}
       canView
+      isParanoid={true}
       title="Ledgers"
       description={t("view_blockchain_transaction_ledgers")}
       itemTitle="Ledger Entry"

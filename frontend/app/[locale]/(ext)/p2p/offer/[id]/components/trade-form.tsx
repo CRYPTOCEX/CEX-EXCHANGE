@@ -515,9 +515,7 @@ export function TradeForm({
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="amount" className="text-sm font-medium">
-              {tCommon("amount")}
-              {currencyCode}
-              )
+              {tCommon("amount")} ({currencyCode})
             </Label>
             <div className="relative">
               <Input
@@ -576,38 +574,31 @@ export function TradeForm({
           {/* Therefore, they should ALWAYS pay the taker fee, regardless of buy/sell direction */}
           {(() => {
             const feeRate = settings.p2pTakerFee || 0; // Always use taker fee for trade initiator
-            const feeAmount = (feeRate / 100) * totalPrice;
-            const totalWithFees = totalPrice + feeAmount;
+            const cryptoAmount = Number.parseFloat(amount || "0");
+            const feeAmount = (feeRate / 100) * cryptoAmount;
+            const totalCryptoAfterFees = cryptoAmount - feeAmount;
 
             // Only show fees section if there's actually a fee
-            if (feeRate > 0 && totalPrice > 0) {
+            if (feeRate > 0 && cryptoAmount > 0) {
               return (
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">{tCommon("fees")}</Label>
                   <div className="bg-muted/20 p-3 rounded-md space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>
-                        {tCommon("platform_fee")}
-                        {feeRate}
-                        %)
+                        {tCommon("platform_fee")} ({feeRate}%)
                       </span>
                       <span>
-                        {feeAmount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {priceCurrency}
+                        {formatAmount(feeAmount, currencyCode)}{" "}
+                        {currencyCode}
                       </span>
                     </div>
                     <Separator className="my-1" />
                     <div className="flex justify-between text-sm font-medium">
-                      <span>{t("total_with_fees")}</span>
+                      <span>{t("total_after_fees")}</span>
                       <span>
-                        {totalWithFees.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {priceCurrency}
+                        {formatAmount(totalCryptoAfterFees, currencyCode)}{" "}
+                        {currencyCode}
                       </span>
                     </div>
                   </div>

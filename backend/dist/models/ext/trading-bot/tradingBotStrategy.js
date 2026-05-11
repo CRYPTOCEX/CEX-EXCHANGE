@@ -32,7 +32,6 @@ class tradingBotStrategy extends sequelize_1.Model {
             slug: {
                 type: sequelize_1.DataTypes.STRING(100),
                 allowNull: false,
-                unique: true,
                 validate: {
                     notEmpty: { msg: "slug: Slug must not be empty" },
                 },

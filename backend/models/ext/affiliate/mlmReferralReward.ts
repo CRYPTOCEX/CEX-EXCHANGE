@@ -14,6 +14,7 @@ export default class mlmReferralReward
   isClaimed!: boolean;
   conditionId!: string;
   referrerId!: string;
+  sourceId?: string | null;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
@@ -70,6 +71,11 @@ export default class mlmReferralReward
           allowNull: false,
           defaultValue: false,
         },
+        sourceId: {
+          type: DataTypes.STRING(191),
+          allowNull: true,
+          defaultValue: null,
+        },
       },
       {
         sequelize,
@@ -93,6 +99,12 @@ export default class mlmReferralReward
             name: "mlmReferralRewardReferrerIdFkey",
             using: "BTREE",
             fields: [{ name: "referrerId" }],
+          },
+          {
+            name: "mlmReferralRewardSourceIdUnique",
+            unique: true,
+            using: "BTREE",
+            fields: [{ name: "sourceId" }],
           },
         ],
       }

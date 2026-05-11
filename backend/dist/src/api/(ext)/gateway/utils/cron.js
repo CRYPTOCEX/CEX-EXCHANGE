@@ -1,1 +1,298 @@
-"use strict";function getPayoutPeriod(e){const t=new Date,a=t;switch(e){case"INSTANT":return{start:(0,date_fns_1.subDays)(t,1),end:a};case"DAILY":default:return{start:(0,date_fns_1.startOfDay)((0,date_fns_1.subDays)(t,1)),end:(0,date_fns_1.startOfDay)(t)};case"WEEKLY":return{start:(0,date_fns_1.startOfWeek)((0,date_fns_1.subWeeks)(t,1)),end:(0,date_fns_1.startOfWeek)(t)};case"MONTHLY":return{start:(0,date_fns_1.startOfMonth)((0,date_fns_1.subMonths)(t,1)),end:(0,date_fns_1.startOfMonth)(t)}}}function shouldProcessPayout(e){const t=new Date;switch(e){case"INSTANT":case"DAILY":default:return!0;case"WEEKLY":return 0===t.getDay();case"MONTHLY":return 1===t.getDate()}}async function processMerchantBalancePayout(e,t,a,o){var r,s;const n=await db_1.sequelize.transaction({isolationLevel:sequelize_1.Transaction.ISOLATION_LEVELS.SERIALIZABLE});try{const c=await db_1.models.gatewayMerchantBalance.findByPk(t.id,{transaction:n,lock:n.LOCK.UPDATE});if(!c){await n.rollback();return!1}const d=parseFloat((null===(r=c.pending)||void 0===r?void 0:r.toString())||"0");if(d<(e.payoutThreshold||0)){await n.rollback();(0,broadcast_1.broadcastLog)(o,`Merchant ${e.name}: pending ${d} ${t.currency} below threshold ${e.payoutThreshold||0}`,"info");return!0}const i=await db_1.models.gatewayPayment.findAll({where:{merchantId:e.id,status:"COMPLETED",testMode:!1,completedAt:{[sequelize_1.Op.gte]:a.start,[sequelize_1.Op.lt]:a.end}},transaction:n});let u=0,l=0,y=0;for(const e of i){const a=e.allocations||[],o=a.filter(e=>e.currency===t.currency&&e.walletType===t.walletType);if(o.length>0){u++;for(const e of o)l+=parseFloat((null===(s=e.amount)||void 0===s?void 0:s.toString())||"0");const t=a.reduce((e,t)=>{var a;return e+parseFloat((null===(a=t.amount)||void 0===a?void 0:a.toString())||"0")},0),r=o.reduce((e,t)=>{var a;return e+parseFloat((null===(a=t.amount)||void 0===a?void 0:a.toString())||"0")},0);if(t>0){y+=r/t*e.feeAmount}}}const p=(await db_1.models.gatewayRefund.findAll({where:{merchantId:e.id,status:"COMPLETED",createdAt:{[sequelize_1.Op.gte]:a.start,[sequelize_1.Op.lt]:a.end}},attributes:[[(0,sequelize_1.fn)("COUNT",(0,sequelize_1.col)("id")),"refundCount"]],raw:!0,transaction:n}))[0],f=(0,gateway_1.generatePayoutId)(),g=await db_1.models.gatewayPayout.create({merchantId:e.id,payoutId:f,amount:d,currency:t.currency,walletType:t.walletType,status:"PENDING",periodStart:a.start,periodEnd:a.end,grossAmount:l,feeAmount:y,netAmount:d,paymentCount:u,refundCount:parseInt(null==p?void 0:p.refundCount)||0,metadata:{schedule:e.payoutSchedule,createdBy:"SYSTEM_CRON",balanceId:t.id}},{transaction:n});await n.commit();(0,broadcast_1.broadcastLog)(o,`Created payout ${f} for merchant ${e.name}: ${d} ${t.currency}`,"success");try{await(0,notifications_1.createNotification)({userId:e.userId,relatedId:g.id,type:"system",title:"Payout Created",message:`A payout of ${d.toFixed(2)} ${t.currency} has been created and is pending approval.`,link:"/gateway/payouts"})}catch(t){console_1.logger.error("GATEWAY_PAYOUT",`Failed to send notification for merchant ${e.id}`,t)}return!0}catch(t){await n.rollback();(0,broadcast_1.broadcastLog)(o,`Failed to create payout for merchant ${e.name}: ${t.message}`,"error");console_1.logger.error("GATEWAY_PAYOUT",`Failed to create payout for merchant ${e.id}: ${t.message}`,t);return!1}}async function processWithConcurrency(e,t,a){const o=new Array(e.length);let r=0;const s=new Array(t).fill(0).map(async()=>{for(;r<e.length;){const t=r++;try{o[t]=await a(e[t])}catch(e){o[t]=e}}});await Promise.all(s);return o}async function processGatewayPayouts(){const e="processGatewayPayouts",t=Date.now();let a=0,o=0,r=0;try{(0,broadcast_1.broadcastStatus)(e,"running");(0,broadcast_1.broadcastLog)(e,"Starting gateway payout processing");const s=await db_1.models.settings.findAll({where:{key:["gatewayEnabled","gatewayPayoutSchedule","gatewayMinPayoutAmount"]}}),n=new Map;for(const e of s){let t=e.value;try{t=JSON.parse(e.value)}catch(e){}"true"===t&&(t=!0);"false"===t&&(t=!1);n.set(e.key,t)}if(!n.get("gatewayEnabled")){(0,broadcast_1.broadcastLog)(e,"Gateway is disabled, skipping payout processing","info");(0,broadcast_1.broadcastStatus)(e,"completed",{skipped:!0});return}const c=n.get("gatewayPayoutSchedule")||"DAILY",d=await db_1.models.gatewayMerchant.findAll({where:{status:"ACTIVE"}});if(0===d.length){(0,broadcast_1.broadcastLog)(e,"No active merchants found","info");(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:0});return}const i=[];for(const t of d){const a=t.payoutSchedule||c;if(!shouldProcessPayout(a)){r++;(0,broadcast_1.broadcastLog)(e,`Skipping merchant ${t.name}: Not scheduled for ${a} payout today`,"info");continue}const o=getPayoutPeriod(a),s=await db_1.models.gatewayMerchantBalance.findAll({where:{merchantId:t.id,pending:{[sequelize_1.Op.gt]:0}}});if(0!==s.length)for(const a of s){if(await db_1.models.gatewayPayout.findOne({where:{merchantId:t.id,currency:a.currency,walletType:a.walletType,periodStart:o.start,periodEnd:o.end,status:{[sequelize_1.Op.in]:["PENDING","COMPLETED"]}}})){r++;(0,broadcast_1.broadcastLog)(e,`Skipping ${t.name} ${a.currency}: Payout already exists for this period`,"info")}else i.push({merchant:t,balance:a,period:o})}else(0,broadcast_1.broadcastLog)(e,`Merchant ${t.name}: No balances with pending payouts`,"info")}(0,broadcast_1.broadcastLog)(e,`Processing ${i.length} payout tasks`);if(0===i.length){(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:0,skipped:r});return}await processWithConcurrency(i,MAX_CONCURRENCY,async t=>{const r=await processMerchantBalancePayout(t.merchant,t.balance,t.period,e);r?a++:o++;return r});(0,broadcast_1.broadcastLog)(e,`Payout processing complete: ${a} created, ${o} failed, ${r} skipped`,a>0?"success":"info");(0,broadcast_1.broadcastStatus)(e,"completed",{duration:Date.now()-t,processed:a,failed:o,skipped:r})}catch(s){console_1.logger.error("GATEWAY_PAYOUT",`Gateway payout processing failed: ${s.message}`,s);(0,broadcast_1.broadcastStatus)(e,"failed",{duration:Date.now()-t,processed:a,failed:o,skipped:r,error:s.message});(0,broadcast_1.broadcastLog)(e,`Gateway payout processing failed: ${s.message}`,"error");throw s}}Object.defineProperty(exports,"__esModule",{value:!0});exports.processGatewayPayouts=processGatewayPayouts;const db_1=require("@b/db"),sequelize_1=require("sequelize"),date_fns_1=require("date-fns"),broadcast_1=require("@b/cron/broadcast"),console_1=require("@b/utils/console"),gateway_1=require("@b/utils/gateway"),notifications_1=require("@b/utils/notifications"),MAX_CONCURRENCY=3;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processGatewayPayouts = processGatewayPayouts;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const date_fns_1 = require("date-fns");
+const broadcast_1 = require("@b/cron/broadcast");
+const console_1 = require("@b/utils/console");
+const gateway_1 = require("@b/utils/gateway");
+const notifications_1 = require("@b/utils/notifications");
+const MAX_CONCURRENCY = 3;
+function getPayoutPeriod(schedule) {
+    const now = new Date();
+    const end = now;
+    switch (schedule) {
+        case "INSTANT":
+            return { start: (0, date_fns_1.subDays)(now, 1), end };
+        case "DAILY":
+            return { start: (0, date_fns_1.startOfDay)((0, date_fns_1.subDays)(now, 1)), end: (0, date_fns_1.startOfDay)(now) };
+        case "WEEKLY":
+            return { start: (0, date_fns_1.startOfWeek)((0, date_fns_1.subWeeks)(now, 1)), end: (0, date_fns_1.startOfWeek)(now) };
+        case "MONTHLY":
+            return { start: (0, date_fns_1.startOfMonth)((0, date_fns_1.subMonths)(now, 1)), end: (0, date_fns_1.startOfMonth)(now) };
+        default:
+            return { start: (0, date_fns_1.startOfDay)((0, date_fns_1.subDays)(now, 1)), end: (0, date_fns_1.startOfDay)(now) };
+    }
+}
+function shouldProcessPayout(schedule) {
+    const now = new Date();
+    switch (schedule) {
+        case "INSTANT":
+            return true;
+        case "DAILY":
+            return true;
+        case "WEEKLY":
+            return now.getDay() === 0;
+        case "MONTHLY":
+            return now.getDate() === 1;
+        default:
+            return true;
+    }
+}
+async function processMerchantBalancePayout(merchant, balance, period, cronName) {
+    var _a, _b;
+    const t = await db_1.sequelize.transaction({
+        isolationLevel: sequelize_1.Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+    });
+    try {
+        const lockedBalance = await db_1.models.gatewayMerchantBalance.findByPk(balance.id, {
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        });
+        if (!lockedBalance) {
+            await t.rollback();
+            return false;
+        }
+        const pendingAmount = parseFloat(((_a = lockedBalance.pending) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+        if (pendingAmount < (merchant.payoutThreshold || 0)) {
+            await t.rollback();
+            (0, broadcast_1.broadcastLog)(cronName, `Merchant ${merchant.name}: pending ${pendingAmount} ${balance.currency} below threshold ${merchant.payoutThreshold || 0}`, "info");
+            return true;
+        }
+        const payments = await db_1.models.gatewayPayment.findAll({
+            where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                testMode: false,
+                completedAt: {
+                    [sequelize_1.Op.gte]: period.start,
+                    [sequelize_1.Op.lt]: period.end,
+                },
+            },
+            transaction: t,
+        });
+        let paymentCount = 0;
+        let grossAmount = 0;
+        let totalFees = 0;
+        for (const payment of payments) {
+            const allocations = payment.allocations || [];
+            const matchingAllocations = allocations.filter((alloc) => alloc.currency === balance.currency && alloc.walletType === balance.walletType);
+            if (matchingAllocations.length > 0) {
+                paymentCount++;
+                for (const alloc of matchingAllocations) {
+                    grossAmount += parseFloat(((_b = alloc.amount) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
+                }
+                const totalPaymentAmount = allocations.reduce((sum, a) => { var _a; return sum + parseFloat(((_a = a.amount) === null || _a === void 0 ? void 0 : _a.toString()) || "0"); }, 0);
+                const matchingAmount = matchingAllocations.reduce((sum, a) => { var _a; return sum + parseFloat(((_a = a.amount) === null || _a === void 0 ? void 0 : _a.toString()) || "0"); }, 0);
+                if (totalPaymentAmount > 0) {
+                    const feeShare = (matchingAmount / totalPaymentAmount) * payment.feeAmount;
+                    totalFees += feeShare;
+                }
+            }
+        }
+        const refundStats = await db_1.models.gatewayRefund.findAll({
+            where: {
+                merchantId: merchant.id,
+                status: "COMPLETED",
+                createdAt: {
+                    [sequelize_1.Op.gte]: period.start,
+                    [sequelize_1.Op.lt]: period.end,
+                },
+            },
+            attributes: [[(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "refundCount"]],
+            raw: true,
+            transaction: t,
+        });
+        const refunds = refundStats[0];
+        const payoutId = (0, gateway_1.generatePayoutId)();
+        const payout = await db_1.models.gatewayPayout.create({
+            merchantId: merchant.id,
+            payoutId,
+            amount: pendingAmount,
+            currency: balance.currency,
+            walletType: balance.walletType,
+            status: "PENDING",
+            periodStart: period.start,
+            periodEnd: period.end,
+            grossAmount: grossAmount,
+            feeAmount: totalFees,
+            netAmount: pendingAmount,
+            paymentCount: paymentCount,
+            refundCount: parseInt(refunds === null || refunds === void 0 ? void 0 : refunds.refundCount) || 0,
+            metadata: {
+                schedule: merchant.payoutSchedule,
+                createdBy: "SYSTEM_CRON",
+                balanceId: balance.id,
+            },
+        }, { transaction: t });
+        await t.commit();
+        (0, broadcast_1.broadcastLog)(cronName, `Created payout ${payoutId} for merchant ${merchant.name}: ${pendingAmount} ${balance.currency}`, "success");
+        try {
+            await (0, notifications_1.createNotification)({
+                userId: merchant.userId,
+                relatedId: payout.id,
+                type: "system",
+                title: "Payout Created",
+                message: `A payout of ${pendingAmount.toFixed(2)} ${balance.currency} has been created and is pending approval.`,
+                link: `/gateway/payouts`,
+            });
+        }
+        catch (notifErr) {
+            console_1.logger.error("GATEWAY_PAYOUT", `Failed to send notification for merchant ${merchant.id}`, notifErr);
+        }
+        return true;
+    }
+    catch (error) {
+        await t.rollback();
+        (0, broadcast_1.broadcastLog)(cronName, `Failed to create payout for merchant ${merchant.name}: ${error.message}`, "error");
+        console_1.logger.error("GATEWAY_PAYOUT", `Failed to create payout for merchant ${merchant.id}: ${error.message}`, error);
+        return false;
+    }
+}
+async function processWithConcurrency(items, concurrencyLimit, asyncFn) {
+    const results = new Array(items.length);
+    let index = 0;
+    const workers = new Array(concurrencyLimit).fill(0).map(async () => {
+        while (index < items.length) {
+            const currentIndex = index++;
+            try {
+                results[currentIndex] = await asyncFn(items[currentIndex]);
+            }
+            catch (error) {
+                results[currentIndex] = error;
+            }
+        }
+    });
+    await Promise.all(workers);
+    return results;
+}
+async function processGatewayPayouts() {
+    const cronName = "processGatewayPayouts";
+    const startTime = Date.now();
+    let processedCount = 0;
+    let failedCount = 0;
+    let skippedCount = 0;
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting gateway payout processing");
+        const settings = await db_1.models.settings.findAll({
+            where: {
+                key: ["gatewayEnabled", "gatewayPayoutSchedule", "gatewayMinPayoutAmount"],
+            },
+        });
+        const settingsMap = new Map();
+        for (const setting of settings) {
+            let value = setting.value;
+            try {
+                value = JSON.parse(setting.value || "null");
+            }
+            catch (_a) {
+            }
+            if (value === "true")
+                value = true;
+            if (value === "false")
+                value = false;
+            settingsMap.set(setting.key, value);
+        }
+        if (!settingsMap.get("gatewayEnabled")) {
+            (0, broadcast_1.broadcastLog)(cronName, "Gateway is disabled, skipping payout processing", "info");
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", { skipped: true });
+            return;
+        }
+        const globalSchedule = (settingsMap.get("gatewayPayoutSchedule") || "DAILY");
+        const merchants = await db_1.models.gatewayMerchant.findAll({
+            where: {
+                status: "ACTIVE",
+            },
+        });
+        if (merchants.length === 0) {
+            (0, broadcast_1.broadcastLog)(cronName, "No active merchants found", "info");
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+                duration: Date.now() - startTime,
+                processed: 0,
+            });
+            return;
+        }
+        const tasks = [];
+        for (const merchant of merchants) {
+            const schedule = (merchant.payoutSchedule || globalSchedule);
+            if (!shouldProcessPayout(schedule)) {
+                skippedCount++;
+                (0, broadcast_1.broadcastLog)(cronName, `Skipping merchant ${merchant.name}: Not scheduled for ${schedule} payout today`, "info");
+                continue;
+            }
+            const period = getPayoutPeriod(schedule);
+            const merchantBalances = await db_1.models.gatewayMerchantBalance.findAll({
+                where: {
+                    merchantId: merchant.id,
+                    pending: {
+                        [sequelize_1.Op.gt]: 0,
+                    },
+                },
+            });
+            if (merchantBalances.length === 0) {
+                (0, broadcast_1.broadcastLog)(cronName, `Merchant ${merchant.name}: No balances with pending payouts`, "info");
+                continue;
+            }
+            for (const balance of merchantBalances) {
+                const existingPayout = await db_1.models.gatewayPayout.findOne({
+                    where: {
+                        merchantId: merchant.id,
+                        currency: balance.currency,
+                        walletType: balance.walletType,
+                        periodStart: period.start,
+                        periodEnd: period.end,
+                        status: {
+                            [sequelize_1.Op.in]: ["PENDING", "COMPLETED"],
+                        },
+                    },
+                });
+                if (existingPayout) {
+                    skippedCount++;
+                    (0, broadcast_1.broadcastLog)(cronName, `Skipping ${merchant.name} ${balance.currency}: Payout already exists for this period`, "info");
+                    continue;
+                }
+                tasks.push({ merchant, balance, period });
+            }
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Processing ${tasks.length} payout tasks`);
+        if (tasks.length === 0) {
+            (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+                duration: Date.now() - startTime,
+                processed: 0,
+                skipped: skippedCount,
+            });
+            return;
+        }
+        await processWithConcurrency(tasks, MAX_CONCURRENCY, async (task) => {
+            const success = await processMerchantBalancePayout(task.merchant, task.balance, task.period, cronName);
+            if (success) {
+                processedCount++;
+            }
+            else {
+                failedCount++;
+            }
+            return success;
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Payout processing complete: ${processedCount} created, ${failedCount} failed, ${skippedCount} skipped`, processedCount > 0 ? "success" : "info");
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+            skipped: skippedCount,
+        });
+    }
+    catch (error) {
+        console_1.logger.error("GATEWAY_PAYOUT", `Gateway payout processing failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed", {
+            duration: Date.now() - startTime,
+            processed: processedCount,
+            failed: failedCount,
+            skipped: skippedCount,
+            error: error.message,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Gateway payout processing failed: ${error.message}`, "error");
+        throw error;
+    }
+}

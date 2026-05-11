@@ -1,1 +1,759 @@
-"use strict";async function notifyLeaderApplicationEvent(e,o,a,t,i){var r,n,l;try{null===(r=null==i?void 0:i.step)||void 0===r||r.call(i,`Sending leader application notification: ${a}`);let l="",d="",s="/copy-trading/leader/me",c="SYSTEM",u=["IN_APP","PUSH"],p="NORMAL",f={};const y=await db_1.models.user.findByPk(e),m=await db_1.models.copyTradingLeader.findByPk(o);if(!y||!m)return;switch(a){case"APPLIED":l="Leader Application Submitted";d="Your copy trading leader application has been submitted and is under review.";c="SYSTEM";u.push("EMAIL");p="NORMAL";f={template:"copyTradingLeaderApplication",user:y,leader:m};break;case"APPROVED":l="Leader Application Approved!";d="Congratulations! Your leader application has been approved. You can now start accepting followers.";c="SYSTEM";u.push("EMAIL");p="NORMAL";f={template:"copyTradingLeaderApproved",user:y};break;case"REJECTED":l="Leader Application Status";d=(null==t?void 0:t.rejectionReason)?`Your leader application was not approved. Reason: ${t.rejectionReason}`:"Your leader application was not approved. Please contact support for details.";c="ALERT";u.push("EMAIL");p="HIGH";f={template:"copyTradingLeaderRejected",user:y,reason:(null==t?void 0:t.rejectionReason)||"Application did not meet requirements"};break;case"SUSPENDED":l="Leader Account Suspended";d=(null==t?void 0:t.reason)?`Your leader account has been suspended. Reason: ${t.reason}`:"Your leader account has been suspended. Please contact support.";s="/support";c="ALERT";u.push("EMAIL");p="URGENT";f={template:"copyTradingLeaderSuspended",user:y,reason:(null==t?void 0:t.reason)||"Violation of platform policies"};break;case"ACTIVATED":l="Leader Account Reactivated";d="Your leader account has been reactivated. You can now accept followers again.";c="SYSTEM";p="NORMAL"}await notification_1.notificationService.send({userId:e,channels:u,priority:p,type:c,data:{title:l,message:d,link:s,relatedId:o,emailData:f},idempotencyKey:`copy-trading:leader:${a.toLowerCase()}:${o}:${Date.now()}`});null===(n=null==i?void 0:i.success)||void 0===n||n.call(i,`Leader application notification sent: ${a}`)}catch(e){null===(l=null==i?void 0:i.fail)||void 0===l||l.call(i,e.message);console_1.logger.error("copy-trading",`Failed to send leader application notification: ${a}`,e)}}async function notifyLeaderNewFollower(e,o,a){var t,i,r;try{null===(t=null==a?void 0:a.step)||void 0===t||t.call(a,"Notifying leader about new follower");const r=await db_1.models.copyTradingLeader.findByPk(e);if(!r)return;const n=await db_1.models.user.findByPk(o,{attributes:["id","firstName","lastName"]}),l=n?`${n.firstName} ${n.lastName}`:"A user",d=await db_1.models.user.findByPk(r.userId);if(!d)return;const s=await db_1.models.copyTradingFollower.findOne({where:{leaderId:e,userId:o},order:[["createdAt","DESC"]]});await notification_1.notificationService.send({userId:r.userId,channels:["IN_APP","EMAIL","PUSH"],priority:"NORMAL",type:"SYSTEM",data:{title:"New Follower",message:`${l} started following your copy trading strategy.`,link:"/copy-trading/leader/followers",relatedId:e,emailData:s?{template:"copyTradingNewFollower",user:d,follower:s,followerUser:n}:void 0},idempotencyKey:`copy-trading:leader:new-follower:${e}:${o}:${Date.now()}`});null===(i=null==a?void 0:a.success)||void 0===i||i.call(a,"Leader notified about new follower")}catch(e){null===(r=null==a?void 0:a.fail)||void 0===r||r.call(a,e.message);console_1.logger.error("copy-trading","Failed to notify leader about new follower",e)}}async function notifyLeaderFollowerStopped(e,o,a,t){var i,r,n;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,"Notifying leader about follower stop");const n=await db_1.models.copyTradingLeader.findByPk(e);if(!n)return;const l=await db_1.models.user.findByPk(o,{attributes:["id","firstName","lastName"]}),d=l?`${l.firstName} ${l.lastName}`:"A follower",s=await db_1.models.user.findByPk(n.userId);if(!s)return;const c=await db_1.models.copyTradingFollower.findOne({where:{leaderId:e,userId:o},order:[["createdAt","DESC"]]});await notification_1.notificationService.send({userId:n.userId,channels:["IN_APP","EMAIL","PUSH"],priority:"NORMAL",type:"SYSTEM",data:{title:"Follower Stopped",message:`${d} has stopped following your strategy${a?`: ${a}`:""}.`,link:"/copy-trading/leader/followers",relatedId:e,emailData:c?{template:"copyTradingFollowerStopped",user:s,follower:c,followerUser:l}:void 0},idempotencyKey:`copy-trading:leader:follower-stopped:${e}:${o}:${Date.now()}`});null===(r=null==t?void 0:t.success)||void 0===r||r.call(t,"Leader notified about follower stop")}catch(e){null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,e.message);console_1.logger.error("copy-trading","Failed to notify leader about follower stop",e)}}async function notifyFollowerSubscriptionEvent(e,o,a,t){var i,r,n,l;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Sending follower subscription notification: ${o}`);const l=await db_1.models.copyTradingFollower.findByPk(e,{include:[{model:db_1.models.copyTradingLeader,as:"leader",include:[{model:db_1.models.user,as:"user",attributes:["firstName","lastName"]}]}]});if(!l)return;const d=(null==a?void 0:a.leaderName)||((null===(r=l.leader)||void 0===r?void 0:r.user)?`${l.leader.user.firstName} ${l.leader.user.lastName}`:"the leader");let s,c="",u="",p=`/copy-trading/follower/${e}`,f="SYSTEM",y=["IN_APP","PUSH"],m="NORMAL";const w=await db_1.models.user.findByPk(l.userId);if(!w)return;switch(o){case"STARTED":c="Copy Trading Started";u=`You are now copying ${d}'s trading strategy.`;f="SYSTEM";y.push("EMAIL");m="NORMAL";l.leader&&(s={template:"copyTradingSubscriptionStarted",user:w,follower:l,leader:l.leader});break;case"PAUSED":c="Copy Trading Paused";u=`Your subscription to ${d} has been paused. No new trades will be copied.`;f="ALERT";y.push("EMAIL");m="NORMAL";s={template:"copyTradingSubscriptionPaused",user:w,leaderName:d,reason:(null==a?void 0:a.reason)||"You manually paused this subscription"};break;case"RESUMED":c="Copy Trading Resumed";u=`Your subscription to ${d} has been resumed. Trades will be copied again.`;f="SYSTEM";y.push("EMAIL");m="NORMAL";s={template:"copyTradingSubscriptionResumed",user:w,leaderName:d,copyMode:l.copyMode};break;case"STOPPED":c="Copy Trading Stopped";u=(null==a?void 0:a.reason)?`Your subscription to ${d} has been stopped. Reason: ${a.reason}`:`Your subscription to ${d} has been stopped.`;f="ALERT";y.push("EMAIL");m="HIGH";const{getFollowerStats:o}=await Promise.resolve().then(()=>__importStar(require("./stats-calculator")));s={template:"copyTradingSubscriptionStopped",user:w,leaderName:d,stats:await o(e)};break;case"FORCE_STOPPED":c="Copy Trading Force Stopped";u=(null==a?void 0:a.reason)?`Your subscription to ${d} was stopped by admin. Reason: ${a.reason}`:`Your subscription to ${d} was stopped by admin.`;p="/support";f="ALERT";y.push("EMAIL");m="HIGH";const{getFollowerStats:t}=await Promise.resolve().then(()=>__importStar(require("./stats-calculator")));s={template:"copyTradingSubscriptionStopped",user:w,leaderName:d,stats:await t(e)}}await notification_1.notificationService.send({userId:l.userId,channels:y,priority:m,type:f,data:{title:c,message:u,link:p,relatedId:e,emailData:s},idempotencyKey:`copy-trading:follower:${o.toLowerCase()}:${e}:${Date.now()}`});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,`Follower subscription notification sent: ${o}`)}catch(e){null===(l=null==t?void 0:t.fail)||void 0===l||l.call(t,e.message);console_1.logger.error("copy-trading",`Failed to send follower subscription notification: ${o}`,e)}}async function notifyFollowerAllocationEvent(e,o,a,t,i){var r,n,l,d;try{null===(r=null==i?void 0:i.step)||void 0===r||r.call(i,`Sending allocation notification: ${a}`);const d=await db_1.models.copyTradingFollower.findByPk(e,{include:[{model:db_1.models.copyTradingLeader,as:"leader",include:[{model:db_1.models.user,as:"user",attributes:["firstName","lastName"]}]}]});if(!d)return;const s=(null===(n=d.leader)||void 0===n?void 0:n.user)?`${d.leader.user.firstName} ${d.leader.user.lastName}`:"your leader";let c="",u="",p=`/copy-trading/follower/${e}`,f="SYSTEM",y="NORMAL";switch(a){case"CREATED":c="Market Allocation Created";u=`Allocation created for ${o} with ${s}'s strategy.`;f="SYSTEM";y="NORMAL";break;case"FUNDS_ADDED":c="Funds Added to Allocation";u=(null==t?void 0:t.amount)?`Added ${t.amount} ${(null==t?void 0:t.currency)||""} to ${o} allocation.`:`Funds added to ${o} allocation.`;f="SYSTEM";y="NORMAL";break;case"FUNDS_REMOVED":c="Funds Removed from Allocation";u=(null==t?void 0:t.amount)?`Removed ${t.amount} ${(null==t?void 0:t.currency)||""} from ${o} allocation.`:`Funds removed from ${o} allocation.`;f="SYSTEM";y="NORMAL";break;case"INSUFFICIENT_BALANCE":c="Insufficient Balance";u=`Your ${o} allocation has insufficient balance to copy trades. Please add funds.`;f="ALERT";y="HIGH"}await notification_1.notificationService.send({userId:d.userId,channels:["IN_APP","PUSH"],priority:y,type:f,data:{title:c,message:u,link:p,relatedId:e},idempotencyKey:`copy-trading:follower:allocation:${a.toLowerCase()}:${e}:${o}:${Date.now()}`});null===(l=null==i?void 0:i.success)||void 0===l||l.call(i,`Allocation notification sent: ${a}`)}catch(e){null===(d=null==i?void 0:i.fail)||void 0===d||d.call(i,e.message);console_1.logger.error("copy-trading",`Failed to send allocation notification: ${a}`,e)}}async function notifyFollowerTradeEvent(e,o,a,t,i){var r,n,l;try{null===(r=null==i?void 0:i.step)||void 0===r||r.call(i,`Sending trade notification: ${a}`);const l=await db_1.models.copyTradingFollower.findByPk(e);if(!l)return;let d="",s="",c=`/copy-trading/follower/${e}/trades`,u="SYSTEM",p="NORMAL";switch(a){case"COPIED":d="Trade Copied";s=(null==t?void 0:t.symbol)?`Trade copied for ${t.symbol}`:"Trade copied successfully";u="SYSTEM";p="LOW";break;case"CLOSED":d="Trade Closed";s=(null==t?void 0:t.symbol)?`${t.symbol} trade has been closed`:"Trade has been closed";u="SYSTEM";p="NORMAL";break;case"FAILED":d="Trade Copy Failed";s=(null==t?void 0:t.reason)?`Failed to copy trade: ${t.reason}`:"Failed to copy trade. Please check your balance.";u="ALERT";p="HIGH";break;case"PROFIT":d="Trade Profit";s=(null==t?void 0:t.profit)?`Trade closed with profit: +${t.profit.toFixed(2)} USDT`:"Trade closed with profit";u="SYSTEM";p="NORMAL";break;case"LOSS":d="Trade Loss";s=(null==t?void 0:t.profit)?`Trade closed with loss: ${t.profit.toFixed(2)} USDT`:"Trade closed with loss";u="ALERT";p="NORMAL"}await notification_1.notificationService.send({userId:l.userId,channels:["IN_APP","PUSH"],priority:p,type:u,data:{title:d,message:s,link:c,relatedId:o},idempotencyKey:`copy-trading:follower:trade:${a.toLowerCase()}:${o}:${Date.now()}`});null===(n=null==i?void 0:i.success)||void 0===n||n.call(i,`Trade notification sent: ${a}`)}catch(e){null===(l=null==i?void 0:i.fail)||void 0===l||l.call(i,e.message);console_1.logger.error("copy-trading",`Failed to send trade notification: ${a}`,e)}}async function notifyFollowerRiskEvent(e,o,a,t){var i,r,n,l;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Sending risk management notification: ${o}`);const l=await db_1.models.copyTradingFollower.findByPk(e,{include:[{model:db_1.models.copyTradingLeader,as:"leader",include:[{model:db_1.models.user,as:"user",attributes:["firstName","lastName"]}]}]});if(!l)return;const d=(null===(r=l.leader)||void 0===r?void 0:r.user)?`${l.leader.user.firstName} ${l.leader.user.lastName}`:"your leader";let s="",c="",u=`/copy-trading/follower/${e}`,p="ALERT",f="HIGH";switch(o){case"DAILY_LOSS_LIMIT":s="Daily Loss Limit Reached";c=(null==a?void 0:a.limit)?`You've reached your daily loss limit of ${a.limit}%. No new trades will be copied today.`:"You've reached your daily loss limit. No new trades will be copied today.";f="HIGH";break;case"POSITION_SIZE_LIMIT":s="Position Size Limit";c="Trade skipped due to position size limit. Adjust your limits to copy larger positions.";f="NORMAL";break;case"AUTO_PAUSED":s="Auto-Paused";c=(null==a?void 0:a.reason)?`Your subscription to ${d} was automatically paused: ${a.reason}`:`Your subscription to ${d} was automatically paused.`;f="HIGH";break;case"AUTO_STOPPED":s="Auto-Stopped";c=(null==a?void 0:a.reason)?`Your subscription to ${d} was automatically stopped: ${a.reason}`:`Your subscription to ${d} was automatically stopped.`;f="HIGH"}await notification_1.notificationService.send({userId:l.userId,channels:["IN_APP","PUSH"],priority:f,type:p,data:{title:s,message:c,link:u,relatedId:e},idempotencyKey:`copy-trading:follower:risk:${o.toLowerCase()}:${e}:${Date.now()}`});null===(n=null==t?void 0:t.success)||void 0===n||n.call(t,`Risk management notification sent: ${o}`)}catch(e){null===(l=null==t?void 0:t.fail)||void 0===l||l.call(t,e.message);console_1.logger.error("copy-trading",`Failed to send risk management notification: ${o}`,e)}}async function notifyProfitShareEvent(e,o,a,t){var i,r,n;try{null===(i=null==t?void 0:t.step)||void 0===i||i.call(t,`Sending profit share notification: ${o}`);let n="",l="",d="/copy-trading/earnings",s="SYSTEM",c="NORMAL";switch(o){case"EARNED":n="Profit Share Earned";l=a.followerName?`You earned ${a.amount.toFixed(2)} USDT profit share from ${a.followerName}'s trade.`:`You earned ${a.amount.toFixed(2)} USDT profit share.`;d="/copy-trading/leader/earnings";c="NORMAL";break;case"RECEIVED":n="Profit Share Paid";l=a.leaderName?`Profit share of ${a.amount.toFixed(2)} USDT paid to ${a.leaderName}.`:`Profit share of ${a.amount.toFixed(2)} USDT has been paid.`;d="/copy-trading/follower/history";c="NORMAL";break;case"DISTRIBUTED":n="Profit Shares Distributed";l=`Successfully distributed ${a.amount.toFixed(2)} USDT in profit shares.`;c="NORMAL"}await notification_1.notificationService.send({userId:e,channels:["IN_APP","PUSH"],priority:c,type:s,data:{title:n,message:l,link:d},idempotencyKey:`copy-trading:profit-share:${o.toLowerCase()}:${e}:${Date.now()}`});null===(r=null==t?void 0:t.success)||void 0===r||r.call(t,`Profit share notification sent: ${o}`)}catch(e){null===(n=null==t?void 0:t.fail)||void 0===n||n.call(t,e.message);console_1.logger.error("copy-trading",`Failed to send profit share notification: ${o}`,e)}}async function notifyCopyTradingAdmins(e,o,a){var t,i,r,n;try{null===(t=null==a?void 0:a.step)||void 0===t||t.call(a,`Notifying admins about ${e}`);const n=await db_1.models.user.findAll({include:[{model:db_1.models.role,as:"role",include:[{model:db_1.models.permission,as:"permissions",through:{attributes:[]},where:{name:"access.copy_trading"}}],required:!0}],attributes:["id","email","firstName","lastName"]});if(!n||0===n.length){null===(i=null==a?void 0:a.fail)||void 0===i||i.call(a,"No admin users with copy trading permissions found");return}let l="",d="",s="",c="NORMAL";switch(e){case"LEADER_APPLICATION":l="New Leader Application";d=`${o.userName} applied to become a copy trading leader.`;s=`/admin/copy-trading/leader/${o.leaderId}`;c="NORMAL";break;case"SUSPICIOUS_ACTIVITY":l="Suspicious Copy Trading Activity";d=`Suspicious activity detected: ${o.description}`;s="/admin/copy-trading/audit";c="HIGH";break;case"HIGH_LOSS_FOLLOWER":l="High Loss Alert";d=`Follower ${o.userName} has high losses: ${o.lossPercent}%`;s=`/admin/copy-trading/follower/${o.followerId}`;c="HIGH";break;case"LEADER_SUSPENDED":l="Leader Suspended";d=`Leader ${o.leaderName} has been suspended.`;s=`/admin/copy-trading/leader/${o.leaderId}`;c="NORMAL";break;default:l="Copy Trading Admin Alert";d=`Event: ${e}`;s="/admin/copy-trading";c="NORMAL"}for(const o of n)try{await notification_1.notificationService.send({userId:o.id,channels:["IN_APP","PUSH"],priority:c,type:"ALERT",data:{title:l,message:d,link:s},idempotencyKey:`copy-trading:admin:${e}:${o.id}:${Date.now()}`})}catch(e){console_1.logger.error("copy-trading",`Failed to create admin notification for ${o.id}`,e)}null===(r=null==a?void 0:a.success)||void 0===r||r.call(a,`Sent copy trading admin notifications (${e}) to ${n.length} admin(s)`)}catch(e){null===(n=null==a?void 0:a.fail)||void 0===n||n.call(a,e.message);console_1.logger.error("copy-trading","Failed to notify copy trading admins",e)}}var __createBinding=this&&this.__createBinding||(Object.create?function(e,o,a,t){void 0===t&&(t=a);var i=Object.getOwnPropertyDescriptor(o,a);i&&!("get"in i?!o.__esModule:i.writable||i.configurable)||(i={enumerable:!0,get:function(){return o[a]}});Object.defineProperty(e,t,i)}:function(e,o,a,t){void 0===t&&(t=a);e[t]=o[a]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,o){Object.defineProperty(e,"default",{enumerable:!0,value:o})}:function(e,o){e.default=o}),__importStar=this&&this.__importStar||function(){var e=function(o){e=Object.getOwnPropertyNames||function(e){var o=[];for(var a in e)Object.prototype.hasOwnProperty.call(e,a)&&(o[o.length]=a);return o};return e(o)};return function(o){if(o&&o.__esModule)return o;var a={};if(null!=o)for(var t=e(o),i=0;i<t.length;i++)"default"!==t[i]&&__createBinding(a,o,t[i]);__setModuleDefault(a,o);return a}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.notifyLeaderApplicationEvent=notifyLeaderApplicationEvent;exports.notifyLeaderNewFollower=notifyLeaderNewFollower;exports.notifyLeaderFollowerStopped=notifyLeaderFollowerStopped;exports.notifyFollowerSubscriptionEvent=notifyFollowerSubscriptionEvent;exports.notifyFollowerAllocationEvent=notifyFollowerAllocationEvent;exports.notifyFollowerTradeEvent=notifyFollowerTradeEvent;exports.notifyFollowerRiskEvent=notifyFollowerRiskEvent;exports.notifyProfitShareEvent=notifyProfitShareEvent;exports.notifyCopyTradingAdmins=notifyCopyTradingAdmins;const db_1=require("@b/db"),notification_1=require("@b/services/notification"),console_1=require("@b/utils/console");
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.notifyLeaderApplicationEvent = notifyLeaderApplicationEvent;
+exports.notifyLeaderNewFollower = notifyLeaderNewFollower;
+exports.notifyLeaderFollowerStopped = notifyLeaderFollowerStopped;
+exports.notifyFollowerSubscriptionEvent = notifyFollowerSubscriptionEvent;
+exports.notifyFollowerAllocationEvent = notifyFollowerAllocationEvent;
+exports.notifyFollowerTradeEvent = notifyFollowerTradeEvent;
+exports.notifyFollowerRiskEvent = notifyFollowerRiskEvent;
+exports.notifyProfitShareEvent = notifyProfitShareEvent;
+exports.notifyCopyTradingAdmins = notifyCopyTradingAdmins;
+const db_1 = require("@b/db");
+const notification_1 = require("@b/services/notification");
+const console_1 = require("@b/utils/console");
+async function notifyLeaderApplicationEvent(userId, leaderId, event, data, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending leader application notification: ${event}`);
+        let title = "";
+        let message = "";
+        let link = "/copy-trading/leader/me";
+        let notifType = "SYSTEM";
+        let channels = [
+            "IN_APP",
+            "PUSH",
+        ];
+        let priority = "NORMAL";
+        let emailData = {};
+        const user = await db_1.models.user.findByPk(userId);
+        const leader = await db_1.models.copyTradingLeader.findByPk(leaderId);
+        if (!user || !leader)
+            return;
+        switch (event) {
+            case "APPLIED":
+                title = "Leader Application Submitted";
+                message =
+                    "Your copy trading leader application has been submitted and is under review.";
+                notifType = "SYSTEM";
+                channels.push("EMAIL");
+                priority = "NORMAL";
+                emailData = {
+                    template: "copyTradingLeaderApplication",
+                    user,
+                    leader,
+                };
+                break;
+            case "APPROVED":
+                title = "Leader Application Approved!";
+                message =
+                    "Congratulations! Your leader application has been approved. You can now start accepting followers.";
+                notifType = "SYSTEM";
+                channels.push("EMAIL");
+                priority = "NORMAL";
+                emailData = {
+                    template: "copyTradingLeaderApproved",
+                    user,
+                };
+                break;
+            case "REJECTED":
+                title = "Leader Application Status";
+                message = (data === null || data === void 0 ? void 0 : data.rejectionReason)
+                    ? `Your leader application was not approved. Reason: ${data.rejectionReason}`
+                    : "Your leader application was not approved. Please contact support for details.";
+                notifType = "ALERT";
+                channels.push("EMAIL");
+                priority = "HIGH";
+                emailData = {
+                    template: "copyTradingLeaderRejected",
+                    user,
+                    reason: (data === null || data === void 0 ? void 0 : data.rejectionReason) || "Application did not meet requirements",
+                };
+                break;
+            case "SUSPENDED":
+                title = "Leader Account Suspended";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Your leader account has been suspended. Reason: ${data.reason}`
+                    : "Your leader account has been suspended. Please contact support.";
+                link = "/support";
+                notifType = "ALERT";
+                channels.push("EMAIL");
+                priority = "URGENT";
+                emailData = {
+                    template: "copyTradingLeaderSuspended",
+                    user,
+                    reason: (data === null || data === void 0 ? void 0 : data.reason) || "Violation of platform policies",
+                };
+                break;
+            case "ACTIVATED":
+                title = "Leader Account Reactivated";
+                message =
+                    "Your leader account has been reactivated. You can now accept followers again.";
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId,
+            channels,
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+                relatedId: leaderId,
+                emailData,
+            },
+            idempotencyKey: `copy-trading:leader:${event.toLowerCase()}:${leaderId}:${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Leader application notification sent: ${event}`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send leader application notification: ${event}`, error);
+    }
+}
+async function notifyLeaderNewFollower(leaderId, followerUserId, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Notifying leader about new follower");
+        const leader = await db_1.models.copyTradingLeader.findByPk(leaderId);
+        if (!leader)
+            return;
+        const followerUser = await db_1.models.user.findByPk(followerUserId, {
+            attributes: ["id", "firstName", "lastName"],
+        });
+        const followerName = followerUser
+            ? `${followerUser.firstName} ${followerUser.lastName}`
+            : "A user";
+        const leaderUser = await db_1.models.user.findByPk(leader.userId);
+        if (!leaderUser)
+            return;
+        const followerRecord = await db_1.models.copyTradingFollower.findOne({
+            where: { leaderId, userId: followerUserId },
+            order: [["createdAt", "DESC"]],
+        });
+        await notification_1.notificationService.send({
+            userId: leader.userId,
+            channels: [
+                "IN_APP",
+                "EMAIL",
+                "PUSH",
+            ],
+            priority: "NORMAL",
+            type: "SYSTEM",
+            data: {
+                title: "New Follower",
+                message: `${followerName} started following your copy trading strategy.`,
+                link: "/copy-trading/leader/followers",
+                relatedId: leaderId,
+                emailData: followerRecord
+                    ? {
+                        template: "copyTradingNewFollower",
+                        user: leaderUser,
+                        follower: followerRecord,
+                        followerUser,
+                    }
+                    : undefined,
+            },
+            idempotencyKey: `copy-trading:leader:new-follower:${leaderId}:${followerUserId}:${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Leader notified about new follower");
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("copy-trading", "Failed to notify leader about new follower", error);
+    }
+}
+async function notifyLeaderFollowerStopped(leaderId, followerUserId, reason, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Notifying leader about follower stop");
+        const leader = await db_1.models.copyTradingLeader.findByPk(leaderId);
+        if (!leader)
+            return;
+        const followerUser = await db_1.models.user.findByPk(followerUserId, {
+            attributes: ["id", "firstName", "lastName"],
+        });
+        const followerName = followerUser
+            ? `${followerUser.firstName} ${followerUser.lastName}`
+            : "A follower";
+        const leaderUser = await db_1.models.user.findByPk(leader.userId);
+        if (!leaderUser)
+            return;
+        const followerRecord = await db_1.models.copyTradingFollower.findOne({
+            where: { leaderId, userId: followerUserId },
+            order: [["createdAt", "DESC"]],
+        });
+        await notification_1.notificationService.send({
+            userId: leader.userId,
+            channels: [
+                "IN_APP",
+                "EMAIL",
+                "PUSH",
+            ],
+            priority: "NORMAL",
+            type: "SYSTEM",
+            data: {
+                title: "Follower Stopped",
+                message: `${followerName} has stopped following your strategy${reason ? `: ${reason}` : ""}.`,
+                link: "/copy-trading/leader/followers",
+                relatedId: leaderId,
+                emailData: followerRecord
+                    ? {
+                        template: "copyTradingFollowerStopped",
+                        user: leaderUser,
+                        follower: followerRecord,
+                        followerUser,
+                    }
+                    : undefined,
+            },
+            idempotencyKey: `copy-trading:leader:follower-stopped:${leaderId}:${followerUserId}:${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Leader notified about follower stop");
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("copy-trading", "Failed to notify leader about follower stop", error);
+    }
+}
+async function notifyFollowerSubscriptionEvent(followerId, event, data, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending follower subscription notification: ${event}`);
+        const follower = await db_1.models.copyTradingFollower.findByPk(followerId, {
+            include: [
+                {
+                    model: db_1.models.copyTradingLeader,
+                    as: "leader",
+                    include: [
+                        {
+                            model: db_1.models.user,
+                            as: "user",
+                            attributes: ["firstName", "lastName"],
+                        },
+                    ],
+                },
+            ],
+        });
+        if (!follower)
+            return;
+        const leaderName = (data === null || data === void 0 ? void 0 : data.leaderName) ||
+            (((_b = follower.leader) === null || _b === void 0 ? void 0 : _b.user)
+                ? `${follower.leader.user.firstName} ${follower.leader.user.lastName}`
+                : "the leader");
+        let title = "";
+        let message = "";
+        let link = `/copy-trading/follower/${followerId}`;
+        let notifType = "SYSTEM";
+        let channels = [
+            "IN_APP",
+            "PUSH",
+        ];
+        let priority = "NORMAL";
+        let emailData;
+        const user = await db_1.models.user.findByPk(follower.userId);
+        if (!user)
+            return;
+        switch (event) {
+            case "STARTED":
+                title = "Copy Trading Started";
+                message = `You are now copying ${leaderName}'s trading strategy.`;
+                notifType = "SYSTEM";
+                channels.push("EMAIL");
+                priority = "NORMAL";
+                if (follower.leader) {
+                    emailData = {
+                        template: "copyTradingSubscriptionStarted",
+                        user,
+                        follower,
+                        leader: follower.leader,
+                    };
+                }
+                break;
+            case "PAUSED":
+                title = "Copy Trading Paused";
+                message = `Your subscription to ${leaderName} has been paused. No new trades will be copied.`;
+                notifType = "ALERT";
+                channels.push("EMAIL");
+                priority = "NORMAL";
+                emailData = {
+                    template: "copyTradingSubscriptionPaused",
+                    user,
+                    leaderName,
+                    reason: (data === null || data === void 0 ? void 0 : data.reason) || "You manually paused this subscription",
+                };
+                break;
+            case "RESUMED":
+                title = "Copy Trading Resumed";
+                message = `Your subscription to ${leaderName} has been resumed. Trades will be copied again.`;
+                notifType = "SYSTEM";
+                channels.push("EMAIL");
+                priority = "NORMAL";
+                emailData = {
+                    template: "copyTradingSubscriptionResumed",
+                    user,
+                    leaderName,
+                    copyMode: follower.copyMode,
+                };
+                break;
+            case "STOPPED":
+                title = "Copy Trading Stopped";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Your subscription to ${leaderName} has been stopped. Reason: ${data.reason}`
+                    : `Your subscription to ${leaderName} has been stopped.`;
+                notifType = "ALERT";
+                channels.push("EMAIL");
+                priority = "HIGH";
+                const { getFollowerStats: getStoppedStats } = await Promise.resolve().then(() => __importStar(require("./stats-calculator")));
+                const stoppedStats = await getStoppedStats(followerId);
+                emailData = {
+                    template: "copyTradingSubscriptionStopped",
+                    user,
+                    leaderName,
+                    stats: stoppedStats,
+                };
+                break;
+            case "FORCE_STOPPED":
+                title = "Copy Trading Force Stopped";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Your subscription to ${leaderName} was stopped by admin. Reason: ${data.reason}`
+                    : `Your subscription to ${leaderName} was stopped by admin.`;
+                link = "/support";
+                notifType = "ALERT";
+                channels.push("EMAIL");
+                priority = "HIGH";
+                const { getFollowerStats: getForceStoppedStats } = await Promise.resolve().then(() => __importStar(require("./stats-calculator")));
+                const forceStoppedStats = await getForceStoppedStats(followerId);
+                emailData = {
+                    template: "copyTradingSubscriptionStopped",
+                    user,
+                    leaderName,
+                    stats: forceStoppedStats,
+                };
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId: follower.userId,
+            channels,
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+                relatedId: followerId,
+                emailData,
+            },
+            idempotencyKey: `copy-trading:follower:${event.toLowerCase()}:${followerId}:${Date.now()}`,
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Follower subscription notification sent: ${event}`);
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send follower subscription notification: ${event}`, error);
+    }
+}
+async function notifyFollowerAllocationEvent(followerId, symbol, event, data, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending allocation notification: ${event}`);
+        const follower = await db_1.models.copyTradingFollower.findByPk(followerId, {
+            include: [
+                {
+                    model: db_1.models.copyTradingLeader,
+                    as: "leader",
+                    include: [
+                        {
+                            model: db_1.models.user,
+                            as: "user",
+                            attributes: ["firstName", "lastName"],
+                        },
+                    ],
+                },
+            ],
+        });
+        if (!follower)
+            return;
+        const leaderName = ((_b = follower.leader) === null || _b === void 0 ? void 0 : _b.user)
+            ? `${follower.leader.user.firstName} ${follower.leader.user.lastName}`
+            : "your leader";
+        let title = "";
+        let message = "";
+        let link = `/copy-trading/follower/${followerId}`;
+        let notifType = "SYSTEM";
+        let priority = "NORMAL";
+        switch (event) {
+            case "CREATED":
+                title = "Market Allocation Created";
+                message = `Allocation created for ${symbol} with ${leaderName}'s strategy.`;
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+            case "FUNDS_ADDED":
+                title = "Funds Added to Allocation";
+                message = (data === null || data === void 0 ? void 0 : data.amount)
+                    ? `Added ${data.amount} ${(data === null || data === void 0 ? void 0 : data.currency) || ""} to ${symbol} allocation.`
+                    : `Funds added to ${symbol} allocation.`;
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+            case "FUNDS_REMOVED":
+                title = "Funds Removed from Allocation";
+                message = (data === null || data === void 0 ? void 0 : data.amount)
+                    ? `Removed ${data.amount} ${(data === null || data === void 0 ? void 0 : data.currency) || ""} from ${symbol} allocation.`
+                    : `Funds removed from ${symbol} allocation.`;
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+            case "INSUFFICIENT_BALANCE":
+                title = "Insufficient Balance";
+                message = `Your ${symbol} allocation has insufficient balance to copy trades. Please add funds.`;
+                notifType = "ALERT";
+                priority = "HIGH";
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId: follower.userId,
+            channels: ["IN_APP", "PUSH"],
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+                relatedId: followerId,
+            },
+            idempotencyKey: `copy-trading:follower:allocation:${event.toLowerCase()}:${followerId}:${symbol}:${Date.now()}`,
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Allocation notification sent: ${event}`);
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send allocation notification: ${event}`, error);
+    }
+}
+async function notifyFollowerTradeEvent(followerId, tradeId, event, data, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending trade notification: ${event}`);
+        const follower = await db_1.models.copyTradingFollower.findByPk(followerId);
+        if (!follower)
+            return;
+        let title = "";
+        let message = "";
+        let link = `/copy-trading/follower/${followerId}/trades`;
+        let notifType = "SYSTEM";
+        let priority = "NORMAL";
+        switch (event) {
+            case "COPIED":
+                title = "Trade Copied";
+                message = (data === null || data === void 0 ? void 0 : data.symbol)
+                    ? `Trade copied for ${data.symbol}`
+                    : "Trade copied successfully";
+                notifType = "SYSTEM";
+                priority = "LOW";
+                break;
+            case "CLOSED":
+                title = "Trade Closed";
+                message = (data === null || data === void 0 ? void 0 : data.symbol)
+                    ? `${data.symbol} trade has been closed`
+                    : "Trade has been closed";
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+            case "FAILED":
+                title = "Trade Copy Failed";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Failed to copy trade: ${data.reason}`
+                    : "Failed to copy trade. Please check your balance.";
+                notifType = "ALERT";
+                priority = "HIGH";
+                break;
+            case "PROFIT":
+                title = "Trade Profit";
+                message = (data === null || data === void 0 ? void 0 : data.profit)
+                    ? `Trade closed with profit: +${data.profit.toFixed(2)} USDT`
+                    : "Trade closed with profit";
+                notifType = "SYSTEM";
+                priority = "NORMAL";
+                break;
+            case "LOSS":
+                title = "Trade Loss";
+                message = (data === null || data === void 0 ? void 0 : data.profit)
+                    ? `Trade closed with loss: ${data.profit.toFixed(2)} USDT`
+                    : "Trade closed with loss";
+                notifType = "ALERT";
+                priority = "NORMAL";
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId: follower.userId,
+            channels: ["IN_APP", "PUSH"],
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+                relatedId: tradeId,
+            },
+            idempotencyKey: `copy-trading:follower:trade:${event.toLowerCase()}:${tradeId}:${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Trade notification sent: ${event}`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send trade notification: ${event}`, error);
+    }
+}
+async function notifyFollowerRiskEvent(followerId, event, data, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending risk management notification: ${event}`);
+        const follower = await db_1.models.copyTradingFollower.findByPk(followerId, {
+            include: [
+                {
+                    model: db_1.models.copyTradingLeader,
+                    as: "leader",
+                    include: [
+                        {
+                            model: db_1.models.user,
+                            as: "user",
+                            attributes: ["firstName", "lastName"],
+                        },
+                    ],
+                },
+            ],
+        });
+        if (!follower)
+            return;
+        const leaderName = ((_b = follower.leader) === null || _b === void 0 ? void 0 : _b.user)
+            ? `${follower.leader.user.firstName} ${follower.leader.user.lastName}`
+            : "your leader";
+        let title = "";
+        let message = "";
+        let link = `/copy-trading/follower/${followerId}`;
+        let notifType = "ALERT";
+        let priority = "HIGH";
+        switch (event) {
+            case "DAILY_LOSS_LIMIT":
+                title = "Daily Loss Limit Reached";
+                message = (data === null || data === void 0 ? void 0 : data.limit)
+                    ? `You've reached your daily loss limit of ${data.limit}%. No new trades will be copied today.`
+                    : "You've reached your daily loss limit. No new trades will be copied today.";
+                priority = "HIGH";
+                break;
+            case "POSITION_SIZE_LIMIT":
+                title = "Position Size Limit";
+                message =
+                    "Trade skipped due to position size limit. Adjust your limits to copy larger positions.";
+                priority = "NORMAL";
+                break;
+            case "AUTO_PAUSED":
+                title = "Auto-Paused";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Your subscription to ${leaderName} was automatically paused: ${data.reason}`
+                    : `Your subscription to ${leaderName} was automatically paused.`;
+                priority = "HIGH";
+                break;
+            case "AUTO_STOPPED":
+                title = "Auto-Stopped";
+                message = (data === null || data === void 0 ? void 0 : data.reason)
+                    ? `Your subscription to ${leaderName} was automatically stopped: ${data.reason}`
+                    : `Your subscription to ${leaderName} was automatically stopped.`;
+                priority = "HIGH";
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId: follower.userId,
+            channels: ["IN_APP", "PUSH"],
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+                relatedId: followerId,
+            },
+            idempotencyKey: `copy-trading:follower:risk:${event.toLowerCase()}:${followerId}:${Date.now()}`,
+        });
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Risk management notification sent: ${event}`);
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send risk management notification: ${event}`, error);
+    }
+}
+async function notifyProfitShareEvent(userId, event, data, ctx) {
+    var _a, _b, _c;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Sending profit share notification: ${event}`);
+        let title = "";
+        let message = "";
+        let link = "/copy-trading/earnings";
+        let notifType = "SYSTEM";
+        let priority = "NORMAL";
+        switch (event) {
+            case "EARNED":
+                title = "Profit Share Earned";
+                message = data.followerName
+                    ? `You earned ${data.amount.toFixed(2)} USDT profit share from ${data.followerName}'s trade.`
+                    : `You earned ${data.amount.toFixed(2)} USDT profit share.`;
+                link = "/copy-trading/leader/earnings";
+                priority = "NORMAL";
+                break;
+            case "RECEIVED":
+                title = "Profit Share Paid";
+                message = data.leaderName
+                    ? `Profit share of ${data.amount.toFixed(2)} USDT paid to ${data.leaderName}.`
+                    : `Profit share of ${data.amount.toFixed(2)} USDT has been paid.`;
+                link = "/copy-trading/follower/history";
+                priority = "NORMAL";
+                break;
+            case "DISTRIBUTED":
+                title = "Profit Shares Distributed";
+                message = `Successfully distributed ${data.amount.toFixed(2)} USDT in profit shares.`;
+                priority = "NORMAL";
+                break;
+        }
+        await notification_1.notificationService.send({
+            userId,
+            channels: ["IN_APP", "PUSH"],
+            priority,
+            type: notifType,
+            data: {
+                title,
+                message,
+                link,
+            },
+            idempotencyKey: `copy-trading:profit-share:${event.toLowerCase()}:${userId}:${Date.now()}`,
+        });
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, `Profit share notification sent: ${event}`);
+    }
+    catch (error) {
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _c === void 0 ? void 0 : _c.call(ctx, error.message);
+        console_1.logger.error("copy-trading", `Failed to send profit share notification: ${event}`, error);
+    }
+}
+async function notifyCopyTradingAdmins(event, data, ctx) {
+    var _a, _b, _c, _d;
+    try {
+        (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Notifying admins about ${event}`);
+        const admins = await db_1.models.user.findAll({
+            include: [
+                {
+                    model: db_1.models.role,
+                    as: "role",
+                    include: [
+                        {
+                            model: db_1.models.permission,
+                            as: "permissions",
+                            through: { attributes: [] },
+                            where: { name: "access.copy_trading" },
+                        },
+                    ],
+                    required: true,
+                },
+            ],
+            attributes: ["id", "email", "firstName", "lastName"],
+        });
+        if (!admins || admins.length === 0) {
+            (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, "No admin users with copy trading permissions found");
+            return;
+        }
+        let title = "";
+        let message = "";
+        let link = "";
+        let priority = "NORMAL";
+        switch (event) {
+            case "LEADER_APPLICATION":
+                title = "New Leader Application";
+                message = `${data.userName} applied to become a copy trading leader.`;
+                link = `/admin/copy-trading/leader/${data.leaderId}`;
+                priority = "NORMAL";
+                break;
+            case "SUSPICIOUS_ACTIVITY":
+                title = "Suspicious Copy Trading Activity";
+                message = `Suspicious activity detected: ${data.description}`;
+                link = `/admin/copy-trading/audit`;
+                priority = "HIGH";
+                break;
+            case "HIGH_LOSS_FOLLOWER":
+                title = "High Loss Alert";
+                message = `Follower ${data.userName} has high losses: ${data.lossPercent}%`;
+                link = `/admin/copy-trading/follower/${data.followerId}`;
+                priority = "HIGH";
+                break;
+            case "LEADER_SUSPENDED":
+                title = "Leader Suspended";
+                message = `Leader ${data.leaderName} has been suspended.`;
+                link = `/admin/copy-trading/leader/${data.leaderId}`;
+                priority = "NORMAL";
+                break;
+            default:
+                title = "Copy Trading Admin Alert";
+                message = `Event: ${event}`;
+                link = "/admin/copy-trading";
+                priority = "NORMAL";
+        }
+        for (const admin of admins) {
+            try {
+                await notification_1.notificationService.send({
+                    userId: admin.id,
+                    channels: ["IN_APP", "PUSH"],
+                    priority,
+                    type: "ALERT",
+                    data: {
+                        title,
+                        message,
+                        link,
+                    },
+                    idempotencyKey: `copy-trading:admin:${event}:${admin.id}:${Date.now()}`,
+                });
+            }
+            catch (adminNotifError) {
+                console_1.logger.error("copy-trading", `Failed to create admin notification for ${admin.id}`, adminNotifError);
+            }
+        }
+        (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Sent copy trading admin notifications (${event}) to ${admins.length} admin(s)`);
+    }
+    catch (error) {
+        (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message);
+        console_1.logger.error("copy-trading", "Failed to notify copy trading admins", error);
+    }
+}

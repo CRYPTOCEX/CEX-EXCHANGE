@@ -554,8 +554,6 @@ export function DepositForm() {
       wsManager.connect(wsUrl, connectionId);
 
       const handleDepositUpdate = (data: any) => {
-  const t = useTranslations("common");
-  const tExtAdmin = useTranslations("ext_admin");
         const shouldUnlockAddress =
           selectedDepositMethod?.contractType === "NO_PERMIT" &&
           depositAddress?.address;

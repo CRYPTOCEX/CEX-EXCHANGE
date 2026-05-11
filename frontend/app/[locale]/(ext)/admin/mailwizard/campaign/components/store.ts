@@ -154,7 +154,7 @@ export const useCampaignStore = create<CampaignState>()(
               name: data.name,
               subject: data.subject,
               speed: data.speed,
-              templateId: data.templateId,
+              templateId: data.template?.id || data.templateId || "",
               status: data.status || "PENDING",
             },
           });
@@ -189,24 +189,38 @@ export const useCampaignStore = create<CampaignState>()(
       perPage = 10,
       fetchAll = false
     ) => {
-      const filterObject = {
-        firstName: { value: filter, operator: "startsWith" },
-      };
-      const { data, error } = await $fetch({
-        url: "/api/admin/crm/user",
-        params: fetchAll
-          ? { all: "true" }
-          : { filter: JSON.stringify(filterObject), page, perPage },
-        silent: true,
-      });
-      if (!error) {
-        if (fetchAll) {
+      if (fetchAll) {
+        // Use options endpoint for fetching all users (lightweight)
+        const { data, error } = await $fetch({
+          url: "/api/admin/crm/user/options",
+          silent: true,
+        });
+        if (!error && data) {
+          // Transform options format to Target format
+          const users = data.map((opt: any) => ({
+            id: opt.id,
+            email: opt.email || "",
+            firstName: opt.firstName || "",
+            lastName: opt.lastName || "",
+            avatar: opt.avatar || "",
+            status: "PENDING",
+          }));
           set({
-            users: data.data,
-            selectedUsers: data.data,
-            totalUsersInDatabase: data.data.length,
+            users,
+            selectedUsers: users,
+            totalUsersInDatabase: users.length,
           });
-        } else {
+        }
+      } else {
+        const filterObject = {
+          firstName: { value: filter, operator: "startsWith" },
+        };
+        const { data, error } = await $fetch({
+          url: "/api/admin/crm/user",
+          params: { filter: JSON.stringify(filterObject), page, perPage },
+          silent: true,
+        });
+        if (!error) {
           set({
             users: data.items,
             userPagination: data.pagination,

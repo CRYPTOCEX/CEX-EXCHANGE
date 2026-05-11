@@ -4,6 +4,7 @@ exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
+const visibility_1 = require("@b/api/(ext)/p2p/utils/visibility");
 const sequelize_1 = require("sequelize");
 const utils_1 = require("@b/api/finance/currency/utils");
 exports.metadata = {
@@ -85,14 +86,11 @@ exports.default = async (data) => {
                 currency: body.cryptocurrency,
                 type: body.tradeType.toUpperCase(),
                 status: "ACTIVE",
-                ...(amount && {
-                    "amountConfig.min": { [sequelize_1.Op.lte]: amount },
-                    "amountConfig.max": { [sequelize_1.Op.gte]: amount },
-                }),
                 ...(body.location &&
                     body.location !== "any" && {
                     "locationSettings.country": body.location,
                 }),
+                [sequelize_1.Op.and]: [(0, visibility_1.publicVisibilityLiteral)()],
             },
             include: [
                 {
@@ -141,21 +139,42 @@ exports.default = async (data) => {
                 bestPrice: 0,
             };
         }
-        const prices = offers.map((o) => {
+        const filteredOffers = amount
+            ? offers.filter((offer) => {
+                const priceConfig = (0, json_parser_1.parsePriceConfig)(offer.priceConfig);
+                const amountCfg = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+                const finalPrice = priceConfig.finalPrice;
+                if (!finalPrice || finalPrice <= 0)
+                    return true;
+                const amountInPriceCurrency = amount * finalPrice;
+                const minOk = !amountCfg.min || amountInPriceCurrency >= amountCfg.min;
+                const maxOk = !amountCfg.max || amountInPriceCurrency <= amountCfg.max;
+                return minOk && maxOk;
+            })
+            : offers;
+        if (!filteredOffers.length) {
+            return {
+                matches: [],
+                matchCount: 0,
+                estimatedSavings: 0,
+                bestPrice: 0,
+            };
+        }
+        const prices = filteredOffers.map((o) => {
             const priceConfig = (0, json_parser_1.parsePriceConfig)(o.priceConfig);
             return priceConfig.finalPrice;
         });
         const bestPrice = body.tradeType === "buy" ? Math.min(...prices) : Math.max(...prices);
         let marketPrice = null;
         try {
-            marketPrice = await getMarketPrice(body.cryptocurrency, offers[0].walletType);
+            marketPrice = await getMarketPrice(body.cryptocurrency, filteredOffers[0].walletType);
         }
         catch (e) {
             marketPrice = prices.reduce((a, b) => a + b, 0) / (prices.length || 1);
         }
         const userMethodIds = new Set(body.paymentMethods);
-        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Scoring and ranking ${offers.length} matching offers`);
-        const scoredOffers = offers.map((offer) => {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step(`Scoring and ranking ${filteredOffers.length} matching offers`);
+        const scoredOffers = filteredOffers.map((offer) => {
             var _a;
             const priceConfig = (0, json_parser_1.parsePriceConfig)(offer.priceConfig);
             const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);

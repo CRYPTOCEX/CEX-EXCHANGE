@@ -208,6 +208,7 @@ export default function PlanDetailClient() {
         planId: plan!.id,
         durationId: selectedDurationId,
         amount,
+        acceptTerms: true, // User accepts by clicking confirm on step 3
       },
     });
 
@@ -296,7 +297,7 @@ export default function PlanDetailClient() {
                   <div className="flex flex-col sm:flex-row justify-center gap-4">
                     <Link href="/forex/dashboard">
                       <Button
-                        className={`w-full sm:w-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                        className={`w-full sm:w-auto rounded-xl bg-linear-to-r! from-emerald-600! via-teal-500! to-emerald-600! hover:opacity-90 text-white font-semibold transition-all duration-300 shadow-md`}
                       >
                         {tCommon("go_to_dashboard")}
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -985,7 +986,7 @@ export default function PlanDetailClient() {
                               (currentStep === 1 && !selectedDurationId) ||
                               (currentStep === 2 && amount <= 0)
                             }
-                            className={`ml-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                            className={`ml-auto rounded-xl bg-linear-to-r! from-emerald-600! via-teal-500! to-emerald-600! hover:opacity-90 text-white font-semibold transition-all duration-300 shadow-md`}
                           >
                             {tCommon("next")}
                             <ArrowRight className="ml-2 h-4 w-4" />
@@ -999,7 +1000,7 @@ export default function PlanDetailClient() {
                               amount <= 0 ||
                               amount > walletBalance
                             }
-                            className={`ml-auto rounded-xl bg-linear-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-size-[200%_100%] hover:bg-position-[100%_0] text-white font-semibold transition-all duration-300`}
+                            className={`ml-auto rounded-xl bg-linear-to-r! from-emerald-600! via-teal-500! to-emerald-600! hover:opacity-90 text-white font-semibold transition-all duration-300 shadow-md`}
                           >
                             {isLoading ? (
                               <>

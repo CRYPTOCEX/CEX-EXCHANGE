@@ -1,1 +1,363 @@
-"use strict";function calculatePnL(e,r,t,a,o=0){let n;n="BUY"===a?(r-e)*t:(e-r)*t;n-=o;const c=e*t;return{profit:n,profitPercent:c>0?n/c*100:0}}function calculateUnrealizedPnL(e,r,t,a){const{profit:o,profitPercent:n}=calculatePnL(e,r,t,a,0);return{unrealizedProfit:o,unrealizedProfitPercent:n}}async function calculateProfitShareBreakdown(e,r,t="USDT"){const a=await(0,index_1.getCopyTradingSettings)(),o=a.platformFeePercent||2,n=Math.min(r,100),c=a.enableProfitShare?n:0;if(e<=0)return{grossProfit:e,platformFee:0,platformFeePercent:o,leaderShare:0,leaderSharePercent:c,followerNet:e,currency:t};const i=e*(o/100),l=e-i,s=l*(c/100);return{grossProfit:e,platformFee:i,platformFeePercent:o,leaderShare:s,leaderSharePercent:c,followerNet:l-s,currency:t}}async function distributeProfitShare(e,r,t,a,o,n){try{if(a<=0)return{success:!0,leaderShare:0,platformFee:0,followerNet:a,currency:o};const c=await calculateProfitShareBreakdown(a,t.profitSharePercent||20,o),i=n||await db_1.sequelize.transaction(),l=!!n;try{if(c.leaderShare>0){const n=await(0,wallet_1.getWalletByUserIdAndCurrency)(t.userId,o);if(n){await(0,wallet_1.updateWalletBalance)(n,c.leaderShare,"add",`ct_profit_share_${e}`,i);await db_1.models.copyTradingTransaction.create({userId:t.userId,leaderId:t.id,followerId:r.id,tradeId:e,type:"PROFIT_SHARE_RECEIVED",amount:c.leaderShare,currency:o,fee:0,balanceBefore:parseFloat(n.balance.toString()),balanceAfter:parseFloat(n.balance.toString())+c.leaderShare,description:`Profit share from follower trade: ${(0,currency_1.formatCurrencyAmount)(c.leaderShare,o)}`,metadata:JSON.stringify({grossProfit:a,sharePercent:c.leaderSharePercent,currency:o}),status:"COMPLETED"},{transaction:i})}}await db_1.models.copyTradingTransaction.create({userId:r.userId,leaderId:t.id,followerId:r.id,tradeId:e,type:"PROFIT_SHARE_PAID",amount:c.leaderShare,currency:o,fee:c.platformFee,balanceBefore:0,balanceAfter:0,description:`Profit share paid to leader: ${(0,currency_1.formatCurrencyAmount)(c.leaderShare,o)}`,metadata:JSON.stringify({grossProfit:a,leaderSharePercent:c.leaderSharePercent,platformFeePercent:c.platformFeePercent,currency:o}),status:"COMPLETED"},{transaction:i});c.platformFee>0&&await db_1.models.copyTradingTransaction.create({userId:r.userId,followerId:r.id,tradeId:e,type:"PLATFORM_FEE",amount:c.platformFee,currency:o,fee:0,balanceBefore:0,balanceAfter:0,description:`Platform fee for profitable trade: ${(0,currency_1.formatCurrencyAmount)(c.platformFee,o)}`,metadata:JSON.stringify({grossProfit:a,feePercent:c.platformFeePercent,currency:o}),status:"COMPLETED"},{transaction:i});await db_1.models.copyTradingLeader.update({totalProfit:(0,sequelize_1.literal)(`"totalProfit" + ${c.leaderShare}`)},{where:{id:t.id},transaction:i});l||await i.commit();await(0,index_1.createAuditLog)({entityType:"copyTradingTrade",entityId:e,action:"PROFIT_DISTRIBUTED",userId:r.userId,metadata:c});return{success:!0,leaderShare:c.leaderShare,platformFee:c.platformFee,followerNet:c.followerNet,currency:o}}catch(e){l||await i.rollback();throw e}}catch(e){console_1.logger.error("COPY_TRADING","Failed to distribute profit share",e);return{success:!1,leaderShare:0,platformFee:0,followerNet:0,currency:o,error:e.message}}}async function processPendingProfitDistributions(){let e=0,r=0;try{const t=await db_1.models.copyTradingTrade.findAll({where:{status:"CLOSED",followerId:{[sequelize_1.Op.ne]:null},profit:{[sequelize_1.Op.gt]:0}},include:[{model:db_1.models.copyTradingFollower,as:"follower",include:[{model:db_1.models.copyTradingLeader,as:"leader"}]}]});for(const a of t){if(await db_1.models.copyTradingTransaction.findOne({where:{tradeId:a.id,type:"PROFIT_SHARE_PAID"}}))continue;const t=a.follower,o=null==t?void 0:t.leader;if(!t||!o)continue;const n=a.profitCurrency||(0,currency_1.getQuoteCurrency)(a.symbol);(await distributeProfitShare(a.id,t,o,a.profit,n)).success?e++:r++}return{processed:e,failed:r}}catch(t){console_1.logger.error("COPY_TRADING","Failed to process pending profit distributions",t);return{processed:e,failed:r}}}async function getLeaderEarnings(e,r,t){const a={leaderId:e,type:"PROFIT_SHARE_RECEIVED",status:"COMPLETED"};if(r||t){a.createdAt={};r&&(a.createdAt[sequelize_1.Op.gte]=r);t&&(a.createdAt[sequelize_1.Op.lte]=t)}const o=await db_1.models.copyTradingTransaction.findAll({where:a,attributes:["amount","currency"]});let n=0;const c={};let i=0;for(const e of o){const r=parseFloat(e.amount)||0,t=e.currency||"USDT";c[t]=(c[t]||0)+r;i++;try{n+=await(0,currency_1.convertToUSDT)(r,t)}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${t}`,e);n+=r}}return{totalEarnings:n,totalProfitShares:n,totalPlatformFees:0,tradeCount:i,currency:"USDT",earningsByCurrency:c}}async function getFollowerProfitSharePayments(e,r,t){const a={followerId:e,status:"COMPLETED"};if(r||t){a.createdAt={};r&&(a.createdAt[sequelize_1.Op.gte]=r);t&&(a.createdAt[sequelize_1.Op.lte]=t)}const o=await db_1.models.copyTradingTransaction.findAll({where:{...a,type:"PROFIT_SHARE_PAID"},attributes:["amount","currency"]}),n=await db_1.models.copyTradingTransaction.findAll({where:{...a,type:"PLATFORM_FEE"},attributes:["amount","currency"]});let c=0;const i={};let l=0;for(const e of o){const r=parseFloat(e.amount)||0,t=e.currency||"USDT";i[t]=(i[t]||0)+r;l++;try{c+=await(0,currency_1.convertToUSDT)(r,t)}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${t}`,e);c+=r}}let s=0;for(const e of n){const r=parseFloat(e.amount)||0,t=e.currency||"USDT";try{s+=await(0,currency_1.convertToUSDT)(r,t)}catch(e){console_1.logger.warn("COPY_TRADING",`Currency conversion failed for ${t}`,e);s+=r}}return{totalPaid:c,totalPlatformFees:s,tradeCount:l,currency:"USDT",paidByCurrency:i}}async function previewProfitShare(e,r){var t;const a=await db_1.models.copyTradingTrade.findByPk(e,{include:[{model:db_1.models.copyTradingFollower,as:"follower",include:[{model:db_1.models.copyTradingLeader,as:"leader"}]}]});if(!a)return{grossProfit:0,breakdown:null};const o=a,n=o.executedPrice||o.price,c=o.executedAmount||o.amount,{profit:i}=calculatePnL(n,r,c,o.side,o.fee||0);if(i<=0||!(null===(t=o.follower)||void 0===t?void 0:t.leader))return{grossProfit:i,breakdown:null};return{grossProfit:i,breakdown:await calculateProfitShareBreakdown(i,o.follower.leader.profitSharePercent||20)}}Object.defineProperty(exports,"__esModule",{value:!0});exports.calculatePnL=calculatePnL;exports.calculateUnrealizedPnL=calculateUnrealizedPnL;exports.calculateProfitShareBreakdown=calculateProfitShareBreakdown;exports.distributeProfitShare=distributeProfitShare;exports.processPendingProfitDistributions=processPendingProfitDistributions;exports.getLeaderEarnings=getLeaderEarnings;exports.getFollowerProfitSharePayments=getFollowerProfitSharePayments;exports.previewProfitShare=previewProfitShare;const db_1=require("@b/db"),sequelize_1=require("sequelize"),console_1=require("@b/utils/console"),wallet_1=require("@b/api/(ext)/ecosystem/utils/wallet"),index_1=require("./index"),currency_1=require("./currency");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.calculatePnL = calculatePnL;
+exports.calculateUnrealizedPnL = calculateUnrealizedPnL;
+exports.calculateProfitShareBreakdown = calculateProfitShareBreakdown;
+exports.distributeProfitShare = distributeProfitShare;
+exports.processPendingProfitDistributions = processPendingProfitDistributions;
+exports.getLeaderEarnings = getLeaderEarnings;
+exports.getFollowerProfitSharePayments = getFollowerProfitSharePayments;
+exports.previewProfitShare = previewProfitShare;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/api/(ext)/ecosystem/utils/wallet");
+const index_1 = require("./index");
+const currency_1 = require("./currency");
+function calculatePnL(entryPrice, exitPrice, amount, side, fees = 0) {
+    let profit;
+    if (side === "BUY") {
+        profit = (exitPrice - entryPrice) * amount;
+    }
+    else {
+        profit = (entryPrice - exitPrice) * amount;
+    }
+    profit -= fees;
+    const cost = entryPrice * amount;
+    const profitPercent = cost > 0 ? (profit / cost) * 100 : 0;
+    return { profit, profitPercent };
+}
+function calculateUnrealizedPnL(entryPrice, currentPrice, amount, side) {
+    const { profit, profitPercent } = calculatePnL(entryPrice, currentPrice, amount, side, 0);
+    return {
+        unrealizedProfit: profit,
+        unrealizedProfitPercent: profitPercent,
+    };
+}
+async function calculateProfitShareBreakdown(grossProfit, leaderSharePercent, currency = "USDT") {
+    const settings = await (0, index_1.getCopyTradingSettings)();
+    const platformFeePercent = settings.platformFeePercent || 2;
+    const validatedLeaderShare = Math.min(leaderSharePercent, 100);
+    const effectiveLeaderSharePercent = settings.enableProfitShare ? validatedLeaderShare : 0;
+    if (grossProfit <= 0) {
+        return {
+            grossProfit,
+            platformFee: 0,
+            platformFeePercent,
+            leaderShare: 0,
+            leaderSharePercent: effectiveLeaderSharePercent,
+            followerNet: grossProfit,
+            currency,
+        };
+    }
+    const platformFee = grossProfit * (platformFeePercent / 100);
+    const afterPlatformFee = grossProfit - platformFee;
+    const leaderShare = afterPlatformFee * (effectiveLeaderSharePercent / 100);
+    const followerNet = afterPlatformFee - leaderShare;
+    return {
+        grossProfit,
+        platformFee,
+        platformFeePercent,
+        leaderShare,
+        leaderSharePercent: effectiveLeaderSharePercent,
+        followerNet,
+        currency,
+    };
+}
+async function distributeProfitShare(tradeId, follower, leader, grossProfit, currency, transaction) {
+    try {
+        if (grossProfit <= 0) {
+            return {
+                success: true,
+                leaderShare: 0,
+                platformFee: 0,
+                followerNet: grossProfit,
+                currency,
+            };
+        }
+        const breakdown = await calculateProfitShareBreakdown(grossProfit, leader.profitSharePercent || 20, currency);
+        const t = transaction || (await db_1.sequelize.transaction());
+        const useExternalTransaction = !!transaction;
+        try {
+            if (breakdown.leaderShare > 0) {
+                const leaderWallet = await (0, wallet_1.getWalletByUserIdAndCurrency)(leader.userId, currency);
+                if (leaderWallet) {
+                    await (0, wallet_1.updateWalletBalance)(leaderWallet, breakdown.leaderShare, "add", `ct_profit_share_${tradeId}`, t);
+                    await db_1.models.copyTradingTransaction.create({
+                        userId: leader.userId,
+                        leaderId: leader.id,
+                        followerId: follower.id,
+                        tradeId,
+                        type: "PROFIT_SHARE",
+                        amount: breakdown.leaderShare,
+                        currency,
+                        fee: 0,
+                        balanceBefore: parseFloat(leaderWallet.balance.toString()),
+                        balanceAfter: parseFloat(leaderWallet.balance.toString()) +
+                            breakdown.leaderShare,
+                        description: `Profit share from follower trade: ${(0, currency_1.formatCurrencyAmount)(breakdown.leaderShare, currency)}`,
+                        metadata: JSON.stringify({
+                            grossProfit,
+                            sharePercent: breakdown.leaderSharePercent,
+                            currency,
+                        }),
+                        status: "COMPLETED",
+                    }, { transaction: t });
+                }
+            }
+            await db_1.models.copyTradingTransaction.create({
+                userId: follower.userId,
+                leaderId: leader.id,
+                followerId: follower.id,
+                tradeId,
+                type: "PROFIT_SHARE",
+                amount: breakdown.leaderShare,
+                currency,
+                fee: breakdown.platformFee,
+                balanceBefore: 0,
+                balanceAfter: 0,
+                description: `Profit share paid to leader: ${(0, currency_1.formatCurrencyAmount)(breakdown.leaderShare, currency)}`,
+                metadata: JSON.stringify({
+                    grossProfit,
+                    leaderSharePercent: breakdown.leaderSharePercent,
+                    platformFeePercent: breakdown.platformFeePercent,
+                    currency,
+                }),
+                status: "COMPLETED",
+            }, { transaction: t });
+            if (breakdown.platformFee > 0) {
+                await db_1.models.copyTradingTransaction.create({
+                    userId: follower.userId,
+                    followerId: follower.id,
+                    tradeId,
+                    type: "FEE",
+                    amount: breakdown.platformFee,
+                    currency,
+                    fee: 0,
+                    balanceBefore: 0,
+                    balanceAfter: 0,
+                    description: `Platform fee for profitable trade: ${(0, currency_1.formatCurrencyAmount)(breakdown.platformFee, currency)}`,
+                    metadata: JSON.stringify({
+                        grossProfit,
+                        feePercent: breakdown.platformFeePercent,
+                        currency,
+                    }),
+                    status: "COMPLETED",
+                }, { transaction: t });
+            }
+            if (!useExternalTransaction) {
+                await t.commit();
+            }
+            await (0, index_1.createAuditLog)({
+                entityType: "copyTradingTrade",
+                entityId: tradeId,
+                action: "PROFIT_DISTRIBUTED",
+                userId: follower.userId,
+                metadata: breakdown,
+            });
+            return {
+                success: true,
+                leaderShare: breakdown.leaderShare,
+                platformFee: breakdown.platformFee,
+                followerNet: breakdown.followerNet,
+                currency,
+            };
+        }
+        catch (error) {
+            if (!useExternalTransaction) {
+                await t.rollback();
+            }
+            throw error;
+        }
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", "Failed to distribute profit share", error);
+        return {
+            success: false,
+            leaderShare: 0,
+            platformFee: 0,
+            followerNet: 0,
+            currency,
+            error: error.message,
+        };
+    }
+}
+async function processPendingProfitDistributions() {
+    let processed = 0;
+    let failed = 0;
+    try {
+        const closedTrades = await db_1.models.copyTradingTrade.findAll({
+            where: {
+                status: "CLOSED",
+                followerId: { [sequelize_1.Op.ne]: null },
+                profit: { [sequelize_1.Op.gt]: 0 },
+            },
+            include: [
+                {
+                    model: db_1.models.copyTradingFollower,
+                    as: "follower",
+                    include: [
+                        {
+                            model: db_1.models.copyTradingLeader,
+                            as: "leader",
+                        },
+                    ],
+                },
+            ],
+        });
+        for (const trade of closedTrades) {
+            const existingDistribution = await db_1.models.copyTradingTransaction.findOne({
+                where: {
+                    tradeId: trade.id,
+                    type: "PROFIT_SHARE_PAID",
+                },
+            });
+            if (existingDistribution) {
+                continue;
+            }
+            const follower = trade.follower;
+            const leader = follower === null || follower === void 0 ? void 0 : follower.leader;
+            if (!follower || !leader) {
+                continue;
+            }
+            const profitCurrency = trade.profitCurrency || (0, currency_1.getQuoteCurrency)(trade.symbol);
+            const result = await distributeProfitShare(trade.id, follower, leader, trade.profit, profitCurrency);
+            if (result.success) {
+                processed++;
+            }
+            else {
+                failed++;
+            }
+        }
+        return { processed, failed };
+    }
+    catch (error) {
+        console_1.logger.error("COPY_TRADING", "Failed to process pending profit distributions", error);
+        return { processed, failed };
+    }
+}
+async function getLeaderEarnings(leaderId, startDate, endDate) {
+    const whereClause = {
+        leaderId,
+        type: "PROFIT_SHARE",
+        status: "COMPLETED",
+    };
+    if (startDate || endDate) {
+        whereClause.createdAt = {};
+        if (startDate)
+            whereClause.createdAt[sequelize_1.Op.gte] = startDate;
+        if (endDate)
+            whereClause.createdAt[sequelize_1.Op.lte] = endDate;
+    }
+    const transactions = await db_1.models.copyTradingTransaction.findAll({
+        where: whereClause,
+        attributes: ["amount", "currency"],
+    });
+    let totalEarningsUSDT = 0;
+    const earningsByCurrency = {};
+    let tradeCount = 0;
+    for (const tx of transactions) {
+        const amount = parseFloat(tx.amount) || 0;
+        const currency = tx.currency || "USDT";
+        earningsByCurrency[currency] = (earningsByCurrency[currency] || 0) + amount;
+        tradeCount++;
+        try {
+            const amountInUSDT = await (0, currency_1.convertToUSDT)(amount, currency);
+            totalEarningsUSDT += amountInUSDT;
+        }
+        catch (conversionError) {
+            console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${currency}`, conversionError);
+            totalEarningsUSDT += amount;
+        }
+    }
+    return {
+        totalEarnings: totalEarningsUSDT,
+        totalProfitShares: totalEarningsUSDT,
+        totalPlatformFees: 0,
+        tradeCount,
+        currency: "USDT",
+        earningsByCurrency,
+    };
+}
+async function getFollowerProfitSharePayments(followerId, startDate, endDate) {
+    const whereClause = {
+        followerId,
+        status: "COMPLETED",
+    };
+    if (startDate || endDate) {
+        whereClause.createdAt = {};
+        if (startDate)
+            whereClause.createdAt[sequelize_1.Op.gte] = startDate;
+        if (endDate)
+            whereClause.createdAt[sequelize_1.Op.lte] = endDate;
+    }
+    const profitShares = await db_1.models.copyTradingTransaction.findAll({
+        where: { ...whereClause, type: "PROFIT_SHARE" },
+        attributes: ["amount", "currency"],
+    });
+    const platformFees = await db_1.models.copyTradingTransaction.findAll({
+        where: { ...whereClause, type: "FEE" },
+        attributes: ["amount", "currency"],
+    });
+    let totalPaidUSDT = 0;
+    const paidByCurrency = {};
+    let tradeCount = 0;
+    for (const tx of profitShares) {
+        const amount = parseFloat(tx.amount) || 0;
+        const currency = tx.currency || "USDT";
+        paidByCurrency[currency] = (paidByCurrency[currency] || 0) + amount;
+        tradeCount++;
+        try {
+            const amountInUSDT = await (0, currency_1.convertToUSDT)(amount, currency);
+            totalPaidUSDT += amountInUSDT;
+        }
+        catch (conversionError) {
+            console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${currency}`, conversionError);
+            totalPaidUSDT += amount;
+        }
+    }
+    let totalFeesUSDT = 0;
+    for (const tx of platformFees) {
+        const amount = parseFloat(tx.amount) || 0;
+        const currency = tx.currency || "USDT";
+        try {
+            const amountInUSDT = await (0, currency_1.convertToUSDT)(amount, currency);
+            totalFeesUSDT += amountInUSDT;
+        }
+        catch (conversionError) {
+            console_1.logger.warn("COPY_TRADING", `Currency conversion failed for ${currency}`, conversionError);
+            totalFeesUSDT += amount;
+        }
+    }
+    return {
+        totalPaid: totalPaidUSDT,
+        totalPlatformFees: totalFeesUSDT,
+        tradeCount,
+        currency: "USDT",
+        paidByCurrency,
+    };
+}
+async function previewProfitShare(tradeId, closePrice) {
+    var _a;
+    const trade = await db_1.models.copyTradingTrade.findByPk(tradeId, {
+        include: [
+            {
+                model: db_1.models.copyTradingFollower,
+                as: "follower",
+                include: [{ model: db_1.models.copyTradingLeader, as: "leader" }],
+            },
+        ],
+    });
+    if (!trade) {
+        return { grossProfit: 0, breakdown: null };
+    }
+    const tradeData = trade;
+    const entryPrice = tradeData.executedPrice || tradeData.price;
+    const amount = tradeData.executedAmount || tradeData.amount;
+    const { profit } = calculatePnL(entryPrice, closePrice, amount, tradeData.side, tradeData.fee || 0);
+    if (profit <= 0 || !((_a = tradeData.follower) === null || _a === void 0 ? void 0 : _a.leader)) {
+        return { grossProfit: profit, breakdown: null };
+    }
+    const breakdown = await calculateProfitShareBreakdown(profit, tradeData.follower.leader.profitSharePercent || 20);
+    return { grossProfit: profit, breakdown };
+}

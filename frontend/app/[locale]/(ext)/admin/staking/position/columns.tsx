@@ -207,7 +207,7 @@ export function useFormConfig(): FormConfig {
               key: "poolId",
               required: true,
               apiEndpoint: {
-                url: "/api/ext/staking/pool/options",
+                url: "/api/admin/staking/pool/all",
                 method: "GET",
               },
             },

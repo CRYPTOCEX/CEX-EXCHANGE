@@ -135,7 +135,7 @@ export default function OfferDetailsClient() {
               <OfferDetailsTabs offer={offer} timeLimit={timeLimit} />
 
               {/* Seller Information Card */}
-              <SellerInformation seller={offer.user} currency={offer.currency} />
+              <SellerInformation seller={offer.user} currency={offer.currency} offerType={offer.type} />
             </div>
 
             {/* Right column - Trade form and help */}

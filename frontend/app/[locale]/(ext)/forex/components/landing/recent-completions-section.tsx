@@ -98,7 +98,7 @@ function CompletionCard({
       <div className="text-right flex-shrink-0">
         <p className={`font-bold ${config.text}`}>
           {completion.result === "WIN" ? "+" : completion.result === "LOSS" ? "-" : ""}
-          {Math.abs(completion.profitPercent).toFixed(1)}%
+          {Math.abs(parseFloat(String(completion.profitPercent)) || 0).toFixed(1)}%
         </p>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-end gap-1">
           <Clock className="w-3 h-3" />

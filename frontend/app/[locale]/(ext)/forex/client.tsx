@@ -105,13 +105,13 @@ export default function ForexClient() {
         if (isMounted && res.data) {
           setLandingData(res.data);
           setStats({
-            activeInvestors: res.data.stats?.activeInvestors || 0,
-            totalInvested: res.data.stats?.totalInvested || 0,
-            averageReturn: res.data.stats?.averageReturn || 0,
-            totalProfit: res.data.stats?.totalProfit || 0,
-            winRate: res.data.stats?.winRate || 0,
-            completedInvestments: res.data.stats?.completedInvestments || 0,
-            activeInvestments: res.data.stats?.activeInvestments || 0,
+            activeInvestors: Number(res.data.stats?.activeInvestors) || 0,
+            totalInvested: parseFloat(res.data.stats?.totalInvested) || 0,
+            averageReturn: parseFloat(res.data.stats?.averageReturn) || 0,
+            totalProfit: parseFloat(res.data.stats?.totalProfit) || 0,
+            winRate: parseFloat(res.data.stats?.winRate) || 0,
+            completedInvestments: Number(res.data.stats?.completedInvestments) || 0,
+            activeInvestments: Number(res.data.stats?.activeInvestments) || 0,
           });
         }
         if (isMounted) {

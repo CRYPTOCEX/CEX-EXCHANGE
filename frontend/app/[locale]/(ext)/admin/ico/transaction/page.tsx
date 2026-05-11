@@ -12,7 +12,7 @@ export default function InvestorsList() {
   return (
     <DataTable
       apiEndpoint={`/api/admin/ico/transaction`}
-      userAnalytics={true}
+      userAnalytics={false}
       model="icoTransaction"
       permissions={{
         access: "access.ico.transaction",
@@ -26,7 +26,7 @@ export default function InvestorsList() {
       canDelete={true}
       canView={true}
       viewLink="/admin/ico/transaction/[id]"
-      isParanoid={true}
+      isParanoid={false}
       title={tCommon("ico_transactions")}
       itemTitle="ICO Transaction"
       description={t("track_token_sale_contributions_and_transactions")}

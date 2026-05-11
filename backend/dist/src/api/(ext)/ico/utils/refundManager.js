@@ -7,6 +7,7 @@ const sequelize_1 = require("sequelize");
 const notifications_1 = require("@b/utils/notifications");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 async function checkAndProcessFailedOfferings() {
     const transaction = await db_1.sequelize.transaction();
     try {
@@ -23,13 +24,18 @@ async function checkAndProcessFailedOfferings() {
             transaction,
         });
         for (const offering of failedOfferings) {
-            const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+            const totalRaisedResult = await db_1.models.icoTransaction.findOne({
+                attributes: [
+                    [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised'],
+                ],
                 where: {
                     offeringId: offering.id,
-                    status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED'] }
+                    status: { [sequelize_1.Op.in]: ['VERIFICATION', 'RELEASED'] }
                 },
                 transaction,
-            }) || 0;
+                raw: true,
+            });
+            const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
             const softCap = offering.targetAmount * 0.3;
             if (totalRaised < softCap) {
                 await offering.update({
@@ -141,6 +147,7 @@ async function processAutomaticRefunds() {
             });
             let refundedCount = 0;
             let totalRefunded = 0;
+            const escrowAdmin = await (0, fees_1.getSuperAdmin)();
             for (const icoTransaction of pendingTransactions) {
                 try {
                     const refundAmount = icoTransaction.amount * icoTransaction.price;
@@ -155,6 +162,35 @@ async function processAutomaticRefunds() {
                     });
                     if (!wallet)
                         continue;
+                    if (escrowAdmin) {
+                        try {
+                            await wallet_1.walletService.debit({
+                                idempotencyKey: `ico_escrow_refund_${icoTransaction.id}`,
+                                userId: escrowAdmin.id,
+                                walletType: offering.purchaseWalletType,
+                                currency: offering.purchaseWalletCurrency,
+                                amount: refundAmount,
+                                operationType: "REFUND",
+                                referenceId: icoTransaction.id,
+                                description: `ICO escrow auto-refund for ${offering.name} (tx ${icoTransaction.id})`,
+                                metadata: {
+                                    escrow: true,
+                                    direction: "refund",
+                                    transactionId: icoTransaction.id,
+                                    offeringId: offering.id,
+                                    reason: "Automatic refund - offering failed",
+                                },
+                                transaction,
+                            });
+                        }
+                        catch (escrowErr) {
+                            if ((escrowErr === null || escrowErr === void 0 ? void 0 : escrowErr.name) !== "DuplicateOperationError")
+                                throw escrowErr;
+                        }
+                    }
+                    else {
+                        console_1.logger.error("ICO_REFUND", `Super Admin escrow not configured; refund for tx ${icoTransaction.id} will be unbalanced`);
+                    }
                     const idempotencyKey = `ico_auto_refund_${icoTransaction.id}`;
                     await wallet_1.walletService.credit({
                         idempotencyKey,
@@ -176,6 +212,7 @@ async function processAutomaticRefunds() {
                         transaction,
                     });
                     await icoTransaction.update({
+                        status: 'REFUNDED',
                         notes: JSON.stringify({
                             ...JSON.parse(icoTransaction.notes || '{}'),
                             refund: {

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { sanitizeHTML } from "@/lib/sanitize";
 
 interface PreviewFAQDialogProps {
   faq: faqAttributes | null;
@@ -57,7 +58,11 @@ export function PreviewFAQDialog({
               <Badge variant="outline">{faq.pagePath}</Badge>
             </div>
             <div className="prose dark:prose-invert max-w-none">
-              <div dangerouslySetInnerHTML={{ __html: faq.answer }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeHTML(faq.answer ?? ""),
+                }}
+              />
             </div>
 
             {/* Display answer image if available */}

@@ -3,19 +3,24 @@
 import { $fetch } from "@/lib/api";
 import { hasFeature, isUserKycApproved } from "@/utils/kyc";
 
-// Helper function to convert User to the format expected by KYC utils
+/**
+ * Converts user data to the format expected by KYC utility functions.
+ * The backend now sends kyc.level as an object, so we preserve that structure.
+ */
 function convertToKycUserType(user: User | null): any {
   if (!user) return null;
 
   return {
     ...user,
-    kyc: {
-      status: user.kyc?.status || '',
-      level: {
-        level: user.kyc?.level ?? 0,
-        features: user.featureAccess || []
-      }
-    }
+    kyc: user.kyc ? {
+      status: user.kyc.status || '',
+      level: user.kyc.level ? {
+        level: user.kyc.level.level ?? 0,
+        features: user.kyc.level.features || user.featureAccess || []
+      } : null
+    } : null,
+    kycLevel: user.kycLevel ?? 0,
+    featureAccess: user.featureAccess || []
   };
 }
 import { create } from "zustand";

@@ -118,10 +118,10 @@ async function getAffiliateDashboard(data) {
         }),
     ]);
     const totalEarnings = parseFloat((_a = rewardSum === null || rewardSum === void 0 ? void 0 : rewardSum.totalEarnings) !== null && _a !== void 0 ? _a : "0") || 0;
-    const weeklyGrowth = recentCount && prevCountAll > 0
+    const periodGrowth = recentCount && prevCountAll > 0
         ? Math.round(((recentCount - prevCountAll) / prevCountAll) * 100)
         : 0;
-    const conversionRate = totalReferrals > 0 ? Math.round((rewardCount / totalReferrals) * 100) : 0;
+    const conversionRate = recentCount > 0 ? Math.round((rewardCount / recentCount) * 100) : 0;
     const prevTotalEarnings = parseFloat((_b = prevRewardSumRaw === null || prevRewardSumRaw === void 0 ? void 0 : prevRewardSumRaw.amount) !== null && _b !== void 0 ? _b : "0") || 0;
     const prevConversionRate = prevTotalRef > 0 ? Math.round((prevRewardCount / prevTotalRef) * 100) : 0;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Computing statistics and growth metrics");
@@ -131,7 +131,7 @@ async function getAffiliateDashboard(data) {
         pendingReferrals,
         conversionRate,
         totalEarnings,
-        weeklyGrowth,
+        periodGrowth,
     };
     const previousStats = {
         totalReferrals: prevTotalRef,

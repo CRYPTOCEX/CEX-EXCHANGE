@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GenericUTXONodeService = void 0;
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+let descriptorWalletDetected = false;
 class GenericUTXONodeService {
     constructor(chain) {
         const chainLower = chain.toLowerCase();
@@ -38,45 +39,91 @@ class GenericUTXONodeService {
         }
     }
     async ensureWalletExists() {
+        let walletLoaded = false;
         try {
             await this.rpcCall("loadwallet", [this.config.walletName]);
+            walletLoaded = true;
             console_1.logger.info(`${this.config.chain}_NODE`, `Loaded existing wallet: ${this.config.walletName}`);
         }
         catch (error) {
-            if (error.message.includes("not found") || error.message.includes("does not exist")) {
-                try {
-                    await this.rpcCall("createwallet", [
-                        this.config.walletName,
-                        false,
-                        false,
-                        "",
-                        false,
-                        true,
-                        false,
-                    ]);
-                    console_1.logger.success(`${this.config.chain}_NODE`, `Created new watch-only wallet: ${this.config.walletName}`);
-                }
-                catch (createError) {
-                    if (createError.message.includes("descriptors")) {
-                        await this.rpcCall("createwallet", [
-                            this.config.walletName,
-                            false,
-                            false,
-                            "",
-                            false,
-                        ]);
-                        console_1.logger.success(`${this.config.chain}_NODE`, `Created wallet (legacy mode): ${this.config.walletName}`);
-                    }
-                    else {
-                        console_1.logger.error(`${this.config.chain}_NODE`, `Failed to create wallet: ${createError.message}`);
-                    }
-                }
-            }
-            else if (error.message.includes("already loaded")) {
+            if (error.message.includes("already loaded")) {
+                walletLoaded = true;
                 console_1.logger.info(`${this.config.chain}_NODE`, `Wallet already loaded: ${this.config.walletName}`);
+            }
+            else if (error.message.includes("not found") || error.message.includes("does not exist")) {
             }
             else {
                 throw error;
+            }
+        }
+        if (walletLoaded) {
+            try {
+                const walletInfo = await this.walletRpcCall("getwalletinfo", []);
+                if (walletInfo.descriptors === true) {
+                    descriptorWalletDetected = true;
+                    console_1.logger.warn(`${this.config.chain}_NODE`, `Wallet is a descriptor wallet - importaddress not supported. Use -deprecatedrpc=create_bdb in bitcoin.conf or set BTC_NODE=mempool`);
+                }
+            }
+            catch (error) {
+                console_1.logger.warn(`${this.config.chain}_NODE`, `Could not verify wallet type: ${error.message}`);
+            }
+        }
+        else {
+            try {
+                await this.createLegacyWallet();
+            }
+            catch (error) {
+                console_1.logger.warn(`${this.config.chain}_NODE`, `Legacy wallet creation failed: ${error.message}`);
+                try {
+                    await this.rpcCall("loadwallet", [this.config.walletName]);
+                    descriptorWalletDetected = true;
+                    console_1.logger.warn(`${this.config.chain}_NODE`, `Loaded existing descriptor wallet as fallback`);
+                }
+                catch (loadError) {
+                    if (loadError.message.includes("already loaded")) {
+                        descriptorWalletDetected = true;
+                    }
+                    else {
+                        console_1.logger.error(`${this.config.chain}_NODE`, `No wallet available: ${loadError.message}`);
+                    }
+                }
+            }
+        }
+    }
+    isDescriptorWallet() {
+        return descriptorWalletDetected;
+    }
+    async createLegacyWallet() {
+        try {
+            await this.rpcCall("createwallet", [
+                this.config.walletName,
+                true,
+                false,
+                "",
+                false,
+                false,
+                false,
+            ]);
+            console_1.logger.success(`${this.config.chain}_NODE`, `Created new legacy watch-only wallet: ${this.config.walletName}`);
+        }
+        catch (createError) {
+            if (createError.message.includes("descriptors") || createError.message.includes("legacy")) {
+                await this.rpcCall("createwallet", [
+                    this.config.walletName,
+                    true,
+                    false,
+                    "",
+                    false,
+                ]);
+                console_1.logger.success(`${this.config.chain}_NODE`, `Created wallet (legacy mode): ${this.config.walletName}`);
+            }
+            else if (createError.message.includes("already exists")) {
+                await this.rpcCall("loadwallet", [this.config.walletName]);
+                console_1.logger.info(`${this.config.chain}_NODE`, `Loaded existing wallet: ${this.config.walletName}`);
+            }
+            else {
+                console_1.logger.error(`${this.config.chain}_NODE`, `Failed to create wallet: ${createError.message}`);
+                throw createError;
             }
         }
     }
@@ -136,6 +183,9 @@ class GenericUTXONodeService {
         }
     }
     async importAddress(address, label = "") {
+        if (descriptorWalletDetected) {
+            return;
+        }
         try {
             console_1.logger.debug(`${this.config.chain}_NODE`, `Importing address ${address}`);
             await this.walletRpcCall("importaddress", [address, label, false]);
@@ -144,6 +194,9 @@ class GenericUTXONodeService {
         catch (error) {
             if (error.message.includes("already have this key")) {
                 console_1.logger.debug(`${this.config.chain}_NODE`, `Address ${address} already imported`);
+            }
+            else if (error.message.includes("Only legacy wallets")) {
+                descriptorWalletDetected = true;
             }
             else {
                 throw error;

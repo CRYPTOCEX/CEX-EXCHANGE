@@ -1,1 +1,240 @@
-"use strict";var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const exchange_1=__importDefault(require("@b/utils/exchange")),cron_1=require("@b/cron"),db_1=require("@b/db"),error_1=require("@b/utils/error"),console_1=require("@b/utils/console"),forex_fraud_detector_1=require("@b/api/(ext)/forex/utils/forex-fraud-detector"),query_1=require("@b/utils/query");exports.metadata={summary:"Withdraws money from the specified Forex account",description:"Allows a user to withdraw money from their Forex account into their wallet.",operationId:"withdrawForexAccount",tags:["Forex","Accounts"],rateLimit:{windowMs:6e4,max:5},parameters:[{index:0,name:"id",in:"path",required:!0,schema:{type:"string",description:"Forex account ID"}}],requiresAuth:!0,logModule:"FOREX",logTitle:"Withdraw from forex account",requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{type:{type:"string",description:"Wallet type"},currency:{type:"string",description:"Currency code"},chain:{type:"string",description:"Blockchain network",nullable:!0},amount:{type:"number",description:"Amount to withdraw"}},required:["type","currency","amount"]}}}},responses:{201:{description:"Withdrawal successfully processed",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string",description:"Success message"},transaction:{type:"object",properties:{id:{type:"string",description:"Transaction ID"},userId:{type:"string",description:"User ID"},walletId:{type:"string",description:"Wallet ID"},type:{type:"string",description:"Transaction type"},status:{type:"string",description:"Transaction status"},amount:{type:"number",description:"Transaction amount"},fee:{type:"number",description:"Transaction fee"},description:{type:"string",description:"Transaction description"},metadata:{type:"object",description:"Transaction metadata"},createdAt:{type:"string",description:"Transaction creation date"},updatedAt:{type:"string",description:"Transaction update date"}}},balance:{type:"number",description:"Wallet balance"},currency:{type:"string",description:"Currency code"},chain:{type:"string",description:"Blockchain network",nullable:!0},type:{type:"string",description:"Wallet type"}}}}}},401:query_1.unauthorizedResponse,404:(0,query_1.notFoundMetadataResponse)("Forex Account"),500:query_1.serverErrorResponse}};exports.default=async e=>{const{user:r,params:t,body:a,req:o,ctx:i}=e;if(!(null==r?void 0:r.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const{id:n}=t,{amount:s,type:c,currency:d,chain:u}=a;try{null==i||i.step("Validating withdrawal amount");if(!s||s<=0)throw(0,error_1.createError)({statusCode:400,message:"Amount is required and must be greater than zero"});if(s<=0)throw(0,error_1.createError)({statusCode:400,message:"Amount must be greater than zero"});let e,t=0;const a=await db_1.sequelize.transaction(async a=>{var o,l,p;null==i||i.step("Verifying forex account");const w=await db_1.models.forexAccount.findByPk(n,{transaction:a});if(!w)throw(0,error_1.createError)({statusCode:404,message:"Account not found"});if(w.userId!==r.id)throw(0,error_1.createError)({statusCode:403,message:"Access denied: You can only withdraw from your own forex accounts"});null==i||i.step("Checking account balance");if(w.balance<s)throw(0,error_1.createError)({statusCode:400,message:"Insufficient balance"});null==i||i.step("Checking withdrawal limits");const h=new Date,y=w.lastWithdrawReset?new Date(w.lastWithdrawReset):new Date,f=(h.getTime()-y.getTime())/864e5;if(f>=1){w.dailyWithdrawn=0;f>=30&&(w.monthlyWithdrawn=0);w.lastWithdrawReset=h}const m=w.dailyWithdrawLimit||5e3,g=w.dailyWithdrawn||0;if(g+s>m)throw(0,error_1.createError)({statusCode:400,message:`Daily withdrawal limit exceeded. You can withdraw up to ${m-g} more today.`});const _=w.monthlyWithdrawLimit||5e4,b=w.monthlyWithdrawn||0;if(b+s>_)throw(0,error_1.createError)({statusCode:400,message:`Monthly withdrawal limit exceeded. You can withdraw up to ${_-b} more this month.`});null==i||i.step(`Fetching ${c} wallet for ${d}`);const x=await db_1.models.wallet.findOne({where:{userId:r.id,type:c,currency:d},transaction:a});if(!x)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});null==i||i.step("Calculating transaction fees");let W;switch(c){case"FIAT":W=await db_1.models.currency.findOne({where:{id:x.currency},transaction:a});if(!W||!W.price){await(0,cron_1.fetchFiatCurrencyPrices)();W=await db_1.models.currency.findOne({where:{id:x.currency},transaction:a});if(!W||!W.price)throw(0,error_1.createError)({statusCode:500,message:"Currency processing failed"})}break;case"SPOT":W=await db_1.models.exchangeCurrency.findOne({where:{currency:x.currency},transaction:a});if(!W||!W.price){await(0,cron_1.processCurrenciesPrices)();W=await db_1.models.exchangeCurrency.findOne({where:{currency:x.currency},transaction:a});if(!W||!W.price)throw(0,error_1.createError)({statusCode:500,message:"Currency processing failed"})}{const e=await exchange_1.default.startExchange(i),r=await exchange_1.default.getProvider();if(!e)throw(0,error_1.createError)(500,"Exchange not found");const a=await e.fetchCurrencies(),n="xt"===r,c=Object.values(a).find(e=>n?e.code===d:e.id===d);if(!c)throw(0,error_1.createError)(404,"Currency not found");let w=0;switch(r){case"binance":case"kucoin":u&&c.networks&&(w=(null===(o=c.networks[u])||void 0===o?void 0:o.fee)||(null===(p=null===(l=c.networks[u])||void 0===l?void 0:l.fees)||void 0===p?void 0:p.withdraw)||0)}const h=parseFloat(s),y=W.fee||0;t=parseFloat(Math.max(h*y/100+w,0).toFixed(2))}break;default:throw(0,error_1.createError)({statusCode:400,message:"Invalid wallet type"})}const C=s+t;if(w.balance<C)throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds"});null==i||i.step("Running fraud detection checks");const E=await forex_fraud_detector_1.ForexFraudDetector.checkWithdrawal(r.id,s,d,i);if(!E.isValid)throw(0,error_1.createError)({statusCode:400,message:E.reason||"Transaction flagged for security review"});if(E.riskScore>=.75)throw(0,error_1.createError)({statusCode:403,message:"This withdrawal requires additional verification. Please contact support."});null==i||i.step(`Deducting ${C} from forex account`);e=parseFloat((w.balance-C).toFixed(2));await w.update({balance:e,dailyWithdrawn:(w.dailyWithdrawn||0)+s,monthlyWithdrawn:(w.monthlyWithdrawn||0)+s,lastWithdrawReset:w.lastWithdrawReset},{transaction:a});null==i||i.step("Creating withdrawal transaction record");const $=await db_1.models.transaction.create({userId:r.id,walletId:x.id,type:"FOREX_WITHDRAW",status:"PENDING",amount:s,fee:t,description:`Withdraw from Forex account ${w.accountId}`,metadata:JSON.stringify({id:n,accountId:w.accountId,type:c,currency:d,chain:u,price:W.price})},{transaction:a});console_1.logger.info("FOREX_WITHDRAWAL",`User ${r.id} withdrew ${s} ${d} from forex account ${w.id}. Transaction ID: ${$.id}, Wallet Type: ${c}, Chain: ${u||"N/A"}`);return $});null==i||i.success(`Withdrew ${s} ${d} from forex account ${n}${t>0?` (fee: ${t})`:""}`);return{message:"Withdraw successful",transaction:a,balance:e,currency:d,chain:u,type:c}}catch(e){null==i||i.fail(e.message||"Failed to withdraw from forex account");console_1.logger.error("FOREX_WITHDRAWAL_ERROR",`Forex withdrawal failed for user ${r.id}, account ${n}: ${e.message}. Details: amount=${s}, currency=${d}, type=${c}, chain=${u||"N/A"}`,e);throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const transaction_handler_1 = require("@b/api/(ext)/forex/account/transaction-handler");
+const error_1 = require("@b/utils/error");
+const console_1 = require("@b/utils/console");
+const forex_fraud_detector_1 = require("@b/api/(ext)/forex/utils/forex-fraud-detector");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Withdraws money from the specified Forex account",
+    description: "Allows a user to withdraw money from their Forex account into their wallet.",
+    operationId: "withdrawForexAccount",
+    tags: ["Forex", "Accounts"],
+    rateLimit: {
+        windowMs: 60000,
+        max: 5
+    },
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", description: "Forex account ID" },
+        },
+    ],
+    requiresAuth: true,
+    logModule: "FOREX",
+    logTitle: "Withdraw from forex account",
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        type: { type: "string", description: "Wallet type" },
+                        currency: { type: "string", description: "Currency code" },
+                        chain: {
+                            type: "string",
+                            description: "Blockchain network",
+                            nullable: true,
+                        },
+                        amount: { type: "number", description: "Amount to withdraw" },
+                    },
+                    required: ["type", "currency", "amount"],
+                },
+            },
+        },
+    },
+    responses: {
+        201: {
+            description: "Withdrawal successfully processed",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string", description: "Success message" },
+                            transaction: {
+                                type: "object",
+                                properties: {
+                                    id: { type: "string", description: "Transaction ID" },
+                                    userId: { type: "string", description: "User ID" },
+                                    walletId: { type: "string", description: "Wallet ID" },
+                                    type: { type: "string", description: "Transaction type" },
+                                    status: { type: "string", description: "Transaction status" },
+                                    amount: { type: "number", description: "Transaction amount" },
+                                    fee: { type: "number", description: "Transaction fee" },
+                                    description: {
+                                        type: "string",
+                                        description: "Transaction description",
+                                    },
+                                    metadata: {
+                                        type: "object",
+                                        description: "Transaction metadata",
+                                    },
+                                    createdAt: {
+                                        type: "string",
+                                        description: "Transaction creation date",
+                                    },
+                                    updatedAt: {
+                                        type: "string",
+                                        description: "Transaction update date",
+                                    },
+                                },
+                            },
+                            balance: { type: "number", description: "Wallet balance" },
+                            currency: { type: "string", description: "Currency code" },
+                            chain: {
+                                type: "string",
+                                description: "Blockchain network",
+                                nullable: true,
+                            },
+                            type: { type: "string", description: "Wallet type" },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Forex Account"),
+        500: query_1.serverErrorResponse,
+    },
+};
+exports.default = async (data) => {
+    const { user, params, body, req, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const { id } = params;
+    const { amount, type, currency, chain } = body;
+    try {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating withdrawal amount");
+        if (!amount || amount <= 0) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Amount is required and must be greater than zero" });
+        }
+        let updatedAccountBalance;
+        let taxAmount = 0;
+        const result = await db_1.sequelize.transaction(async (t) => {
+            var _a, _b, _c, _d;
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying forex account");
+            const account = await db_1.models.forexAccount.findByPk(id, {
+                lock: t.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!account) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Account not found" });
+            }
+            if (account.userId !== user.id) {
+                throw (0, error_1.createError)({ statusCode: 403, message: "Access denied: You can only withdraw from your own forex accounts" });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking account balance");
+            if (((_a = account.balance) !== null && _a !== void 0 ? _a : 0) < amount) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient balance" });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking withdrawal limits");
+            const now = new Date();
+            const lastReset = account.lastWithdrawReset ? new Date(account.lastWithdrawReset) : new Date(0);
+            const daysSinceReset = (now.getTime() - lastReset.getTime()) / (1000 * 60 * 60 * 24);
+            let dailyWithdrawn = account.dailyWithdrawn || 0;
+            let monthlyWithdrawn = account.monthlyWithdrawn || 0;
+            if (daysSinceReset >= 1) {
+                dailyWithdrawn = 0;
+                if (daysSinceReset >= 30) {
+                    monthlyWithdrawn = 0;
+                }
+            }
+            const dailyLimit = account.dailyWithdrawLimit || 5000;
+            if (dailyWithdrawn + amount > dailyLimit) {
+                throw (0, error_1.createError)({ statusCode: 400, message: `Daily withdrawal limit exceeded. You can withdraw up to ${dailyLimit - dailyWithdrawn} more today.` });
+            }
+            const monthlyLimit = account.monthlyWithdrawLimit || 50000;
+            if (monthlyWithdrawn + amount > monthlyLimit) {
+                throw (0, error_1.createError)({ statusCode: 400, message: `Monthly withdrawal limit exceeded. You can withdraw up to ${monthlyLimit - monthlyWithdrawn} more this month.` });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching ${type} wallet for ${currency}`);
+            const wallet = await db_1.models.wallet.findOne({
+                where: { userId: user.id, type, currency },
+                lock: t.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!wallet) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating transaction fees");
+            const feeResult = await (0, transaction_handler_1.calculateTransactionFees)(type, wallet.currency, chain, amount, t, ctx);
+            const { currencyData, taxAmount: calculatedFee, total } = feeResult;
+            taxAmount = calculatedFee;
+            if (((_b = account.balance) !== null && _b !== void 0 ? _b : 0) < total) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds to cover amount plus fees" });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Running fraud detection checks");
+            const fraudCheck = await forex_fraud_detector_1.ForexFraudDetector.checkWithdrawal(user.id, amount, currency, ctx);
+            if (!fraudCheck.isValid) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: fraudCheck.reason || "Transaction flagged for security review"
+                });
+            }
+            if (fraudCheck.riskScore >= 0.75) {
+                throw (0, error_1.createError)({
+                    statusCode: 403,
+                    message: "This withdrawal requires additional verification. Please contact support."
+                });
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Deducting ${total} from forex account`);
+            updatedAccountBalance = parseFloat((((_c = account.balance) !== null && _c !== void 0 ? _c : 0) - total).toFixed(2));
+            const resetCounters = daysSinceReset >= 1;
+            const accountUpdate = { balance: updatedAccountBalance };
+            if (resetCounters) {
+                accountUpdate.dailyWithdrawn = 0;
+                if (daysSinceReset >= 30)
+                    accountUpdate.monthlyWithdrawn = 0;
+                accountUpdate.lastWithdrawReset = now;
+            }
+            await account.update(accountUpdate, { transaction: t });
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating PENDING forex withdrawal transaction (main wallet is credited on admin approval)");
+            const accountIdForTx = (_d = account.accountId) !== null && _d !== void 0 ? _d : account.id;
+            const pendingTx = await (0, transaction_handler_1.createForexTransaction)(user.id, wallet.id, "FOREX_WITHDRAW", amount, taxAmount, accountIdForTx, {
+                forexAccountId: id,
+                accountId: account.accountId,
+                walletType: type,
+                currency: currency,
+                chain: chain,
+                price: currencyData.price,
+            }, t, ctx);
+            const idempotencyKey = `forex_withdraw_${pendingTx.id}`;
+            const metadataWithKey = {
+                forexAccountId: id,
+                accountId: account.accountId,
+                walletType: type,
+                currency: currency,
+                chain: chain,
+                price: currencyData.price,
+                idempotencyKey,
+                feeAmount: taxAmount,
+                grossAmount: total,
+            };
+            await db_1.models.transaction.update({ metadata: JSON.stringify(metadataWithKey) }, { where: { id: pendingTx.id }, transaction: t });
+            console_1.logger.info("FOREX_WITHDRAWAL", `User ${user.id} submitted PENDING forex withdrawal ${pendingTx.id} for ${amount} ${currency} from forex account ${account.id}. Wallet Type: ${type}, Chain: ${chain || 'N/A'}. Main wallet will be credited on admin approval; platform fee and withdraw counters are applied on approval.`);
+            return pendingTx;
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Submitted pending withdrawal of ${amount} ${currency} from forex account ${id}${taxAmount > 0 ? ` (fee: ${taxAmount})` : ''} — awaiting admin approval`);
+        return {
+            message: "Withdraw request submitted and pending approval",
+            transaction: result,
+            accountBalance: updatedAccountBalance,
+            currency,
+            chain,
+            type,
+        };
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error.message || "Failed to withdraw from forex account");
+        console_1.logger.error("FOREX_WITHDRAWAL_ERROR", `Forex withdrawal failed for user ${user.id}, account ${id}: ${error.message}. Details: amount=${amount}, currency=${currency}, type=${type}, chain=${chain || 'N/A'}`, error);
+        throw error;
+    }
+};

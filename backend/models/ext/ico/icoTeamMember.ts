@@ -19,7 +19,7 @@ export interface icoTeamMemberAttributes {
 }
 
 export interface icoTeamMemberCreationAttributes
-  extends Partial<icoTeamMemberAttributes> {}
+  extends Omit<icoTeamMemberAttributes, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export default class icoTeamMember
   extends Model<icoTeamMemberAttributes, icoTeamMemberCreationAttributes>
@@ -150,6 +150,10 @@ export default class icoTeamMember
             name: "PRIMARY",
             unique: true,
             fields: [{ name: "id" }],
+          },
+          {
+            name: "icoTeamMemberOfferingIdIdx",
+            fields: [{ name: "offeringId" }],
           },
         ],
       }

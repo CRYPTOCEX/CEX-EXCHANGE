@@ -5,6 +5,7 @@ const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const utils_1 = require("./utils");
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const emails_1 = require("@b/utils/emails");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
@@ -150,14 +151,17 @@ exports.default = async (data) => {
                     transaction: t,
                 });
                 if (fee > 0) {
-                    ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording admin profit");
-                    await db_1.models.adminProfit.create({
-                        amount: fee,
+                    ctx === null || ctx === void 0 ? void 0 : ctx.step("Collecting platform fee");
+                    await (0, fees_1.collectPlatformFee)({
+                        userId: user.id,
                         currency: wallet.currency,
+                        walletType: "FIAT",
+                        feeAmount: fee,
                         type: "DEPOSIT",
-                        transactionId: result.transactionId,
-                        description: `Admin profit from Stripe deposit fee of ${fee} ${wallet.currency} for user (${user.id})`,
-                    }, { transaction: t });
+                        description: `Platform fee from Stripe deposit of ${fee} ${wallet.currency}`,
+                        referenceId: result.transactionId,
+                        metadata: { method: "stripe", userId: user.id },
+                    });
                 }
                 return result;
             });

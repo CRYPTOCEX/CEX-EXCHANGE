@@ -30,118 +30,120 @@ exports.metadata = {
     },
 };
 exports.default = async (data) => {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [totalFaqs, categoriesRaw, viewsSum, helpfulVotes, answeredQuestions, popularFaqs, searchStats, recentQuestions, categoryStats,] = await Promise.all([
-        db_1.models.faq.count({ where: { status: true } }),
-        db_1.models.faq.findAll({
-            where: { status: true },
-            attributes: [[(0, sequelize_1.fn)("DISTINCT", (0, sequelize_1.col)("category")), "category"]],
-            raw: true,
-        }),
-        db_1.models.faq.sum("views", { where: { status: true } }),
-        db_1.models.faqFeedback.count({ where: { isHelpful: true } }),
-        db_1.models.faqQuestion.count({ where: { status: "ANSWERED" } }),
-        db_1.models.faq.findAll({
-            where: { status: true },
-            order: [["views", "DESC"]],
-            limit: 6,
-            include: [
-                {
-                    model: db_1.models.faqFeedback,
-                    as: "feedbacks",
-                    attributes: ["isHelpful"],
-                    required: false,
+    try {
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const [totalFaqs, categoriesRaw, viewsSum, helpfulVotes, answeredQuestions, popularFaqs, searchStats, recentQuestions, categoryStats,] = await Promise.all([
+            db_1.models.faq.count({ where: { status: true } }),
+            db_1.models.faq.findAll({
+                where: { status: true },
+                attributes: [[(0, sequelize_1.fn)("DISTINCT", (0, sequelize_1.col)("category")), "category"]],
+                raw: true,
+            }),
+            db_1.models.faq.sum("views", { where: { status: true } }),
+            db_1.models.faqFeedback.count({ where: { isHelpful: true } }),
+            db_1.models.faqQuestion.count({ where: { status: "ANSWERED" } }),
+            db_1.models.faq.findAll({
+                where: { status: true },
+                order: [["views", "DESC"]],
+                limit: 6,
+            }),
+            db_1.models.faqSearch.findAll({
+                where: {
+                    createdAt: { [sequelize_1.Op.gte]: sevenDaysAgo },
                 },
-            ],
-        }),
-        db_1.models.faqSearch.findAll({
-            where: {
-                createdAt: { [sequelize_1.Op.gte]: sevenDaysAgo },
-            },
-            attributes: [
-                "query",
-                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "count"],
-                [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("resultCount")), "avgResults"],
-            ],
-            group: ["query"],
-            order: [[(0, sequelize_1.literal)("count"), "DESC"]],
-            limit: 10,
-            raw: true,
-        }),
-        db_1.models.faqQuestion.findAll({
-            order: [["createdAt", "DESC"]],
-            limit: 5,
-        }),
-        db_1.models.faq.findAll({
-            where: { status: true },
-            attributes: [
-                "category",
-                [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "faqCount"],
-                [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("views")), "totalViews"],
-            ],
-            group: ["category"],
-            order: [[(0, sequelize_1.literal)("faqCount"), "DESC"]],
-            raw: true,
-        }),
-    ]);
-    const popularFaqsFormatted = popularFaqs.map((faq) => {
-        const f = faq.toJSON();
-        const feedbacks = f.feedbacks || [];
-        const helpfulCount = feedbacks.filter((fb) => fb.isHelpful).length;
-        const totalFeedbacks = feedbacks.length;
+                attributes: [
+                    "query",
+                    [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "count"],
+                    [(0, sequelize_1.fn)("AVG", (0, sequelize_1.col)("resultCount")), "avgResults"],
+                ],
+                group: ["query"],
+                order: [[(0, sequelize_1.literal)("count"), "DESC"]],
+                limit: 10,
+                raw: true,
+            }),
+            db_1.models.faqQuestion.findAll({
+                order: [["createdAt", "DESC"]],
+                limit: 5,
+            }),
+            db_1.models.faq.findAll({
+                where: { status: true },
+                attributes: [
+                    "category",
+                    [(0, sequelize_1.fn)("COUNT", (0, sequelize_1.col)("id")), "faqCount"],
+                    [(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("views")), "totalViews"],
+                ],
+                group: ["category"],
+                order: [[(0, sequelize_1.literal)("faqCount"), "DESC"]],
+                raw: true,
+            }),
+        ]);
+        const popularFaqsFormatted = await Promise.all(popularFaqs.map(async (faq) => {
+            const f = faq.toJSON();
+            const [helpfulCount, totalFeedbacks] = await Promise.all([
+                db_1.models.faqFeedback.count({ where: { faqId: f.id, isHelpful: true } }),
+                db_1.models.faqFeedback.count({ where: { faqId: f.id } }),
+            ]);
+            return {
+                id: f.id,
+                question: f.question,
+                answer: f.answer && typeof f.answer === "string"
+                    ? (() => {
+                        const stripped = f.answer.replace(/<[^>]*?>/g, "").replace(/\s+/g, " ").trim();
+                        return stripped.length > 150 ? stripped.substring(0, 150) + "..." : stripped;
+                    })()
+                    : "",
+                category: f.category,
+                views: f.views || 0,
+                helpfulCount,
+                helpfulPercentage: totalFeedbacks > 0
+                    ? Math.round((helpfulCount / totalFeedbacks) * 100)
+                    : 0,
+            };
+        }));
+        const popularSearchesFormatted = searchStats.map((s) => ({
+            query: s.query,
+            count: parseInt(s.count),
+            hasResults: parseFloat(s.avgResults) > 0,
+        }));
+        const unansweredSearches = searchStats
+            .filter((s) => parseFloat(s.avgResults) === 0)
+            .slice(0, 5)
+            .map((s) => ({
+            query: s.query,
+            count: parseInt(s.count),
+        }));
+        const categoriesWithStats = categoryStats.map((c) => ({
+            name: c.category,
+            faqCount: parseInt(c.faqCount),
+            totalViews: parseInt(c.totalViews) || 0,
+            icon: getCategoryIcon(c.category),
+        }));
+        const recentQuestionsFormatted = recentQuestions
+            .filter((q) => q.status === "ANSWERED")
+            .map((q) => ({
+            id: q.id,
+            question: q.question.length > 100 ? q.question.substring(0, 100) + "..." : q.question,
+            status: q.status,
+            timeAgo: getTimeAgo(q.createdAt),
+        }));
         return {
-            id: f.id,
-            question: f.question,
-            answer: f.answer && typeof f.answer === "string"
-                ? f.answer.replace(/<[^>]*>/g, "").substring(0, 150) + "..."
-                : "",
-            category: f.category,
-            views: f.views || 0,
-            helpfulCount,
-            helpfulPercentage: totalFeedbacks > 0
-                ? Math.round((helpfulCount / totalFeedbacks) * 100)
-                : 0,
+            stats: {
+                totalFaqs,
+                totalCategories: categoriesRaw.length,
+                totalViews: viewsSum || 0,
+                totalHelpfulVotes: helpfulVotes,
+                questionsAnswered: answeredQuestions,
+            },
+            popularFaqs: popularFaqsFormatted,
+            popularSearches: popularSearchesFormatted.filter((s) => s.hasResults),
+            categoriesWithStats,
+            recentQuestions: recentQuestionsFormatted,
+            unansweredSearches,
         };
-    });
-    const popularSearchesFormatted = searchStats.map((s) => ({
-        query: s.query,
-        count: parseInt(s.count),
-        hasResults: parseFloat(s.avgResults) > 0,
-    }));
-    const unansweredSearches = searchStats
-        .filter((s) => parseFloat(s.avgResults) === 0)
-        .slice(0, 5)
-        .map((s) => ({
-        query: s.query,
-        count: parseInt(s.count),
-    }));
-    const categoriesWithStats = categoryStats.map((c) => ({
-        name: c.category,
-        faqCount: parseInt(c.faqCount),
-        totalViews: parseInt(c.totalViews) || 0,
-        icon: getCategoryIcon(c.category),
-    }));
-    const recentQuestionsFormatted = recentQuestions.map((q) => ({
-        id: q.id,
-        question: q.question.length > 100 ? q.question.substring(0, 100) + "..." : q.question,
-        status: q.status,
-        createdAt: q.createdAt,
-        timeAgo: getTimeAgo(q.createdAt),
-    }));
-    return {
-        stats: {
-            totalFaqs,
-            totalCategories: categoriesRaw.length,
-            totalViews: viewsSum || 0,
-            totalHelpfulVotes: helpfulVotes,
-            questionsAnswered: answeredQuestions,
-        },
-        popularFaqs: popularFaqsFormatted,
-        popularSearches: popularSearchesFormatted.filter((s) => s.hasResults),
-        categoriesWithStats,
-        recentQuestions: recentQuestionsFormatted,
-        unansweredSearches,
-    };
+    }
+    catch (error) {
+        throw error;
+    }
 };
 function getCategoryIcon(category) {
     if (!category)

@@ -4,6 +4,7 @@ exports.metadata = void 0;
 const db_1 = require("@b/db");
 const sequelize_1 = require("sequelize");
 const json_safe_1 = require("../utils/json-safe");
+const visibility_1 = require("@b/api/(ext)/p2p/utils/visibility");
 exports.metadata = {
     summary: "Get P2P Landing Page Data",
     description: "Retrieves comprehensive data for the P2P landing page including stats, top cryptos, featured offers, top traders, and payment methods.",
@@ -80,7 +81,11 @@ exports.default = async (data) => {
             raw: true,
         }),
         db_1.models.p2pOffer.findAll({
-            where: { type: "SELL", status: "ACTIVE" },
+            where: {
+                type: "SELL",
+                status: "ACTIVE",
+                [sequelize_1.Op.and]: [(0, visibility_1.publicVisibilityLiteral)()],
+            },
             include: [
                 {
                     model: db_1.models.user,
@@ -98,7 +103,11 @@ exports.default = async (data) => {
             limit: 4,
         }),
         db_1.models.p2pOffer.findAll({
-            where: { type: "BUY", status: "ACTIVE" },
+            where: {
+                type: "BUY",
+                status: "ACTIVE",
+                [sequelize_1.Op.and]: [(0, visibility_1.publicVisibilityLiteral)()],
+            },
             include: [
                 {
                     model: db_1.models.user,
@@ -156,7 +165,12 @@ exports.default = async (data) => {
             ],
             raw: true,
         }),
-        db_1.models.p2pOffer.count({ where: { status: "ACTIVE" } }),
+        db_1.models.p2pOffer.count({
+            where: {
+                status: "ACTIVE",
+                [sequelize_1.Op.and]: [(0, visibility_1.publicVisibilityLiteral)()],
+            },
+        }),
         db_1.models.p2pOffer.findAll({
             attributes: [
                 [
@@ -167,6 +181,7 @@ exports.default = async (data) => {
             where: {
                 status: "ACTIVE",
                 locationSettings: { [sequelize_1.Op.ne]: null },
+                [sequelize_1.Op.and]: [(0, visibility_1.publicVisibilityLiteral)()],
             },
             raw: true,
         }),

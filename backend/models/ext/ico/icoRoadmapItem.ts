@@ -14,7 +14,7 @@ export interface icoRoadmapItemAttributes {
 }
 
 export interface icoRoadmapItemCreationAttributes
-  extends Partial<icoRoadmapItemAttributes> {}
+  extends Omit<icoRoadmapItemAttributes, 'id' | 'completed' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export default class icoRoadmapItem
   extends Model<icoRoadmapItemAttributes, icoRoadmapItemCreationAttributes>
@@ -90,6 +90,10 @@ export default class icoRoadmapItem
             name: "PRIMARY",
             unique: true,
             fields: [{ name: "id" }],
+          },
+          {
+            name: "icoRoadmapItemOfferingIdIdx",
+            fields: [{ name: "offeringId" }],
           },
         ],
       }

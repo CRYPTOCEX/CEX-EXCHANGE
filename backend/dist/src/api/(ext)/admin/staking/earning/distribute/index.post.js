@@ -2,9 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
 const error_1 = require("@b/utils/error");
 const notifications_1 = require("@b/utils/notifications");
+const fees_1 = require("@b/utils/fees");
 const errors_1 = require("@b/utils/schema/errors");
+const FREQUENCY_INTERVAL_MS = {
+    DAILY: 24 * 60 * 60 * 1000,
+    WEEKLY: 7 * 24 * 60 * 60 * 1000,
+    MONTHLY: 30 * 24 * 60 * 60 * 1000,
+    END_OF_TERM: 24 * 60 * 60 * 1000,
+};
 exports.metadata = {
     summary: "Distribute Earnings to Stakers",
     operationId: "distributeStakingEarnings",
@@ -51,6 +59,7 @@ exports.metadata = {
     permission: "create.staking.earning",
 };
 exports.default = async (data) => {
+    var _a, _b;
     const { user, body, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
@@ -75,17 +84,62 @@ exports.default = async (data) => {
         if (!pool) {
             throw (0, error_1.createError)({ statusCode: 404, message: "Pool not found" });
         }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Guard against duplicate distribution for this period");
+        const earningType = distributionType.toUpperCase();
+        const intervalMs = (_a = FREQUENCY_INTERVAL_MS[pool.earningFrequency]) !== null && _a !== void 0 ? _a : FREQUENCY_INTERVAL_MS.DAILY;
+        const nowMs = Date.now();
+        const cycleIndex = Math.floor(nowMs / intervalMs);
+        const cycleStart = new Date(cycleIndex * intervalMs);
+        const cycleEnd = new Date((cycleIndex + 1) * intervalMs);
+        const cycleId = `${pool.id}:${pool.earningFrequency}:${earningType}:${cycleIndex}`;
+        const periodKey = cycleStart.toISOString();
+        const existingAdminEarning = await db_1.models.stakingAdminEarning.findOne({
+            where: {
+                poolId: pool.id,
+                type: "PLATFORM_FEE",
+                createdAt: { [sequelize_1.Op.gte]: cycleStart, [sequelize_1.Op.lt]: cycleEnd },
+            },
+            transaction: t,
+        });
+        if (existingAdminEarning) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Earnings have already been distributed for pool ${pool.name} in this cycle (${periodKey}). Wait until the next cycle to distribute again.`,
+            });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculate admin fee and user earnings");
         const adminFee = parseFloat(((amount * pool.adminFeePercentage) / 100).toFixed(4));
         const userEarningTotal = parseFloat((amount - adminFee).toFixed(4));
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Create admin earning record");
-        await db_1.models.stakingAdminEarning.create({
+        const adminEarning = await db_1.models.stakingAdminEarning.create({
             poolId: pool.id,
             amount: adminFee,
             type: "PLATFORM_FEE",
             currency: pool.symbol,
             isClaimed: false,
         }, { transaction: t });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Credit platform fee to Super Admin wallet");
+        if (adminFee > 0) {
+            await (0, fees_1.collectPlatformFee)({
+                userId: user.id,
+                currency: pool.symbol,
+                walletType: pool.walletType,
+                chain: (_b = pool.walletChain) !== null && _b !== void 0 ? _b : undefined,
+                feeAmount: adminFee,
+                type: "STAKING",
+                description: `Staking platform fee from pool ${pool.name} (${earningType}) [${periodKey}]`,
+                referenceId: adminEarning.id,
+                metadata: {
+                    poolId: pool.id,
+                    poolName: pool.name,
+                    distributionType: earningType,
+                    cycleId,
+                    cycleStart: cycleStart.toISOString(),
+                    adminEarningId: adminEarning.id,
+                },
+                transaction: t,
+            });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Get active staking positions");
         const positions = await db_1.models.stakingPosition.findAll({
             where: { poolId: pool.id, status: "ACTIVE" },
@@ -99,16 +153,28 @@ exports.default = async (data) => {
             });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Distribute earnings to positions");
-        const earningType = distributionType.toUpperCase();
         for (const pos of positions) {
             const positionShare = pos.amount / totalStaked;
             const positionEarning = parseFloat((userEarningTotal * positionShare).toFixed(4));
             if (positionEarning > 0) {
+                const stableDescription = `Earnings distribution from pool ${pool.name} [${cycleId}]`;
+                const existingRecord = await db_1.models.stakingEarningRecord.findOne({
+                    where: {
+                        positionId: pos.id,
+                        type: earningType,
+                        description: stableDescription,
+                        createdAt: { [sequelize_1.Op.gte]: cycleStart, [sequelize_1.Op.lt]: cycleEnd },
+                    },
+                    transaction: t,
+                });
+                if (existingRecord) {
+                    continue;
+                }
                 await db_1.models.stakingEarningRecord.create({
                     positionId: pos.id,
                     amount: positionEarning,
                     type: earningType,
-                    description: `Earnings distribution from pool ${pool.name}`,
+                    description: stableDescription,
                     isClaimed: false,
                 }, { transaction: t });
             }

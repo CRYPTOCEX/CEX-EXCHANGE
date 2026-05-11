@@ -192,7 +192,7 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 500, message: "Failed to fetch the newly created investment for email." });
     }
     try {
-        await (0, affiliate_1.processRewards)(user.id, amount, "INVESTMENT", plan.currency);
+        await (0, affiliate_1.processRewards)(user.id, amount, "INVESTMENT", plan.currency, `INVESTMENT:investment:${newInvestment.id}`);
     }
     catch (affiliateError) {
         console.error("Failed to process affiliate rewards:", affiliateError);

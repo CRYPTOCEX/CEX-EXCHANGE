@@ -25,6 +25,10 @@ class BitcoinNodeProvider {
             }
         }
     }
+    isDescriptorWallet() {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = this.nodeService) === null || _a === void 0 ? void 0 : _a.isDescriptorWallet) === null || _b === void 0 ? void 0 : _b.call(_a)) !== null && _c !== void 0 ? _c : false;
+    }
     async watchAddress(address, walletId) {
         if (this.zmqService) {
             await this.zmqService.watchAddress(address, walletId);
@@ -63,7 +67,7 @@ class BitcoinNodeProvider {
                 return null;
             }
             const inputs = await Promise.all(tx.vin.map(async (input) => {
-                var _a, _b;
+                var _a, _b, _c;
                 if (input.coinbase) {
                     return {
                         prev_hash: 'coinbase',
@@ -76,22 +80,25 @@ class BitcoinNodeProvider {
                 }
                 const prevTx = await this.nodeService.getRawTransaction(input.txid, true);
                 const prevOut = prevTx === null || prevTx === void 0 ? void 0 : prevTx.vout[input.vout];
+                const prevAddresses = ((_a = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses)
+                    || (((_b = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _b === void 0 ? void 0 : _b.address) ? [prevOut.scriptPubKey.address] : []);
                 return {
                     prev_hash: input.txid,
                     prevHash: input.txid,
                     output_index: input.vout,
                     outputIndex: input.vout,
                     output_value: prevOut ? prevOut.value * 100000000 : 0,
-                    addresses: ((_a = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses) || [],
-                    script: (_b = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _b === void 0 ? void 0 : _b.hex,
+                    addresses: prevAddresses,
+                    script: (_c = prevOut === null || prevOut === void 0 ? void 0 : prevOut.scriptPubKey) === null || _c === void 0 ? void 0 : _c.hex,
                 };
             }));
             const outputs = tx.vout.map((output) => {
-                var _a, _b;
+                var _a, _b, _c;
                 return ({
                     value: output.value * 100000000,
-                    addresses: ((_a = output.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses) || [],
-                    script: (_b = output.scriptPubKey) === null || _b === void 0 ? void 0 : _b.hex,
+                    addresses: ((_a = output.scriptPubKey) === null || _a === void 0 ? void 0 : _a.addresses)
+                        || (((_b = output.scriptPubKey) === null || _b === void 0 ? void 0 : _b.address) ? [output.scriptPubKey.address] : []),
+                    script: (_c = output.scriptPubKey) === null || _c === void 0 ? void 0 : _c.hex,
                     spent: false,
                 });
             });

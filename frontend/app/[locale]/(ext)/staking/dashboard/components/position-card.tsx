@@ -117,8 +117,8 @@ export default function PositionCard({ position }: PositionCardProps) {
     );
   }
 
-  // Use pool.rewards if available; default to 0 otherwise.
-  const rewards = pool.rewards || 0;
+  // Use the position's unclaimed earnings from the backend; default to 0 otherwise.
+  const rewards = position.earnings?.unclaimed ?? 0;
 
   return (
     <>
@@ -158,7 +158,7 @@ export default function PositionCard({ position }: PositionCardProps) {
                 {tCommon("rewards_earned")}
               </span>
               <span className="text-lg font-semibold text-green-500">
-                {rewards} {pool.symbol}
+                {Number(rewards).toFixed(4)} {pool.symbol}
               </span>
             </div>
             <Separator />

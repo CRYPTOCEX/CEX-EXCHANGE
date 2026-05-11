@@ -24,7 +24,8 @@ export default class adminProfit
     | "NFT_SALE"
     | "NFT_AUCTION"
     | "NFT_OFFER"
-    | "GATEWAY_PAYMENT";
+    | "GATEWAY_PAYMENT"
+    | "TRADE";
   amount!: number;
   currency!: string;
   chain?: string | null;
@@ -72,7 +73,8 @@ export default class adminProfit
             "NFT_SALE",
             "NFT_AUCTION",
             "NFT_OFFER",
-            "GATEWAY_PAYMENT"
+            "GATEWAY_PAYMENT",
+            "TRADE"
           ),
           allowNull: false,
           validate: {
@@ -96,6 +98,7 @@ export default class adminProfit
                   "NFT_AUCTION",
                   "NFT_OFFER",
                   "GATEWAY_PAYMENT",
+                  "TRADE",
                 ],
               ],
               msg: "type: Type must be one of the defined transaction types",
@@ -147,6 +150,21 @@ export default class adminProfit
             name: "adminProfitTransactionIdForeign",
             using: "BTREE",
             fields: [{ name: "transactionId" }],
+          },
+          {
+            name: "idx_admin_profit_type",
+            using: "BTREE",
+            fields: [{ name: "type" }],
+          },
+          {
+            name: "idx_admin_profit_created_at",
+            using: "BTREE",
+            fields: [{ name: "createdAt" }],
+          },
+          {
+            name: "idx_admin_profit_summary",
+            using: "BTREE",
+            fields: [{ name: "type" }, { name: "createdAt" }, { name: "currency" }],
           },
         ],
       }

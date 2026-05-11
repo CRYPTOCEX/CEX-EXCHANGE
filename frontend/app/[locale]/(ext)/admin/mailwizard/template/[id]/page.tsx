@@ -364,6 +364,7 @@ export default function TemplateEdit() {
               stockImages: {
                 enabled: true,
                 safeSearch: true,
+                defaultSearchTerm: "",
               },
             },
           }}

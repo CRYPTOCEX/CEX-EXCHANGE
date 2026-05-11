@@ -14,6 +14,7 @@ const index_post_1 = require("@b/api/finance/transfer/index.post");
 const withdrawalQueue_1 = __importDefault(require("../utils/withdrawalQueue"));
 const safe_imports_1 = require("@b/utils/safe-imports");
 const console_1 = require("@b/utils/console");
+const uuid_1 = require("uuid");
 function countDecimals(value) {
     var _a;
     if (Number.isInteger(value))
@@ -316,9 +317,14 @@ const storeWithdrawal = async (userId, currency, chain, amount, toAddress, ctx) 
             ? JSON.parse(userWallet.address)
             : userWallet.address;
         const fromAddress = addresses[chain].address;
-        const amountSun = Math.round(amount * 1e6);
-        const estimatedFeeSun = await tronService.estimateTransactionFee(fromAddress, toAddress, amountSun);
-        estimatedFee = estimatedFeeSun / 1e6;
+        if (token.contractType !== "NATIVE" && token.contract) {
+            estimatedFee = await tronService.estimateTrc20TransactionFee(fromAddress, toAddress, token.contract, amount, token.decimals || 6);
+        }
+        else {
+            const amountSun = Math.round(amount * 1e6);
+            const estimatedFeeSun = await tronService.estimateTransactionFee(fromAddress, toAddress, amountSun);
+            estimatedFee = estimatedFeeSun / 1e6;
+        }
     }
     else if (chain === "XMR") {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Estimating Monero transaction fees");
@@ -330,13 +336,16 @@ const storeWithdrawal = async (userId, currency, chain, amount, toAddress, ctx) 
         estimatedFee = await moneroService.estimateMoneroFee();
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating total fees and amounts");
-    const totalFee = isNativeEVM
-        ? withdrawalFee + activationFee
+    const isNativeTron = chain === "TRON" && token.contractType === "NATIVE";
+    const isNetworkFeePaidFromAmount = isNativeEVM || chain === "XMR" || isNativeTron;
+    const totalFee = isNetworkFeePaidFromAmount
+        ? withdrawalFee + (isNativeTron ? 0 : activationFee)
         : withdrawalFee + activationFee + estimatedFee;
     const precision = (_g = (_f = token.precision) !== null && _f !== void 0 ? _f : token.decimals) !== null && _g !== void 0 ? _g : 8;
     const totalAmount = parseFloat((amount + totalFee).toFixed(precision));
     console_1.logger.debug("ECO_WITHDRAW", `Fee calculation: withdrawAmount=${amount}, withdrawalFee=${withdrawalFee}, activationFee=${activationFee}, estimatedNetworkFee=${estimatedFee}, totalFee=${totalFee}, totalToDeduct=${totalAmount}`);
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying balance and creating withdrawal transaction");
+    const withdrawNonce = (0, uuid_1.v4)();
     let transaction;
     await db_1.sequelize.transaction({
         isolationLevel: sequelize_1.Transaction.ISOLATION_LEVELS.READ_COMMITTED
@@ -357,9 +366,8 @@ const storeWithdrawal = async (userId, currency, chain, amount, toAddress, ctx) 
             lock: sequelize_1.Transaction.LOCK.UPDATE,
             transaction: dbTransaction,
         });
-        let availableBalance = lockedWalletData
-            ? Number(lockedWalletData.balance)
-            : lockedWallet.balance;
+        const platformBalance = Number(lockedWallet.balance);
+        let availableBalance = platformBalance;
         if (token.contractType === "PERMIT" && lockedWalletData) {
             const privateLedger = await db_1.models.ecosystemPrivateLedger.findOne({
                 where: {
@@ -373,16 +381,20 @@ const storeWithdrawal = async (userId, currency, chain, amount, toAddress, ctx) 
             if (privateLedger && privateLedger.offchainDifference) {
                 const offchainDiff = Number(privateLedger.offchainDifference) || 0;
                 availableBalance = availableBalance - offchainDiff;
-                console_1.logger.debug("ECO_WITHDRAW", `PERMIT token - adjusted for private ledger: walletDataBalance=${lockedWalletData.balance}, offchainDifference=${offchainDiff}, adjustedAvailableBalance=${availableBalance}`);
+                console_1.logger.debug("ECO_WITHDRAW", `PERMIT token - adjusted for private ledger: platformBalance=${platformBalance}, offchainDifference=${offchainDiff}, adjustedAvailableBalance=${availableBalance}`);
             }
         }
-        console_1.logger.debug("ECO_WITHDRAW", `Balance check: walletBalance=${lockedWallet.balance}, walletDataBalance=${lockedWalletData === null || lockedWalletData === void 0 ? void 0 : lockedWalletData.balance}, contractType=${token.contractType}, availableBalance=${availableBalance}, totalRequired=${totalAmount}`);
+        console_1.logger.debug("ECO_WITHDRAW", `Balance check: walletBalance=${lockedWallet.balance}, walletInOrder=${lockedWallet.inOrder}, walletDataBalance=${lockedWalletData === null || lockedWalletData === void 0 ? void 0 : lockedWalletData.balance}, contractType=${token.contractType}, platformAvailable=${platformBalance}, availableBalance=${availableBalance}, totalRequired=${totalAmount}`);
         if (availableBalance < totalAmount) {
             console_1.logger.error("ECO_WITHDRAW", `Insufficient funds: available ${availableBalance} < required ${totalAmount}`);
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
-        await (0, wallet_1.decrementWalletBalance)(lockedWallet, chain, totalAmount, dbTransaction);
-        transaction = await (0, wallet_1.createPendingTransaction)(userId, lockedWallet.id, currency, chain, amount, toAddress, withdrawalFee, token, dbTransaction);
+        await (0, wallet_1.decrementWalletBalance)(lockedWallet, chain, totalAmount, dbTransaction, withdrawNonce);
+        transaction = await (0, wallet_1.createPendingTransaction)(userId, lockedWallet.id, currency, chain, amount, toAddress, withdrawalFee, token, dbTransaction, {
+            activationFee,
+            estimatedFee,
+            totalAmount,
+        });
         userWallet.balance = lockedWallet.balance - totalAmount;
     });
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Adding transaction to withdrawal queue");

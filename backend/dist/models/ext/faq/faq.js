@@ -99,6 +99,10 @@ class faq extends sequelize_1.Model {
                     name: "faqs_order_idx",
                     fields: [{ name: "order" }],
                 },
+                {
+                    name: "faqs_status_idx",
+                    fields: [{ name: "status" }],
+                },
             ],
         });
     }

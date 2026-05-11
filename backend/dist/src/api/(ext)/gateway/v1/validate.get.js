@@ -1,1 +1,80 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const error_1=require("@b/utils/error"),gateway_1=require("@b/utils/gateway");exports.metadata={summary:"Validate API key",description:"Validates an API key and returns information about the merchant and permissions.",operationId:"validateApiKey",tags:["Gateway","API Key"],logModule:"GATEWAY",logTitle:"Validate Gateway",responses:{200:{description:"API key is valid",content:{"application/json":{schema:{type:"object",properties:{valid:{type:"boolean"},merchant:{type:"object",properties:{id:{type:"string"},name:{type:"string"},status:{type:"string"},verificationStatus:{type:"string"}}},mode:{type:"string",enum:["LIVE","TEST"]},permissions:{type:"array",items:{type:"string"}},keyType:{type:"string",enum:["PUBLIC","SECRET"]}}}}}},401:{description:"Invalid or missing API key"},403:{description:"API key is disabled or merchant is suspended"}},requiresAuth:!1};exports.default=async e=>{var t,i;const{headers:a,ctx:s}=e;null==s||s.step("Fetching validate gateway");const r=(null==a?void 0:a["x-api-key"])||(null==a?void 0:a["X-API-Key"]);if(!r)throw(0,error_1.createError)({statusCode:401,message:"API key is required"});const n=(null===(i=null===(t=null==a?void 0:a["x-forwarded-for"])||void 0===t?void 0:t.split(",")[0])||void 0===i?void 0:i.trim())||(null==a?void 0:a["x-real-ip"])||(null==a?void 0:a["cf-connecting-ip"])||null,{merchant:o,apiKey:d,isTestMode:l,isSecretKey:p}=await(0,gateway_1.authenticateGatewayApi)(r,n);null==s||s.success("Validate Gateway retrieved successfully");return{valid:!0,merchant:{id:o.id,name:o.name,status:o.status,verificationStatus:o.verificationStatus},mode:l?"TEST":"LIVE",permissions:d.permissions||["*"],keyType:p?"SECRET":"PUBLIC"}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const error_1 = require("@b/utils/error");
+const gateway_1 = require("@b/utils/gateway");
+exports.metadata = {
+    summary: "Validate API key",
+    description: "Validates an API key and returns information about the merchant and permissions.",
+    operationId: "validateApiKey",
+    tags: ["Gateway", "API Key"],
+    logModule: "GATEWAY",
+    logTitle: "Validate Gateway",
+    responses: {
+        200: {
+            description: "API key is valid",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            valid: { type: "boolean" },
+                            merchant: {
+                                type: "object",
+                                properties: {
+                                    id: { type: "string" },
+                                    name: { type: "string" },
+                                    status: { type: "string" },
+                                    verificationStatus: { type: "string" },
+                                },
+                            },
+                            mode: { type: "string", enum: ["LIVE", "TEST"] },
+                            permissions: {
+                                type: "array",
+                                items: { type: "string" },
+                            },
+                            keyType: { type: "string", enum: ["PUBLIC", "SECRET"] },
+                        },
+                    },
+                },
+            },
+        },
+        401: {
+            description: "Invalid or missing API key",
+        },
+        403: {
+            description: "API key is disabled or merchant is suspended",
+        },
+    },
+    requiresAuth: false,
+};
+exports.default = async (data) => {
+    var _a, _b;
+    const { headers, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching validate gateway");
+    const apiKeyHeader = (headers === null || headers === void 0 ? void 0 : headers["x-api-key"]) || (headers === null || headers === void 0 ? void 0 : headers["X-API-Key"]);
+    if (!apiKeyHeader) {
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "API key is required",
+        });
+    }
+    const clientIp = ((_b = (_a = headers === null || headers === void 0 ? void 0 : headers["x-forwarded-for"]) === null || _a === void 0 ? void 0 : _a.split(",")[0]) === null || _b === void 0 ? void 0 : _b.trim()) ||
+        (headers === null || headers === void 0 ? void 0 : headers["x-real-ip"]) ||
+        (headers === null || headers === void 0 ? void 0 : headers["cf-connecting-ip"]) ||
+        null;
+    const { merchant, apiKey, isTestMode, isSecretKey } = await (0, gateway_1.authenticateGatewayApi)(apiKeyHeader, clientIp);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Validate Gateway retrieved successfully");
+    return {
+        valid: true,
+        merchant: {
+            id: merchant.id,
+            name: merchant.name,
+            status: merchant.status,
+            verificationStatus: merchant.verificationStatus,
+        },
+        mode: isTestMode ? "TEST" : "LIVE",
+        permissions: apiKey.permissions || ["*"],
+        keyType: isSecretKey ? "SECRET" : "PUBLIC",
+    };
+};

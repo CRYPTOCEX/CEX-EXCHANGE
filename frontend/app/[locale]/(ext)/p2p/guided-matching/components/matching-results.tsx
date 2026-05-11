@@ -101,6 +101,7 @@ export function MatchingResults({
         url: "/api/p2p/guided-matching",
         method: "POST",
         body: criteria,
+        silentSuccess: true,
       });
       if (apiError) {
         throw new Error(apiError || "Failed to fetch matches");
@@ -141,12 +142,11 @@ export function MatchingResults({
 
       // Create trade via API
       const { data, error: apiError } = await $fetch({
-        url: "/api/p2p/trade",
+        url: `/api/p2p/offer/${offerId}/initiate-trade`,
         method: "POST",
         body: {
-          offerId,
           amount: criteria.amount,
-          paymentMethod: criteria.paymentMethods?.[0] || null,
+          paymentMethodId: criteria.paymentMethods?.[0] || null,
         },
       });
       if (apiError) {
@@ -160,7 +160,8 @@ export function MatchingResults({
       });
 
       // Redirect to trade details page
-      router.push(`/p2p/trade/${data.id}`);
+      const tradeId = data?.trade?.id || data?.id;
+      router.push(`/p2p/trade/${tradeId}`);
     } catch (err) {
       console.error("Error creating trade:", err);
       const errorMessage =

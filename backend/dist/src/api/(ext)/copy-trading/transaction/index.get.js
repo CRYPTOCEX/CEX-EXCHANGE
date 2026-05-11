@@ -1,1 +1,209 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),sequelize_1=require("sequelize");exports.metadata={summary:"Get My Copy Trading Transactions",description:"Retrieves the user's copy trading financial transaction history with filtering and pagination.",operationId:"getMyCopyTradingTransactions",tags:["Copy Trading","Transactions"],requiresAuth:!0,logModule:"COPY",logTitle:"Get my transactions",parameters:[{name:"type",in:"query",required:!1,schema:{type:"string",enum:["ALLOCATION","DEALLOCATION","PROFIT","LOSS","PROFIT_SHARE","PLATFORM_FEE","REFUND"]},description:"Filter by transaction type"},{name:"followerId",in:"query",required:!1,schema:{type:"string"},description:"Filter by subscription/follower ID"},{name:"leaderId",in:"query",required:!1,schema:{type:"string"},description:"Filter by leader ID"},{name:"dateFrom",in:"query",required:!1,schema:{type:"string",format:"date"},description:"Filter transactions from this date"},{name:"dateTo",in:"query",required:!1,schema:{type:"string",format:"date"},description:"Filter transactions until this date"},{name:"page",in:"query",required:!1,schema:{type:"integer",default:1},description:"Page number"},{name:"limit",in:"query",required:!1,schema:{type:"integer",default:20},description:"Items per page"}],responses:{200:{description:"Transactions retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{items:{type:"array"},pagination:{type:"object",properties:{total:{type:"number"},page:{type:"number"},limit:{type:"number"},totalPages:{type:"number"}}},summary:{type:"object",properties:{totalAllocated:{type:"number"},totalDeallocated:{type:"number"},totalProfit:{type:"number"},totalFees:{type:"number"}}}}}}}},401:{description:"Unauthorized"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{user:t,query:a,ctx:r}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==r||r.step("Building query");const o={userId:t.id};a.type&&(o.type=a.type);a.followerId&&(o.followerId=a.followerId);a.leaderId&&(o.leaderId=a.leaderId);if(a.dateFrom||a.dateTo){o.createdAt={};a.dateFrom&&(o.createdAt[sequelize_1.Op.gte]=new Date(a.dateFrom));a.dateTo&&(o.createdAt[sequelize_1.Op.lte]=new Date(a.dateTo+"T23:59:59.999Z"))}const i=parseInt(a.page)||1,s=Math.min(parseInt(a.limit)||20,100),n=(i-1)*s;null==r||r.step("Fetching transactions");const{count:l,rows:d}=await db_1.models.copyTradingTransaction.findAndCountAll({where:o,include:[{model:db_1.models.copyTradingLeader,as:"leader",attributes:["id","displayName"],required:!1},{model:db_1.models.copyTradingFollower,as:"follower",attributes:["id"],required:!1},{model:db_1.models.copyTradingTrade,as:"trade",attributes:["id","symbol","side"],required:!1}],order:[["createdAt","DESC"]],limit:s,offset:n});null==r||r.step("Calculating summary");const c=await db_1.models.copyTradingTransaction.findAll({where:{userId:t.id},attributes:["type","amount"]}),u={totalAllocated:0,totalDeallocated:0,totalProfit:0,totalFees:0};c.forEach(e=>{const t=parseFloat(e.amount)||0;switch(e.type){case"ALLOCATION":u.totalAllocated+=t;break;case"DEALLOCATION":case"REFUND":u.totalDeallocated+=t;break;case"PROFIT":u.totalProfit+=t;break;case"LOSS":u.totalProfit-=t;break;case"PROFIT_SHARE":case"PLATFORM_FEE":u.totalFees+=t}});null==r||r.success(`Found ${l} transactions`);return{items:d.map(e=>e.toJSON()),pagination:{total:l,page:i,limit:s,totalPages:Math.ceil(l/s)},summary:{totalAllocated:Math.round(100*u.totalAllocated)/100,totalDeallocated:Math.round(100*u.totalDeallocated)/100,totalProfit:Math.round(100*u.totalProfit)/100,totalFees:Math.round(100*u.totalFees)/100}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Get My Copy Trading Transactions",
+    description: "Retrieves the user's copy trading financial transaction history with filtering and pagination.",
+    operationId: "getMyCopyTradingTransactions",
+    tags: ["Copy Trading", "Transactions"],
+    requiresAuth: true,
+    logModule: "COPY",
+    logTitle: "Get my transactions",
+    parameters: [
+        {
+            name: "type",
+            in: "query",
+            required: false,
+            schema: {
+                type: "string",
+                enum: ["ALLOCATION", "DEALLOCATION", "PROFIT", "LOSS", "PROFIT_SHARE", "PLATFORM_FEE", "REFUND"],
+            },
+            description: "Filter by transaction type",
+        },
+        {
+            name: "followerId",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Filter by subscription/follower ID",
+        },
+        {
+            name: "leaderId",
+            in: "query",
+            required: false,
+            schema: { type: "string" },
+            description: "Filter by leader ID",
+        },
+        {
+            name: "dateFrom",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "date" },
+            description: "Filter transactions from this date",
+        },
+        {
+            name: "dateTo",
+            in: "query",
+            required: false,
+            schema: { type: "string", format: "date" },
+            description: "Filter transactions until this date",
+        },
+        {
+            name: "page",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 1 },
+            description: "Page number",
+        },
+        {
+            name: "limit",
+            in: "query",
+            required: false,
+            schema: { type: "integer", default: 20 },
+            description: "Items per page",
+        },
+    ],
+    responses: {
+        200: {
+            description: "Transactions retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            items: { type: "array" },
+                            pagination: {
+                                type: "object",
+                                properties: {
+                                    total: { type: "number" },
+                                    page: { type: "number" },
+                                    limit: { type: "number" },
+                                    totalPages: { type: "number" },
+                                },
+                            },
+                            summary: {
+                                type: "object",
+                                properties: {
+                                    totalAllocated: { type: "number" },
+                                    totalDeallocated: { type: "number" },
+                                    totalProfit: { type: "number" },
+                                    totalFees: { type: "number" },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: { description: "Unauthorized" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { user, query, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Building query");
+    const where = { userId: user.id };
+    if (query.type) {
+        where.type = query.type;
+    }
+    if (query.followerId) {
+        where.followerId = query.followerId;
+    }
+    if (query.leaderId) {
+        where.leaderId = query.leaderId;
+    }
+    if (query.dateFrom || query.dateTo) {
+        where.createdAt = {};
+        if (query.dateFrom) {
+            where.createdAt[sequelize_1.Op.gte] = new Date(query.dateFrom);
+        }
+        if (query.dateTo) {
+            where.createdAt[sequelize_1.Op.lte] = new Date(query.dateTo + "T23:59:59.999Z");
+        }
+    }
+    const page = parseInt(query.page) || 1;
+    const limit = Math.min(parseInt(query.limit) || 20, 100);
+    const offset = (page - 1) * limit;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching transactions");
+    const { count, rows: transactions } = await db_1.models.copyTradingTransaction.findAndCountAll({
+        where,
+        include: [
+            {
+                model: db_1.models.copyTradingLeader,
+                as: "leader",
+                attributes: ["id", "displayName"],
+                required: false,
+            },
+            {
+                model: db_1.models.copyTradingFollower,
+                as: "follower",
+                attributes: ["id"],
+                required: false,
+            },
+            {
+                model: db_1.models.copyTradingTrade,
+                as: "trade",
+                attributes: ["id", "symbol", "side"],
+                required: false,
+            },
+        ],
+        order: [["createdAt", "DESC"]],
+        limit,
+        offset,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating summary");
+    const allTransactions = await db_1.models.copyTradingTransaction.findAll({
+        where: { userId: user.id },
+        attributes: ["type", "amount"],
+    });
+    const summary = {
+        totalAllocated: 0,
+        totalDeallocated: 0,
+        totalProfit: 0,
+        totalFees: 0,
+    };
+    allTransactions.forEach((t) => {
+        const amount = parseFloat(t.amount) || 0;
+        switch (t.type) {
+            case "ALLOCATION":
+                summary.totalAllocated += amount;
+                break;
+            case "DEALLOCATION":
+            case "REFUND":
+                summary.totalDeallocated += amount;
+                break;
+            case "PROFIT":
+                summary.totalProfit += amount;
+                break;
+            case "LOSS":
+                summary.totalProfit -= amount;
+                break;
+            case "PROFIT_SHARE":
+            case "PLATFORM_FEE":
+                summary.totalFees += amount;
+                break;
+        }
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Found ${count} transactions`);
+    return {
+        items: transactions.map((t) => t.toJSON()),
+        pagination: {
+            total: count,
+            page,
+            limit,
+            totalPages: Math.ceil(count / limit),
+        },
+        summary: {
+            totalAllocated: Math.round(summary.totalAllocated * 100) / 100,
+            totalDeallocated: Math.round(summary.totalDeallocated * 100) / 100,
+            totalProfit: Math.round(summary.totalProfit * 100) / 100,
+            totalFees: Math.round(summary.totalFees * 100) / 100,
+        },
+    };
+};

@@ -1,1 +1,285 @@
-"use strict";async function processAiInvestments(){const t="processAiInvestments",e=Date.now();try{(0,broadcast_1.broadcastStatus)(t,"running");(0,broadcast_1.broadcastLog)(t,"Starting AI investments processing");const s=await getActiveInvestments(),a=s.length;(0,broadcast_1.broadcastLog)(t,`Found ${a} active AI investments`);for(let e=0;e<a;e++){const n=s[e];(0,broadcast_1.broadcastLog)(t,`Processing AI investment id ${n.id} (current status: ${n.status})`);try{await processAiInvestment(n)?(0,broadcast_1.broadcastLog)(t,`Successfully processed AI investment id ${n.id}`,"success"):(0,broadcast_1.broadcastLog)(t,`No update for AI investment id ${n.id}`,"warning")}catch(e){console_1.logger.error("AI_INVESTMENT_PROCESS",`Error processing investment ${n.id}: ${e.message}`,e);(0,broadcast_1.broadcastLog)(t,`Error processing AI investment id ${n.id}: ${e.message}`,"error");continue}const r=Math.round((e+1)/a*100);(0,broadcast_1.broadcastProgress)(t,r)}(0,broadcast_1.broadcastStatus)(t,"completed",{duration:Date.now()-e});(0,broadcast_1.broadcastLog)(t,"AI investments processing completed","success")}catch(e){console_1.logger.error("AI_INVESTMENT_PROCESS",`AI investments processing failed: ${e.message}`,e);(0,broadcast_1.broadcastStatus)(t,"failed");(0,broadcast_1.broadcastLog)(t,`AI investments processing failed: ${e.message}`,"error");throw e}}async function getActiveInvestments(){try{return await db_1.models.aiInvestment.findAll({where:{status:"ACTIVE"},include:[{model:db_1.models.aiInvestmentPlan,as:"plan",attributes:["id","name","title","description","profitPercentage","defaultProfit","defaultResult"]},{model:db_1.models.aiInvestmentDuration,as:"duration",attributes:["id","duration","timeframe"]}],order:[["status","ASC"],["createdAt","ASC"]]})}catch(t){console_1.logger.error("AI_INVESTMENT_PROCESS","Failed to get active investments",t);throw t}}async function processAiInvestment(t){var e,s,a;const n="processAiInvestments";try{if("COMPLETED"===t.status){(0,broadcast_1.broadcastLog)(n,`Investment ${t.id} is already COMPLETED; skipping`,"info");return null}(0,broadcast_1.broadcastLog)(n,`Fetching user for AI investment ${t.id}`);const r=await db_1.models.user.findByPk(t.userId);if(!r){(0,broadcast_1.broadcastLog)(n,`User not found for AI investment ${t.id}`,"error");return null}const o=null!==(e=t.amount)&&void 0!==e?e:0,i=null!==(s=t.plan.defaultProfit)&&void 0!==s?s:0,d=null!==(a=t.profit)&&void 0!==a?a:o*i/100;(0,broadcast_1.broadcastLog)(n,`Calculated ROI: ${d} for AI investment ${t.id}`);const c=t.result||t.plan.defaultResult;(0,broadcast_1.broadcastLog)(n,`Determined result (${c}) for AI investment ${t.id}`);const l=calculateEndDate(t);if((0,date_fns_1.isPast)(l)){(0,broadcast_1.broadcastLog)(n,`AI investment ${t.id} is eligible for processing (end date passed)`);const e=await handleAiInvestmentUpdate(t,r,d,c);e&&await postProcessAiInvestment(r,t,e);return e}(0,broadcast_1.broadcastLog)(n,`AI investment ${t.id} is not ready (end date not reached)`,"info");return null}catch(e){console_1.logger.error("AI_INVESTMENT_PROCESS",`General error processing AI investment ${t.id}: ${e.message}`,e);(0,broadcast_1.broadcastLog)(n,`General error processing AI investment ${t.id}: ${e.message}`,"error");throw e}}function calculateEndDate(t){const e=new Date(t.createdAt);switch(t.duration.timeframe){case"HOUR":default:return(0,date_fns_1.addHours)(e,t.duration.duration);case"DAY":return(0,date_fns_1.addDays)(e,t.duration.duration);case"WEEK":return(0,date_fns_1.addDays)(e,7*t.duration.duration);case"MONTH":return(0,date_fns_1.addDays)(e,30*t.duration.duration)}}async function handleAiInvestmentUpdate(t,e,s,a){var n;const r="processAiInvestments";let o;const i=await db_1.sequelize.transaction();try{(0,broadcast_1.broadcastLog)(r,`Starting update for AI investment ${t.id}`);const d=await(0,index_get_1.getTransactionByRefId)(t.id);if(!d){(0,broadcast_1.broadcastLog)(r,`Transaction not found for AI investment ${t.id}, removing investment`,"error");await db_1.models.aiInvestment.destroy({where:{id:t.id},transaction:i});await i.commit();return null}const c=await(0,utils_1.getWalletById)(d.walletId);if(!c){(0,broadcast_1.broadcastLog)(r,`Wallet not found for user ${e.id} (AI investment ${t.id})`,"error");await i.rollback();return null}const l=null!==(n=t.amount)&&void 0!==n?n:0;let u=0;if("WIN"===a)u=l+s;else if("LOSS"===a){u=l-s;u<0&&(u=0)}else u=l;(0,broadcast_1.broadcastLog)(r,`Calculated payout: ${u} for AI investment ${t.id}`);if(u>0){const e=`ai_invest_payout_${t.id}`;await wallet_1.walletService.credit({idempotencyKey:e,userId:c.userId,walletId:c.id,walletType:c.type,currency:c.currency,amount:u,operationType:"AI_INVESTMENT_ROI",referenceId:`${t.id}_roi`,description:`AI Investment ${a}: Plan "${t.plan.title}" | Duration: ${t.duration.duration} ${t.duration.timeframe}`,metadata:{investmentId:t.id,planId:t.planId,result:a,roi:s,originalAmount:l},transaction:i});(0,broadcast_1.broadcastLog)(r,`Wallet credited ${u} for AI investment ${t.id}`)}else(0,broadcast_1.broadcastLog)(r,`No payout for AI investment ${t.id} (total loss)`);await db_1.models.aiInvestment.update({status:"COMPLETED",result:a,profit:s},{where:{id:t.id},transaction:i});(0,broadcast_1.broadcastLog)(r,`AI investment ${t.id} updated to COMPLETED (${a})`);o=await db_1.models.aiInvestment.findByPk(t.id,{include:[{model:db_1.models.aiInvestmentPlan,as:"plan"},{model:db_1.models.aiInvestmentDuration,as:"duration"}],transaction:i});await i.commit();(0,broadcast_1.broadcastLog)(r,`Transaction committed for AI investment ${t.id}`,"success")}catch(e){await i.rollback();(0,broadcast_1.broadcastLog)(r,`Error updating AI investment ${t.id}: ${e.message}`,"error");console_1.logger.error("AI_INVESTMENT_UPDATE",`Error updating AI investment: ${e.message}`,e);return null}return o}async function postProcessAiInvestment(t,e,s){var a;const n="processAiInvestments";try{(0,broadcast_1.broadcastLog)(n,`Sending AI investment email for investment ${e.id}`);await(0,emails_1.sendAiInvestmentEmail)(t,e.plan,e.duration,s,"AiInvestmentCompleted");(0,broadcast_1.broadcastLog)(n,`AI investment email sent for investment ${e.id}`,"success");(0,broadcast_1.broadcastLog)(n,`Creating notification for AI investment ${e.id}`);await(0,notifications_1.createNotification)({userId:t.id,relatedId:s.id,title:"AI Investment Completed",message:`Your AI investment of ${e.amount} ${e.symbol} has been completed with a status of ${s.result}`,type:"system",link:`/ai/investments/${s.id}`,actions:[{label:"View Investment",link:`/ai/investments/${s.id}`,primary:!0}]});(0,broadcast_1.broadcastLog)(n,`Notification created for AI investment ${e.id}`,"success");(0,broadcast_1.broadcastLog)(n,`Processing rewards for AI investment ${e.id}`);await(0,affiliate_1.processRewards)(t.id,null!==(a=e.amount)&&void 0!==a?a:0,"AI_INVESTMENT",e.symbol);(0,broadcast_1.broadcastLog)(n,`Rewards processed for AI investment ${e.id}`,"success")}catch(t){(0,broadcast_1.broadcastLog)(n,`Error in postProcessAiInvestment for ${e.id}: ${t.message}`,"error");console_1.logger.error("AI_INVESTMENT_POST_PROCESS",`Error in postProcessAiInvestment: ${t.message}`,t)}}Object.defineProperty(exports,"__esModule",{value:!0});exports.processAiInvestments=processAiInvestments;exports.getActiveInvestments=getActiveInvestments;exports.processAiInvestment=processAiInvestment;const db_1=require("@b/db"),console_1=require("@b/utils/console"),date_fns_1=require("date-fns"),index_get_1=require("@b/api/finance/transaction/[id]/index.get"),utils_1=require("@b/api/finance/wallet/utils"),emails_1=require("@b/utils/emails"),notifications_1=require("@b/utils/notifications"),affiliate_1=require("@b/utils/affiliate"),broadcast_1=require("@b/cron/broadcast"),wallet_1=require("@b/services/wallet");
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processAiInvestments = processAiInvestments;
+exports.getActiveInvestments = getActiveInvestments;
+exports.processAiInvestment = processAiInvestment;
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
+const date_fns_1 = require("date-fns");
+const emails_1 = require("@b/utils/emails");
+const notifications_1 = require("@b/utils/notifications");
+const broadcast_1 = require("@b/cron/broadcast");
+const wallet_1 = require("@b/services/wallet");
+async function processAiInvestments() {
+    const cronName = "processAiInvestments";
+    const startTime = Date.now();
+    try {
+        (0, broadcast_1.broadcastStatus)(cronName, "running");
+        (0, broadcast_1.broadcastLog)(cronName, "Starting AI investments processing");
+        const activeInvestments = await getActiveInvestments();
+        const total = activeInvestments.length;
+        (0, broadcast_1.broadcastLog)(cronName, `Found ${total} active AI investments`);
+        for (let i = 0; i < total; i++) {
+            const investment = activeInvestments[i];
+            (0, broadcast_1.broadcastLog)(cronName, `Processing AI investment id ${investment.id} (current status: ${investment.status})`);
+            try {
+                const updated = await processAiInvestment(investment);
+                if (updated) {
+                    (0, broadcast_1.broadcastLog)(cronName, `Successfully processed AI investment id ${investment.id}`, "success");
+                }
+                else {
+                    (0, broadcast_1.broadcastLog)(cronName, `No update for AI investment id ${investment.id}`, "warning");
+                }
+            }
+            catch (error) {
+                console_1.logger.error("AI_INVESTMENT_PROCESS", `Error processing investment ${investment.id}: ${error.message}`, error);
+                (0, broadcast_1.broadcastLog)(cronName, `Error processing AI investment id ${investment.id}: ${error.message}`, "error");
+                continue;
+            }
+            const progress = Math.round(((i + 1) / total) * 100);
+            (0, broadcast_1.broadcastProgress)(cronName, progress);
+        }
+        (0, broadcast_1.broadcastStatus)(cronName, "completed", {
+            duration: Date.now() - startTime,
+        });
+        (0, broadcast_1.broadcastLog)(cronName, "AI investments processing completed", "success");
+    }
+    catch (error) {
+        console_1.logger.error("AI_INVESTMENT_PROCESS", `AI investments processing failed: ${error.message}`, error);
+        (0, broadcast_1.broadcastStatus)(cronName, "failed");
+        (0, broadcast_1.broadcastLog)(cronName, `AI investments processing failed: ${error.message}`, "error");
+        throw error;
+    }
+}
+async function getActiveInvestments() {
+    try {
+        return await db_1.models.aiInvestment.findAll({
+            where: { status: "ACTIVE" },
+            include: [
+                {
+                    model: db_1.models.aiInvestmentPlan,
+                    as: "plan",
+                    attributes: [
+                        "id",
+                        "name",
+                        "title",
+                        "description",
+                        "profitPercentage",
+                        "defaultProfit",
+                        "defaultResult",
+                    ],
+                },
+                {
+                    model: db_1.models.aiInvestmentDuration,
+                    as: "duration",
+                    attributes: ["id", "duration", "timeframe"],
+                },
+            ],
+            order: [
+                ["status", "ASC"],
+                ["createdAt", "ASC"],
+            ],
+        });
+    }
+    catch (error) {
+        console_1.logger.error("AI_INVESTMENT_PROCESS", "Failed to get active investments", error);
+        throw error;
+    }
+}
+async function processAiInvestment(investment) {
+    var _a, _b;
+    const cronName = "processAiInvestments";
+    try {
+        if (investment.status === "COMPLETED") {
+            (0, broadcast_1.broadcastLog)(cronName, `Investment ${investment.id} is already COMPLETED; skipping`, "info");
+            return null;
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Fetching user for AI investment ${investment.id}`);
+        const user = await db_1.models.user.findByPk(investment.userId);
+        if (!user) {
+            (0, broadcast_1.broadcastLog)(cronName, `User not found for AI investment ${investment.id}`, "error");
+            return null;
+        }
+        const amount = investment.amount;
+        if (amount == null || amount <= 0) {
+            console_1.logger.error("AI_INVESTMENT_PROCESS", `AI investment ${investment.id} has invalid amount: ${amount}`);
+            return null;
+        }
+        const defaultProfitPercentage = (_a = investment.plan.defaultProfit) !== null && _a !== void 0 ? _a : 0;
+        const roi = (_b = investment.profit) !== null && _b !== void 0 ? _b : (amount * defaultProfitPercentage / 100);
+        (0, broadcast_1.broadcastLog)(cronName, `Calculated ROI: ${roi} for AI investment ${investment.id}`);
+        const investmentResult = investment.result || investment.plan.defaultResult;
+        (0, broadcast_1.broadcastLog)(cronName, `Determined result (${investmentResult}) for AI investment ${investment.id}`);
+        if (!investment.duration) {
+            (0, broadcast_1.broadcastLog)(cronName, `AI investment ${investment.id} has no duration data; skipping`, "warning");
+            return null;
+        }
+        const endDate = calculateEndDate(investment);
+        if ((0, date_fns_1.isPast)(endDate)) {
+            (0, broadcast_1.broadcastLog)(cronName, `AI investment ${investment.id} is eligible for processing (end date passed)`);
+            const updatedInvestment = await handleAiInvestmentUpdate(investment, user, roi, investmentResult);
+            if (updatedInvestment) {
+                await postProcessAiInvestment(user, investment, updatedInvestment);
+            }
+            return updatedInvestment;
+        }
+        else {
+            (0, broadcast_1.broadcastLog)(cronName, `AI investment ${investment.id} is not ready (end date not reached)`, "info");
+            return null;
+        }
+    }
+    catch (error) {
+        console_1.logger.error("AI_INVESTMENT_PROCESS", `General error processing AI investment ${investment.id}: ${error.message}`, error);
+        (0, broadcast_1.broadcastLog)(cronName, `General error processing AI investment ${investment.id}: ${error.message}`, "error");
+        throw error;
+    }
+}
+function calculateEndDate(investment) {
+    const createdAt = new Date(investment.createdAt);
+    switch (investment.duration.timeframe) {
+        case "HOUR":
+            return (0, date_fns_1.addHours)(createdAt, investment.duration.duration);
+        case "DAY":
+            return (0, date_fns_1.addDays)(createdAt, investment.duration.duration);
+        case "WEEK":
+            return (0, date_fns_1.addDays)(createdAt, investment.duration.duration * 7);
+        case "MONTH":
+            return (0, date_fns_1.addDays)(createdAt, investment.duration.duration * 30);
+        default:
+            return (0, date_fns_1.addHours)(createdAt, investment.duration.duration);
+    }
+}
+async function handleAiInvestmentUpdate(investment, user, roi, investmentResult) {
+    const cronName = "processAiInvestments";
+    let updatedInvestment;
+    const t = await db_1.sequelize.transaction();
+    try {
+        (0, broadcast_1.broadcastLog)(cronName, `Starting update for AI investment ${investment.id}`);
+        const lockedInvestment = await db_1.models.aiInvestment.findByPk(investment.id, {
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        });
+        if (!lockedInvestment || lockedInvestment.status !== "ACTIVE") {
+            (0, broadcast_1.broadcastLog)(cronName, `AI investment ${investment.id} is no longer ACTIVE (status: ${lockedInvestment === null || lockedInvestment === void 0 ? void 0 : lockedInvestment.status}); skipping`, "info");
+            await t.commit();
+            return null;
+        }
+        const transactionRecord = await db_1.models.transaction.findOne({
+            where: { referenceId: investment.id, type: "AI_INVESTMENT" },
+            transaction: t,
+        });
+        if (!transactionRecord) {
+            (0, broadcast_1.broadcastLog)(cronName, `Transaction not found for AI investment ${investment.id}, marking as REJECTED`, "error");
+            await db_1.models.aiInvestment.update({ status: "REJECTED" }, { where: { id: investment.id }, transaction: t });
+            await t.commit();
+            return null;
+        }
+        const wallet = await db_1.models.wallet.findByPk(transactionRecord.walletId, {
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        });
+        if (!wallet) {
+            (0, broadcast_1.broadcastLog)(cronName, `Wallet not found for user ${user.id} (AI investment ${investment.id}), marking as REJECTED`, "error");
+            await db_1.models.aiInvestment.update({ status: "REJECTED" }, { where: { id: investment.id }, transaction: t });
+            await t.commit();
+            return null;
+        }
+        const amount = investment.amount;
+        if (amount == null || amount <= 0) {
+            console_1.logger.error("AI_INVESTMENT_UPDATE", `AI investment ${investment.id} has invalid amount: ${amount}`);
+            await db_1.models.aiInvestment.update({ status: "REJECTED" }, { where: { id: investment.id }, transaction: t });
+            await t.commit();
+            return null;
+        }
+        let payoutAmount = 0;
+        if (investmentResult === "WIN") {
+            payoutAmount = amount + roi;
+        }
+        else if (investmentResult === "LOSS") {
+            payoutAmount = amount - roi;
+            if (payoutAmount < 0)
+                payoutAmount = 0;
+        }
+        else {
+            payoutAmount = amount;
+        }
+        (0, broadcast_1.broadcastLog)(cronName, `Calculated payout: ${payoutAmount} for AI investment ${investment.id}`);
+        if (payoutAmount > 0) {
+            const idempotencyKey = `ai_invest_cron_payout_${investment.id}_${investmentResult}`;
+            await wallet_1.walletService.credit({
+                idempotencyKey,
+                userId: wallet.userId,
+                walletId: wallet.id,
+                walletType: wallet.type,
+                currency: wallet.currency,
+                amount: payoutAmount,
+                operationType: "AI_INVESTMENT_ROI",
+                referenceId: `${investment.id}_roi`,
+                description: `AI Investment ${investmentResult}: Plan "${investment.plan.title}" | Duration: ${investment.duration.duration} ${investment.duration.timeframe}`,
+                metadata: {
+                    investmentId: investment.id,
+                    planId: investment.planId,
+                    result: investmentResult,
+                    roi,
+                    originalAmount: amount,
+                },
+                transaction: t,
+            });
+            (0, broadcast_1.broadcastLog)(cronName, `Wallet credited ${payoutAmount} for AI investment ${investment.id}`);
+        }
+        else {
+            (0, broadcast_1.broadcastLog)(cronName, `No payout for AI investment ${investment.id} (total loss)`);
+        }
+        await db_1.models.aiInvestment.update({
+            status: "COMPLETED",
+            result: investmentResult,
+            profit: roi,
+        }, { where: { id: investment.id }, transaction: t });
+        (0, broadcast_1.broadcastLog)(cronName, `AI investment ${investment.id} updated to COMPLETED (${investmentResult})`);
+        updatedInvestment = await db_1.models.aiInvestment.findByPk(investment.id, {
+            include: [
+                { model: db_1.models.aiInvestmentPlan, as: "plan" },
+                { model: db_1.models.aiInvestmentDuration, as: "duration" },
+            ],
+            transaction: t,
+        });
+        await t.commit();
+        (0, broadcast_1.broadcastLog)(cronName, `Transaction committed for AI investment ${investment.id}`, "success");
+    }
+    catch (error) {
+        await t.rollback();
+        (0, broadcast_1.broadcastLog)(cronName, `Error updating AI investment ${investment.id}: ${error.message}`, "error");
+        console_1.logger.error("AI_INVESTMENT_UPDATE", `Error updating AI investment: ${error.message}`, error);
+        return null;
+    }
+    return updatedInvestment;
+}
+async function postProcessAiInvestment(user, investment, updatedInvestment) {
+    const cronName = "processAiInvestments";
+    try {
+        (0, broadcast_1.broadcastLog)(cronName, `Sending AI investment email for investment ${investment.id}`);
+        await (0, emails_1.sendAiInvestmentEmail)(user, investment.plan, investment.duration, updatedInvestment, "AiInvestmentCompleted");
+        (0, broadcast_1.broadcastLog)(cronName, `AI investment email sent for investment ${investment.id}`, "success");
+        (0, broadcast_1.broadcastLog)(cronName, `Creating notification for AI investment ${investment.id}`);
+        await (0, notifications_1.createNotification)({
+            userId: user.id,
+            relatedId: updatedInvestment.id,
+            title: "AI Investment Completed",
+            message: `Your AI investment of ${investment.amount} ${investment.symbol} has been completed with a status of ${updatedInvestment.result}`,
+            type: "system",
+            link: `/ai/investment/${updatedInvestment.id}`,
+            actions: [
+                {
+                    label: "View Investment",
+                    link: `/ai/investment/${updatedInvestment.id}`,
+                    primary: true,
+                },
+            ],
+        });
+        (0, broadcast_1.broadcastLog)(cronName, `Notification created for AI investment ${investment.id}`, "success");
+    }
+    catch (error) {
+        (0, broadcast_1.broadcastLog)(cronName, `Error in postProcessAiInvestment for ${investment.id}: ${error.message}`, "error");
+        console_1.logger.error("AI_INVESTMENT_POST_PROCESS", `Error in postProcessAiInvestment: ${error.message}`, error);
+    }
+}

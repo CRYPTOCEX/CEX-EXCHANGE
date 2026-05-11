@@ -358,7 +358,7 @@ export default function CreateAiMarketPage() {
               <CardContent className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    {tExt("target_price")}{selectedMarket?.pair || "Quote Currency"})
+                    {tExt("target_price")} ({selectedMarket?.pair || "Quote Currency"})
                   </label>
                   <Input
                     type="number"
@@ -498,7 +498,7 @@ export default function CreateAiMarketPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    {t("max_daily_volume")}{selectedMarket?.pair || "Quote Currency"})
+                    {t("max_daily_volume")} ({selectedMarket?.pair || "Quote Currency"})
                   </label>
                   <Input
                     type="number"

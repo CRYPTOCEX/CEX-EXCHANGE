@@ -12,7 +12,11 @@ export default class ecommerceDiscount
 {
   id!: string;
   code!: string;
+  type!: "PERCENTAGE" | "FIXED" | "FREE_SHIPPING";
   percentage!: number;
+  amount!: number;
+  maxUses!: number;
+  validFrom!: Date;
   validUntil!: Date;
   productId!: string;
   status!: boolean;
@@ -79,9 +83,21 @@ export default class ecommerceDiscount
             notEmpty: { msg: "code: Code must not be empty" },
           },
         },
+        type: {
+          type: DataTypes.ENUM("PERCENTAGE", "FIXED", "FREE_SHIPPING"),
+          allowNull: false,
+          defaultValue: "PERCENTAGE",
+          validate: {
+            isIn: {
+              args: [["PERCENTAGE", "FIXED", "FREE_SHIPPING"]],
+              msg: "type: Must be 'PERCENTAGE', 'FIXED', or 'FREE_SHIPPING'",
+            },
+          },
+        },
         percentage: {
           type: DataTypes.INTEGER,
-          allowNull: false,
+          allowNull: true,
+          defaultValue: 0,
           validate: {
             isInt: { msg: "percentage: Percentage must be an integer" },
             min: {
@@ -94,17 +110,52 @@ export default class ecommerceDiscount
             },
           },
         },
+        amount: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+          validate: {
+            isFloat: { msg: "amount: Amount must be a valid number" },
+            min: {
+              args: [0],
+              msg: "amount: Amount cannot be negative",
+            },
+          },
+        },
+        maxUses: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          validate: {
+            isInt: { msg: "maxUses: Max uses must be an integer" },
+            min: {
+              args: [1],
+              msg: "maxUses: Max uses must be at least 1",
+            },
+          },
+        },
+        validFrom: {
+          type: DataTypes.DATE(3),
+          allowNull: true,
+          validate: {
+            isDate: {
+              msg: "validFrom: Must be a valid date",
+              args: true,
+            },
+          },
+        },
         validUntil: {
           type: DataTypes.DATE(3),
           allowNull: false,
           validate: {
             isDate: {
               msg: "validUntil: Must be a valid date",
-              args: true, // args must be provided even if not used
+              args: true,
             },
-            isAfter: {
-              args: new Date().toISOString(),
-              msg: "validUntil: Date must be in the future",
+            // BUG-10: Use custom validator so it checks against current time, not server start time
+            isFutureDate(value: string) {
+              if (new Date(value) <= new Date()) {
+                throw new Error("validUntil: Date must be in the future");
+              }
             },
           },
         },

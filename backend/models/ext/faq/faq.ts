@@ -126,6 +126,10 @@ export default class faq
             name: "faqs_order_idx",
             fields: [{ name: "order" }],
           },
+          {
+            name: "faqs_status_idx",
+            fields: [{ name: "status" }],
+          },
         ],
       }
     );

@@ -35,6 +35,7 @@ import { Link } from "@/i18n/routing";
 import $fetch from "@/lib/api";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useAddonDisplayName } from "@/hooks/use-addon-display-name";
 
 interface PayoutPayment {
   id: string;
@@ -78,7 +79,7 @@ const STATUS_CONFIG: Record<string, { color: string; bgColor: string; icon: any;
   CANCELLED: { color: "text-gray-600", bgColor: "bg-gray-500/10 border-gray-500/20", icon: XCircle, label: "Cancelled" },
 };
 
-const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+const DEFAULT_WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
   FIAT: { label: "Fiat Wallet", icon: Banknote, color: "text-green-600" },
   SPOT: { label: "Spot Wallet", icon: Coins, color: "text-orange-600" },
   ECO: { label: "Ecosystem Wallet", icon: CircleDollarSign, color: "text-blue-600" },
@@ -90,6 +91,13 @@ export default function PayoutDetailClient() {
   const tCommon = useTranslations("common");
   const params = useParams();
   const payoutId = params.id as string;
+  const { getWalletTypeLabel } = useAddonDisplayName();
+
+  const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+    FIAT: { ...DEFAULT_WALLET_CONFIG.FIAT },
+    SPOT: { ...DEFAULT_WALLET_CONFIG.SPOT },
+    ECO: { ...DEFAULT_WALLET_CONFIG.ECO, label: getWalletTypeLabel("ECO", "Ecosystem") + " Wallet" },
+  };
 
   const [loading, setLoading] = useState(true);
   const [payout, setPayout] = useState<PayoutDetail | null>(null);

@@ -5,6 +5,7 @@ const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const utils_1 = require("./utils");
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const emails_1 = require("@b/utils/emails");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
@@ -204,13 +205,16 @@ exports.default = async (data) => {
                     transaction: t,
                 });
                 if (((_a = transaction.fee) !== null && _a !== void 0 ? _a : 0) > 0) {
-                    await db_1.models.adminProfit.create({
-                        amount: transaction.fee,
+                    await (0, fees_1.collectPlatformFee)({
+                        userId: user.id,
                         currency: wallet.currency,
+                        walletType: "FIAT",
+                        feeAmount: transaction.fee,
                         type: "DEPOSIT",
-                        transactionId: transaction.id,
-                        description: `Klarna deposit fee from ${user.firstName} ${user.lastName}`,
-                    }, { transaction: t });
+                        description: `Platform fee from Klarna deposit for ${user.firstName} ${user.lastName}`,
+                        referenceId: transaction.id,
+                        metadata: { method: "klarna", userId: user.id },
+                    });
                 }
             });
             try {

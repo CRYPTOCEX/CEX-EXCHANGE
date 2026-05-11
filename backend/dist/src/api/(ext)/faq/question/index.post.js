@@ -79,11 +79,10 @@ exports.default = async (data) => {
         return newQuestion;
     }
     catch (error) {
-        console.error("Error submitting FAQ question:", error);
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to submit question");
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to submit question");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error ? error.message : "Failed to submit question",
+            message: "Failed to submit question",
         });
     }
 };

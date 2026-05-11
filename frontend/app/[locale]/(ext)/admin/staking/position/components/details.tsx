@@ -150,8 +150,6 @@ const StakingPositionDetails: React.FC<StakingPositionDetailsProps> = ({
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-500">
-                  {/* // TODO: Uncomment when stakingComputations is available */}
-                  {/* +{stakingComputations.getPendingRewards(row.id)}{" "} */}
                   {pool.symbol || ""}
                 </div>
               </CardContent>

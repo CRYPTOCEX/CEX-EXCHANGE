@@ -25,44 +25,50 @@ type offering = icoTokenOfferingAttributes & {
 
 // Helper function to parse tokenDetail fields if needed
 function parseTokenDetail(offering: offering): offering {
-  if (offering.tokenDetail) {
-    // Parse useOfFunds if it's a JSON string
-    if (typeof offering.tokenDetail.useOfFunds === "string") {
-      try {
-        offering.tokenDetail.useOfFunds = JSON.parse(
-          offering.tokenDetail.useOfFunds
-        );
-      } catch (err) {
-        console.error("Failed to parse useOfFunds:", err);
-        offering.tokenDetail.useOfFunds = [];
-      }
-    }
-    // Parse links if it's a JSON string and convert array to a record
-    if (typeof offering.tokenDetail.links === "string") {
-      try {
-        const linksArray = JSON.parse(offering.tokenDetail.links);
-        const linksRecord = Array.isArray(linksArray)
-          ? linksArray.reduce(
-              (
-                acc: Record<string, string>,
-                cur: { label: string; url: string }
-              ) => {
-                if (cur.label && cur.url) {
-                  acc[cur.label] = cur.url;
-                }
-                return acc;
-              },
-              {}
-            )
-          : {};
-        offering.tokenDetail.links = linksRecord;
-      } catch (err) {
-        console.error("Failed to parse links:", err);
-        offering.tokenDetail.links = {};
-      }
+  if (!offering.tokenDetail) return offering;
+
+  let useOfFunds = offering.tokenDetail.useOfFunds;
+  if (typeof useOfFunds === "string") {
+    try {
+      useOfFunds = JSON.parse(useOfFunds);
+    } catch (err) {
+      console.error("Failed to parse useOfFunds:", err);
+      useOfFunds = [];
     }
   }
-  return offering;
+
+  let links = offering.tokenDetail.links;
+  if (typeof links === "string") {
+    try {
+      const linksArray = JSON.parse(links);
+      links = Array.isArray(linksArray)
+        ? linksArray.reduce(
+            (
+              acc: Record<string, string>,
+              cur: { label: string; url: string }
+            ) => {
+              if (cur.label && cur.url) {
+                acc[cur.label] = cur.url;
+              }
+              return acc;
+            },
+            {}
+          )
+        : {};
+    } catch (err) {
+      console.error("Failed to parse links:", err);
+      links = {};
+    }
+  }
+
+  return {
+    ...offering,
+    tokenDetail: {
+      ...offering.tokenDetail,
+      useOfFunds,
+      links,
+    },
+  };
 }
 
 interface OfferStoreState {
@@ -361,6 +367,7 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
             currentPage: page,
             totalPages: Math.ceil((parsedOfferings.length || 0) / limit),
             totalItems: parsedOfferings.length || 0,
+            total: parsedOfferings.length || 0,
           },
         });
       }
@@ -423,6 +430,7 @@ export const useOfferStore = create<OfferStoreState>((set, get) => ({
             currentPage: page,
             totalPages: Math.ceil((parsedOfferings.length || 0) / limit),
             totalItems: parsedOfferings.length || 0,
+            total: parsedOfferings.length || 0,
           },
         });
       }

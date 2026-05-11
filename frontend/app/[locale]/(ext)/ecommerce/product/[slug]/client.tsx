@@ -90,7 +90,8 @@ export default function ProductDetailClient() {
         });
 
         if (!error) {
-          setHasPurchased(data && data.length > 0);
+          // Endpoint returns a single order object (or 404). Treat truthy response as "purchased".
+          setHasPurchased(!!data);
         }
       } catch (error) {
         // Only log unexpected errors, not normal "no purchase" cases

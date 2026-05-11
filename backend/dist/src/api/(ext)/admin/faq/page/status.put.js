@@ -47,9 +47,9 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     }
     const { pagePath, status } = body;
-    if (typeof pagePath !== "string") {
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail("pagePath is required");
-        throw (0, error_1.createError)({ statusCode: 400, message: "pagePath is required" });
+    if (typeof pagePath !== "string" || typeof status !== "boolean") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("pagePath (string) and status (boolean) are required");
+        throw (0, error_1.createError)({ statusCode: 400, message: "pagePath (string) and status (boolean) are required" });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating FAQ status by page");
     await db_1.models.faq.update({ status }, { where: { pagePath } });

@@ -45,7 +45,7 @@ export function useColumns(): ColumnDefinition[] {
         type: "compound",
         config: {
           image: {
-            key: "image",
+            key: "icon",
             type: "image",
             fallback: (row) =>
               row.currency
@@ -210,7 +210,7 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             {
-              key: "image",
+              key: "icon",
               compoundKey: "token",
               fallback: (row) =>
                 row?.currency
@@ -317,7 +317,7 @@ export function useFormConfig(): FormConfig {
           priority: 1,
           fields: [
             {
-              key: "image",
+              key: "icon",
               compoundKey: "token",
               fallback: (row) =>
                 row?.currency

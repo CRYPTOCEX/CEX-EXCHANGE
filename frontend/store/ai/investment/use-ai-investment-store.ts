@@ -27,6 +27,9 @@ export interface AiInvestmentPlan {
   status?: boolean;
   invested: number;
   profitPercentage: number;
+  defaultProfit: number;
+  minProfit: number;
+  maxProfit: number;
   minAmount: number;
   maxAmount: number;
   trending?: boolean;
@@ -113,13 +116,13 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             set({ isLoadingInvestments: true, apiError: null, _investmentsFetchInProgress: true });
 
             const { data, error } = await $fetch({
-              url: "/api/ai/investment/log",
+              url: "/api/ai/investment/log?limit=100&offset=0",
               silentSuccess: true,
             });
 
-            if (!error) {
-              // Ensure data is an array
-              const investments = Array.isArray(data) ? data : [];
+            if (!error && data) {
+              // Handle paginated response { items, pagination }
+              const investments = Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : [];
               set({ investments, _lastInvestmentsFetch: Date.now() });
             } else {
               console.error("Failed to fetch AI investments:", error);
@@ -236,12 +239,10 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             });
 
             if (!error) {
-              // Add the new investment to the state
-              set({
-                investments: [responseData, ...get().investments],
-                // Reset form values
-                investmentAmount: 0,
-              });
+              // Reset form values and refresh investments from server
+              // (backend returns a message, not the investment object)
+              set({ investmentAmount: 0 });
+              await get().fetchInvestments(true);
 
               return { success: true, data: responseData };
             } else {
@@ -267,11 +268,9 @@ export const useAiInvestmentStore = create<AiInvestmentState>()(
             });
 
             if (!error) {
-              // Update the investment in the state
+              // Remove the investment from the state (backend hard-deletes it)
               set({
-                investments: get().investments.map((inv) =>
-                  inv.id === id ? { ...inv, status: "CANCELLED" } : inv
-                ),
+                investments: get().investments.filter((inv) => inv.id !== id),
               });
 
               return { success: true };

@@ -131,24 +131,26 @@ export default function TokenPageClient() {
     );
   }
 
-  if (tokenError) {
+  if (tokenError || !currentToken) {
     return (
-      <div className="container py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{tokenError}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (!currentToken) {
-    return (
-      <div className="container py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{t("token_not_found")}</AlertDescription>
-        </Alert>
+      <div className="container py-10">
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="bg-card rounded-2xl border border-destructive/20 shadow-xl p-12 text-center max-w-md w-full">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-destructive/10 mb-6">
+              <AlertCircle className="h-10 w-10 text-destructive" />
+            </div>
+            <h3 className="text-2xl font-bold mb-3">
+              {t("token_not_found")}
+            </h3>
+            <p className="text-muted-foreground mb-8">
+              {tokenError || t("token_not_found_description")}
+            </p>
+            <Button onClick={() => router.push("/ico/creator?tab=token")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {t("back_to_tokens")}
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

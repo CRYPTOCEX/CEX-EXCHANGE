@@ -48,6 +48,11 @@ class icoTokenType extends sequelize_1.Model {
                     unique: true,
                     fields: [{ name: "id" }],
                 },
+                {
+                    name: "icoTokenTypeNameKey",
+                    unique: true,
+                    fields: [{ name: "name" }],
+                },
             ],
         });
     }

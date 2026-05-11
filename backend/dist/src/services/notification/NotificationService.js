@@ -112,7 +112,11 @@ class NotificationService {
         if (operation.transaction) {
             return executeInTransaction(operation.transaction);
         }
-        return await db_1.sequelize.transaction(executeInTransaction);
+        const needsTransaction = operation.channels.includes("IN_APP");
+        if (needsTransaction) {
+            return await db_1.sequelize.transaction(executeInTransaction);
+        }
+        return executeInTransaction(null);
     }
     async sendToChannel(channel, operation, transaction) {
         const channelHandler = this.channels.get(channel);
@@ -120,9 +124,10 @@ class NotificationService {
             console.warn(`[NotificationService] Channel ${channel} not implemented yet`);
             throw new Error(`Channel ${channel} not implemented`);
         }
-        return await channelHandler.send(operation, transaction);
+        return await channelHandler.send(operation, transaction || undefined);
     }
     async sendBatch(operation) {
+        const batchId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         const results = await Promise.allSettled(operation.userIds.map((userId) => this.send({
             userId,
             type: operation.type,
@@ -130,7 +135,7 @@ class NotificationService {
             template: operation.template,
             data: operation.data,
             priority: operation.priority,
-            idempotencyKey: `batch-${userId}-${Date.now()}`,
+            idempotencyKey: `batch-${batchId}-${userId}`,
             metadata: operation.metadata,
         })));
         const successful = [];

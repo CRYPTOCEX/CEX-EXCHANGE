@@ -22,6 +22,7 @@ export default function EcommerceWishlistPage() {
       pageSize={12}
       canDelete
       canView
+      isParanoid={true}
       title={t("customer_wishlists")}
       description={t("view_customer_wishlists")}
       itemTitle="Wishlist"

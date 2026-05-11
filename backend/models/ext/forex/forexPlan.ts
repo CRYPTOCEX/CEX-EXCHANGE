@@ -185,11 +185,11 @@ export default class forexPlan
           },
         },
         defaultProfit: {
-          type: DataTypes.INTEGER,
+          type: DataTypes.DOUBLE,
           allowNull: false,
           defaultValue: 0,
           validate: {
-            isInt: { msg: "defaultProfit: Default profit must be an integer" },
+            isFloat: { msg: "defaultProfit: Default profit must be a number" },
           },
         },
         defaultResult: {

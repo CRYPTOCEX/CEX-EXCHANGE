@@ -36,7 +36,7 @@ export default function TroubleshooterContent() {
   const { faqs, loading, fetchFAQs } = useFAQStore();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [filteredFAQs, setFilteredFAQs] = useState<any[]>([]);
+  const [filteredFAQs, setFilteredFAQs] = useState<faqAttributes[]>([]);
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
   useEffect(() => {
@@ -128,6 +128,7 @@ export default function TroubleshooterContent() {
   const isResultsStep = step === steps.length;
 
   const handleSelect = (value: string) => {
+    if (!currentStep) return;
     const newAnswers = { ...answers, [currentStep.id]: value };
     setAnswers(newAnswers);
   };
@@ -190,6 +191,8 @@ export default function TroubleshooterContent() {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
         <motion.div
+          role="status"
+          aria-label="Loading"
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-12 h-12 border-4 border-zinc-200 border-t-zinc-600 dark:border-zinc-700 dark:border-t-zinc-300 rounded-full"

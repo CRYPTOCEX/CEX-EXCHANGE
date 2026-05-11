@@ -427,7 +427,7 @@ class CronJobManager {
                 {
                     name: "p2pTradeTimeout",
                     title: "P2P Trade Timeout Handler",
-                    period: 5 * 60 * 1000,
+                    period: 1 * 60 * 1000,
                     description: "Automatically expires P2P trades that have passed their expiration date and releases escrowed funds.",
                     function: "p2pTradeTimeout",
                     handler: p2pTradeTimeout,
@@ -786,8 +786,10 @@ const createWorker = async (name, handler, period, concurrency = 1) => {
     try {
         const queue = new bullmq_1.Queue(name, {
             connection: {
-                host: "127.0.0.1",
-                port: 6379,
+                host: process.env.REDIS_HOST || "127.0.0.1",
+                port: parseInt(process.env.REDIS_PORT || "6379"),
+                password: process.env.REDIS_PASSWORD || undefined,
+                db: parseInt(process.env.REDIS_DB || "0"),
             },
         });
         await queue.waitUntilReady();
@@ -812,8 +814,10 @@ const createWorker = async (name, handler, period, concurrency = 1) => {
             }
         }, {
             connection: {
-                host: "127.0.0.1",
-                port: 6379,
+                host: process.env.REDIS_HOST || "127.0.0.1",
+                port: parseInt(process.env.REDIS_PORT || "6379"),
+                password: process.env.REDIS_PASSWORD || undefined,
+                db: parseInt(process.env.REDIS_DB || "0"),
             },
             concurrency,
         });

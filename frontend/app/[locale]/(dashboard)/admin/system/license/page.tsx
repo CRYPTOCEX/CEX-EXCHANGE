@@ -70,11 +70,17 @@ export default function LicenseActivationPage() {
             silent: true,
           });
 
-          // If license is valid, always redirect to admin dashboard
+          // If license is valid, either redirect or show "already active" state
           if (response.data?.isValid) {
-            // BYPASS: Always redirect immediately when license is valid
-            router.replace("/admin");
-            return;
+            if (!needsActivation) {
+              // Auto-redirect if we didn't come from a license failure
+              router.replace("/admin");
+              return;
+            } else {
+              // License is now valid but user came from needsActivation=true
+              // Show them that license is already active
+              setLicenseAlreadyActive(true);
+            }
           }
 
           setProductInfo({

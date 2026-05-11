@@ -38,7 +38,7 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 404, message: "FAQ not found" });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Incrementing view count");
-    await faq.increment("views", { by: 1 });
+    await db_1.models.faq.increment("views", { where: { id: params.id } });
     await faq.reload();
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Parsing related FAQ IDs");
     let relatedFaqIds = [];
@@ -61,7 +61,9 @@ exports.default = async (data) => {
         relatedFaqs = await db_1.models.faq.findAll({
             where: {
                 id: relatedFaqIds,
+                status: true,
             },
+            limit: 10,
         });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating helpful count from feedback");

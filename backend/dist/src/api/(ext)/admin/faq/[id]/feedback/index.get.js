@@ -51,20 +51,20 @@ exports.metadata = {
     logTitle: "Get FAQ feedback by ID",
 };
 exports.default = async (data) => {
-    const { user, ctx } = data;
+    const { user, params, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     }
     try {
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching all faq feedback");
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching FAQ feedback by FAQ ID");
         const feedbacks = await db_1.models.faqFeedback.findAll({
+            where: { faqId: params.id },
             order: [["createdAt", "ASC"]],
         });
-        ctx === null || ctx === void 0 ? void 0 : ctx.success("all FAQ feedback retrieved successfully");
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQ feedback retrieved successfully");
         return feedbacks;
     }
     catch (error) {
-        console.error("Error fetching FAQ feedback:", error);
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch all faq feedback");
         throw (0, error_1.createError)({
             statusCode: 500,

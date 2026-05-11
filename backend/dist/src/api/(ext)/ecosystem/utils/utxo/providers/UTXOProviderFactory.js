@@ -48,14 +48,24 @@ class UTXOProviderFactory {
                     console.warn(`[UTXO_PROVIDER] Bitcoin Node only supports BTC, falling back to BlockCypher for ${chain}`);
                     return new BlockCypherProvider_1.BlockCypherProvider(chain);
                 }
-                const nodeProvider = new BitcoinNodeProvider_1.BitcoinNodeProvider(chain);
-                await nodeProvider.initialize();
-                const isAvailable = await nodeProvider.isAvailable();
-                if (!isAvailable) {
-                    console.warn('[UTXO_PROVIDER] Bitcoin Node is not available or not synced, falling back to Mempool');
+                try {
+                    const nodeProvider = new BitcoinNodeProvider_1.BitcoinNodeProvider(chain);
+                    await nodeProvider.initialize();
+                    const isAvailable = await nodeProvider.isAvailable();
+                    if (!isAvailable) {
+                        console.warn('[UTXO_PROVIDER] Bitcoin Node is not available or not synced, falling back to Mempool');
+                        return new MempoolProvider_1.MempoolProvider(chain);
+                    }
+                    if (nodeProvider.isDescriptorWallet()) {
+                        console.warn('[UTXO_PROVIDER] Bitcoin Node has descriptor wallet (no importaddress support), falling back to Mempool for transaction tracking');
+                        return new MempoolProvider_1.MempoolProvider(chain);
+                    }
+                    return nodeProvider;
+                }
+                catch (nodeError) {
+                    console.warn(`[UTXO_PROVIDER] Bitcoin Node initialization failed: ${nodeError.message}, falling back to Mempool`);
                     return new MempoolProvider_1.MempoolProvider(chain);
                 }
-                return nodeProvider;
             default:
                 throw (0, error_1.createError)({ statusCode: 400, message: `Unknown provider type: ${type}` });
         }

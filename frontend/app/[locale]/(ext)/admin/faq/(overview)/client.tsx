@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, ThumbsUp, ThumbsDown, HelpCircle, Calendar, Sparkles, BarChart3, FileText } from "lucide-react";
+import { Eye, ThumbsUp, ThumbsDown, HelpCircle, Calendar, Sparkles, BarChart3, FileText, AlertCircle, Loader2 } from "lucide-react";
 import { useFAQAdminStore } from "@/store/faq/admin";
 import { useAnalyticsStore } from "@/store/faq/analytics-store";
 
@@ -31,6 +31,15 @@ import { motion } from "framer-motion";
 import { StatsCard, statsCardColors } from "@/components/ui/card/stats-card";
 
 type TimeframeOption = "weekly" | "monthly" | "yearly";
+
+// M40: Moved outside component so reference is stable
+const categoryColors = [
+  "#6366F1",
+  "#22C55E",
+  "#EF4444",
+  "#F97316",
+  "#A855F7",
+];
 
 export function FAQAnalyticsDashboard() {
   const t = useTranslations("ext_admin");
@@ -65,15 +74,6 @@ export function FAQAnalyticsDashboard() {
     },
     [fetchAnalyticsData]
   );
-
-  // Color scheme for category charts
-  const categoryColors = [
-    "#6366F1",
-    "#22C55E",
-    "#EF4444",
-    "#F97316",
-    "#A855F7",
-  ];
 
   // Helper function to convert timeframe to chart format
   const getChartTimeframe = useCallback(
@@ -282,6 +282,34 @@ export function FAQAnalyticsDashboard() {
         return "Last 30 Days";
     }
   }, []);
+
+  if (analytics.isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+          <p className="text-sm">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (analytics.error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-destructive">
+          <AlertCircle className="h-8 w-8" />
+          <p className="text-sm font-medium">{analytics.error}</p>
+          <button
+            onClick={() => fetchAnalyticsData()}
+            className="mt-2 text-sm underline text-muted-foreground hover:text-foreground"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">

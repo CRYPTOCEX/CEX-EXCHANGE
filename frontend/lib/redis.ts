@@ -5,8 +5,10 @@ let redisClient: Redis | null = null;
 
 try {
   redisClient = new Redis({
-    host: "127.0.0.1",
-    port: 6379,
+    host: process.env.REDIS_HOST || "127.0.0.1",
+    port: parseInt(process.env.REDIS_PORT || "6379"),
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: parseInt(process.env.REDIS_DB || "0"),
     connectTimeout: 1000, // 1 second timeout
     maxRetriesPerRequest: 0, // Don't retry requests
     lazyConnect: true, // Don't connect immediately

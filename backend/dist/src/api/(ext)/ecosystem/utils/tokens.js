@@ -42,9 +42,9 @@ const fetchTokenHolders = async (chain, network, contract) => {
         if (!chainConfig) {
             throw (0, error_1.createError)({ statusCode: 400, message: `Chain "${chain}" is not supported.` });
         }
-        const apiKey = process.env.ETHERSCAN_API_KEY || process.env[`${chain}_EXPLORER_API_KEY`];
+        const apiKey = process.env[`${chain}_EXPLORER_API_KEY`] || process.env.ETHERSCAN_API_KEY;
         if (!apiKey) {
-            throw (0, error_1.createError)({ statusCode: 500, message: `ETHERSCAN_API_KEY or ${chain}_EXPLORER_API_KEY is not configured.` });
+            throw (0, error_1.createError)({ statusCode: 500, message: `${chain}_EXPLORER_API_KEY or ETHERSCAN_API_KEY is not configured.` });
         }
         const networkConfig = chainConfig.networks[network];
         if (!networkConfig || !networkConfig.explorer) {
@@ -55,10 +55,7 @@ const fetchTokenHolders = async (chain, network, contract) => {
         if (cachedData) {
             return cachedData;
         }
-        if (!networkConfig.chainId) {
-            throw (0, error_1.createError)({ statusCode: 500, message: `Chain ID not configured for network "${network}" on chain "${chain}". V2 API requires chainId.` });
-        }
-        const apiUrl = `https://api.etherscan.io/v2/api?chainid=${networkConfig.chainId}&module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc&apikey=${apiKey}`;
+        const apiUrl = `https://${networkConfig.explorer}/api?module=account&action=tokentx&contractaddress=${contract}&page=1&offset=100&sort=asc&apikey=${apiKey}`;
         let data;
         try {
             const response = await fetch(apiUrl);

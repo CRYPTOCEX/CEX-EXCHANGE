@@ -59,7 +59,7 @@ exports.default = async (data) => {
             message: "Unauthorized",
         });
     }
-    const { userId, name, symbol, icon, tokenType, blockchain, totalSupply, description, tokenDetails, teamMembers, roadmap, website, targetAmount, startDate, phases, selectedPlan, status = "PENDING", submittedAt = new Date().toISOString(), } = body;
+    const { userId, name, symbol, icon, tokenType, blockchain, totalSupply, description, tokenDetails, teamMembers, roadmap, website, targetAmount, startDate, phases, selectedPlan, submittedAt = new Date().toISOString(), } = body;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating launch plan");
     const launchPlan = await db_1.models.icoLaunchPlan.findOne({
         where: { id: selectedPlan },
@@ -143,7 +143,7 @@ exports.default = async (data) => {
             name,
             icon,
             symbol: symbol.toUpperCase(),
-            status: status.toUpperCase(),
+            status: "PENDING",
             purchaseWalletCurrency: launchPlan.currency,
             purchaseWalletType: launchPlan.walletType,
             tokenPrice,

@@ -18,11 +18,16 @@ interface TradeDetailsWrapperProps {
   tradeId: string;
 }
 
-// Get WebSocket URL for P2P trade
-function getP2PTradeWsUrl(tradeId: string): string {
+// Get WebSocket URL for P2P trade - all backends now use /api/ prefix
+function getP2PTradeWsUrl(tradeId: string, userId?: string): string {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const host = process.env.NEXT_PUBLIC_BACKEND_WS_URL || window.location.host;
-  return `${protocol}//${host}/api/p2p/trade/${tradeId}`;
+  const isDev = process.env.NODE_ENV === "development";
+  const backendPort = process.env.NEXT_PUBLIC_BACKEND_PORT || "4000";
+  // In development, connect directly to backend (Next.js rewrites don't support WebSocket upgrades)
+  const host = process.env.NEXT_PUBLIC_BACKEND_WS_URL ||
+    (isDev ? `${window.location.hostname}:${backendPort}` : window.location.host);
+  const baseUrl = `${protocol}//${host}/api/p2p/trade/${tradeId}`;
+  return userId ? `${baseUrl}?userId=${userId}` : baseUrl;
 }
 
 export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
@@ -180,11 +185,25 @@ export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
     }
   }, [tradeId, fetchTradeById, fetchNotifications]);
 
+  // Handle WebSocket connection status - sends subscribe message when connected
+  const handleWsStatus = useCallback((status: string) => {
+    // Send subscription message when connected (event-driven, not polling)
+    if (status === "connected" && user?.id && tradeId) {
+      wsManager.sendMessage(
+        {
+          action: "SUBSCRIBE",
+          payload: { tradeId, userId: user.id },
+        },
+        wsConnectionId
+      );
+    }
+  }, [tradeId, user?.id, wsConnectionId]);
+
   // Set up WebSocket connection
   useEffect(() => {
     if (!user?.id || !tradeId) return;
 
-    const wsUrl = getP2PTradeWsUrl(tradeId);
+    const wsUrl = getP2PTradeWsUrl(tradeId, user.id);
 
     // Connect to WebSocket
     wsManager.connect(wsUrl, wsConnectionId);
@@ -192,36 +211,26 @@ export function TradeDetailsWrapper({ tradeId }: TradeDetailsWrapperProps) {
     // Subscribe to trade data stream
     wsManager.subscribe("p2p-trade-data", handleTradeData, wsConnectionId);
     wsManager.subscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
+    wsManager.addStatusListener(handleWsStatus, wsConnectionId);
 
-    // Send subscription message once connected
-    const subscribeInterval = setInterval(() => {
+    return () => {
+      // Unsubscribe from local listeners first
+      wsManager.unsubscribe("p2p-trade-data", handleTradeData, wsConnectionId);
+      wsManager.unsubscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
+      wsManager.removeStatusListener(handleWsStatus, wsConnectionId);
+      // Only try to send unsubscribe if connected
       if (wsManager.getStatus(wsConnectionId) === "connected") {
         wsManager.sendMessage(
           {
-            action: "SUBSCRIBE",
-            payload: { tradeId, userId: user.id },
+            action: "UNSUBSCRIBE",
+            payload: { tradeId },
           },
           wsConnectionId
         );
-        clearInterval(subscribeInterval);
       }
-    }, 100);
-
-    return () => {
-      clearInterval(subscribeInterval);
-      // Unsubscribe and close connection
-      wsManager.sendMessage(
-        {
-          action: "UNSUBSCRIBE",
-          payload: { tradeId },
-        },
-        wsConnectionId
-      );
-      wsManager.unsubscribe("p2p-trade-data", handleTradeData, wsConnectionId);
-      wsManager.unsubscribe("p2p-trade-event", handleTradeEvent, wsConnectionId);
-      wsManager.close(wsConnectionId);
+      // Don't close connection - let wsManager handle reconnection and reuse
     };
-  }, [tradeId, user?.id, wsConnectionId, handleTradeData, handleTradeEvent]);
+  }, [tradeId, user?.id, handleTradeData, handleTradeEvent, handleWsStatus]);
 
   if (isLoadingTradeById && !currentTrade) {
     return (

@@ -96,6 +96,7 @@ exports.metadata = {
     },
 };
 exports.default = async (data) => {
+    var _a, _b;
     const { user, body, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id))
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
@@ -163,8 +164,9 @@ exports.default = async (data) => {
     const transferFeeAmount = (0, utils_1.calculateTransferFee)(parsedAmount, walletTransferFeePercentage);
     const totalDeduction = parsedAmount;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking source wallet balance");
-    if (fromWallet.balance < totalDeduction) {
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: ${fromWallet.balance} < ${totalDeduction}`);
+    const availableBalance = fromWallet.balance - ((_a = fromWallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+    if (availableBalance < totalDeduction) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: available=${availableBalance} (balance=${fromWallet.balance}, inOrder=${(_b = fromWallet.inOrder) !== null && _b !== void 0 ? _b : 0}) < ${totalDeduction}`);
         throw (0, error_1.createError)(400, "Insufficient balance to cover transfer");
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Executing transfer transaction");

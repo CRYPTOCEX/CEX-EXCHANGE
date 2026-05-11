@@ -4,6 +4,7 @@ exports.walletService = exports.WalletService = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const sequelize_1 = require("sequelize");
+const fees_1 = require("@b/utils/fees");
 const errors_1 = require("./errors");
 const precision_1 = require("./utils/precision");
 const AuditLogger_1 = require("./audit/AuditLogger");
@@ -165,6 +166,7 @@ class WalletService {
             ECO_DEPOSIT: "DEPOSIT",
             ECO_WITHDRAW: "WITHDRAW",
             ECO_REFUND: "REFUND",
+            ECO_FEE: "PAYMENT",
             COPY_TRADING_REVERSAL: "REFUND",
             P2P_DISPUTE_RESOLVE: "P2P_TRADE",
             P2P_DISPUTE_RECEIVE: "P2P_TRADE",
@@ -200,8 +202,9 @@ class WalletService {
             const previousBalance = wallet.balance;
             const newBalance = (0, precision_1.safeAdd)(previousBalance, creditAmount, operation.currency);
             await db_1.models.wallet.update({ balance: newBalance }, { where: { id: wallet.id }, transaction: t });
+            const resolvedUserId = operation.userId || wallet.userId;
             const txRecord = await db_1.models.transaction.create({
-                userId: operation.userId,
+                userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType),
                 status: "COMPLETED",
@@ -217,7 +220,7 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            await this.auditLogger.logCredit(wallet.id, operation.userId, creditAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
+            await this.auditLogger.logCredit(wallet.id, resolvedUserId, creditAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
             return {
                 success: true,
                 walletId: wallet.id,
@@ -260,8 +263,9 @@ class WalletService {
                 throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
             }
             await db_1.models.wallet.update({ balance: newBalance }, { where: { id: wallet.id }, transaction: t });
+            const resolvedUserId = operation.userId || wallet.userId;
             const txRecord = await db_1.models.transaction.create({
-                userId: operation.userId,
+                userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType),
                 status: "COMPLETED",
@@ -278,7 +282,7 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            await this.auditLogger.logDebit(wallet.id, operation.userId, totalDebit, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
+            await this.auditLogger.logDebit(wallet.id, resolvedUserId, totalDebit, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, operation.metadata);
             return {
                 success: true,
                 walletId: wallet.id,
@@ -321,8 +325,9 @@ class WalletService {
                 throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
             }
             await db_1.models.wallet.update({ balance: newBalance, inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const resolvedUserId = operation.userId || wallet.userId;
             const txRecord = await db_1.models.transaction.create({
-                userId: operation.userId,
+                userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType || "HOLD"),
                 status: "COMPLETED",
@@ -340,7 +345,7 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            await this.auditLogger.logHold(wallet.id, operation.userId, holdAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            await this.auditLogger.logHold(wallet.id, resolvedUserId, holdAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
             return {
                 success: true,
                 walletId: wallet.id,
@@ -383,8 +388,9 @@ class WalletService {
                 throw new errors_1.NegativeInOrderError(wallet.id, newInOrder);
             }
             await db_1.models.wallet.update({ balance: newBalance, inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const resolvedUserId = operation.userId || wallet.userId;
             const txRecord = await db_1.models.transaction.create({
-                userId: operation.userId,
+                userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType || "RELEASE"),
                 status: "COMPLETED",
@@ -401,7 +407,7 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            await this.auditLogger.logRelease(wallet.id, operation.userId, releaseAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            await this.auditLogger.logRelease(wallet.id, resolvedUserId, releaseAmount, previousBalance, newBalance, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
             return {
                 success: true,
                 walletId: wallet.id,
@@ -445,8 +451,9 @@ class WalletService {
                 throw new errors_1.NegativeInOrderError(wallet.id, newInOrder);
             }
             await db_1.models.wallet.update({ inOrder: newInOrder }, { where: { id: wallet.id }, transaction: t });
+            const resolvedUserId = operation.userId || wallet.userId;
             const txRecord = await db_1.models.transaction.create({
-                userId: operation.userId,
+                userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType),
                 status: "COMPLETED",
@@ -462,7 +469,7 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            await this.auditLogger.logExecuteFromHold(wallet.id, operation.userId, totalExecute, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
+            await this.auditLogger.logExecuteFromHold(wallet.id, resolvedUserId, totalExecute, previousInOrder, newInOrder, txRecord.id, operation.idempotencyKey, operation.metadata);
             return {
                 success: true,
                 walletId: wallet.id,
@@ -549,14 +556,18 @@ class WalletService {
                     ...operation.metadata,
                 }),
             }, { transaction: t });
-            if (feeAmount > 0 && db_1.models.adminProfit) {
-                await db_1.models.adminProfit.create({
-                    amount: feeAmount,
+            if (feeAmount > 0) {
+                await (0, fees_1.collectPlatformFee)({
+                    userId: operation.fromUserId,
                     currency: operation.fromCurrency,
+                    walletType: operation.fromWalletType,
+                    feeAmount,
                     type: "TRANSFER",
-                    transactionId: fromTx.id,
                     description: `Transfer fee from user ${operation.fromUserId}`,
-                }, { transaction: t });
+                    referenceId: fromTx.id,
+                    metadata: { fromUserId: operation.fromUserId, toUserId: operation.toUserId },
+                    transaction: t,
+                });
             }
             await this.auditLogger.logTransferOut(fromWallet.id, operation.fromUserId, totalDebit, fromBalance, newFromBalance, fromTx.id, operation.idempotencyKey, toWallet.id, feeAmount, operation.metadata);
             await this.auditLogger.logTransferIn(toWallet.id, operation.toUserId, receiveAmount, toBalance, newToBalance, toTx.id, `${operation.idempotencyKey}_receive`, fromWallet.id, operation.metadata);
@@ -751,7 +762,7 @@ class WalletService {
             const txRecord = await db_1.models.transaction.create({
                 userId: operation.userId,
                 walletId: wallet.id,
-                type: "DEPOSIT",
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
                 status: "COMPLETED",
                 amount: precisionAmount,
                 fee: operation.fee || 0,
@@ -811,23 +822,23 @@ class WalletService {
             const chain = operation.chain;
             const currency = operation.currency;
             const precisionAmount = await this.updateBalancePrecision(operation.amount, currency, chain);
+            const previousBalance = wallet.balance;
+            const newBalance = await this.updateBalancePrecision(previousBalance - precisionAmount, currency, chain);
+            if (newBalance < 0) {
+                throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
+            }
             let previousChainBalance = 0;
             let newChainBalance = 0;
             if (addresses[chain]) {
                 previousChainBalance = await this.updateBalancePrecision(parseFloat(((_a = addresses[chain].balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"), currency, chain);
                 newChainBalance = await this.updateBalancePrecision(previousChainBalance - precisionAmount, currency, chain);
                 if (newChainBalance < 0) {
-                    throw new errors_1.InsufficientFundsError(previousChainBalance, precisionAmount, currency);
+                    newChainBalance = 0;
                 }
                 addresses[chain].balance = newChainBalance;
             }
             else {
                 throw (0, error_1.createError)({ statusCode: 404, message: `Chain ${chain} not found in wallet addresses` });
-            }
-            const previousBalance = wallet.balance;
-            const newBalance = await this.updateBalancePrecision(previousBalance - precisionAmount, currency, chain);
-            if (newBalance < 0) {
-                throw new errors_1.NegativeBalanceError(wallet.id, newBalance);
             }
             await db_1.models.wallet.update({
                 balance: newBalance,
@@ -839,7 +850,10 @@ class WalletService {
             });
             if (walletData) {
                 const currentWalletDataBalance = parseFloat(((_b = walletData.balance) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
-                const newWalletDataBalance = await this.updateBalancePrecision(currentWalletDataBalance - precisionAmount, currency, chain);
+                let newWalletDataBalance = await this.updateBalancePrecision(currentWalletDataBalance - precisionAmount, currency, chain);
+                if (newWalletDataBalance < 0) {
+                    newWalletDataBalance = 0;
+                }
                 await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
             }
             await this.auditLogger.logDebit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, operation.idempotencyKey, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, ...operation.metadata });
@@ -915,6 +929,145 @@ class WalletService {
                 previousChainBalance,
                 newChainBalance,
                 chain,
+                timestamp: new Date(),
+            };
+        };
+        if (operation.transaction) {
+            return executeInTransaction(operation.transaction);
+        }
+        return await db_1.sequelize.transaction(executeInTransaction);
+    }
+    async ecoChainTransfer(operation) {
+        this.validateAmount(operation.fromAmount, "Eco Chain Transfer (from)");
+        this.validateAmount(operation.toAmount, "Eco Chain Transfer (to)");
+        const executeInTransaction = async (t) => {
+            const { currency, chain, fromWalletId, toWalletId, fromAmount, toAmount } = operation;
+            if (operation.idempotencyKey) {
+                const { isDuplicate } = await this.checkIdempotency(operation.idempotencyKey, t);
+                if (isDuplicate) {
+                    console.warn(`[WALLET] Duplicate ecoChainTransfer detected: ${operation.idempotencyKey}`);
+                    return {
+                        success: true,
+                        chain,
+                        from: { walletId: fromWalletId, previousChainBalance: 0, newChainBalance: 0 },
+                        to: { walletId: toWalletId, previousChainBalance: 0, newChainBalance: 0 },
+                        timestamp: new Date(),
+                    };
+                }
+            }
+            const fromWalletData = await db_1.models.walletData.findOne({
+                where: { walletId: fromWalletId, currency, chain },
+                transaction: t,
+            });
+            let fromPreviousChainBalance = 0;
+            let fromNewChainBalance = 0;
+            if (fromWalletData) {
+                fromPreviousChainBalance = parseFloat(String(fromWalletData.balance)) || 0;
+                fromNewChainBalance = await this.updateBalancePrecision(Math.max(0, fromPreviousChainBalance - fromAmount), currency, chain);
+                await db_1.models.walletData.update({ balance: fromNewChainBalance }, { where: { id: fromWalletData.id }, transaction: t });
+                const fromWalletRecord = await db_1.models.wallet.findOne({
+                    where: { id: fromWalletId },
+                    transaction: t,
+                });
+                if (fromWalletRecord) {
+                    const fromAddresses = this.parseAddressJson(fromWalletRecord.address);
+                    if (fromAddresses[chain]) {
+                        fromAddresses[chain].balance = fromNewChainBalance;
+                        await db_1.models.wallet.update({ address: fromAddresses }, { where: { id: fromWalletId }, transaction: t });
+                    }
+                }
+                const { ledgerService } = require("./LedgerService");
+                await ledgerService.updateLedger({
+                    walletId: fromWalletId,
+                    index: fromWalletData.index,
+                    currency,
+                    chain,
+                    amount: fromAmount,
+                    transaction: t,
+                });
+            }
+            const toWalletData = await db_1.models.walletData.findOne({
+                where: { walletId: toWalletId, currency, chain },
+                transaction: t,
+            });
+            let toPreviousChainBalance = 0;
+            let toNewChainBalance = 0;
+            if (toWalletData) {
+                toPreviousChainBalance = parseFloat(String(toWalletData.balance)) || 0;
+                toNewChainBalance = await this.updateBalancePrecision(toPreviousChainBalance + toAmount, currency, chain);
+                await db_1.models.walletData.update({ balance: toNewChainBalance }, { where: { id: toWalletData.id }, transaction: t });
+                const toWalletRecord = await db_1.models.wallet.findOne({
+                    where: { id: toWalletId },
+                    transaction: t,
+                });
+                if (toWalletRecord) {
+                    const toAddresses = this.parseAddressJson(toWalletRecord.address);
+                    if (toAddresses[chain]) {
+                        toAddresses[chain].balance = toNewChainBalance;
+                        await db_1.models.wallet.update({ address: toAddresses }, { where: { id: toWalletId }, transaction: t });
+                    }
+                }
+                const { ledgerService } = require("./LedgerService");
+                await ledgerService.updateLedger({
+                    walletId: toWalletId,
+                    index: toWalletData.index,
+                    currency,
+                    chain,
+                    amount: -toAmount,
+                    transaction: t,
+                });
+            }
+            await this.auditLogger.logCredit(toWalletId, "system", toAmount, toPreviousChainBalance, toNewChainBalance, operation.idempotencyKey, operation.idempotencyKey, {
+                type: "ECO_CHAIN_TRANSFER",
+                chain,
+                fromWalletId,
+                toWalletId,
+                fromAmount,
+                toAmount,
+                ...operation.metadata,
+            });
+            if (operation.idempotencyKey) {
+                const receiverWallet = await db_1.models.wallet.findOne({
+                    where: { id: toWalletId },
+                    attributes: ["userId"],
+                    transaction: t,
+                });
+                if (receiverWallet) {
+                    await db_1.models.transaction.create({
+                        id: operation.idempotencyKey,
+                        userId: receiverWallet.userId,
+                        walletId: toWalletId,
+                        type: "INCOMING_TRANSFER",
+                        status: "COMPLETED",
+                        amount: toAmount,
+                        fee: 0,
+                        description: `ECO chain transfer: ${fromWalletId} -> ${toWalletId}`,
+                        metadata: JSON.stringify({
+                            idempotencyKey: operation.idempotencyKey,
+                            type: "ECO_CHAIN_TRANSFER",
+                            chain,
+                            fromWalletId,
+                            toWalletId,
+                            fromAmount,
+                            toAmount,
+                            ...operation.metadata,
+                        }),
+                    }, { transaction: t });
+                }
+            }
+            return {
+                success: true,
+                chain,
+                from: {
+                    walletId: fromWalletId,
+                    previousChainBalance: fromPreviousChainBalance,
+                    newChainBalance: fromNewChainBalance,
+                },
+                to: {
+                    walletId: toWalletId,
+                    previousChainBalance: toPreviousChainBalance,
+                    newChainBalance: toNewChainBalance,
+                },
                 timestamp: new Date(),
             };
         };

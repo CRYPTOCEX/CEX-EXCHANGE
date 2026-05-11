@@ -33,6 +33,37 @@ class ecommerceOrder extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.UUID,
                 allowNull: true,
             },
+            subtotal: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+            },
+            discount: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+                defaultValue: 0,
+            },
+            shippingCost: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+                defaultValue: 0,
+            },
+            tax: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+                defaultValue: 0,
+            },
+            total: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+            },
+            currency: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: true,
+            },
+            walletType: {
+                type: sequelize_1.DataTypes.STRING(50),
+                allowNull: true,
+            },
         }, {
             sequelize,
             modelName: "ecommerceOrder",

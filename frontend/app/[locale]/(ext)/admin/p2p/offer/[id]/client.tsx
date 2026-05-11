@@ -881,7 +881,7 @@ export default function OfferViewClient({ id }: OfferViewClientProps) {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {offer.activityLog?.map((activity: any, index: number) => (
+                      {Array.isArray(offer.activityLog) && offer.activityLog.map((activity: any, index: number) => (
                         <div key={index} className="flex items-start gap-3">
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
                           <div className="flex-1">
@@ -896,7 +896,7 @@ export default function OfferViewClient({ id }: OfferViewClientProps) {
                           </div>
                         </div>
                       ))}
-                      {(!offer.activityLog || offer.activityLog.length === 0) && (
+                      {(!Array.isArray(offer.activityLog) || offer.activityLog.length === 0) && (
                         <p className="text-center text-zinc-500 dark:text-zinc-400 py-8">
                           {t("no_activity_recorded_yet")}
                         </p>

@@ -41,16 +41,17 @@ class faqSearch extends sequelize_1.Model {
             sequelize,
             modelName: "faqSearch",
             tableName: "faq_searches",
-            paranoid: true,
+            paranoid: false,
             timestamps: true,
             indexes: [
                 { name: "PRIMARY", unique: true, fields: [{ name: "id" }] },
                 { name: "faq_searches_query_idx", fields: [{ name: "query", length: 255 }] },
+                { name: "faq_searches_userId_idx", fields: [{ name: "userId" }] },
             ],
         });
     }
     static associate(models) {
-        this.belongsTo(models.user, {
+        faqSearch.belongsTo(models.user, {
             foreignKey: "userId",
             as: "user",
             onDelete: "CASCADE",

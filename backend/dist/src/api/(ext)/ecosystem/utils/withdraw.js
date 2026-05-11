@@ -66,12 +66,16 @@ const handleEvmWithdrawal = async (id, walletId, chain, amount, toAddress) => {
     }
     else if (contractType === "NATIVE") {
         try {
+            console_1.logger.info("EVM_WITHDRAW", `Getting wallet data for walletId=${walletId}, chain=${chain}`);
             walletData = await (0, wallet_1.getWalletData)(walletId, chain);
+            console_1.logger.info("EVM_WITHDRAW", `Wallet data retrieved, getting token owner`);
             const payer = await (0, wallet_1.getAndValidateNativeTokenOwner)(walletData, amountEth, provider);
+            console_1.logger.info("EVM_WITHDRAW", `Token owner validated (${payer.address}), sending transaction...`);
             transaction = await (0, wallet_1.executeNativeWithdrawal)(payer, toAddress, amountEth, provider);
+            console_1.logger.info("EVM_WITHDRAW", `Transaction sent: ${transaction === null || transaction === void 0 ? void 0 : transaction.hash}`);
         }
         catch (error) {
-            console_1.logger.error("EVM_WITHDRAW", `Failed to execute withdrawal: ${error.message}`);
+            console_1.logger.error("EVM_WITHDRAW", `Failed to execute NATIVE withdrawal: ${error.message}`);
             throw (0, error_1.createError)({ statusCode: 500, message: `Failed to execute withdrawal: ${error.message}` });
         }
     }
@@ -95,61 +99,33 @@ const handleEvmWithdrawal = async (id, walletId, chain, amount, toAddress) => {
                             const gasPrice = (tx === null || tx === void 0 ? void 0 : tx.gasPrice) || ethers_1.ethers.parseUnits("0", "gwei");
                             const actualGasUsed = txReceipt.gasUsed * gasPrice;
                             const actualGasFee = parseFloat(ethers_1.ethers.formatUnits(actualGasUsed, tokenDecimals));
-                            console_1.logger.debug("EVM_WITHDRAW", `NATIVE gas reconciliation: gasUsed=${txReceipt.gasUsed}, gasPrice=${gasPrice}, actualGasFee=${actualGasFee}, txHash=${transaction.hash}`);
-                            const txRecord = await db_1.models.transaction.findByPk(id);
-                            if (txRecord && txRecord.fee) {
-                                const estimatedGasFee = parseFloat(String(txRecord.fee));
-                                const gasDifference = estimatedGasFee - actualGasFee;
-                                console_1.logger.debug("EVM_WITHDRAW", `Gas fee comparison: estimated=${estimatedGasFee}, actual=${actualGasFee}, difference=${gasDifference}`);
-                                if (Math.abs(gasDifference) > 0.00000001) {
-                                    const wallet = await db_1.models.wallet.findByPk(walletId);
-                                    if (wallet) {
-                                        const idempotencyKey = `eco_gas_reconcile_${id}`;
-                                        if (gasDifference > 0) {
-                                            await wallet_2.walletService.ecoRefund({
-                                                idempotencyKey,
-                                                userId: wallet.userId,
-                                                walletId: wallet.id,
-                                                currency,
-                                                chain: chain,
-                                                amount: gasDifference,
-                                                operationType: "ECO_REFUND",
-                                                referenceId: id,
-                                                description: `Gas fee refund - overestimated by ${gasDifference} ${currency}`,
-                                                metadata: {
-                                                    transactionId: id,
-                                                    estimatedGasFee,
-                                                    actualGasFee,
-                                                    reason: "gas_overestimate",
-                                                },
-                                            });
-                                        }
-                                        else {
-                                            await wallet_2.walletService.ecoDebit({
-                                                idempotencyKey,
-                                                userId: wallet.userId,
-                                                walletId: wallet.id,
-                                                currency,
-                                                chain: chain,
-                                                amount: Math.abs(gasDifference),
-                                                operationType: "ECO_WITHDRAW",
-                                                referenceId: id,
-                                                description: `Gas fee adjustment - underestimated by ${Math.abs(gasDifference)} ${currency}`,
-                                                metadata: {
-                                                    transactionId: id,
-                                                    estimatedGasFee,
-                                                    actualGasFee,
-                                                    reason: "gas_underestimate",
-                                                },
-                                            });
-                                        }
-                                        console_1.logger.info("EVM_WITHDRAW", `Adjusted wallet balance by ${gasDifference} ${currency}`);
-                                    }
+                            console_1.logger.info("EVM_WITHDRAW", `NATIVE gas deduction: gasUsed=${txReceipt.gasUsed}, gasPrice=${gasPrice}, actualGasFee=${actualGasFee} ${currency}, txHash=${transaction.hash}`);
+                            if (actualGasFee > 0.00000001) {
+                                const wallet = await db_1.models.wallet.findByPk(walletId);
+                                if (wallet) {
+                                    const idempotencyKey = `eco_gas_deduct_${id}`;
+                                    await wallet_2.walletService.ecoDebit({
+                                        idempotencyKey,
+                                        userId: wallet.userId,
+                                        walletId: wallet.id,
+                                        currency,
+                                        chain: chain,
+                                        amount: actualGasFee,
+                                        operationType: "ECO_WITHDRAW",
+                                        referenceId: id,
+                                        description: `Network gas fee: ${actualGasFee} ${currency}`,
+                                        metadata: {
+                                            transactionId: id,
+                                            actualGasFee,
+                                            reason: "native_gas_fee",
+                                        },
+                                    });
+                                    console_1.logger.info("EVM_WITHDRAW", `Deducted gas fee ${actualGasFee} ${currency} from wallet`);
                                 }
                             }
                         }
                         catch (gasError) {
-                            console_1.logger.error("EVM_WITHDRAW", "Failed to reconcile gas fee", gasError);
+                            console_1.logger.error("EVM_WITHDRAW", "Failed to deduct gas fee", gasError);
                         }
                     }
                     await db_1.models.transaction.update({
@@ -207,25 +183,12 @@ const handleEvmWithdrawal = async (id, walletId, chain, amount, toAddress) => {
     throw (0, error_1.createError)({ statusCode: 500, message: "Transaction failed" });
 };
 exports.handleEvmWithdrawal = handleEvmWithdrawal;
-async function updatePrivateLedger(walletId, index, currency, chain, amount) {
-    var _a;
-    const ledger = await getPrivateLedger(walletId, index, currency, chain);
-    const newOffchainDifference = ((_a = ledger === null || ledger === void 0 ? void 0 : ledger.offchainDifference) !== null && _a !== void 0 ? _a : 0) + amount;
-    const networkEnvVar = `${chain}_NETWORK`;
-    const network = process.env[networkEnvVar] || "mainnet";
-    const existingLedger = await db_1.models.ecosystemPrivateLedger.findOne({
-        where: {
-            walletId,
-            index,
-            currency,
-            chain,
-            network,
-        },
-    });
-    if (existingLedger) {
-        await db_1.models.ecosystemPrivateLedger.update({
-            offchainDifference: newOffchainDifference,
-        }, {
+async function updatePrivateLedger(walletId, index, currency, chain, amount, transaction) {
+    const runInTx = async (t) => {
+        var _a;
+        const networkEnvVar = `${chain}_NETWORK`;
+        const network = process.env[networkEnvVar] || "mainnet";
+        const existingLedger = await db_1.models.ecosystemPrivateLedger.findOne({
             where: {
                 walletId,
                 index,
@@ -233,20 +196,44 @@ async function updatePrivateLedger(walletId, index, currency, chain, amount) {
                 chain,
                 network,
             },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
         });
+        const currentOffchainDifference = (_a = existingLedger === null || existingLedger === void 0 ? void 0 : existingLedger.offchainDifference) !== null && _a !== void 0 ? _a : 0;
+        const newOffchainDifference = currentOffchainDifference + amount;
+        if (existingLedger) {
+            await db_1.models.ecosystemPrivateLedger.update({
+                offchainDifference: newOffchainDifference,
+            }, {
+                where: {
+                    walletId,
+                    index,
+                    currency,
+                    chain,
+                    network,
+                },
+                transaction: t,
+            });
+        }
+        else {
+            await db_1.models.ecosystemPrivateLedger.create({
+                walletId,
+                index,
+                currency,
+                chain,
+                offchainDifference: newOffchainDifference,
+                network,
+            }, { transaction: t });
+        }
+    };
+    if (transaction) {
+        await runInTx(transaction);
     }
     else {
-        await db_1.models.ecosystemPrivateLedger.create({
-            walletId,
-            index,
-            currency,
-            chain,
-            offchainDifference: newOffchainDifference,
-            network,
-        });
+        await db_1.sequelize.transaction(runInTx);
     }
 }
-async function getPrivateLedger(walletId, index, currency, chain) {
+async function getPrivateLedger(walletId, index, currency, chain, transaction) {
     const networkEnvVar = `${chain}_NETWORK`;
     const network = process.env[networkEnvVar];
     return (await db_1.models.ecosystemPrivateLedger.findOne({
@@ -257,51 +244,63 @@ async function getPrivateLedger(walletId, index, currency, chain) {
             chain,
             network,
         },
+        ...(transaction ? { transaction, lock: transaction.LOCK.UPDATE } : {}),
     }));
 }
-async function normalizePrivateLedger(walletId) {
-    const ledgers = await getAllPrivateLedgersForWallet(walletId);
-    let positiveDifferences = [];
-    let negativeDifferences = [];
-    for (const ledger of ledgers) {
-        if (ledger.offchainDifference > 0) {
-            positiveDifferences.push(ledger);
+async function normalizePrivateLedger(walletId, transaction) {
+    const runInTx = async (t) => {
+        const ledgers = await getAllPrivateLedgersForWallet(walletId, t);
+        let positiveDifferences = [];
+        let negativeDifferences = [];
+        for (const ledger of ledgers) {
+            if (ledger.offchainDifference > 0) {
+                positiveDifferences.push(ledger);
+            }
+            else if (ledger.offchainDifference < 0) {
+                negativeDifferences.push(ledger);
+            }
         }
-        else if (ledger.offchainDifference < 0) {
-            negativeDifferences.push(ledger);
+        positiveDifferences = positiveDifferences.sort((a, b) => b.offchainDifference - a.offchainDifference);
+        negativeDifferences = negativeDifferences.sort((a, b) => a.offchainDifference - b.offchainDifference);
+        for (const posLedger of positiveDifferences) {
+            for (const negLedger of negativeDifferences) {
+                const amountToNormalize = Math.min(posLedger.offchainDifference, -negLedger.offchainDifference);
+                if (amountToNormalize === 0) {
+                    continue;
+                }
+                await db_1.models.ecosystemPrivateLedger.update({
+                    offchainDifference: posLedger.offchainDifference - amountToNormalize,
+                }, {
+                    where: { id: posLedger.id },
+                    transaction: t,
+                });
+                await db_1.models.ecosystemPrivateLedger.update({
+                    offchainDifference: negLedger.offchainDifference + amountToNormalize,
+                }, {
+                    where: { id: negLedger.id },
+                    transaction: t,
+                });
+                posLedger.offchainDifference -= amountToNormalize;
+                negLedger.offchainDifference += amountToNormalize;
+                if (posLedger.offchainDifference === 0 ||
+                    negLedger.offchainDifference === 0) {
+                    break;
+                }
+            }
         }
+    };
+    if (transaction) {
+        await runInTx(transaction);
     }
-    positiveDifferences = positiveDifferences.sort((a, b) => b.offchainDifference - a.offchainDifference);
-    negativeDifferences = negativeDifferences.sort((a, b) => a.offchainDifference - b.offchainDifference);
-    for (const posLedger of positiveDifferences) {
-        for (const negLedger of negativeDifferences) {
-            const amountToNormalize = Math.min(posLedger.offchainDifference, -negLedger.offchainDifference);
-            if (amountToNormalize === 0) {
-                continue;
-            }
-            await db_1.models.ecosystemPrivateLedger.update({
-                offchainDifference: posLedger.offchainDifference - amountToNormalize,
-            }, {
-                where: { id: posLedger.id },
-            });
-            await db_1.models.ecosystemPrivateLedger.update({
-                offchainDifference: negLedger.offchainDifference + amountToNormalize,
-            }, {
-                where: { id: negLedger.id },
-            });
-            posLedger.offchainDifference -= amountToNormalize;
-            negLedger.offchainDifference += amountToNormalize;
-            if (posLedger.offchainDifference === 0 ||
-                negLedger.offchainDifference === 0) {
-                break;
-            }
-        }
+    else {
+        await db_1.sequelize.transaction(runInTx);
     }
 }
-async function getAllPrivateLedgersForWallet(walletId) {
+async function getAllPrivateLedgersForWallet(walletId, transaction) {
     return await db_1.models.ecosystemPrivateLedger.findAll({
         where: {
             walletId,
         },
+        ...(transaction ? { transaction, lock: transaction.LOCK.UPDATE } : {}),
     });
 }

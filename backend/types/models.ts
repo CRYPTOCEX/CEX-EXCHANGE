@@ -1,7 +1,7 @@
 /**
  * AUTO-GENERATED FILE - DO NOT EDIT MANUALLY
- * Generated: 2026-01-29T11:30:41.514Z
- * Hash: 1d352c6c1c997ca4472d486ed7f9ebbd
+ * Generated: 2026-03-05T23:30:12.637Z
+ * Hash: 00d5f4e77cb8c4ee7a6892527cd4863b
  * Models: 181
  *
  * Run 'pnpm types:generate' to regenerate this file.
@@ -265,7 +265,8 @@ declare global {
     | "NFT_SALE"
     | "NFT_AUCTION"
     | "NFT_OFFER"
-    | "GATEWAY_PAYMENT";
+    | "GATEWAY_PAYMENT"
+    | "TRADE";
     amount: number;
     currency: string;
     chain?: string | null;
@@ -1896,7 +1897,11 @@ declare global {
   interface EcommerceDiscountAttributes {
     id: string;
     code: string;
+    type: "PERCENTAGE" | "FIXED" | "FREE_SHIPPING";
     percentage: number;
+    amount: number;
+    maxUses: number;
+    validFrom: Date;
     validUntil: Date;
     productId: string;
     status: boolean;
@@ -1933,13 +1938,20 @@ declare global {
     id: string;
     userId: string;
     status: "PENDING" | "COMPLETED" | "CANCELLED" | "REJECTED";
+    subtotal?: number | null;
+    discount?: number | null;
+    shippingCost?: number | null;
+    tax?: number | null;
+    total?: number | null;
+    currency?: string | null;
+    walletType?: string | null;
     createdAt?: Date;
     deletedAt?: Date;
     updatedAt?: Date;
     shippingId?: string | null;
   }
 
-  type EcommerceOrderCreationAttributes = Optional<EcommerceOrderAttributes, "id" | "createdAt" | "deletedAt" | "updatedAt" | "shippingId">;
+  type EcommerceOrderCreationAttributes = Optional<EcommerceOrderAttributes, "id" | "subtotal" | "discount" | "shippingCost" | "tax" | "total" | "currency" | "walletType" | "createdAt" | "deletedAt" | "updatedAt" | "shippingId">;
 
   interface EcommerceOrderInstance extends Model<EcommerceOrderAttributes, EcommerceOrderCreationAttributes>, EcommerceOrderAttributes {
     shippingAddress?: EcommerceShippingAddressInstance;
@@ -2039,7 +2051,6 @@ declare global {
     wishlistItems?: EcommerceWishlistItemInstance[];
     category?: EcommerceCategoryInstance;
     orders?: EcommerceOrderInstance[];
-    shippings?: EcommerceShippingInstance[];
     wishlists?: EcommerceWishlistInstance[];
     getEcommerceDiscounts: Sequelize.HasManyGetAssociationsMixin<EcommerceDiscountInstance>;
     setEcommerceDiscounts: Sequelize.HasManySetAssociationsMixin<EcommerceDiscountInstance, string>;
@@ -2094,16 +2105,6 @@ declare global {
     hasOrders: Sequelize.BelongsToManyHasAssociationsMixin<EcommerceOrderInstance, string>;
     countOrders: Sequelize.BelongsToManyCountAssociationsMixin;
     createEcommerceOrder: Sequelize.BelongsToManyCreateAssociationMixin<EcommerceOrderInstance>;
-    getShippings: Sequelize.BelongsToManyGetAssociationsMixin<EcommerceShippingInstance>;
-    setShippings: Sequelize.BelongsToManySetAssociationsMixin<EcommerceShippingInstance, string>;
-    addEcommerceShipping: Sequelize.BelongsToManyAddAssociationMixin<EcommerceShippingInstance, string>;
-    addShippings: Sequelize.BelongsToManyAddAssociationsMixin<EcommerceShippingInstance, string>;
-    removeEcommerceShipping: Sequelize.BelongsToManyRemoveAssociationMixin<EcommerceShippingInstance, string>;
-    removeShippings: Sequelize.BelongsToManyRemoveAssociationsMixin<EcommerceShippingInstance, string>;
-    hasEcommerceShipping: Sequelize.BelongsToManyHasAssociationMixin<EcommerceShippingInstance, string>;
-    hasShippings: Sequelize.BelongsToManyHasAssociationsMixin<EcommerceShippingInstance, string>;
-    countShippings: Sequelize.BelongsToManyCountAssociationsMixin;
-    createEcommerceShipping: Sequelize.BelongsToManyCreateAssociationMixin<EcommerceShippingInstance>;
     getWishlists: Sequelize.BelongsToManyGetAssociationsMixin<EcommerceWishlistInstance>;
     setWishlists: Sequelize.BelongsToManySetAssociationsMixin<EcommerceWishlistInstance, string>;
     addEcommerceWishlist: Sequelize.BelongsToManyAddAssociationMixin<EcommerceWishlistInstance, string>;
@@ -2746,10 +2747,9 @@ declare global {
     category?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
-    deletedAt?: Date;
   }
 
-  type FaqSearchCreationAttributes = Optional<FaqSearchAttributes, "id" | "category" | "createdAt" | "updatedAt" | "deletedAt">;
+  type FaqSearchCreationAttributes = Optional<FaqSearchAttributes, "id" | "category" | "createdAt" | "updatedAt">;
 
   interface FaqSearchInstance extends Model<FaqSearchAttributes, FaqSearchCreationAttributes>, FaqSearchAttributes {
     user?: UserInstance;
@@ -3819,9 +3819,11 @@ declare global {
     sequence: number;
     startDate?: Date | null;
     endDate?: Date | null;
+    createdAt?: Date;
+    updatedAt?: Date;
   }
 
-  type IcoTokenOfferingPhaseCreationAttributes = Optional<IcoTokenOfferingPhaseAttributes, "id" | "startDate" | "endDate">;
+  type IcoTokenOfferingPhaseCreationAttributes = Optional<IcoTokenOfferingPhaseAttributes, "id" | "startDate" | "endDate" | "createdAt" | "updatedAt">;
 
   interface IcoTokenOfferingPhaseInstance extends Model<IcoTokenOfferingPhaseAttributes, IcoTokenOfferingPhaseCreationAttributes>, IcoTokenOfferingPhaseAttributes {
     offering?: IcoTokenOfferingInstance;
@@ -3975,9 +3977,10 @@ declare global {
     id: string;
     userId: string;
     offeringId: string;
+    phaseId?: string;
     amount: number;
     price: number;
-    status: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED";
+    status: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED" | "REFUNDED";
     releaseUrl?: string | null;
     walletAddress?: string | null;
     notes?: string | null;
@@ -3986,17 +3989,21 @@ declare global {
     deletedAt?: Date;
   }
 
-  type IcoTransactionCreationAttributes = Optional<IcoTransactionAttributes, "id" | "releaseUrl" | "walletAddress" | "notes" | "createdAt" | "updatedAt" | "deletedAt">;
+  type IcoTransactionCreationAttributes = Optional<IcoTransactionAttributes, "id" | "phaseId" | "releaseUrl" | "walletAddress" | "notes" | "createdAt" | "updatedAt" | "deletedAt">;
 
   interface IcoTransactionInstance extends Model<IcoTransactionAttributes, IcoTransactionCreationAttributes>, IcoTransactionAttributes {
     offering?: IcoTokenOfferingInstance;
     user?: UserInstance;
+    phase?: IcoTokenOfferingPhaseInstance;
     getOffering: Sequelize.BelongsToGetAssociationMixin<IcoTokenOfferingInstance>;
     setOffering: Sequelize.BelongsToSetAssociationMixin<IcoTokenOfferingInstance, string>;
     createOffering: Sequelize.BelongsToCreateAssociationMixin<IcoTokenOfferingInstance>;
     getUser: Sequelize.BelongsToGetAssociationMixin<UserInstance>;
     setUser: Sequelize.BelongsToSetAssociationMixin<UserInstance, string>;
     createUser: Sequelize.BelongsToCreateAssociationMixin<UserInstance>;
+    getPhase: Sequelize.BelongsToGetAssociationMixin<IcoTokenOfferingPhaseInstance>;
+    setPhase: Sequelize.BelongsToSetAssociationMixin<IcoTokenOfferingPhaseInstance, string>;
+    createPhase: Sequelize.BelongsToCreateAssociationMixin<IcoTokenOfferingPhaseInstance>;
   }
 
   // ========================================
@@ -4544,12 +4551,13 @@ declare global {
     isClaimed: boolean;
     conditionId: string;
     referrerId: string;
+    sourceId?: string | null;
     createdAt?: Date;
     deletedAt?: Date;
     updatedAt?: Date;
   }
 
-  type MlmReferralRewardCreationAttributes = Optional<MlmReferralRewardAttributes, "id" | "isClaimed" | "createdAt" | "deletedAt" | "updatedAt">;
+  type MlmReferralRewardCreationAttributes = Optional<MlmReferralRewardAttributes, "id" | "isClaimed" | "sourceId" | "createdAt" | "deletedAt" | "updatedAt">;
 
   interface MlmReferralRewardInstance extends Model<MlmReferralRewardAttributes, MlmReferralRewardCreationAttributes>, MlmReferralRewardAttributes {
     condition?: MlmReferralConditionInstance;
@@ -6000,8 +6008,6 @@ declare global {
     timeline?: any | null;
     terms?: string | null;
     escrowFee?: string | null;
-    buyerFee?: number | null;
-    sellerFee?: number | null;
     escrowTime?: string | null;
     paymentConfirmedAt?: Date | null;
     paymentReference?: string | null;
@@ -6010,7 +6016,7 @@ declare global {
     deletedAt?: Date;
   }
 
-  type P2pTradeCreationAttributes = Optional<P2pTradeAttributes, "id" | "paymentDetails" | "timeline" | "terms" | "escrowFee" | "buyerFee" | "sellerFee" | "escrowTime" | "paymentConfirmedAt" | "paymentReference" | "createdAt" | "updatedAt" | "deletedAt">;
+  type P2pTradeCreationAttributes = Optional<P2pTradeAttributes, "id" | "paymentDetails" | "timeline" | "terms" | "escrowFee" | "escrowTime" | "paymentConfirmedAt" | "paymentReference" | "createdAt" | "updatedAt" | "deletedAt">;
 
   interface P2pTradeInstance extends Model<P2pTradeAttributes, P2pTradeCreationAttributes>, P2pTradeAttributes {
     dispute?: P2pDisputeInstance;
@@ -7218,7 +7224,6 @@ declare global {
   interface UserInstance extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {
     author?: AuthorInstance;
     ecommerceShippingAddress?: EcommerceShippingAddressInstance;
-    kyc?: KycApplicationInstance;
     twoFactor?: TwoFactorInstance;
     nftCreator?: NftCreatorInstance;
     aiInvestments?: AiInvestmentInstance[];
@@ -7233,6 +7238,7 @@ declare global {
     forexAccounts?: ForexAccountInstance[];
     forexInvestments?: ForexInvestmentInstance[];
     investments?: InvestmentInstance[];
+    kycApplications?: KycApplicationInstance[];
     referredReferrals?: MlmReferralInstance[];
     referrerReferrals?: MlmReferralInstance[];
     referralRewards?: MlmReferralRewardInstance[];
@@ -7257,9 +7263,6 @@ declare global {
     getEcommerceShippingAddress: Sequelize.HasOneGetAssociationMixin<EcommerceShippingAddressInstance>;
     setEcommerceShippingAddress: Sequelize.HasOneSetAssociationMixin<EcommerceShippingAddressInstance, string>;
     createEcommerceShippingAddress: Sequelize.HasOneCreateAssociationMixin<EcommerceShippingAddressInstance>;
-    getKyc: Sequelize.HasOneGetAssociationMixin<KycApplicationInstance>;
-    setKyc: Sequelize.HasOneSetAssociationMixin<KycApplicationInstance, string>;
-    createKyc: Sequelize.HasOneCreateAssociationMixin<KycApplicationInstance>;
     getTwoFactor: Sequelize.HasOneGetAssociationMixin<TwoFactorInstance>;
     setTwoFactor: Sequelize.HasOneSetAssociationMixin<TwoFactorInstance, string>;
     createTwoFactor: Sequelize.HasOneCreateAssociationMixin<TwoFactorInstance>;
@@ -7380,6 +7383,16 @@ declare global {
     hasInvestments: Sequelize.HasManyHasAssociationsMixin<InvestmentInstance, string>;
     countInvestments: Sequelize.HasManyCountAssociationsMixin;
     createInvestment: Sequelize.HasManyCreateAssociationMixin<InvestmentInstance>;
+    getKycApplications: Sequelize.HasManyGetAssociationsMixin<KycApplicationInstance>;
+    setKycApplications: Sequelize.HasManySetAssociationsMixin<KycApplicationInstance, string>;
+    addKycApplication: Sequelize.HasManyAddAssociationMixin<KycApplicationInstance, string>;
+    addKycApplications: Sequelize.HasManyAddAssociationsMixin<KycApplicationInstance, string>;
+    removeKycApplication: Sequelize.HasManyRemoveAssociationMixin<KycApplicationInstance, string>;
+    removeKycApplications: Sequelize.HasManyRemoveAssociationsMixin<KycApplicationInstance, string>;
+    hasKycApplication: Sequelize.HasManyHasAssociationMixin<KycApplicationInstance, string>;
+    hasKycApplications: Sequelize.HasManyHasAssociationsMixin<KycApplicationInstance, string>;
+    countKycApplications: Sequelize.HasManyCountAssociationsMixin;
+    createKycApplication: Sequelize.HasManyCreateAssociationMixin<KycApplicationInstance>;
     getReferredReferrals: Sequelize.HasManyGetAssociationsMixin<MlmReferralInstance>;
     setReferredReferrals: Sequelize.HasManySetAssociationsMixin<MlmReferralInstance, string>;
     addMlmReferral: Sequelize.HasManyAddAssociationMixin<MlmReferralInstance, string>;
@@ -8550,7 +8563,6 @@ declare global {
     wishlistItems?: EcommerceWishlistItemPlain[];
     category?: EcommerceCategoryPlain;
     orders?: EcommerceOrderPlain[];
-    shippings?: EcommerceShippingPlain[];
     wishlists?: EcommerceWishlistPlain[];
   }
 
@@ -8852,6 +8864,7 @@ declare global {
   interface IcoTransactionPlain extends IcoTransactionAttributes {
     offering?: IcoTokenOfferingPlain;
     user?: UserPlain;
+    phase?: IcoTokenOfferingPhasePlain;
   }
 
   /** Plain object type for Investment, suitable for API responses */
@@ -9362,7 +9375,6 @@ declare global {
   interface UserPlain extends UserAttributes {
     author?: AuthorPlain;
     ecommerceShippingAddress?: EcommerceShippingAddressPlain;
-    kyc?: KycApplicationPlain;
     twoFactor?: TwoFactorPlain;
     nftCreator?: NftCreatorPlain;
     aiInvestments?: AiInvestmentPlain[];
@@ -9377,6 +9389,7 @@ declare global {
     forexAccounts?: ForexAccountPlain[];
     forexInvestments?: ForexInvestmentPlain[];
     investments?: InvestmentPlain[];
+    kycApplications?: KycApplicationPlain[];
     referredReferrals?: MlmReferralPlain[];
     referrerReferrals?: MlmReferralPlain[];
     referralRewards?: MlmReferralRewardPlain[];

@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.closePosition = exports.updatePositions = exports.calculateUnrealizedPnl = void 0;
 const utils_1 = require("@b/api/finance/wallet/utils");
 const error_1 = require("@b/utils/error");
+const db_1 = require("@b/db");
+const console_1 = require("@b/utils/console");
 let fromBigIntMultiply;
 let fromBigInt;
 try {
@@ -22,6 +24,40 @@ catch (e) {
 }
 const SCALE_FACTOR = BigInt(10 ** 18);
 const FUTURES_WALLET_TYPE = "FUTURES";
+const isScyllaValidationError = (err) => {
+    var _a;
+    if (!err)
+        return false;
+    const code = typeof err.code === "number" ? err.code : undefined;
+    if (code !== undefined) {
+        if (code >= 0x2000 && code <= 0x2500)
+            return true;
+    }
+    const name = err.name || ((_a = err.constructor) === null || _a === void 0 ? void 0 : _a.name) || "";
+    if (/SyntaxError|InvalidQueryException|ResponseError/i.test(name) && code === undefined) {
+        return true;
+    }
+    return false;
+};
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const executeScyllaWithRetry = async (run, maxAttempts = 3) => {
+    let lastErr;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await run();
+            return;
+        }
+        catch (err) {
+            lastErr = err;
+            if (isScyllaValidationError(err))
+                throw err;
+            if (attempt < maxAttempts) {
+                await sleep(100 * Math.pow(2, attempt - 1));
+            }
+        }
+    }
+    throw lastErr;
+};
 const scaleDown = (value) => Number(value) / Number(SCALE_FACTOR);
 const scaleUp = (value) => BigInt(Math.round(value * Number(SCALE_FACTOR)));
 const calculateUnrealizedPnl = (entryPrice, amount, currentPrice, side) => {
@@ -66,31 +102,35 @@ const createNewPosition = async (order, amount, matchedPrice) => {
 };
 const closePosition = async (order) => {
     const position = await (0, positions_1.getPosition)(order.userId, order.symbol, order.side);
-    if (position) {
-        const realizedPnl = fromBigIntMultiply ? fromBigIntMultiply(position.unrealizedPnl, BigInt(1)) : position.unrealizedPnl;
-        const baseCurrency = order.symbol.split("/")[1];
-        const wallet = await (0, utils_1.getWallet)(order.userId, FUTURES_WALLET_TYPE, baseCurrency);
-        if (wallet) {
-            if (updateWalletBalance) {
-                await updateWalletBalance(wallet, realizedPnl, "add");
-            }
-            else {
-                throw (0, error_1.createError)({ statusCode: 500, message: "Ecosystem extension not available for wallet operations" });
-            }
-        }
-        else {
-            throw (0, error_1.createError)({
-                statusCode: 404,
-                message: `Wallet not found for user ${order.userId} and currency ${baseCurrency}`
-            });
-        }
-        await (0, positions_1.updatePositionStatus)(position.userId, position.id, "CLOSED");
-    }
-    else {
+    if (!position) {
         throw (0, error_1.createError)({
             statusCode: 404,
             message: `No position found for user ${order.userId} and symbol ${order.symbol}`
         });
+    }
+    const realizedPnl = fromBigIntMultiply ? fromBigIntMultiply(position.unrealizedPnl, BigInt(1)) : position.unrealizedPnl;
+    const baseCurrency = order.symbol.split("/")[1];
+    const wallet = await (0, utils_1.getWallet)(order.userId, FUTURES_WALLET_TYPE, baseCurrency);
+    if (!wallet) {
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: `Wallet not found for user ${order.userId} and currency ${baseCurrency}`
+        });
+    }
+    if (!updateWalletBalance) {
+        throw (0, error_1.createError)({ statusCode: 500, message: "Ecosystem extension not available for wallet operations" });
+    }
+    const idempotencyKey = `futures_close_${position.id}`;
+    await db_1.sequelize.transaction(async (t) => {
+        await updateWalletBalance(wallet, realizedPnl, "add", idempotencyKey, t);
+    });
+    try {
+        await executeScyllaWithRetry(async () => {
+            await (0, positions_1.updatePositionStatus)(position.userId, position.id, "CLOSED");
+        });
+    }
+    catch (scyllaErr) {
+        console_1.logger.error("FUTURES_CLOSE", `Scylla position status update FAILED after wallet credit succeeded. Money is safe; position still shows open. reconcileFuturesPositions will replay. idempotencyKey=${idempotencyKey} positionId=${position.id} userId=${position.userId} amount=${realizedPnl}`, scyllaErr);
     }
 };
 exports.closePosition = closePosition;

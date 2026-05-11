@@ -243,7 +243,7 @@ export function EmptyPortfolio() {
         {t("start_by_adding_portfolio_grow")}.
       </p>
       <div className="flex gap-4">
-        <Link href="/finance/wallet/deposit">
+        <Link href="/finance/deposit">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
             {tCommon("add_funds")}

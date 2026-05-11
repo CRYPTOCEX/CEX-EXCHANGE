@@ -59,6 +59,18 @@ class icoAdminActivity extends sequelize_1.Model {
                     unique: true,
                     fields: [{ name: "id" }],
                 },
+                {
+                    name: "icoAdminActivityOfferingIdIdx",
+                    fields: [{ name: "offeringId" }],
+                },
+                {
+                    name: "icoAdminActivityAdminIdIdx",
+                    fields: [{ name: "adminId" }],
+                },
+                {
+                    name: "icoAdminActivityTypeIdx",
+                    fields: [{ name: "type" }],
+                },
             ],
         });
     }

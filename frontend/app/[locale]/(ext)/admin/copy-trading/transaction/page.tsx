@@ -46,6 +46,7 @@ export default function TransactionPage() {
       canEdit={false}
       canDelete={false}
       canView={false}
+      isParanoid={false}
       title={t("transactions_management")}
       description={t("view_all_copy_trading_transactions")}
       itemTitle="Transaction"

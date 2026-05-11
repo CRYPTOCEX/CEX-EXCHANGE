@@ -440,7 +440,7 @@ export default function Client({ children }: ClientProps) {
             text: tCommon("why_choose_us"),
             icon: Award,
           },
-          title: "Premium Shopping",
+          title: "Premium Shopping ",
           titleHighlight: "Experience",
           subtitle:
             "Discover why thousands of customers trust us for their crypto shopping needs.",

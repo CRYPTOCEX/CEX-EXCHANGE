@@ -68,7 +68,7 @@ class OrderHandler {
             if (!currencyWallet || !pairWallet) {
                 throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
             }
-            const idempotencyKey = `exchange_ws_fill_${order.id}`;
+            const idempotencyKey = `exchange_order_${order.id}_credit`;
             if (order.side === "BUY") {
                 const netAmount = amount - fee;
                 await wallet_1.walletService.credit({
@@ -132,7 +132,7 @@ class OrderHandler {
                     return !isDuplicate;
                 });
                 if (orders.length > 0) {
-                    Websocket_1.messageBroker.broadcastToSubscribedClients(route, { userId }, { stream: streamKey, data: orders });
+                    Websocket_1.messageBroker.broadcastToSubscribedClients(route, { type: "orders", userId }, { stream: streamKey, data: orders });
                 }
             });
             this.trackedOrders = {};

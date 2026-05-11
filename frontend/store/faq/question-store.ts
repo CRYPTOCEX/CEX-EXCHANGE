@@ -23,7 +23,7 @@ export const useAdminQuestionsStore = create<AdminQuestionsStore>((set) => ({
   fetchQuestions: async () => {
     set({ isLoading: true, error: null });
     try {
-      const { data, error } = await $fetch<{ data: faqQuestionAttributes[] }>({
+      const { data, error } = await $fetch<faqQuestionAttributes[]>({
         url: "/api/admin/faq/question",
         silentSuccess: true,
       });
@@ -35,7 +35,6 @@ export const useAdminQuestionsStore = create<AdminQuestionsStore>((set) => ({
       const questionsData = Array.isArray(data) ? data : [];
       set({ questions: questionsData, isLoading: false });
     } catch (err) {
-      console.error("Error fetching questions:", err);
       set({
         error: err instanceof Error ? err.message : "Failed to fetch questions",
         isLoading: false,
@@ -58,11 +57,14 @@ export const useAdminQuestionsStore = create<AdminQuestionsStore>((set) => ({
         }));
       }
     } catch (err) {
-      console.error("Error updating question status:", err);
+      set({
+        error: err instanceof Error ? err.message : "Failed to update question status",
+      });
     }
   },
 
   answerQuestion: async (id, answer) => {
+    set({ isLoading: true, error: null });
     try {
       const { error } = await $fetch({
         url: `/api/admin/faq/question/${id}/answer`,
@@ -70,16 +72,17 @@ export const useAdminQuestionsStore = create<AdminQuestionsStore>((set) => ({
         body: { answer },
       });
       if (error) {
+        set({ isLoading: false, error });
         throw new Error(error);
       }
-      // Update the question in the store by setting the answer and marking it as answered.
       set((state) => ({
         questions: state.questions.map((q) =>
           q.id === id ? { ...q, answer, status: "ANSWERED" } : q
         ),
+        isLoading: false,
       }));
     } catch (err) {
-      console.error("Error answering question:", err);
+      set({ isLoading: false });
       throw err;
     }
   },

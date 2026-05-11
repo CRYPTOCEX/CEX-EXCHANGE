@@ -26,7 +26,7 @@ export default function AiInvestmentLogPage() {
       editCondition={(row) => row.status === "ACTIVE"}
       canDelete
       canView
-      isParanoid={false}
+      isParanoid={true}
       title={t("ai_investment_logs")}
       description={t("monitor_and_track_all_ai_powered")}
       itemTitle="AI Investment"

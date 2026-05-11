@@ -1,0 +1,43 @@
+{
+  "name": "@bicrypto/chart-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup --config tsup.config.ts",
+    "build:watch": "tsup --config tsup.config.ts --watch",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*",
+    "next": "*",
+    "next-themes": "*",
+    "zustand": "*",
+    "framer-motion": "*",
+    "@iconify/react": "*",
+    "lucide-react": "*",
+    "clsx": "*",
+    "tailwind-merge": "*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "rimraf": "^6.0.1"
+  }
+}

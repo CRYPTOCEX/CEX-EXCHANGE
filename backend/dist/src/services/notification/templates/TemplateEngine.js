@@ -24,8 +24,12 @@ class TemplateEngine {
             if (!template) {
                 throw new Error(`Template '${templateName}' not found`);
             }
-            const subject = this.renderString(template.subject, data);
-            const html = this.renderString(template.body, data);
+            const subject = this.renderString(template.subject || "", data);
+            const bodyContent = template.emailBody || template.body;
+            if (!bodyContent) {
+                throw new Error(`Template '${templateName}' has no email body content`);
+            }
+            const html = this.renderString(bodyContent, data);
             const text = this.stripHtml(html);
             console_1.logger.info("TemplateEngine", `Template rendered successfully: ${templateName}`, JSON.stringify({ templateName, subject }));
             return { subject, html, text };

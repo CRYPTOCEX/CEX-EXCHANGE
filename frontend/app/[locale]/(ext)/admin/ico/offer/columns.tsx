@@ -86,6 +86,11 @@ export function useColumns(): ColumnDefinition[] {
           label: tCommon("rejected"),
           color: "danger",
         },
+        {
+          value: "CANCELLED",
+          label: tCommon("cancelled"),
+          color: "danger",
+        },
       ],
       render: {
         type: "badge",
@@ -97,6 +102,7 @@ export function useColumns(): ColumnDefinition[] {
                 return "success";
               case "FAILED":
               case "REJECTED":
+              case "CANCELLED":
                 return "destructive";
               case "UPCOMING":
                 return "warning";
@@ -127,12 +133,12 @@ export function useColumns(): ColumnDefinition[] {
       priority: 4,
       description: tExtAdmin("fundraising_progress_showing_amount_raised_versus"),
       render: (_: any, row: any) => {
+        const raised = Number(row.raisedAmount ?? row.currentRaised ?? 0);
+        const target = Number(row.targetAmount ?? 0);
+        const currency = row.purchaseWalletCurrency || "USDT";
         const progress =
-          row.targetAmount > 0
-            ? Math.min(
-                Math.round((row.currentRaised / row.targetAmount) * 100),
-                100
-              )
+          target > 0
+            ? Math.min(Math.round((raised / target) * 100), 100)
             : 0;
         return (
           <TooltipProvider>
@@ -142,8 +148,7 @@ export function useColumns(): ColumnDefinition[] {
                   <div className="flex justify-between mb-1 text-xs">
                     <span className="font-medium">{progress}%</span>
                     <span className="text-muted-foreground">
-                      ${Number(row.currentRaised).toLocaleString()} $
-                      {Number(row.targetAmount).toLocaleString()}
+                      {raised.toLocaleString()} / {target.toLocaleString()} {currency}
                     </span>
                   </div>
                   <Progress
@@ -172,7 +177,10 @@ export function useColumns(): ColumnDefinition[] {
       filterable: true,
       priority: 5,
       description: tExtAdmin("total_fundraising_target_amount_in_usd"),
-      render: (value: any) => `$${Number(value).toLocaleString()}`,
+      render: (value: any, row: any) => {
+        const currency = row.purchaseWalletCurrency || "USDT";
+        return `${Number(value).toLocaleString()} ${currency}`;
+      },
     },
     {
       key: "currentPrice",
@@ -391,6 +399,7 @@ export function useFormConfig(): FormConfig {
                 { value: "PENDING", label: tCommon("pending") },
                 { value: "REJECTED", label: tCommon("rejected") },
                 { value: "DISABLED", label: tCommon("disabled") },
+                { value: "CANCELLED", label: tCommon("cancelled") },
               ],
             },
             {

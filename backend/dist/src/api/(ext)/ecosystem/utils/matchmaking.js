@@ -46,6 +46,7 @@ const wallet_1 = require("./wallet");
 const ws_1 = require("./ws");
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+const fees_1 = require("@b/utils/fees");
 async function recordBotRealTrade(botId, marketId, symbol, side, price, amount, counterpartyUserId) {
     try {
         const bot = await db_1.models.aiBot.findByPk(botId);
@@ -123,14 +124,19 @@ async function recordBotRealTrade(botId, marketId, symbol, side, price, amount, 
 function isBotOrder(order) {
     return !!order.marketMakerId;
 }
-async function getPoolForMarketMaker(marketMakerId) {
+async function getPoolForMarketMaker(marketMakerId, options) {
     const pool = await db_1.models.aiMarketMakerPool.findOne({
         where: { marketMakerId },
+        ...((options === null || options === void 0 ? void 0 : options.transaction) && { transaction: options.transaction }),
+        ...((options === null || options === void 0 ? void 0 : options.transaction) && (options === null || options === void 0 ? void 0 : options.lock) && { lock: options.transaction.LOCK.UPDATE }),
     });
     return pool;
 }
-async function updatePoolBalance(marketMakerId, baseDelta, quoteDelta) {
-    const pool = await getPoolForMarketMaker(marketMakerId);
+async function updatePoolBalance(marketMakerId, baseDelta, quoteDelta, transaction) {
+    const pool = await getPoolForMarketMaker(marketMakerId, {
+        transaction,
+        lock: true,
+    });
     if (!pool) {
         throw (0, error_1.createError)({ statusCode: 404, message: `Pool not found for market maker ${marketMakerId}` });
     }
@@ -146,7 +152,7 @@ async function updatePoolBalance(marketMakerId, baseDelta, quoteDelta) {
     await pool.update({
         baseCurrencyBalance: newBaseBalance,
         quoteCurrencyBalance: newQuoteBalance,
-    });
+    }, transaction ? { transaction } : undefined);
 }
 const SCALING_FACTOR = BigInt(10 ** 18);
 const AI_SYSTEM_USER_IDS = [
@@ -255,7 +261,7 @@ const matchAndCalculateOrders = async (orders, currentOrderBook) => {
 };
 exports.matchAndCalculateOrders = matchAndCalculateOrders;
 async function processMatchedOrders(buyOrder, sellOrder, currentOrderBook, bookUpdates) {
-    var _a, _b, _c, _d;
+    var _a, _b;
     const amountToFill = buyOrder.remaining < sellOrder.remaining
         ? buyOrder.remaining
         : sellOrder.remaining;
@@ -283,28 +289,32 @@ async function processMatchedOrders(buyOrder, sellOrder, currentOrderBook, bookU
     const amountToFillNum = (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(amountToFill));
     const costNum = (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(cost));
     const sellFeeNum = (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(sellProportionalFee));
+    const buyFeeNum = (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(buyProportionalFee));
     const buyReleaseNum = (0, blockchain_1.fromBigInt)((0, blockchain_1.removeTolerance)(buyProportionalCostWithFee));
     if (buyerIsBot && sellerIsBot) {
     }
     else if (buyerIsBot && !sellerIsBot) {
         const sellerWalletType = sellOrder.walletType || "ECO";
-        const sellerBaseWallet = await getUserEcosystemWalletByCurrency(sellOrder.userId, baseCurrency, sellerWalletType);
-        const sellerQuoteWallet = await getUserEcosystemWalletByCurrency(sellOrder.userId, quoteCurrency, sellerWalletType);
-        if (!sellerBaseWallet || !sellerQuoteWallet) {
-            throw (0, error_1.createError)({ statusCode: 404, message: `Wallets not found for seller ${sellOrder.userId} (type: ${sellerWalletType})` });
-        }
-        const sellerInOrder = parseFloat(((_a = sellerBaseWallet.inOrder) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
-        const PRECISION_TOLERANCE = 0.00000001;
-        if (sellerInOrder + PRECISION_TOLERANCE < amountToFillNum) {
-            console_1.logger.error("MATCHING", `Seller insufficient locked funds: inOrder=${sellerInOrder}, needed=${amountToFillNum}, walletType=${sellerWalletType}`);
-            throw (0, error_1.createError)({ statusCode: 400, message: `Seller has insufficient locked funds` });
-        }
-        const actualSellerRelease = Math.min(amountToFillNum, sellerInOrder);
-        await updatePoolBalance(buyOrder.marketMakerId, amountToFillNum, -costNum);
-        const sellerBaseKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_seller_base`;
-        const sellerQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_seller_quote`;
-        await (0, wallet_1.updateWalletForFill)(sellerBaseWallet, 0, -actualSellerRelease, "seller releases base to bot", sellerBaseKey);
-        await (0, wallet_1.updateWalletForFill)(sellerQuoteWallet, costNum - sellFeeNum, 0, "seller receives quote from bot", sellerQuoteKey);
+        await db_1.sequelize.transaction(async (t) => {
+            var _a;
+            const sellerBaseWallet = await getUserEcosystemWalletByCurrency(sellOrder.userId, baseCurrency, sellerWalletType, { transaction: t, lock: true });
+            const sellerQuoteWallet = await getUserEcosystemWalletByCurrency(sellOrder.userId, quoteCurrency, sellerWalletType, { transaction: t, lock: true });
+            if (!sellerBaseWallet || !sellerQuoteWallet) {
+                throw (0, error_1.createError)({ statusCode: 404, message: `Wallets not found for seller ${sellOrder.userId} (type: ${sellerWalletType})` });
+            }
+            const sellerInOrder = parseFloat(((_a = sellerBaseWallet.inOrder) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+            const PRECISION_TOLERANCE = 0.00000001;
+            if (sellerInOrder + PRECISION_TOLERANCE < amountToFillNum) {
+                console_1.logger.error("MATCHING", `Seller insufficient locked funds: inOrder=${sellerInOrder}, needed=${amountToFillNum}, walletType=${sellerWalletType}`);
+                throw (0, error_1.createError)({ statusCode: 400, message: `Seller has insufficient locked funds` });
+            }
+            const actualSellerRelease = Math.min(amountToFillNum, sellerInOrder);
+            await updatePoolBalance(buyOrder.marketMakerId, amountToFillNum, -costNum, t);
+            const sellerBaseKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_seller_base`;
+            const sellerQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_seller_quote`;
+            await (0, wallet_1.updateWalletForFill)(sellerBaseWallet, 0, -actualSellerRelease, "seller releases base to bot", sellerBaseKey, t);
+            await (0, wallet_1.updateWalletForFill)(sellerQuoteWallet, costNum - sellFeeNum, 0, "seller receives quote from bot", sellerQuoteKey, t);
+        });
         if (buyOrder.botId) {
             const tradePrice = (0, blockchain_1.fromBigInt)(finalPrice);
             recordBotRealTrade(buyOrder.botId, undefined, buyOrder.symbol, "BUY", tradePrice, amountToFillNum, sellOrder.userId).catch(err => console_1.logger.error("BOT_PNL", "Error recording bot trade", err));
@@ -312,27 +322,30 @@ async function processMatchedOrders(buyOrder, sellOrder, currentOrderBook, bookU
     }
     else if (!buyerIsBot && sellerIsBot) {
         const buyerWalletType = buyOrder.walletType || "ECO";
-        const buyerBaseWallet = await getUserEcosystemWalletByCurrency(buyOrder.userId, baseCurrency, buyerWalletType);
-        const buyerQuoteWallet = await getUserEcosystemWalletByCurrency(buyOrder.userId, quoteCurrency, buyerWalletType);
-        if (!buyerBaseWallet || !buyerQuoteWallet) {
-            throw (0, error_1.createError)({ statusCode: 404, message: `Wallets not found for buyer ${buyOrder.userId} (type: ${buyerWalletType})` });
-        }
-        const buyerInOrder = parseFloat(((_b = buyerQuoteWallet.inOrder) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
-        const PRECISION_TOLERANCE = 0.00000001;
-        console_1.logger.info("MATCHING", `User vs Bot match: orderId=${buyOrder.id}, userId=${buyOrder.userId}, walletType=${buyerWalletType}, ` +
-            `amountToFill=${amountToFillNum}, buyFillRatio=${buyFillRatio.toFixed(4)}, ` +
-            `buyOrder.cost=${(0, blockchain_1.fromBigInt)(buyOrder.cost)}, buyReleaseNum=${buyReleaseNum}, buyerInOrder=${buyerInOrder}, ` +
-            `buyOrder.status=${buyOrder.status}, buyOrder.remaining=${(0, blockchain_1.fromBigInt)(buyOrder.remaining)}`);
-        if (buyerInOrder + PRECISION_TOLERANCE < buyReleaseNum) {
-            console_1.logger.error("MATCHING", `Buyer insufficient locked funds: inOrder=${buyerInOrder}, needed=${buyReleaseNum}, diff=${buyReleaseNum - buyerInOrder}, orderId=${buyOrder.id}, walletType=${buyerWalletType}`);
-            throw (0, error_1.createError)({ statusCode: 400, message: `Buyer has insufficient locked funds` });
-        }
-        const actualBuyRelease = Math.min(buyReleaseNum, buyerInOrder);
-        await updatePoolBalance(sellOrder.marketMakerId, -amountToFillNum, costNum);
-        const buyerBaseKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_buyer_base`;
-        const buyerQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_buyer_quote`;
-        await (0, wallet_1.updateWalletForFill)(buyerBaseWallet, amountToFillNum, 0, "buyer receives base from bot", buyerBaseKey);
-        await (0, wallet_1.updateWalletForFill)(buyerQuoteWallet, 0, -actualBuyRelease, "buyer releases quote to bot", buyerQuoteKey);
+        await db_1.sequelize.transaction(async (t) => {
+            var _a;
+            const buyerBaseWallet = await getUserEcosystemWalletByCurrency(buyOrder.userId, baseCurrency, buyerWalletType, { transaction: t, lock: true });
+            const buyerQuoteWallet = await getUserEcosystemWalletByCurrency(buyOrder.userId, quoteCurrency, buyerWalletType, { transaction: t, lock: true });
+            if (!buyerBaseWallet || !buyerQuoteWallet) {
+                throw (0, error_1.createError)({ statusCode: 404, message: `Wallets not found for buyer ${buyOrder.userId} (type: ${buyerWalletType})` });
+            }
+            const buyerInOrder = parseFloat(((_a = buyerQuoteWallet.inOrder) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+            const PRECISION_TOLERANCE = 0.00000001;
+            console_1.logger.info("MATCHING", `User vs Bot match: orderId=${buyOrder.id}, userId=${buyOrder.userId}, walletType=${buyerWalletType}, ` +
+                `amountToFill=${amountToFillNum}, buyFillRatio=${buyFillRatio.toFixed(4)}, ` +
+                `buyOrder.cost=${(0, blockchain_1.fromBigInt)(buyOrder.cost)}, buyReleaseNum=${buyReleaseNum}, buyerInOrder=${buyerInOrder}, ` +
+                `buyOrder.status=${buyOrder.status}, buyOrder.remaining=${(0, blockchain_1.fromBigInt)(buyOrder.remaining)}`);
+            if (buyerInOrder + PRECISION_TOLERANCE < buyReleaseNum) {
+                console_1.logger.error("MATCHING", `Buyer insufficient locked funds: inOrder=${buyerInOrder}, needed=${buyReleaseNum}, diff=${buyReleaseNum - buyerInOrder}, orderId=${buyOrder.id}, walletType=${buyerWalletType}`);
+                throw (0, error_1.createError)({ statusCode: 400, message: `Buyer has insufficient locked funds` });
+            }
+            const actualBuyRelease = Math.min(buyReleaseNum, buyerInOrder);
+            await updatePoolBalance(sellOrder.marketMakerId, -amountToFillNum, costNum, t);
+            const buyerBaseKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_buyer_base`;
+            const buyerQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_buyer_quote`;
+            await (0, wallet_1.updateWalletForFill)(buyerBaseWallet, amountToFillNum, 0, "buyer receives base from bot", buyerBaseKey, t);
+            await (0, wallet_1.updateWalletForFill)(buyerQuoteWallet, 0, -actualBuyRelease, "buyer releases quote to bot", buyerQuoteKey, t);
+        });
         if (sellOrder.botId) {
             const tradePrice = (0, blockchain_1.fromBigInt)(finalPrice);
             recordBotRealTrade(sellOrder.botId, undefined, sellOrder.symbol, "SELL", tradePrice, amountToFillNum, buyOrder.userId).catch(err => console_1.logger.error("BOT_PNL", "Error recording bot trade", err));
@@ -349,13 +362,13 @@ async function processMatchedOrders(buyOrder, sellOrder, currentOrderBook, bookU
             throw (0, error_1.createError)({ statusCode: 404, message: `Required wallets not found for buyer (type: ${buyerWalletType}) or seller (type: ${sellerWalletType}).` });
         }
         const PRECISION_TOLERANCE = 0.00000001;
-        const sellerInOrder = parseFloat(((_c = sellerBaseWallet.inOrder) === null || _c === void 0 ? void 0 : _c.toString()) || "0");
+        const sellerInOrder = parseFloat(((_a = sellerBaseWallet.inOrder) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
         if (sellerInOrder + PRECISION_TOLERANCE < amountToFillNum) {
             console_1.logger.error("MATCHING", `Seller insufficient locked funds: inOrder=${sellerInOrder}, needed=${amountToFillNum}, walletType=${sellerWalletType}`);
             throw (0, error_1.createError)({ statusCode: 400, message: `Seller has insufficient locked funds` });
         }
         const actualSellerRelease = Math.min(amountToFillNum, sellerInOrder);
-        const buyerInOrder = parseFloat(((_d = buyerQuoteWallet.inOrder) === null || _d === void 0 ? void 0 : _d.toString()) || "0");
+        const buyerInOrder = parseFloat(((_b = buyerQuoteWallet.inOrder) === null || _b === void 0 ? void 0 : _b.toString()) || "0");
         if (buyerInOrder + PRECISION_TOLERANCE < buyReleaseNum) {
             console_1.logger.error("MATCHING", `Buyer insufficient locked funds: inOrder=${buyerInOrder}, needed=${buyReleaseNum}, walletType=${buyerWalletType}`);
             throw (0, error_1.createError)({ statusCode: 400, message: `Buyer has insufficient locked funds` });
@@ -365,10 +378,28 @@ async function processMatchedOrders(buyOrder, sellOrder, currentOrderBook, bookU
         const buyQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_buy_quote`;
         const sellBaseKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_sell_base`;
         const sellQuoteKey = `eco_trade_${buyOrder.id}_${sellOrder.id}_sell_quote`;
-        await (0, wallet_1.updateWalletForFill)(buyerBaseWallet, amountToFillNum, 0, "buyer receives base", buyBaseKey);
-        await (0, wallet_1.updateWalletForFill)(buyerQuoteWallet, 0, -actualBuyerRelease, "buyer releases quote", buyQuoteKey);
-        await (0, wallet_1.updateWalletForFill)(sellerBaseWallet, 0, -actualSellerRelease, "seller releases base", sellBaseKey);
-        await (0, wallet_1.updateWalletForFill)(sellerQuoteWallet, costNum - sellFeeNum, 0, "seller receives quote", sellQuoteKey);
+        await db_1.sequelize.transaction(async (t) => {
+            await (0, wallet_1.updateWalletForFill)(buyerBaseWallet, amountToFillNum, 0, "buyer receives base", buyBaseKey, t);
+            await (0, wallet_1.updateWalletForFill)(buyerQuoteWallet, 0, -actualBuyerRelease, "buyer releases quote", buyQuoteKey, t);
+            await (0, wallet_1.updateWalletForFill)(sellerBaseWallet, 0, -actualSellerRelease, "seller releases base", sellBaseKey, t);
+            await (0, wallet_1.updateWalletForFill)(sellerQuoteWallet, costNum - sellFeeNum, 0, "seller receives quote", sellQuoteKey, t);
+        });
+    }
+    const buyerIsSuperAdmin = await (0, fees_1.isSuperAdmin)(buyOrder.userId);
+    const sellerIsSuperAdmin = await (0, fees_1.isSuperAdmin)(sellOrder.userId);
+    const totalPlatformFee = (buyerIsBot || buyerIsSuperAdmin ? 0 : buyFeeNum) +
+        (sellerIsBot || sellerIsSuperAdmin ? 0 : sellFeeNum);
+    if (totalPlatformFee > 0) {
+        await (0, fees_1.collectPlatformFee)({
+            currency: quoteCurrency,
+            walletType: "ECO",
+            chain: quoteCurrency,
+            feeAmount: totalPlatformFee,
+            type: "TRADE",
+            description: `ECO trading fee: ${buyOrder.symbol} ${amountToFillNum} @ ${(0, blockchain_1.fromBigInt)(finalPrice)} (buyer fee: ${buyFeeNum}, seller fee: ${sellFeeNum})`,
+            referenceId: `${buyOrder.id}_${sellOrder.id}`,
+            metadata: { symbol: buyOrder.symbol, buyOrderId: buyOrder.id, sellOrderId: sellOrder.id },
+        });
     }
     const buyTradeDetail = {
         id: `${buyOrder.id}`,
@@ -487,7 +518,7 @@ function sortOrders(orders, isBuy) {
         return 0;
     });
 }
-async function getUserEcosystemWalletByCurrency(userId, currency, walletType = "ECO") {
+async function getUserEcosystemWalletByCurrency(userId, currency, walletType = "ECO", options) {
     try {
         const wallet = await db_1.models.wallet.findOne({
             where: {
@@ -496,6 +527,10 @@ async function getUserEcosystemWalletByCurrency(userId, currency, walletType = "
                 type: walletType,
             },
             raw: false,
+            ...((options === null || options === void 0 ? void 0 : options.transaction) && { transaction: options.transaction }),
+            ...((options === null || options === void 0 ? void 0 : options.transaction) && (options === null || options === void 0 ? void 0 : options.lock) && {
+                lock: options.transaction.LOCK.UPDATE,
+            }),
         });
         if (!wallet) {
             throw (0, error_1.createError)({ statusCode: 404, message: `Wallet not found for user ${userId} and currency ${currency} (type: ${walletType})` });

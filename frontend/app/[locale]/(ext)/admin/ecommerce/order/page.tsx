@@ -23,6 +23,7 @@ export default function EcommerceOrderPage() {
       canDelete
       canView
       viewLink="/admin/ecommerce/order/[id]"
+      isParanoid={true}
       title={t("customer_orders")}
       description={t("process_and_manage_customer_orders")}
       itemTitle="Order"

@@ -174,7 +174,7 @@ export function useFormConfig() {
               key: "conditionId",
               required: true,
               apiEndpoint: {
-                url: "/api/admin/ext/affiliate/condition/options",
+                url: "/api/admin/affiliate/condition",
                 method: "GET",
               },
               validation: (value) => {
@@ -227,7 +227,7 @@ export function useFormConfig() {
               key: "conditionId",
               required: true,
               apiEndpoint: {
-                url: "/api/admin/ext/affiliate/condition/options",
+                url: "/api/admin/affiliate/condition",
                 method: "GET",
               },
               validation: (value) => {

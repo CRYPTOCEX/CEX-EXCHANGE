@@ -123,6 +123,7 @@ exports.metadata = {
     },
 };
 exports.default = async (data) => {
+    var _a, _b;
     try {
         const { ctx } = data;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching get ico offer");
@@ -136,7 +137,7 @@ exports.default = async (data) => {
                 {
                     model: db_1.models.icoTokenOfferingPhase,
                     as: "phases",
-                    order: [["sortOrder", "ASC"]],
+                    order: [["sequence", "ASC"]],
                 },
                 {
                     model: db_1.models.icoTokenDetail,
@@ -161,32 +162,31 @@ exports.default = async (data) => {
         });
         const phases = offering.phases || [];
         const startDate = new Date(offering.startDate);
-        const daysSinceStart = Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        let cumulativeDays = 0;
         let currentPhase = null;
         let nextPhase = null;
-        const activePhaseByRemaining = phases.find((phase) => phase.remaining > 0);
+        let cumulativeDays = 0;
+        const phaseTimeInfo = {};
+        const daysSinceStart = (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24);
         for (let i = 0; i < phases.length; i++) {
             cumulativeDays += phases[i].duration;
-            if (daysSinceStart < cumulativeDays) {
+            phaseTimeInfo[phases[i].id] = {
+                endsIn: Math.max(0, Math.ceil(cumulativeDays - daysSinceStart)),
+            };
+        }
+        for (let i = 0; i < phases.length; i++) {
+            if (phases[i].remaining > 0) {
                 currentPhase = {
                     ...phases[i].toJSON(),
-                    endsIn: cumulativeDays - daysSinceStart,
+                    endsIn: ((_a = phaseTimeInfo[phases[i].id]) === null || _a === void 0 ? void 0 : _a.endsIn) || 0,
                 };
                 if (i + 1 < phases.length) {
                     nextPhase = {
                         ...phases[i + 1].toJSON(),
-                        endsIn: phases[i + 1].duration,
+                        endsIn: ((_b = phaseTimeInfo[phases[i + 1].id]) === null || _b === void 0 ? void 0 : _b.endsIn) || phases[i + 1].duration,
                     };
                 }
                 break;
             }
-        }
-        if (activePhaseByRemaining && (!currentPhase || activePhaseByRemaining.sequence < currentPhase.sequence)) {
-            currentPhase = {
-                ...activePhaseByRemaining.toJSON(),
-                endsIn: (currentPhase === null || currentPhase === void 0 ? void 0 : currentPhase.endsIn) || 0,
-            };
         }
         const currentRaisedResult = await currentRaisedPromise;
         const currentRaised = (currentRaisedResult === null || currentRaisedResult === void 0 ? void 0 : currentRaisedResult.currentRaised)

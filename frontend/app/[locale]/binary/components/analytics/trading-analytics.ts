@@ -33,8 +33,13 @@ export function calculateTradingStats(orders: CompletedOrder[]): TradingStats {
 
   // Calculate P/L
   const totalPnL = validOrders.reduce((sum, o) => {
-    const profit = o.profit || 0;
-    return sum + (o.status === "WIN" ? profit : -Math.abs(profit));
+    if (o.status === "WIN") {
+      return sum + (o.profit || 0);
+    } else {
+      // For losses, if profit is 0 or not set, use the bet amount as the loss
+      const lossAmount = o.profit ? Math.abs(o.profit) : o.amount;
+      return sum - lossAmount;
+    }
   }, 0);
 
   // Average amounts
@@ -42,13 +47,17 @@ export function calculateTradingStats(orders: CompletedOrder[]): TradingStats {
     ? wins.reduce((sum, o) => sum + (o.profit || 0), 0) / winCount
     : 0;
   const avgLossAmount = lossCount > 0
-    ? losses.reduce((sum, o) => sum + Math.abs(o.profit || o.amount), 0) / lossCount
+    ? losses.reduce((sum, o) => sum + (o.profit ? Math.abs(o.profit) : o.amount), 0) / lossCount
     : 0;
 
   // Best/worst trades
   const profits = validOrders.map(o => {
-    const profit = o.profit || 0;
-    return o.status === "WIN" ? profit : -Math.abs(profit);
+    if (o.status === "WIN") {
+      return o.profit || 0;
+    } else {
+      const lossAmount = o.profit ? Math.abs(o.profit) : o.amount;
+      return -lossAmount;
+    }
   });
   const bestTrade = profits.length > 0 ? Math.max(...profits) : 0;
   const worstTrade = profits.length > 0 ? Math.min(...profits) : 0;

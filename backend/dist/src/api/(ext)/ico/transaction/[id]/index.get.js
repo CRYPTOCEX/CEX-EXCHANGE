@@ -11,6 +11,7 @@ exports.metadata = {
     tags: ["ICO", "Transactions"],
     logModule: "ICO",
     logTitle: "Get ICO Transaction",
+    requiresAuth: true,
     parameters: [
         {
             index: 0,
@@ -92,13 +93,17 @@ exports.metadata = {
 exports.default = async (data) => {
     try {
         const { ctx } = data;
+        const { user } = data;
+        if (!(user === null || user === void 0 ? void 0 : user.id)) {
+            throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching get ico transaction");
         const { id } = data.params || {};
         if (!id) {
             throw (0, error_1.createError)({ statusCode: 400, message: "No transaction ID provided" });
         }
         const transaction = await db_1.models.icoTransaction.findOne({
-            where: { id: id },
+            where: { id: id, userId: user.id },
             include: [
                 {
                     model: db_1.models.icoTokenOffering,
@@ -109,8 +114,7 @@ exports.default = async (data) => {
             ],
         });
         if (!transaction) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.success("Get ICO Transaction retrieved successfully");
-            return { error: "Transaction not found" };
+            throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
         }
         return transaction.toJSON();
     }

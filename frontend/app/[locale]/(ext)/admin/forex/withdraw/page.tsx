@@ -2,7 +2,7 @@
 import DataTable from "@/components/blocks/data-table";
 import { ArrowUpCircle } from "lucide-react";
 import { useColumns } from "../../../../(dashboard)/admin/finance/deposit/log/columns";
-import { useAnalytics } from "../../../../(dashboard)/admin/finance/transaction/analytics";
+import { useAnalytics } from "./analytics";
 import { useTranslations } from "next-intl";
 
 export default function DepositLogPage() {
@@ -28,9 +28,10 @@ export default function DepositLogPage() {
       canEdit={true}
       editLink="/admin/forex/withdraw/[id]"
       viewLink="/admin/forex/withdraw/[id]"
-      editCondition={(item) => ["PENDING", "PROCESSING"].includes(item.status)}
+      editCondition={(item) => item.status === "PENDING"}
       canDelete={true}
       canView={true}
+      isParanoid={true}
       title={t("forex_withdraw_management")}
       itemTitle="Forex Withdraw"
       columns={columns}

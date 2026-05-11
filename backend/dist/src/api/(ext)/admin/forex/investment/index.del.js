@@ -1,1 +1,47 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query");exports.metadata={summary:"Bulk deletes Forex investments",description:"Deletes multiple Forex investment records by their IDs. This permanently removes investment data and cannot be undone.",operationId:"bulkDeleteForexInvestments",tags:["Admin","Forex","Investment"],parameters:(0,query_1.commonBulkDeleteParams)("Forex Investments"),requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{ids:{type:"array",items:{type:"string"},description:"Array of Forex investment IDs to delete"}},required:["ids"]}}}},responses:(0,query_1.commonBulkDeleteResponses)("Forex Investments"),requiresAuth:!0,permission:"delete.forex.investment",logModule:"ADMIN_FOREX",logTitle:"Bulk delete forex investments"};exports.default=async e=>{const{body:t,query:s,ctx:n}=e,{ids:r}=t;null==n||n.step(`Validating ${r.length} forex investment IDs`);null==n||n.step(`Deleting ${r.length} forex investments`);const o=await(0,query_1.handleBulkDelete)({model:"forexInvestment",ids:r,query:s});null==n||n.success(`Successfully deleted ${r.length} forex investments`);return o};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Bulk deletes Forex investments",
+    description: "Deletes multiple Forex investment records by their IDs. This permanently removes investment data and cannot be undone.",
+    operationId: "bulkDeleteForexInvestments",
+    tags: ["Admin", "Forex", "Investment"],
+    parameters: (0, query_1.commonBulkDeleteParams)("Forex Investments"),
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        ids: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "Array of Forex investment IDs to delete",
+                        },
+                    },
+                    required: ["ids"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.commonBulkDeleteResponses)("Forex Investments"),
+    requiresAuth: true,
+    permission: "delete.forex.investment",
+    logModule: "ADMIN_FOREX",
+    logTitle: "Bulk delete forex investments",
+};
+exports.default = async (data) => {
+    const { body, query, ctx } = data;
+    const { ids } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Validating ${ids.length} forex investment IDs`);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Deleting ${ids.length} forex investments`);
+    const result = await (0, query_1.handleBulkDelete)({
+        model: "forexInvestment",
+        ids,
+        query,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Successfully deleted ${ids.length} forex investments`);
+    return result;
+};

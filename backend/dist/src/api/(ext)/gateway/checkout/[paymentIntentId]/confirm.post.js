@@ -1,1 +1,402 @@
-"use strict";async function getPriceInUSD(e,t){try{return"FIAT"===t?await(0,utils_1.getFiatPriceInUSD)(e):"SPOT"===t?await(0,utils_1.getSpotPriceInUSD)(e):"ECO"===t?await(0,utils_1.getEcoPriceInUSD)(e):0}catch(e){return 0}}function roundAmount(e){return Math.round(1e8*e)/1e8}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),gateway_1=require("@b/utils/gateway"),utils_1=require("@b/api/finance/currency/utils"),console_1=require("@b/utils/console"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Confirm payment",description:"Confirms the payment and processes the transaction from customer wallet(s). Always uses allocation-based payments.",operationId:"confirmPayment",tags:["Gateway","Checkout"],parameters:[{name:"paymentIntentId",in:"path",required:!0,description:"Payment intent ID",schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"array",description:"Payment allocations - which wallets to use and how much from each",items:{type:"object",properties:{walletId:{type:"string"},walletType:{type:"string"},currency:{type:"string"},amount:{type:"number"},equivalentInPaymentCurrency:{type:"number"}},required:["walletId","walletType","currency","amount","equivalentInPaymentCurrency"]}}}}},responses:{200:{description:"Payment confirmed successfully"},400:{description:"Payment cannot be confirmed"},401:{description:"Authentication required"},402:{description:"Insufficient funds"}},requiresAuth:!0,logModule:"GATEWAY",logTitle:"Confirm Checkout Payment"};exports.default=async e=>{var t,r;const{params:a,user:n,body:o,headers:s,ctx:i}=e,{paymentIntentId:c}=a;null==i||i.step("Validate user authentication");if(!(null==n?void 0:n.id)){null==i||i.fail("Authentication required - no user ID");throw(0,error_1.createError)({statusCode:401,message:"Authentication required"})}null==i||i.step("Find payment session");const l=await db_1.models.gatewayPayment.findOne({where:{paymentIntentId:c},include:[{model:db_1.models.gatewayMerchant,as:"merchant"}]});if(!l){null==i||i.fail("Payment not found");throw(0,error_1.createError)({statusCode:404,message:"Payment not found"})}null==i||i.step("Verify payment authorization and status");if(l.customerId&&l.customerId!==n.id){null==i||i.fail("Not authorized to confirm this payment");throw(0,error_1.createError)({statusCode:403,message:"Not authorized to confirm this payment"})}if("PENDING"!==l.status&&"PROCESSING"!==l.status){null==i||i.fail(`Payment is already ${l.status.toLowerCase()}`);throw(0,error_1.createError)({statusCode:400,message:`Payment is already ${l.status.toLowerCase()}`})}if(new Date(l.expiresAt)<new Date){await l.update({status:"EXPIRED"});throw(0,error_1.createError)({statusCode:400,message:"Payment session has expired"})}if("ACTIVE"!==(null===(t=l.merchant)||void 0===t?void 0:t.status)){null==i||i.fail("Merchant is not active");throw(0,error_1.createError)({statusCode:400,message:"Merchant is not active"})}null==i||i.step("Validate payment allocations");const u=(await(0,gateway_1.getGatewaySettings)()).gatewayAllowedWalletTypes||{},d=Array.isArray(o)?o:[];if(0===d.length){null==i||i.fail("No payment allocations provided");throw(0,error_1.createError)({statusCode:400,message:"No payment allocations provided"})}for(const e of d){if(!Number.isFinite(e.amount)||e.amount<=0)throw(0,error_1.createError)({statusCode:400,message:"Invalid allocation amount: must be a positive number"});if(!Number.isFinite(e.equivalentInPaymentCurrency)||e.equivalentInPaymentCurrency<=0)throw(0,error_1.createError)({statusCode:400,message:"Invalid equivalent amount"})}const m=!0===l.testMode;null==i||i.step("Process payment in database transaction");try{const e=await db_1.sequelize.transaction(async e=>{var t;const r=await db_1.models.gatewayPayment.findByPk(l.id,{transaction:e,lock:e.LOCK.UPDATE});if(!r||"PENDING"!==r.status&&"PROCESSING"!==r.status)throw(0,error_1.createError)({statusCode:400,message:"Payment is no longer available for processing"});await r.update({status:"PROCESSING"},{transaction:e});const a=[];let o=0;const i=await getPriceInUSD(l.currency,l.walletType);if(!i||i<=0)throw(0,error_1.createError)({statusCode:400,message:`Could not determine price for payment currency ${l.currency}`});for(const t of d){const r=roundAmount(t.amount),s=u[t.walletType];if(!s||!s.enabled)throw(0,error_1.createError)({statusCode:400,message:`Wallet type ${t.walletType} is not enabled for payments`});if(!s.currencies||!s.currencies.includes(t.currency))throw(0,error_1.createError)({statusCode:400,message:`Currency ${t.currency} is not enabled for ${t.walletType} wallet payments`});const c=await db_1.models.wallet.findOne({where:{id:t.walletId,userId:n.id,currency:t.currency,type:t.walletType},transaction:e,lock:e.LOCK.UPDATE});if(!c)throw(0,error_1.createError)({statusCode:400,message:`Wallet not found: ${t.walletType} ${t.currency}`});const d=parseFloat(c.balance);if(d<r)throw(0,error_1.createError)({statusCode:402,message:`Insufficient funds in ${t.currency} wallet. Required: ${r}, Available: ${d}`});const y=await getPriceInUSD(t.currency,t.walletType);if(!y||y<=0)throw(0,error_1.createError)({statusCode:400,message:`Could not determine price for ${t.currency}`});const p=y/i,w=r*p,h=.02;if(Math.abs(t.equivalentInPaymentCurrency-w)/w>h)throw(0,error_1.createError)({statusCode:400,message:`Exchange rate has changed for ${t.currency}. Please refresh and try again.`});if(!m){const o=`gateway_payment_${l.paymentIntentId}_${t.walletId}_${a.length}`,s=await wallet_1.walletService.debit({idempotencyKey:o,userId:n.id,walletId:c.id,walletType:t.walletType,currency:t.currency,amount:r,operationType:"PAYMENT",referenceId:`${l.id}_${a.length}`,description:`Payment to ${l.merchant.name}${l.description?` - ${l.description}`:""} (${t.equivalentInPaymentCurrency.toFixed(2)} ${l.currency})`,metadata:{paymentIntentId:l.paymentIntentId,merchantId:l.merchant.id,merchantName:l.merchant.name,merchantOrderId:l.merchantOrderId,equivalentAmount:t.equivalentInPaymentCurrency,paymentCurrency:l.currency,exchangeRate:p},transaction:e});a.push({id:s.transactionId})}o+=t.equivalentInPaymentCurrency}if(o<l.amount-.01)throw(0,error_1.createError)({statusCode:402,message:`Insufficient payment. Required: ${l.amount} ${l.currency}, Allocated: ${o.toFixed(2)} ${l.currency}`});if(!m){const t=l.feeAmount/l.amount;for(let r=0;r<d.length;r++){const a=d[r],n=roundAmount(a.amount),o=roundAmount(n*t);o>0&&await(0,gateway_1.collectGatewayFee)({currency:a.currency,walletType:a.walletType,feeAmount:o,merchantId:l.merchant.id,paymentId:l.id,transaction:e});await(0,gateway_1.updateMerchantBalanceForPayment)({merchantId:l.merchantId,currency:a.currency,walletType:a.walletType,amount:n,feeAmount:o,transaction:e})}}const c=new Date;await l.update({status:"COMPLETED",customerId:n.id,transactionId:(null===(t=a[0])||void 0===t?void 0:t.id)||null,completedAt:c,ipAddress:(null==s?void 0:s["x-forwarded-for"])||(null==s?void 0:s["x-real-ip"]),userAgent:null==s?void 0:s["user-agent"],customerEmail:n.email,customerName:`${n.firstName||""} ${n.lastName||""}`.trim()||null,allocations:d,metadata:{...l.metadata,isTestMode:m,transactionIds:m?"[]":JSON.stringify(a.map(e=>e.id))}},{transaction:e});return{transactionRecords:a,completedAt:c}});null==i||i.step("Send payment completion webhook");if(l.webhookUrl)try{await(0,gateway_1.sendWebhook)(l.merchant.id,l.id,null,"payment.completed",l.webhookUrl,{id:`evt_${l.paymentIntentId}`,type:"payment.completed",createdAt:(new Date).toISOString(),data:{id:l.paymentIntentId,merchantOrderId:l.merchantOrderId,amount:l.amount,currency:l.currency,feeAmount:l.feeAmount,netAmount:l.netAmount,status:"COMPLETED",customerEmail:n.email,metadata:l.metadata,completedAt:e.completedAt.toISOString(),allocations:d}},l.merchant.webhookSecret)}catch(e){console_1.logger.error("GATEWAY_CHECKOUT","Failed to send payment.completed webhook",e)}null==i||i.step("Build success redirect URL");const t=new URL(l.returnUrl);t.searchParams.set("payment_id",l.paymentIntentId);t.searchParams.set("status","success");null==i||i.success("Payment confirmed successfully");return{success:!0,paymentId:l.paymentIntentId,status:"COMPLETED",redirectUrl:t.toString()}}catch(e){console_1.logger.error("GATEWAY_CHECKOUT","Payment confirmation failed",e);e.errors&&console_1.logger.debug("GATEWAY_CHECKOUT",`Validation errors: ${JSON.stringify(e.errors,null,2)}`);"PROCESSING"===l.status&&await l.update({status:"PENDING"});if("SequelizeValidationError"===e.name||"SequelizeUniqueConstraintError"===e.name){const t=(null===(r=e.errors)||void 0===r?void 0:r.map(e=>e.message).join(", "))||e.message;throw(0,error_1.createError)({statusCode:400,message:t})}if(l.webhookUrl&&402!==e.statusCode)try{await(0,gateway_1.sendWebhook)(l.merchant.id,l.id,null,"payment.failed",l.webhookUrl,{id:`evt_${l.paymentIntentId}`,type:"payment.failed",createdAt:(new Date).toISOString(),data:{id:l.paymentIntentId,merchantOrderId:l.merchantOrderId,amount:l.amount,currency:l.currency,status:"FAILED",error:e.message}},l.merchant.webhookSecret)}catch(e){console_1.logger.error("GATEWAY_CHECKOUT","Failed to send payment.failed webhook",e)}throw e}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const gateway_1 = require("@b/utils/gateway");
+const utils_1 = require("@b/api/finance/currency/utils");
+const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Confirm payment",
+    description: "Confirms the payment and processes the transaction from customer wallet(s). Always uses allocation-based payments.",
+    operationId: "confirmPayment",
+    tags: ["Gateway", "Checkout"],
+    parameters: [
+        {
+            name: "paymentIntentId",
+            in: "path",
+            required: true,
+            description: "Payment intent ID",
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "array",
+                    description: "Payment allocations - which wallets to use and how much from each",
+                    items: {
+                        type: "object",
+                        properties: {
+                            walletId: { type: "string" },
+                            walletType: { type: "string" },
+                            currency: { type: "string" },
+                            amount: { type: "number" },
+                            equivalentInPaymentCurrency: { type: "number" },
+                        },
+                        required: ["walletId", "walletType", "currency", "amount", "equivalentInPaymentCurrency"],
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Payment confirmed successfully",
+        },
+        400: {
+            description: "Payment cannot be confirmed",
+        },
+        401: {
+            description: "Authentication required",
+        },
+        402: {
+            description: "Insufficient funds",
+        },
+    },
+    requiresAuth: true,
+    logModule: "GATEWAY",
+    logTitle: "Confirm Checkout Payment",
+};
+async function getPriceInUSD(currency, type) {
+    try {
+        if (type === "FIAT") {
+            return await (0, utils_1.getFiatPriceInUSD)(currency);
+        }
+        else if (type === "SPOT") {
+            return await (0, utils_1.getSpotPriceInUSD)(currency);
+        }
+        else if (type === "ECO") {
+            return await (0, utils_1.getEcoPriceInUSD)(currency);
+        }
+        return 0;
+    }
+    catch (_a) {
+        return 0;
+    }
+}
+function roundAmount(amount) {
+    return Math.round(amount * 1e8) / 1e8;
+}
+exports.default = async (data) => {
+    var _a, _b;
+    const { params, user, body, headers, ctx } = data;
+    const { paymentIntentId } = params;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate user authentication");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Authentication required - no user ID");
+        throw (0, error_1.createError)({
+            statusCode: 401,
+            message: "Authentication required",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Find payment session");
+    const payment = await db_1.models.gatewayPayment.findOne({
+        where: {
+            paymentIntentId,
+        },
+        include: [
+            {
+                model: db_1.models.gatewayMerchant,
+                as: "merchant",
+            },
+        ],
+    });
+    if (!payment) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Payment not found");
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Payment not found",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Verify payment authorization and status");
+    if (payment.customerId && payment.customerId !== user.id) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Not authorized to confirm this payment");
+        throw (0, error_1.createError)({
+            statusCode: 403,
+            message: "Not authorized to confirm this payment",
+        });
+    }
+    if (payment.status !== "PENDING" && payment.status !== "PROCESSING") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Payment is already ${payment.status.toLowerCase()}`);
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Payment is already ${payment.status.toLowerCase()}`,
+        });
+    }
+    if (new Date(payment.expiresAt) < new Date()) {
+        await payment.update({ status: "EXPIRED" });
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Payment session has expired",
+        });
+    }
+    if (((_a = payment.merchant) === null || _a === void 0 ? void 0 : _a.status) !== "ACTIVE") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Merchant is not active");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Merchant is not active",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate payment allocations");
+    const gatewaySettings = await (0, gateway_1.getGatewaySettings)();
+    const allowedWalletTypes = gatewaySettings.gatewayAllowedWalletTypes || {};
+    const allocations = Array.isArray(body) ? body : [];
+    if (allocations.length === 0) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("No payment allocations provided");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "No payment allocations provided",
+        });
+    }
+    for (const allocation of allocations) {
+        if (!Number.isFinite(allocation.amount) || allocation.amount <= 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid allocation amount: must be a positive number",
+            });
+        }
+        if (!Number.isFinite(allocation.equivalentInPaymentCurrency) || allocation.equivalentInPaymentCurrency <= 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Invalid equivalent amount",
+            });
+        }
+    }
+    const isTestMode = payment.testMode === true;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Process payment in database transaction");
+    try {
+        const result = await db_1.sequelize.transaction(async (t) => {
+            var _a, _b, _c, _d;
+            const lockedPayment = await db_1.models.gatewayPayment.findByPk(payment.id, {
+                transaction: t,
+                lock: t.LOCK.UPDATE,
+            });
+            if (!lockedPayment || (lockedPayment.status !== "PENDING" && lockedPayment.status !== "PROCESSING")) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Payment is no longer available for processing",
+                });
+            }
+            await lockedPayment.update({ status: "PROCESSING" }, { transaction: t });
+            const transactionRecords = [];
+            let totalPaid = 0;
+            const paymentPriceInUSD = await getPriceInUSD(payment.currency, payment.walletType);
+            if (!paymentPriceInUSD || paymentPriceInUSD <= 0) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Could not determine price for payment currency ${payment.currency}`,
+                });
+            }
+            for (const allocation of allocations) {
+                const roundedAmount = roundAmount(allocation.amount);
+                const walletConfig = allowedWalletTypes[allocation.walletType];
+                if (!walletConfig || !walletConfig.enabled) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Wallet type ${allocation.walletType} is not enabled for payments`,
+                    });
+                }
+                if (!walletConfig.currencies || !walletConfig.currencies.includes(allocation.currency)) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Currency ${allocation.currency} is not enabled for ${allocation.walletType} wallet payments`,
+                    });
+                }
+                const wallet = await db_1.models.wallet.findOne({
+                    where: {
+                        id: allocation.walletId,
+                        userId: user.id,
+                        currency: allocation.currency,
+                        type: allocation.walletType,
+                    },
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                if (!wallet) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Wallet not found: ${allocation.walletType} ${allocation.currency}`,
+                    });
+                }
+                const currentBalance = parseFloat(String(wallet.balance));
+                if (currentBalance < roundedAmount) {
+                    throw (0, error_1.createError)({
+                        statusCode: 402,
+                        message: `Insufficient funds in ${allocation.currency} wallet. Required: ${roundedAmount}, Available: ${currentBalance}`,
+                    });
+                }
+                const walletPriceInUSD = await getPriceInUSD(allocation.currency, allocation.walletType);
+                if (!walletPriceInUSD || walletPriceInUSD <= 0) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Could not determine price for ${allocation.currency}`,
+                    });
+                }
+                const expectedExchangeRate = walletPriceInUSD / paymentPriceInUSD;
+                const expectedEquivalent = roundedAmount * expectedExchangeRate;
+                const tolerance = 0.02;
+                if (Math.abs(allocation.equivalentInPaymentCurrency - expectedEquivalent) / expectedEquivalent > tolerance) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Exchange rate has changed for ${allocation.currency}. Please refresh and try again.`,
+                    });
+                }
+                if (!isTestMode) {
+                    const idempotencyKey = `gateway_payment_${payment.paymentIntentId}_${allocation.walletId}_${transactionRecords.length}`;
+                    const debitResult = await wallet_1.walletService.debit({
+                        idempotencyKey,
+                        userId: user.id,
+                        walletId: wallet.id,
+                        walletType: allocation.walletType,
+                        currency: allocation.currency,
+                        amount: roundedAmount,
+                        operationType: "PAYMENT",
+                        referenceId: `${payment.id}_${transactionRecords.length}`,
+                        description: `Payment to ${((_a = payment.merchant) === null || _a === void 0 ? void 0 : _a.name) || "merchant"}${payment.description ? ` - ${payment.description}` : ""} (${allocation.equivalentInPaymentCurrency.toFixed(2)} ${payment.currency})`,
+                        metadata: {
+                            paymentIntentId: payment.paymentIntentId,
+                            merchantId: (_b = payment.merchant) === null || _b === void 0 ? void 0 : _b.id,
+                            merchantName: (_c = payment.merchant) === null || _c === void 0 ? void 0 : _c.name,
+                            merchantOrderId: payment.merchantOrderId,
+                            equivalentAmount: allocation.equivalentInPaymentCurrency,
+                            paymentCurrency: payment.currency,
+                            exchangeRate: expectedExchangeRate,
+                        },
+                        transaction: t,
+                    });
+                    transactionRecords.push({ id: debitResult.transactionId });
+                }
+                totalPaid += allocation.equivalentInPaymentCurrency;
+            }
+            const tolerance = 0.01;
+            if (totalPaid < payment.amount - tolerance) {
+                throw (0, error_1.createError)({
+                    statusCode: 402,
+                    message: `Insufficient payment. Required: ${payment.amount} ${payment.currency}, Allocated: ${totalPaid.toFixed(2)} ${payment.currency}`,
+                });
+            }
+            if (!isTestMode) {
+                const feePercentage = payment.feeAmount / payment.amount;
+                for (let i = 0; i < allocations.length; i++) {
+                    const allocation = allocations[i];
+                    const roundedAmount = roundAmount(allocation.amount);
+                    const allocationFee = roundAmount(roundedAmount * feePercentage);
+                    if (allocationFee > 0) {
+                        await (0, gateway_1.collectGatewayFee)({
+                            currency: allocation.currency,
+                            walletType: allocation.walletType,
+                            feeAmount: allocationFee,
+                            merchantId: payment.merchant.id,
+                            paymentId: payment.id,
+                            transaction: t,
+                        });
+                    }
+                    await (0, gateway_1.updateMerchantBalanceForPayment)({
+                        merchantId: payment.merchantId,
+                        currency: allocation.currency,
+                        walletType: allocation.walletType,
+                        amount: roundedAmount,
+                        feeAmount: allocationFee,
+                        transaction: t,
+                    });
+                }
+            }
+            const completedAt = new Date();
+            await payment.update({
+                status: "COMPLETED",
+                customerId: user.id,
+                transactionId: ((_d = transactionRecords[0]) === null || _d === void 0 ? void 0 : _d.id) || null,
+                completedAt,
+                ipAddress: (Array.isArray(headers === null || headers === void 0 ? void 0 : headers["x-forwarded-for"]) ? headers["x-forwarded-for"][0] : headers === null || headers === void 0 ? void 0 : headers["x-forwarded-for"]) || (Array.isArray(headers === null || headers === void 0 ? void 0 : headers["x-real-ip"]) ? headers["x-real-ip"][0] : headers === null || headers === void 0 ? void 0 : headers["x-real-ip"]) || undefined,
+                userAgent: Array.isArray(headers === null || headers === void 0 ? void 0 : headers["user-agent"]) ? headers["user-agent"][0] : headers === null || headers === void 0 ? void 0 : headers["user-agent"],
+                customerEmail: user.email,
+                customerName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || null,
+                allocations,
+                metadata: {
+                    ...payment.metadata,
+                    isTestMode,
+                    transactionIds: isTestMode ? "[]" : JSON.stringify(transactionRecords.map((tr) => tr.id)),
+                },
+            }, { transaction: t });
+            return { transactionRecords, completedAt };
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Send payment completion webhook");
+        if (payment.webhookUrl) {
+            try {
+                await (0, gateway_1.sendWebhook)(payment.merchant.id, payment.id, null, "payment.completed", payment.webhookUrl, {
+                    id: `evt_${payment.paymentIntentId}`,
+                    type: "payment.completed",
+                    createdAt: new Date().toISOString(),
+                    data: {
+                        id: payment.paymentIntentId,
+                        merchantOrderId: payment.merchantOrderId,
+                        amount: payment.amount,
+                        currency: payment.currency,
+                        feeAmount: payment.feeAmount,
+                        netAmount: payment.netAmount,
+                        status: "COMPLETED",
+                        customerEmail: user.email,
+                        metadata: payment.metadata,
+                        completedAt: result.completedAt.toISOString(),
+                        allocations,
+                    },
+                }, payment.merchant.webhookSecret);
+            }
+            catch (error) {
+                console_1.logger.error("GATEWAY_CHECKOUT", "Failed to send payment.completed webhook", error);
+            }
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Build success redirect URL");
+        const returnUrl = new URL(payment.returnUrl);
+        returnUrl.searchParams.set("payment_id", payment.paymentIntentId);
+        returnUrl.searchParams.set("status", "success");
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Payment confirmed successfully");
+        return {
+            success: true,
+            paymentId: payment.paymentIntentId,
+            status: "COMPLETED",
+            redirectUrl: returnUrl.toString(),
+        };
+    }
+    catch (error) {
+        console_1.logger.error("GATEWAY_CHECKOUT", "Payment confirmation failed", error);
+        if (error.errors) {
+            console_1.logger.debug("GATEWAY_CHECKOUT", `Validation errors: ${JSON.stringify(error.errors, null, 2)}`);
+        }
+        if (payment.status === "PROCESSING") {
+            await payment.update({ status: "PENDING" });
+        }
+        if (error.name === "SequelizeValidationError" || error.name === "SequelizeUniqueConstraintError") {
+            const messages = ((_b = error.errors) === null || _b === void 0 ? void 0 : _b.map((e) => e.message).join(", ")) || error.message;
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: messages,
+            });
+        }
+        if (payment.webhookUrl && error.statusCode !== 402) {
+            try {
+                await (0, gateway_1.sendWebhook)(payment.merchant.id, payment.id, null, "payment.failed", payment.webhookUrl, {
+                    id: `evt_${payment.paymentIntentId}`,
+                    type: "payment.failed",
+                    createdAt: new Date().toISOString(),
+                    data: {
+                        id: payment.paymentIntentId,
+                        merchantOrderId: payment.merchantOrderId,
+                        amount: payment.amount,
+                        currency: payment.currency,
+                        status: "FAILED",
+                        error: error.message,
+                    },
+                }, payment.merchant.webhookSecret);
+            }
+            catch (webhookError) {
+                console_1.logger.error("GATEWAY_CHECKOUT", "Failed to send payment.failed webhook", webhookError);
+            }
+        }
+        throw error;
+    }
+};

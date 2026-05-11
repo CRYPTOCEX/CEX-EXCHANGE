@@ -281,11 +281,10 @@ export function PaymentMethodsStep() {
         method: "PUT",
         body: {
           name: method.name,
-          description: method.description,
-          processingTime: method.processingTime,
+          fields: method.metadata || {}, // Backend expects 'fields' instead of 'metadata'
           instructions: method.instructions,
-          metadata: method.metadata, // Include metadata in update
-          available: method.available,
+          processingTime: method.processingTime,
+          isActive: method.available,
         },
       });
       if (error) {
@@ -610,12 +609,12 @@ export function PaymentMethodsStep() {
       // Create a new custom payment method object
       const customMethodData = {
         name: newMethodName,
+        currency: tradeData.currency || "USD", // Use the trade currency or default to USD
+        fields: metadata || {}, // Backend requires 'fields' instead of 'metadata'
         icon: "credit-card",
-        description: newMethodDescription || "Custom payment method",
-        processingTime: newMethodProcessingTime || "Varies",
         instructions: newMethodInstructions,
-        metadata, // Include flexible key-value pairs for payment details
-        available: true,
+        processingTime: newMethodProcessingTime || "Varies",
+        metadata, // Keep metadata as optional additional data
       };
 
       // Send to API to create the custom method
@@ -635,24 +634,47 @@ export function PaymentMethodsStep() {
       }
 
       // Get the created method with its ID from the response
-      const createdMethod = data.paymentMethod || data;
+      const createdMethodData = data.userPaymentMethod || data;
+
+      console.log("🔍 Payment Method Creation Debug:");
+      console.log("  Raw API Response:", data);
+      console.log("  Extracted Data:", createdMethodData);
+      console.log("  ID:", createdMethodData.id);
+      console.log("  PaymentMethodId:", createdMethodData.paymentMethodId);
 
       // Create a new custom method with the returned data
       const newCustomMethod = {
-        id: createdMethod.id,
-        userId: createdMethod.userId,
-        name: createdMethod.name,
-        icon: createdMethod.icon || "credit-card",
-        description: createdMethod.description || "Custom payment method",
-        processingTime: createdMethod.processingTime,
-        fees: createdMethod.fees,
+        id: createdMethodData.id || createdMethodData.paymentMethodId,
+        userId: createdMethodData.userId,
+        name: newMethodName,
+        icon: "credit-card",
+        description: "Custom payment method",
+        processingTime: newMethodProcessingTime || "Varies",
+        fees: undefined,
         instructions: newMethodInstructions,
-        metadata: createdMethod.metadata || metadata, // Store the metadata
+        metadata: metadata ?? undefined, // Store the metadata
         available: true,
         isCustom: true,
         requiresDetails: false,
         fields: [],
       };
+
+      console.log("  Created Method Object:", newCustomMethod);
+      console.log("  Final ID:", newCustomMethod.id);
+
+      // Validate that we have a valid ID before proceeding
+      if (!newCustomMethod.id) {
+        console.error("❌ CRITICAL: Payment method created without ID!");
+        console.error("  Response data:", data);
+        console.error("  Extracted data:", createdMethodData);
+        toast({
+          title: "Error creating payment method",
+          description: "Payment method was created but no ID was returned. Please try again.",
+          variant: "destructive",
+        });
+        setIsCreatingMethod(false);
+        return;
+      }
 
       // Add to custom methods
       setCustomMethods((prev) => {
@@ -667,11 +689,20 @@ export function PaymentMethodsStep() {
         // Save to trade data with the updated selection
         // We need to do this in a setTimeout to ensure state has updated
         setTimeout(() => {
+          const allMethods = [...availablePaymentMethods, newCustomMethod];
+          console.log("🔍 All methods for mapping:", allMethods);
+          console.log("🔍 Selected IDs to map:", updated);
+
           const methods = updated.map((id) => {
-            const allMethods = [...availablePaymentMethods, newCustomMethod];
             const method = allMethods.find((m) => m.id === id);
+            console.log(`🔍 Mapping ID ${id}:`, method);
+
+            if (!method) {
+              console.error(`❌ Method not found for ID: ${id}`);
+            }
+
             return {
-              id,
+              id: method?.id || id,
               name: method?.name || id,
               description: method?.description,
               processingTime: method?.processingTime,
@@ -1246,28 +1277,28 @@ export function PaymentMethodsStep() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium flex items-center gap-2 flex-wrap">
-                        {method.name}
-                        <Badge variant="outline" className="text-xs">
+                        <span key="name">{method.name}</span>
+                        <Badge key="custom-badge" variant="outline" className="text-xs">
                           {tExt("custom")}
                         </Badge>
                         {hasActiveTrade && (
-                          <Badge variant="secondary" className="text-xs gap-1">
+                          <Badge key="trade-badge" variant="secondary" className="text-xs gap-1">
                             <Lock className="h-3 w-3" />
                             {t("in_trade")}
                           </Badge>
                         )}
                         {hasActiveOffer && !hasActiveTrade && (
-                          <Badge variant="outline" className="text-xs border-amber-500 text-amber-600">
+                          <Badge key="offer-badge" variant="outline" className="text-xs border-amber-500 text-amber-600">
                             {t("in_offer")}
                           </Badge>
                         )}
                         {canDelete && (
-                          <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                          <Badge key="delete-badge" variant="outline" className="text-xs border-green-500 text-green-600">
                             {t("can_delete")}
                           </Badge>
                         )}
                         {isSelected && (
-                          <CheckCircle className="h-4 w-4 text-primary" />
+                          <CheckCircle key="check-icon" className="h-4 w-4 text-primary" />
                         )}
                       </h3>
                       <p className="text-sm text-muted-foreground">

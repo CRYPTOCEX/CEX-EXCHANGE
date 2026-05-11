@@ -89,13 +89,17 @@ exports.default = async (data) => {
     let eligible = false;
     let reason = "";
     const now = new Date();
-    const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+    const totalRaisedResult = await db_1.models.icoTransaction.findOne({
         where: {
             offeringId: offering.id,
             status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED', 'REFUNDED'] }
         },
+        attributes: [
+            [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised']
+        ],
         raw: true,
-    }) || 0;
+    });
+    const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
     const softCap = offering.targetAmount * 0.3;
     if (offering.status === 'FAILED' || offering.status === 'CANCELLED') {
         eligible = true;
@@ -119,7 +123,7 @@ exports.default = async (data) => {
     }
     const transactions = await db_1.models.icoTransaction.findAll({
         where: { offeringId: offering.id },
-        attributes: ["status", "amount", "price"],
+        attributes: ["status", "amount", "price", "userId"],
     });
     const refundDetails = {
         totalInvestors: 0,

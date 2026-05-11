@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const error_1 = require("@b/utils/error");
 const emails_1 = require("@b/utils/emails");
 const console_1 = require("@b/utils/console");
@@ -180,18 +181,16 @@ exports.default = async (data) => {
                 });
                 const newBalance = parseFloat(String(wallet.balance)) + netAmount;
                 if (feeAmount > 0) {
-                    try {
-                        await db_1.models.adminProfit.create({
-                            type: 'DEPOSIT',
-                            amount: feeAmount,
-                            currency: currency,
-                            transactionId: transaction.id,
-                            description: `PayFast processing fee for transaction ${transaction.id}`,
-                        }, { transaction: dbTransaction });
-                    }
-                    catch (profitError) {
-                        console_1.logger.error('PAYFAST', 'Failed to record admin profit', profitError);
-                    }
+                    await (0, fees_1.collectPlatformFee)({
+                        userId: transaction.userId,
+                        currency,
+                        walletType: "FIAT",
+                        feeAmount,
+                        type: "DEPOSIT",
+                        description: `Platform fee from PayFast deposit for transaction ${transaction.id}`,
+                        referenceId: transaction.id,
+                        metadata: { method: "payfast" },
+                    });
                 }
                 try {
                     await (0, emails_1.sendFiatTransactionEmail)(transaction.user, transaction, currency, newBalance);

@@ -17,6 +17,7 @@ interface TradeActionsProps {
   status: string;
   type: "buy" | "sell";
   loading: boolean;
+  isExpiredByTime?: boolean;
   onConfirmPayment: () => Promise<void>;
   onReleaseFunds: () => Promise<void>;
   onCancelTrade: () => Promise<void>;
@@ -27,6 +28,7 @@ export function TradeActions({
   status,
   type,
   loading,
+  isExpiredByTime,
   onConfirmPayment,
   onReleaseFunds,
   onCancelTrade,
@@ -48,33 +50,52 @@ export function TradeActions({
         >
           {tExt("cancel_trade")}
         </Button>
-        <Button
-          onClick={onConfirmPayment}
-          disabled={loading}
-          className="flex-1 sm:flex-none"
-        >
-          <Upload className="mr-2 h-4 w-4" />
-          {t("confirm_payment_sent")}
-        </Button>
+        {isExpiredByTime ? (
+          <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 p-3 rounded-md border border-red-200 dark:border-red-800">
+            <Clock className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <p className="text-sm text-red-600 dark:text-red-400">
+              {t("trade_expired_cannot_confirm_payment")}
+            </p>
+          </div>
+        ) : (
+          <Button
+            onClick={onConfirmPayment}
+            disabled={loading}
+            className="flex-1 sm:flex-none"
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {t("confirm_payment_sent")}
+          </Button>
+        )}
       </>
     );
   }
 
   // Seller waiting for buyer to confirm payment (PENDING status)
+  // Seller can also cancel the trade if they don't want to proceed
   if (isWaitingPayment(status) && type === "sell") {
     return (
-      <div className="w-full">
-        <div className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-200 dark:border-blue-800">
+      <>
+        <Button
+          variant="outline"
+          onClick={onCancelTrade}
+          disabled={loading}
+          className="flex-1 sm:flex-none"
+        >
+          {tExt("cancel_trade")}
+        </Button>
+        <div className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-200 dark:border-blue-800">
           <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           <p className="text-sm text-blue-600 dark:text-blue-400">
             {t("waiting_for_buyer_to_confirm_payment")}
           </p>
         </div>
-      </div>
+      </>
     );
   }
 
   // Seller can release funds after buyer confirms payment (PAYMENT_SENT status)
+  // Seller cannot cancel after payment is confirmed (scam prevention)
   if (isPaymentSent(status) && type === "sell") {
     return (
       <>

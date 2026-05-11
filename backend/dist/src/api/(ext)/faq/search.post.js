@@ -18,7 +18,6 @@ exports.metadata = {
                 schema: {
                     type: "object",
                     properties: {
-                        userId: { type: "string" },
                         query: { type: "string" },
                         category: { type: "string" },
                     },
@@ -44,6 +43,9 @@ exports.metadata = {
     },
     requiresAuth: false,
 };
+function escapeLike(str) {
+    return str.replace(/[%_\\]/g, '\\$&');
+}
 exports.default = async (data) => {
     const { body, user, ctx } = data;
     const { query, category } = body;
@@ -62,8 +64,8 @@ exports.default = async (data) => {
         const where = {
             status: true,
             [sequelize_1.Op.or]: [
-                { question: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
-                { answer: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
+                { question: { [sequelize_1.Op.like]: `%${escapeLike(searchQuery)}%` } },
+                { answer: { [sequelize_1.Op.like]: `%${escapeLike(searchQuery)}%` } },
             ],
         };
         if (category && category !== "all") {
@@ -76,26 +78,24 @@ exports.default = async (data) => {
             limit: 50,
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording search for analytics");
-        const userId = (user === null || user === void 0 ? void 0 : user.id) || body.userId;
-        if (userId || searchQuery.length > 3) {
+        const userId = (user === null || user === void 0 ? void 0 : user.id) || null;
+        if (userId && searchQuery.length > 3) {
             db_1.models.faqSearch.create({
                 userId,
                 query: searchQuery,
                 resultCount: faqs.length,
                 category,
-            }).catch(error => {
-                console.error("Error recording FAQ search:", error);
+            }).catch(() => {
             });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Found ${faqs.length} FAQs matching query`);
         return faqs;
     }
     catch (error) {
-        console.error("Error searching FAQs:", error);
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to search FAQs");
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to search FAQs");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error ? error.message : "Failed to search FAQs",
+            message: "Failed to search FAQs",
         });
     }
 };

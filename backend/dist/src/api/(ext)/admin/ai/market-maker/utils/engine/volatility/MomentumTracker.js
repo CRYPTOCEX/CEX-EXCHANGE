@@ -1,1 +1,207 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.MomentumTracker=void 0;const DEFAULT_EVENT_CONFIG={eventProbability:5e-4,minMagnitude:.5,maxMagnitude:3},EVENT_PROBABILITIES={SURGE:.35,DUMP:.3,SPIKE:.25,FLASH_CRASH:.1};class MomentumTracker{constructor(t){this.states=new Map;this.eventConfig={...DEFAULT_EVENT_CONFIG,...t}}getState(t){this.states.has(t)||this.states.set(t,{momentum:0,lastUpdate:new Date,activeEvent:null,eventHistory:[],consecutiveDirection:0});return this.states.get(t)}getCurrentMomentum(t){return this.getState(t).momentum}updateMomentum(t,e,n,a=.95){const i=this.getState(t);i.momentum=this.applyDecay(i,a);const r="BUY"===e?1:-1,u=r*Math.min(.1*n,.1);i.momentum+=u;"BUY"===e&&i.consecutiveDirection>=0||"SELL"===e&&i.consecutiveDirection<=0?i.consecutiveDirection+=r:i.consecutiveDirection=r;Math.abs(i.consecutiveDirection)>5&&(i.momentum+=.02*r);i.momentum=Math.max(-1,Math.min(1,i.momentum));i.lastUpdate=new Date;return i.momentum}decayMomentum(t,e,n){const a=this.getState(t);a.momentum=this.applyDecay(a,e,n);a.lastUpdate=new Date;return a.momentum}applyDecay(t,e,n){const a=(null!=n?n:Date.now()-t.lastUpdate.getTime())/1e3;return t.momentum*Math.pow(e,a)}checkForMomentumEvent(t,e){const n=this.getState(t),a={...this.eventConfig,...e};if(n.activeEvent){if(Date.now()-n.activeEvent.startedAt.getTime()<n.activeEvent.duration)return this.getDecayedEvent(n.activeEvent);n.activeEvent=null}if(Math.random()<a.eventProbability){const t=this.generateEvent(a);n.activeEvent=t;n.eventHistory.push({type:t.type,magnitude:t.magnitude,timestamp:new Date});n.eventHistory.length>20&&n.eventHistory.shift();return t}return null}getActiveEvent(t){const e=this.getState(t);if(!e.activeEvent)return null;if(Date.now()-e.activeEvent.startedAt.getTime()>=e.activeEvent.duration){e.activeEvent=null;return null}return this.getDecayedEvent(e.activeEvent)}getDecayedEvent(t){const e=(Date.now()-t.startedAt.getTime())/t.duration,n=Math.pow(t.decayRate,10*e);return{...t,magnitude:t.magnitude*n}}generateEvent(t){const e=this.selectEventType(),n=this.getEventConfig(e);return{type:e,magnitude:(t.minMagnitude+Math.random()*(t.maxMagnitude-t.minMagnitude))*n.magnitudeMultiplier,duration:n.duration,decayRate:n.decayRate,startedAt:new Date}}selectEventType(){const t=Math.random();let e=0;for(const[n,a]of Object.entries(EVENT_PROBABILITIES)){e+=a;if(t<=e)return n}return"SURGE"}getEventConfig(t){switch(t){case"SURGE":return{magnitudeMultiplier:.5,duration:3e5,decayRate:.85};case"DUMP":return{magnitudeMultiplier:-.6,duration:24e4,decayRate:.8};case"SPIKE":return{magnitudeMultiplier:Math.random()>.5?.7:-.7,duration:6e4,decayRate:.7};case"FLASH_CRASH":return{magnitudeMultiplier:-.8,duration:3e4,decayRate:.6}}}triggerEvent(t,e,n,a){const i=this.getState(t),r=this.getEventConfig(e),u={type:e,magnitude:n,duration:null!=a?a:r.duration,decayRate:r.decayRate,startedAt:new Date};i.activeEvent=u;i.eventHistory.push({type:u.type,magnitude:u.magnitude,timestamp:new Date});return u}clearEvent(t){this.getState(t).activeEvent=null}setMomentum(t,e,n){const a=this.getState(t);a.momentum=Math.max(-1,Math.min(1,e));a.lastUpdate=null!=n?n:new Date}getEventHistory(t){return[...this.getState(t).eventHistory]}getFullState(t){return{...this.getState(t)}}resetState(t){this.states.delete(t)}updateConfig(t){this.eventConfig={...this.eventConfig,...t}}}exports.MomentumTracker=MomentumTracker;exports.default=MomentumTracker;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MomentumTracker = void 0;
+const DEFAULT_EVENT_CONFIG = {
+    eventProbability: 0.0005,
+    minMagnitude: 0.5,
+    maxMagnitude: 3.0,
+};
+const EVENT_PROBABILITIES = {
+    SURGE: 0.35,
+    DUMP: 0.30,
+    SPIKE: 0.25,
+    FLASH_CRASH: 0.10,
+};
+class MomentumTracker {
+    constructor(eventConfig) {
+        this.states = new Map();
+        this.eventConfig = { ...DEFAULT_EVENT_CONFIG, ...eventConfig };
+    }
+    getState(marketId) {
+        if (!this.states.has(marketId)) {
+            this.states.set(marketId, {
+                momentum: 0,
+                lastUpdate: new Date(),
+                activeEvent: null,
+                eventHistory: [],
+                consecutiveDirection: 0,
+            });
+        }
+        return this.states.get(marketId);
+    }
+    getCurrentMomentum(marketId) {
+        return this.getState(marketId).momentum;
+    }
+    updateMomentum(marketId, direction, magnitude, decayRate = 0.95) {
+        const state = this.getState(marketId);
+        state.momentum = this.applyDecay(state, decayRate);
+        const directionMultiplier = direction === "BUY" ? 1 : -1;
+        const momentumChange = directionMultiplier * Math.min(magnitude * 0.1, 0.1);
+        state.momentum += momentumChange;
+        if ((direction === "BUY" && state.consecutiveDirection >= 0) ||
+            (direction === "SELL" && state.consecutiveDirection <= 0)) {
+            state.consecutiveDirection += directionMultiplier;
+        }
+        else {
+            state.consecutiveDirection = directionMultiplier;
+        }
+        if (Math.abs(state.consecutiveDirection) > 5) {
+            state.momentum += directionMultiplier * 0.02;
+        }
+        state.momentum = Math.max(-1, Math.min(1, state.momentum));
+        state.lastUpdate = new Date();
+        return state.momentum;
+    }
+    decayMomentum(marketId, decayRate, elapsedMs) {
+        const state = this.getState(marketId);
+        state.momentum = this.applyDecay(state, decayRate, elapsedMs);
+        state.lastUpdate = new Date();
+        return state.momentum;
+    }
+    applyDecay(state, decayRate, elapsedMs) {
+        const elapsed = elapsedMs !== null && elapsedMs !== void 0 ? elapsedMs : Date.now() - state.lastUpdate.getTime();
+        const decaySteps = elapsed / 1000;
+        return state.momentum * Math.pow(decayRate, decaySteps);
+    }
+    checkForMomentumEvent(marketId, customConfig) {
+        const state = this.getState(marketId);
+        const config = { ...this.eventConfig, ...customConfig };
+        if (state.activeEvent) {
+            const elapsed = Date.now() - state.activeEvent.startedAt.getTime();
+            if (elapsed < state.activeEvent.duration) {
+                return this.getDecayedEvent(state.activeEvent);
+            }
+            else {
+                state.activeEvent = null;
+            }
+        }
+        if (Math.random() < config.eventProbability) {
+            const event = this.generateEvent(config);
+            state.activeEvent = event;
+            state.eventHistory.push({
+                type: event.type,
+                magnitude: event.magnitude,
+                timestamp: new Date(),
+            });
+            if (state.eventHistory.length > 20) {
+                state.eventHistory.shift();
+            }
+            return event;
+        }
+        return null;
+    }
+    getActiveEvent(marketId) {
+        const state = this.getState(marketId);
+        if (!state.activeEvent)
+            return null;
+        const elapsed = Date.now() - state.activeEvent.startedAt.getTime();
+        if (elapsed >= state.activeEvent.duration) {
+            state.activeEvent = null;
+            return null;
+        }
+        return this.getDecayedEvent(state.activeEvent);
+    }
+    getDecayedEvent(event) {
+        const elapsed = Date.now() - event.startedAt.getTime();
+        const progress = elapsed / event.duration;
+        const decayFactor = Math.pow(event.decayRate, progress * 10);
+        return {
+            ...event,
+            magnitude: event.magnitude * decayFactor,
+        };
+    }
+    generateEvent(config) {
+        const type = this.selectEventType();
+        const baseConfig = this.getEventConfig(type);
+        const magnitude = config.minMagnitude +
+            Math.random() * (config.maxMagnitude - config.minMagnitude);
+        const adjustedMagnitude = magnitude * baseConfig.magnitudeMultiplier;
+        return {
+            type,
+            magnitude: adjustedMagnitude,
+            duration: baseConfig.duration,
+            decayRate: baseConfig.decayRate,
+            startedAt: new Date(),
+        };
+    }
+    selectEventType() {
+        const roll = Math.random();
+        let cumulative = 0;
+        for (const [type, probability] of Object.entries(EVENT_PROBABILITIES)) {
+            cumulative += probability;
+            if (roll <= cumulative) {
+                return type;
+            }
+        }
+        return "SURGE";
+    }
+    getEventConfig(type) {
+        switch (type) {
+            case "SURGE":
+                return {
+                    magnitudeMultiplier: 0.5,
+                    duration: 300000,
+                    decayRate: 0.85,
+                };
+            case "DUMP":
+                return {
+                    magnitudeMultiplier: -0.6,
+                    duration: 240000,
+                    decayRate: 0.8,
+                };
+            case "SPIKE":
+                return {
+                    magnitudeMultiplier: Math.random() > 0.5 ? 0.7 : -0.7,
+                    duration: 60000,
+                    decayRate: 0.7,
+                };
+            case "FLASH_CRASH":
+                return {
+                    magnitudeMultiplier: -0.8,
+                    duration: 30000,
+                    decayRate: 0.6,
+                };
+        }
+    }
+    triggerEvent(marketId, type, magnitude, durationMs) {
+        const state = this.getState(marketId);
+        const baseConfig = this.getEventConfig(type);
+        const event = {
+            type,
+            magnitude,
+            duration: durationMs !== null && durationMs !== void 0 ? durationMs : baseConfig.duration,
+            decayRate: baseConfig.decayRate,
+            startedAt: new Date(),
+        };
+        state.activeEvent = event;
+        state.eventHistory.push({
+            type: event.type,
+            magnitude: event.magnitude,
+            timestamp: new Date(),
+        });
+        return event;
+    }
+    clearEvent(marketId) {
+        const state = this.getState(marketId);
+        state.activeEvent = null;
+    }
+    setMomentum(marketId, momentum, lastUpdate) {
+        const state = this.getState(marketId);
+        state.momentum = Math.max(-1, Math.min(1, momentum));
+        state.lastUpdate = lastUpdate !== null && lastUpdate !== void 0 ? lastUpdate : new Date();
+    }
+    getEventHistory(marketId) {
+        return [...this.getState(marketId).eventHistory];
+    }
+    getFullState(marketId) {
+        return { ...this.getState(marketId) };
+    }
+    resetState(marketId) {
+        this.states.delete(marketId);
+    }
+    updateConfig(config) {
+        this.eventConfig = { ...this.eventConfig, ...config };
+    }
+}
+exports.MomentumTracker = MomentumTracker;
+exports.default = MomentumTracker;

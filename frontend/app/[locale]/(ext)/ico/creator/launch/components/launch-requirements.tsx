@@ -7,11 +7,14 @@ import {
 } from "@/components/ui/card";
 import { Check, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useConfigStore } from "@/store/config";
 
 export function LaunchRequirements() {
   const t = useTranslations("ext_ico");
   const tExt = useTranslations("ext");
   const tCommon = useTranslations("common");
+  const { settings } = useConfigStore();
+  const kycRequired = settings["icoKycRequired"];
   return (
     <div className="space-y-6">
       <Card>
@@ -33,15 +36,17 @@ export function LaunchRequirements() {
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-              <div>
-                <h4 className="font-medium">{tCommon("kyc_verification")}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {t("all_team_members_verification_process")}.
-                </p>
+            {kycRequired && (
+              <div className="flex items-start gap-2">
+                <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="font-medium">{tCommon("kyc_verification")}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {t("all_team_members_verification_process")}.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-start gap-2">
               <Check className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />

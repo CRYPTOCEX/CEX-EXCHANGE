@@ -17,6 +17,7 @@ import {
   Instagram,
   Send,
   Link as LinkIcon,
+  Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserStore } from "@/store/user";
@@ -448,11 +449,24 @@ export const PersonalInfoTab = memo(function PersonalInfoTab() {
               </p>
               <p className="text-xs text-zinc-500">Days Active</p>
             </div>
-            <div className="text-center p-4 rounded-xl bg-zinc-800/50">
-              <p className="text-2xl font-bold text-white font-mono text-sm truncate">
-                {user.id.slice(0, 8)}...
+            <div
+              className="text-center p-4 rounded-xl bg-zinc-800/50 cursor-pointer hover:bg-zinc-700/50 transition-colors group"
+              onClick={() => {
+                navigator.clipboard.writeText(user.id);
+                toast({
+                  title: "UUID Copied",
+                  description:
+                    "Your account UUID has been copied to clipboard. Share it with others for transfers.",
+                });
+              }}
+            >
+              <p className="font-bold text-white font-mono text-xs break-all leading-relaxed">
+                {user.id}
               </p>
-              <p className="text-xs text-zinc-500">Account ID</p>
+              <p className="text-xs text-zinc-500 flex items-center justify-center gap-1 mt-1">
+                <Copy className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                Click to copy UUID
+              </p>
             </div>
           </div>
         </div>

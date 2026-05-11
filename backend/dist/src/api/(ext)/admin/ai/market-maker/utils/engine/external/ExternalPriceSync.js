@@ -1,1 +1,183 @@
-"use strict";var __importDefault=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});exports.ExternalPriceSync=void 0;const exchange_1=__importDefault(require("@b/utils/exchange")),redis_1=require("@b/utils/redis"),console_1=require("@b/utils/console"),redis=redis_1.RedisSingleton.getInstance(),PRICE_CACHE_TTL=5;class ExternalPriceSync{constructor(){this.exchangeManager=exchange_1.default}async getExternalPrice(e){var t,r;const a=`external_price:${e}`;try{const e=await redis.get(a);if(e)return parseFloat(e)}catch(e){}try{const t=await this.exchangeManager.startExchange();if(!t){console_1.logger.debug("AI_MM","No exchange provider available for external price");return null}const r=await t.fetchTicker(e);if(!r||!r.last){console_1.logger.debug("AI_MM",`No ticker data for ${e}`);return null}const n=r.last;try{await redis.set(a,n.toString(),"EX",5)}catch(e){}return n}catch(a){(null===(t=a.message)||void 0===t?void 0:t.includes("not found"))||(null===(r=a.message)||void 0===r?void 0:r.includes("does not exist"))?console_1.logger.debug("AI_MM",`Symbol ${e} not found on exchange`):console_1.logger.error("AI_MM",`Error fetching external price for ${e}`,a);return null}}calculateGravityEffect(e,t,r){const a=(t-e)/e*100,n=r/100*Math.min(Math.abs(a)/10,1);return{targetPrice:e*(1-n)+t*n,pullStrength:n,divergence:a,externalPrice:t}}smoothPriceTransition(e,t,r=.5){const a=t-e,n=e*(r/100);if(Math.abs(a)<=n)return t;return e+(a>0?n:-n)}async getGravityAdjustedTarget(e,t,r){const a=await this.getExternalPrice(t);return a?this.calculateGravityEffect(e,a,r):null}async isSymbolAvailable(e){const t=`symbol_available:${e}`;try{const e=await redis.get(t);if(null!==e)return"1"===e}catch(e){}try{const r=await this.exchangeManager.startExchange();if(!r)return!1;r.markets||await r.loadMarkets();const a=e in r.markets;try{await redis.set(t,a?"1":"0","EX",3600)}catch(e){}return a}catch(t){console_1.logger.error("AI_MM",`Error checking symbol availability for ${e}`,t);return!1}}async getAvailableSymbols(){try{const e=await this.exchangeManager.startExchange();if(!e)return[];e.markets||await e.loadMarkets();return Object.keys(e.markets||{})}catch(e){console_1.logger.error("AI_MM","Error fetching available symbols",e);return[]}}calculateCorrelation(e){if(e.length<2)return 0;const t=e.length,r=e.map(e=>e.internal),a=e.map(e=>e.external),n=r.reduce((e,t)=>e+t,0)/t,c=a.reduce((e,t)=>e+t,0)/t;let s=0,l=0,i=0;for(let e=0;e<t;e++){const t=r[e]-n,o=a[e]-c;s+=t*o;l+=t*t;i+=o*o}const o=Math.sqrt(l*i);return 0===o?0:s/o}mapToExchangeSymbol(e){const t=e.split("/");return 2!==t.length?e:`${t[0].toUpperCase()}/${t[1].toUpperCase()}`}async clearPriceCache(e){try{await redis.del(`external_price:${e}`)}catch(e){}}async clearAllCaches(){try{const e=await redis.keys("external_price:*");e.length>0&&await redis.del(...e)}catch(e){console_1.logger.error("AI_MM","Error clearing external price caches",e)}}}exports.ExternalPriceSync=ExternalPriceSync;exports.default=ExternalPriceSync;
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ExternalPriceSync = void 0;
+const exchange_1 = __importDefault(require("@b/utils/exchange"));
+const redis_1 = require("@b/utils/redis");
+const console_1 = require("@b/utils/console");
+const redis = redis_1.RedisSingleton.getInstance();
+const PRICE_CACHE_TTL = 5;
+class ExternalPriceSync {
+    constructor() {
+        this.exchangeManager = exchange_1.default;
+    }
+    async getExternalPrice(symbol) {
+        var _a, _b;
+        const cacheKey = `external_price:${symbol}`;
+        try {
+            const cached = await redis.get(cacheKey);
+            if (cached) {
+                return parseFloat(cached);
+            }
+        }
+        catch (error) {
+        }
+        try {
+            const exchange = await this.exchangeManager.startExchange();
+            if (!exchange) {
+                console_1.logger.debug("AI_MM", "No exchange provider available for external price");
+                return null;
+            }
+            const ticker = await exchange.fetchTicker(symbol);
+            if (!ticker || !ticker.last) {
+                console_1.logger.debug("AI_MM", `No ticker data for ${symbol}`);
+                return null;
+            }
+            const price = ticker.last;
+            try {
+                await redis.set(cacheKey, price.toString(), "EX", PRICE_CACHE_TTL);
+            }
+            catch (cacheError) {
+            }
+            return price;
+        }
+        catch (error) {
+            if (((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes("not found")) ||
+                ((_b = error.message) === null || _b === void 0 ? void 0 : _b.includes("does not exist"))) {
+                console_1.logger.debug("AI_MM", `Symbol ${symbol} not found on exchange`);
+            }
+            else {
+                console_1.logger.error("AI_MM", `Error fetching external price for ${symbol}`, error);
+            }
+            return null;
+        }
+    }
+    calculateGravityEffect(currentPrice, externalPrice, correlationStrength) {
+        const divergence = ((externalPrice - currentPrice) / currentPrice) * 100;
+        const strength = correlationStrength / 100;
+        const divergenceMultiplier = Math.min(Math.abs(divergence) / 10, 1);
+        const pullStrength = strength * divergenceMultiplier;
+        const targetPrice = currentPrice * (1 - pullStrength) + externalPrice * pullStrength;
+        return {
+            targetPrice,
+            pullStrength,
+            divergence,
+            externalPrice,
+        };
+    }
+    smoothPriceTransition(currentPrice, targetPrice, maxStepPercent = 0.5) {
+        const diff = targetPrice - currentPrice;
+        const maxStep = currentPrice * (maxStepPercent / 100);
+        if (Math.abs(diff) <= maxStep) {
+            return targetPrice;
+        }
+        const step = diff > 0 ? maxStep : -maxStep;
+        return currentPrice + step;
+    }
+    async getGravityAdjustedTarget(currentPrice, externalSymbol, correlationStrength) {
+        const externalPrice = await this.getExternalPrice(externalSymbol);
+        if (!externalPrice) {
+            return null;
+        }
+        return this.calculateGravityEffect(currentPrice, externalPrice, correlationStrength);
+    }
+    async isSymbolAvailable(symbol) {
+        const cacheKey = `symbol_available:${symbol}`;
+        try {
+            const cached = await redis.get(cacheKey);
+            if (cached !== null) {
+                return cached === "1";
+            }
+        }
+        catch (error) {
+        }
+        try {
+            const exchange = await this.exchangeManager.startExchange();
+            if (!exchange) {
+                return false;
+            }
+            if (!exchange.markets) {
+                await exchange.loadMarkets();
+            }
+            const available = symbol in exchange.markets;
+            try {
+                await redis.set(cacheKey, available ? "1" : "0", "EX", 3600);
+            }
+            catch (cacheError) {
+            }
+            return available;
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", `Error checking symbol availability for ${symbol}`, error);
+            return false;
+        }
+    }
+    async getAvailableSymbols() {
+        try {
+            const exchange = await this.exchangeManager.startExchange();
+            if (!exchange) {
+                return [];
+            }
+            if (!exchange.markets) {
+                await exchange.loadMarkets();
+            }
+            return Object.keys(exchange.markets || {});
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", "Error fetching available symbols", error);
+            return [];
+        }
+    }
+    calculateCorrelation(priceHistory) {
+        if (priceHistory.length < 2)
+            return 0;
+        const n = priceHistory.length;
+        const internals = priceHistory.map((p) => p.internal);
+        const externals = priceHistory.map((p) => p.external);
+        const meanInternal = internals.reduce((a, b) => a + b, 0) / n;
+        const meanExternal = externals.reduce((a, b) => a + b, 0) / n;
+        let numerator = 0;
+        let sumSqInternal = 0;
+        let sumSqExternal = 0;
+        for (let i = 0; i < n; i++) {
+            const diffInternal = internals[i] - meanInternal;
+            const diffExternal = externals[i] - meanExternal;
+            numerator += diffInternal * diffExternal;
+            sumSqInternal += diffInternal * diffInternal;
+            sumSqExternal += diffExternal * diffExternal;
+        }
+        const denominator = Math.sqrt(sumSqInternal * sumSqExternal);
+        if (denominator === 0)
+            return 0;
+        return numerator / denominator;
+    }
+    mapToExchangeSymbol(internalSymbol) {
+        const parts = internalSymbol.split("/");
+        if (parts.length !== 2) {
+            return internalSymbol;
+        }
+        return `${parts[0].toUpperCase()}/${parts[1].toUpperCase()}`;
+    }
+    async clearPriceCache(symbol) {
+        try {
+            await redis.del(`external_price:${symbol}`);
+        }
+        catch (error) {
+        }
+    }
+    async clearAllCaches() {
+        try {
+            const keys = await redis.keys("external_price:*");
+            if (keys.length > 0) {
+                await redis.del(...keys);
+            }
+        }
+        catch (error) {
+            console_1.logger.error("AI_MM", "Error clearing external price caches", error);
+        }
+    }
+}
+exports.ExternalPriceSync = ExternalPriceSync;
+exports.default = ExternalPriceSync;

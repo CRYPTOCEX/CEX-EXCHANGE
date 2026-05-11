@@ -112,7 +112,7 @@ exports.default = async (data) => {
             });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating available balance");
-        let availableBalance = userWallet.balance;
+        let availableBalance = Number(userWallet.balance);
         const walletData = await db_1.models.walletData.findOne({
             where: {
                 walletId: userWallet.id,
@@ -120,7 +120,6 @@ exports.default = async (data) => {
             },
         });
         if (walletData) {
-            availableBalance = Number(walletData.balance) || 0;
             if (token.contractType === "PERMIT") {
                 const privateLedger = await db_1.models.ecosystemPrivateLedger.findOne({
                     where: {

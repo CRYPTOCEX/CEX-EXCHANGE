@@ -109,7 +109,10 @@ exports.default = async (data) => {
     return {
         id: discount.id,
         code: discount.code,
-        status: discount.status,
+        type: discount.type || "PERCENTAGE",
         percentage: discount.percentage,
+        amount: discount.amount,
+        productId: discount.productId,
+        status: discount.status,
     };
 };

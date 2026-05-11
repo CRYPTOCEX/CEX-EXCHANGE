@@ -100,3 +100,7 @@ docs/patch-notes-data.json
 /frontend/public/img/screenshots
 /backend/ecosystem/wallets
 /.omc
+/backend/.omc
+/frontend/.omc
+tools/translation-manager/package-lock.json
+tools/translation-manager/package-lock.json

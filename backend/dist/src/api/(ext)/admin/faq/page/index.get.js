@@ -4,12 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
-const fs_1 = __importDefault(require("fs"));
+const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
 const error_1 = require("@b/utils/error");
 const errors_1 = require("@b/utils/schema/errors");
-function getPagePaths(dir, basePath = "") {
-    const entries = fs_1.default.readdirSync(dir, { withFileTypes: true });
+async function getPagePaths(dir, basePath = "") {
+    const entries = await promises_1.default.readdir(dir, { withFileTypes: true });
     const paths = [];
     for (const entry of entries) {
         const fullPath = path_1.default.join(dir, entry.name);
@@ -31,7 +31,7 @@ function getPagePaths(dir, basePath = "") {
                 }
             }
             const newBasePath = routePart ? `${basePath}/${routePart}` : basePath;
-            paths.push(...getPagePaths(fullPath, newBasePath));
+            paths.push(...await getPagePaths(fullPath, newBasePath));
         }
         else if (entry.name === "page.tsx" || entry.name === "page.jsx") {
             const routePath = basePath || "/";
@@ -114,10 +114,9 @@ exports.default = async (data) => {
     let rawPaths = [];
     try {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Scanning page directories");
-        rawPaths = getPagePaths(appDir);
+        rawPaths = await getPagePaths(appDir);
     }
     catch (err) {
-        console.error("Error scanning pages directory:", err);
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to scan page directories");
         throw (0, error_1.createError)({
             statusCode: 500,

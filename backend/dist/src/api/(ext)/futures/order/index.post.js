@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const error_1 = require("@b/utils/error");
 const utils_1 = require("@b/api/finance/wallet/utils");
+const fees_1 = require("@b/utils/fees");
 let fromBigInt;
 let toBigIntFloat;
 let fromBigIntMultiply;
@@ -166,7 +167,7 @@ exports.default = async (data) => {
                 await (0, order_1.cancelOrderByUuid)(existingOrder.userId, existingOrder.id, existingOrder.createdAt.toISOString(), symbol, existingOrder.price, existingOrder.side, existingOrder.remaining);
                 (_8 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _8 === void 0 ? void 0 : _8.call(ctx, "Refunding balance to wallet");
                 const refundAmount = fromBigIntMultiply(existingOrder.remaining + existingOrder.fee, existingOrder.price);
-                await updateWalletBalance(pairWallet, refundAmount, "add");
+                await updateWalletBalance(pairWallet, refundAmount, "add", `futures_order_${existingOrder.id}_counter_refund`);
                 (_9 = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _9 === void 0 ? void 0 : _9.call(ctx, "Counter order closed existing position");
                 return {
                     message: "Counter order detected and existing position closed successfully",
@@ -209,9 +210,34 @@ exports.default = async (data) => {
             average: 0,
         };
         (_12 = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _12 === void 0 ? void 0 : _12.call(ctx, `Deducting ${cost + fee} ${pair} from wallet`);
-        await updateWalletBalance(pairWallet, cost + fee, "subtract");
+        await updateWalletBalance(pairWallet, cost + fee, "subtract", `futures_order_${newOrder.id}_open`);
+        if (fee > 0) {
+            try {
+                await (0, fees_1.collectPlatformFee)({
+                    userId: user.id,
+                    currency: pair,
+                    walletType: "SPOT",
+                    feeAmount: fee,
+                    type: "TRADE",
+                    description: `Futures trading fee for ${symbol} order`,
+                    referenceId: newOrder.id,
+                    metadata: {
+                        orderId: newOrder.id,
+                        symbol,
+                        side,
+                        amount,
+                        price,
+                        leverage,
+                        cost,
+                    },
+                });
+            }
+            catch (feeError) {
+                console.error("Failed to collect futures platform fee:", feeError);
+            }
+        }
         try {
-            await (0, affiliate_1.processRewards)(user.id, cost, "FUTURES_TRADE", pair);
+            await (0, affiliate_1.processRewards)(user.id, cost, "FUTURES_TRADE", pair, `FUTURES_TRADE:futures_order:${newOrder.id}`);
         }
         catch (affiliateError) {
             console.error("Failed to process affiliate rewards:", affiliateError);

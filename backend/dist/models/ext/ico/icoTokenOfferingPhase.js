@@ -29,7 +29,7 @@ class icoTokenOfferingPhase extends sequelize_1.Model {
                 },
             },
             tokenPrice: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "tokenPrice: Must be a valid number" },
@@ -37,7 +37,7 @@ class icoTokenOfferingPhase extends sequelize_1.Model {
                 },
             },
             allocation: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "allocation: Must be a valid number" },
@@ -45,7 +45,7 @@ class icoTokenOfferingPhase extends sequelize_1.Model {
                 },
             },
             remaining: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "remaining: Must be a valid number" },
@@ -81,7 +81,7 @@ class icoTokenOfferingPhase extends sequelize_1.Model {
             sequelize,
             modelName: "icoTokenOfferingPhase",
             tableName: "ico_token_offering_phase",
-            timestamps: false,
+            timestamps: true,
             indexes: [
                 {
                     name: "PRIMARY",

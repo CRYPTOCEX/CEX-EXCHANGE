@@ -31,12 +31,33 @@ import { HeroSection } from "@/components/ui/hero-section";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
+// Backend response structure
+interface BackendHealthResponse {
+  status: string;
+  components: {
+    database: boolean;
+    copy_processor: boolean;
+    profit_share_processor: boolean;
+    cron_jobs: boolean;
+  };
+  metrics: {
+    pending_copy_orders: number;
+    average_copy_latency_ms: string;
+    last_trade_processed_at: string | null;
+    active_followers: number;
+    open_positions: number;
+  };
+}
+
+// Frontend-friendly structure
 interface HealthData {
   status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   services: {
     database: string;
     copyTradingEngine: string;
+    copyProcessor: string;
+    profitShareProcessor: string;
   };
   metrics: {
     totalTrades24h: number;
@@ -58,6 +79,34 @@ interface HealthData {
   recentErrors: any[];
 }
 
+// Transform backend response to frontend format
+function transformHealthResponse(backend: BackendHealthResponse): HealthData {
+  return {
+    status: backend.status as "healthy" | "degraded" | "unhealthy",
+    timestamp: new Date().toISOString(),
+    services: {
+      database: backend.components.database ? "connected" : "disconnected",
+      copyTradingEngine: backend.components.copy_processor ? "connected" : "disconnected",
+      copyProcessor: backend.components.copy_processor ? "connected" : "disconnected",
+      profitShareProcessor: backend.components.profit_share_processor ? "connected" : "disconnected",
+    },
+    metrics: {
+      totalTrades24h: 0,
+      executedTrades24h: 0,
+      failedTrades24h: 0,
+      pendingTrades: backend.metrics.pending_copy_orders,
+      failureRate: 0,
+      avgLatencyMs: parseFloat(backend.metrics.average_copy_latency_ms) || 0,
+      p95LatencyMs: 0,
+      p99LatencyMs: 0,
+      activeSubscriptions: backend.metrics.active_followers,
+      activeLeaders: 0,
+    },
+    alerts: [],
+    recentErrors: [],
+  };
+}
+
 export default function HealthClient() {
   const t = useTranslations("ext_admin");
   const tCommon = useTranslations("common");
@@ -75,7 +124,9 @@ export default function HealthClient() {
         silent: true,
       });
 
-      setHealth(data);
+      // Transform backend response to frontend format
+      const transformed = transformHealthResponse(data as BackendHealthResponse);
+      setHealth(transformed);
       setLastRefresh(new Date());
     } catch (error) {
       console.error("Failed to fetch health:", error);

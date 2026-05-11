@@ -49,6 +49,13 @@ class NodemailerProvider extends BaseEmailProvider_1.BaseEmailProvider {
         try {
             const transportConfig = {
                 auth: this.config.auth,
+                tls: {
+                    rejectUnauthorized: false,
+                    minVersion: "TLSv1.2",
+                },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 30000,
             };
             if (this.config.service) {
                 transportConfig.service = this.config.service;
@@ -57,6 +64,9 @@ class NodemailerProvider extends BaseEmailProvider_1.BaseEmailProvider {
                 transportConfig.host = this.config.host;
                 transportConfig.port = this.config.port;
                 transportConfig.secure = this.config.secure;
+                if (this.config.port === 587 && !this.config.secure) {
+                    transportConfig.requireTLS = true;
+                }
             }
             this.transporter = nodemailer.createTransport(transportConfig);
             this.log("Transporter initialized successfully");
@@ -104,6 +114,14 @@ class NodemailerProvider extends BaseEmailProvider_1.BaseEmailProvider {
         }
         catch (error) {
             this.logError("Failed to send email", error);
+            this.transporter = null;
+            try {
+                if (this.validateConfig()) {
+                    this.initializeTransporter();
+                }
+            }
+            catch (_a) {
+            }
             return {
                 success: false,
                 error: error.message || "Failed to send email via Nodemailer",

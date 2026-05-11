@@ -70,6 +70,9 @@ export function TransferForm() {
     estimatedReceiveAmount,
     transferFee,
     exchangeRate,
+    exchangeRateLoading,
+    fromPriceUSD,
+    toPriceUSD,
     loading,
     error,
     setError,
@@ -177,7 +180,7 @@ export function TransferForm() {
 
   const isFormValid = () => {
     // Check for loading states that should prevent submission
-    if (loading || recipientValidating) {
+    if (loading || recipientValidating || exchangeRateLoading) {
       return false;
     }
 
@@ -197,11 +200,19 @@ export function TransferForm() {
     }
 
     if (transferType === "wallet") {
-      return (
+      const walletValid = (
         toWalletType &&
         toCurrency &&
         toWalletType !== fromWalletType // Prevent same wallet type transfers
       );
+      if (!walletValid) return false;
+
+      // For cross-currency transfers, ensure exchange rate is available
+      if (fromCurrency !== toCurrency && (!exchangeRate || estimatedReceiveAmount <= 0)) {
+        return false;
+      }
+
+      return true;
     } else if (transferType === "client") {
       return (
         recipientUuid &&
@@ -928,8 +939,48 @@ export function TransferForm() {
                               {t("transfer_fee")}
                             </span>
                             <span className="font-medium">
-                              {transferFee.toFixed(8)} {fromCurrency}
+                              {transferFee.toFixed(2)} {fromCurrency}
                             </span>
+                          </div>
+                        )}
+
+                        {/* Exchange Rate Info - show when currencies differ */}
+                        {transferType === "wallet" && fromCurrency !== toCurrency && (
+                          <div className="space-y-2 border-t border-zinc-200 dark:border-zinc-700 pt-2">
+                            {exchangeRateLoading ? (
+                              <div className="flex items-center justify-center gap-2 py-2">
+                                <Loader size="sm" />
+                                <span className="text-zinc-500 dark:text-zinc-400">
+                                  {t("fetching_exchange_rate") || "Fetching exchange rate..."}
+                                </span>
+                              </div>
+                            ) : exchangeRate && exchangeRate !== 1 ? (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-zinc-600 dark:text-zinc-400">
+                                    {t("exchange_rate") || "Exchange Rate"}
+                                  </span>
+                                  <span className="font-medium">
+                                    1 {fromCurrency} = {exchangeRate < 0.01
+                                      ? exchangeRate.toFixed(8)
+                                      : exchangeRate.toFixed(2)
+                                    } {toCurrency}
+                                  </span>
+                                </div>
+                                {fromPriceUSD && (
+                                  <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-500">
+                                    <span>{fromCurrency} {t("price") || "price"}</span>
+                                    <span>${fromPriceUSD < 0.01 ? fromPriceUSD.toFixed(8) : fromPriceUSD.toFixed(2)} USD</span>
+                                  </div>
+                                )}
+                                {toPriceUSD && (
+                                  <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-500">
+                                    <span>{toCurrency} {t("price") || "price"}</span>
+                                    <span>${toPriceUSD < 0.01 ? toPriceUSD.toFixed(8) : toPriceUSD.toFixed(2)} USD</span>
+                                  </div>
+                                )}
+                              </>
+                            ) : null}
                           </div>
                         )}
 
@@ -937,12 +988,23 @@ export function TransferForm() {
                           <span className="text-zinc-900 dark:text-zinc-100 font-semibold">
                             {t("recipient_receives")}
                           </span>
-                          <span className="font-semibold text-green-600 dark:text-green-400">
-                            {estimatedReceiveAmount.toFixed(8)}{" "}
-                            {transferType === "wallet"
-                              ? toCurrency
-                              : fromCurrency}
-                          </span>
+                          {exchangeRateLoading ? (
+                            <span className="text-zinc-500 dark:text-zinc-400 italic">
+                              {t("calculating") || "Calculating..."}
+                            </span>
+                          ) : (
+                            <span className="font-semibold text-green-600 dark:text-green-400">
+                              {transferType === "wallet" && fromCurrency !== toCurrency
+                                ? (toWalletType === "FIAT"
+                                    ? estimatedReceiveAmount.toFixed(2)
+                                    : estimatedReceiveAmount.toFixed(8))
+                                : estimatedReceiveAmount.toFixed(2)
+                              }{" "}
+                              {transferType === "wallet"
+                                ? toCurrency
+                                : fromCurrency}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

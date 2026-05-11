@@ -39,13 +39,10 @@ exports.default = async (data) => {
         return result;
     }
     catch (error) {
-        console.error("Error fetching FAQ categories:", error);
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to fetch FAQ categories");
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch FAQ categories");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error
-                ? error.message
-                : "Failed to fetch FAQ categories",
+            message: "Failed to fetch FAQ categories",
         });
     }
 };

@@ -21,7 +21,6 @@ class binaryAiEnginePosition extends sequelize_1.Model {
             binaryOrderId: {
                 type: sequelize_1.DataTypes.UUID,
                 allowNull: false,
-                unique: true,
                 validate: {
                     notEmpty: { msg: "binaryOrderId: Binary Order ID must not be empty" },
                     isUUID: { args: 4, msg: "binaryOrderId: Must be a valid UUID" },

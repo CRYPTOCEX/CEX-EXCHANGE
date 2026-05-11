@@ -21,7 +21,7 @@ export interface BasicInfoStepProps {
     field: "currency" | "pair" | "isTrending" | "isHot",
     value: any
   ) => void;
-  tokenOptions: { label: string; value: string }[];
+  tokenOptions: { label: string; value: string; symbol?: string }[];
   isLoadingTokens: boolean;
 }
 
@@ -129,7 +129,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               {t("selected_trading_pair")}:
             </p>
             <p className="text-lg font-semibold text-primary">
-              {formData.currency}/{formData.pair}
+              {tokenOptions.find((t) => t.value === formData.currency)?.symbol || formData.currency}/
+              {tokenOptions.find((t) => t.value === formData.pair)?.symbol || formData.pair}
             </p>
           </div>
         )}
@@ -153,12 +154,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onValueChange={(val) => updateField("isTrending", val === "true")}
             >
               <SelectTrigger
-                title={
-                  <span className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    {t("is_trending")}
-                  </span>
-                }
                 description={t("trending_description")}
                 className="w-full"
               >
@@ -187,12 +182,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({
               onValueChange={(val) => updateField("isHot", val === "true")}
             >
               <SelectTrigger
-                title={
-                  <span className="flex items-center gap-2">
-                    <Flame className="h-4 w-4" />
-                    {t("is_hot")}
-                  </span>
-                }
                 description={t("hot_description")}
                 className="w-full"
               >

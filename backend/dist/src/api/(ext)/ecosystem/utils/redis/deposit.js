@@ -17,7 +17,7 @@ const getAsync = (key) => redis.get(key);
 const delAsync = (key) => redis.del(key);
 const keysAsync = (pattern) => redis.keys(pattern);
 async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     try {
         console_1.logger.info("DEPOSIT", `Processing deposit for immediate broadcast: ${txHash}`);
         if (isPending && txDetails.type === "pending_confirmation") {
@@ -30,8 +30,8 @@ async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false
                 chain: txDetails.chain,
                 address: address,
             };
-            console_1.logger.debug("DEPOSIT", `Broadcasting to subscribed clients with payload: ${JSON.stringify(broadcastPayload)}`);
-            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", broadcastPayload, {
+            console_1.logger.info("DEPOSIT", `Broadcasting to subscribed clients with payload: ${JSON.stringify(broadcastPayload)}`);
+            Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", broadcastPayload, {
                 stream: "verification",
                 data: {
                     type: "pending_confirmation",
@@ -68,7 +68,7 @@ async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false
                 chain: txDetails.chain,
                 address: address,
             };
-            Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", broadcastPayload, {
+            Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", broadcastPayload, {
                 stream: "verification",
                 data: {
                     status: 200,
@@ -122,6 +122,38 @@ async function storeAndBroadcastTransaction(txDetails, txHash, isPending = false
         }
     }
     catch (error) {
+        if ((_e = error.message) === null || _e === void 0 ? void 0 : _e.includes("already processed")) {
+            console_1.logger.info("DEPOSIT", `Deposit ${txHash} already processed, broadcasting confirmation to frontend`);
+            let rawAddress;
+            if (txDetails.chain === "MO") {
+                rawAddress = Array.isArray(txDetails.to) ? txDetails.to[0] : txDetails.to;
+            }
+            else {
+                rawAddress = txDetails.address || (Array.isArray(txDetails.to) ? txDetails.to[0] : txDetails.to);
+            }
+            const address = typeof rawAddress === 'string' ? rawAddress.toLowerCase() : rawAddress;
+            const currency = txDetails.currency || txDetails.chain;
+            Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", { currency, chain: txDetails.chain, address }, {
+                stream: "verification",
+                data: {
+                    status: 200,
+                    message: "Deposit confirmed",
+                    transactionHash: txHash,
+                    hash: txHash,
+                    trx: {
+                        amount: txDetails.amount,
+                        hash: txHash,
+                        chain: txDetails.chain,
+                        from: txDetails.from,
+                        to: txDetails.to,
+                    },
+                    currency: currency,
+                    chain: txDetails.chain,
+                    method: "Wallet Deposit",
+                },
+            });
+            return;
+        }
         console_1.logger.error("DEPOSIT", `Error in immediate deposit processing for ${txHash}`, error);
     }
     console_1.logger.info("DEPOSIT", `Storing ${txHash} as pending for verification worker`);

@@ -1,1 +1,240 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),gateway_1=require("@b/utils/gateway"),utils_1=require("../utils"),console_1=require("@b/utils/console");exports.metadata={summary:"Create a refund",description:"Creates a refund for a completed payment. Can be a full or partial refund.",operationId:"createRefund",tags:["Gateway","Refund"],requestBody:{required:!0,content:{"application/json":{schema:utils_1.createRefundSchema}}},responses:{201:{description:"Refund created successfully",content:{"application/json":{schema:utils_1.refundResponseSchema}}},400:{description:"Invalid request or payment cannot be refunded"},401:{description:"Invalid or missing API key"},404:{description:"Payment not found"}},requiresAuth:!1,logModule:"GATEWAY",logTitle:"Create Refund"};exports.default=async e=>{var t,a,r,n;const{body:s,headers:o,ctx:d}=e;null==d||d.step("Authenticate API key");const u=(null==o?void 0:o["x-api-key"])||(null==o?void 0:o["X-API-Key"]),i=(null===(a=null===(t=null==o?void 0:o["x-forwarded-for"])||void 0===t?void 0:t.split(",")[0])||void 0===a?void 0:a.trim())||(null==o?void 0:o["x-real-ip"])||(null==o?void 0:o["cf-connecting-ip"])||null,{merchant:l,apiKey:c,isTestMode:m,isSecretKey:f}=await(0,gateway_1.authenticateGatewayApi)(u,i);if(!f){null==d||d.fail("Secret key required");throw(0,error_1.createError)({statusCode:403,message:"Secret key required to create refunds"})}(0,gateway_1.checkApiPermission)(c,"refund.create");null==d||d.step("Validate required fields");if(!s.paymentId){null==d||d.fail("Missing paymentId");throw(0,error_1.createError)({statusCode:400,message:"Missing required field: paymentId"})}null==d||d.step("Find payment to refund");const p=await db_1.models.gatewayPayment.findOne({where:{paymentIntentId:s.paymentId,merchantId:l.id}});if(!p){null==d||d.fail("Payment not found");throw(0,error_1.createError)({statusCode:404,message:"Payment not found"})}if(p.testMode!==m){null==d||d.fail("Test mode mismatch");throw(0,error_1.createError)({statusCode:404,message:"Payment not found"})}null==d||d.step("Validate payment can be refunded");if("COMPLETED"!==p.status&&"PARTIALLY_REFUNDED"!==p.status){null==d||d.fail(`Payment status is ${p.status}`);throw(0,error_1.createError)({statusCode:400,message:`Payment with status ${p.status} cannot be refunded`})}null==d||d.step("Calculate refund amount and validate");const y=s.amount?parseFloat(s.amount):p.amount,g=(await db_1.models.gatewayRefund.findAll({where:{paymentId:p.id,status:"COMPLETED"}})).reduce((e,t)=>e+parseFloat(t.amount),0),E=p.amount-g;if(y>E){null==d||d.fail("Refund amount exceeds remaining refundable amount");throw(0,error_1.createError)({statusCode:400,message:`Refund amount ${y} exceeds remaining refundable amount ${E}`})}null==d||d.step("Generate refund ID and calculate fees");const h=(0,gateway_1.generateRefundId)(),w=p.feeAmount/p.amount,I=y*w;let _;null==d||d.step("Process refund in database transaction");try{_=await db_1.sequelize.transaction(async e=>{const t=await db_1.models.gatewayRefund.create({paymentId:p.id,merchantId:l.id,refundId:h,amount:y,currency:p.currency,reason:s.reason||"REQUESTED_BY_CUSTOMER",description:s.description||null,status:"COMPLETED",metadata:s.metadata||null},{transaction:e});if(p.customerId&&!p.testMode){const a=p.allocations||[];if(0===a.length)throw(0,error_1.createError)({statusCode:400,message:"Payment has no allocation data for refund processing"});const r=await(0,gateway_1.processMultiWalletRefund)({userId:p.customerId,merchantUserId:l.userId,merchantId:l.id,paymentCurrency:p.currency,allocations:a,refundAmount:y,totalPaymentAmount:p.amount,feeAmount:I,refundId:h,paymentId:p.paymentIntentId,description:`Refund for payment ${p.paymentIntentId}`,transaction:e});await t.update({transactionId:r.userTransaction.id},{transaction:e})}const a=g+y>=p.amount?"REFUNDED":"PARTIALLY_REFUNDED";await p.update({status:a},{transaction:e});return t})}catch(e){null==d||d.fail(`Refund processing failed: ${e.message}`);if("SequelizeValidationError"===e.name||"SequelizeUniqueConstraintError"===e.name){const t=[];e.errors&&Array.isArray(e.errors)&&e.errors.forEach(e=>{t.push(e.message)});const a=t.length>0?t.join("; "):e.message||"Validation failed";throw(0,error_1.createError)({statusCode:400,message:a})}if(null===(r=e.message)||void 0===r?void 0:r.includes("Insufficient"))throw(0,error_1.createError)({statusCode:400,message:e.message});if(null===(n=e.message)||void 0===n?void 0:n.includes("wallet not found"))throw(0,error_1.createError)({statusCode:400,message:e.message});if(e.statusCode)throw e;console_1.logger.error("GATEWAY_REFUND","Refund processing failed",e);throw(0,error_1.createError)({statusCode:500,message:`Failed to process refund: ${e.message}`})}null==d||d.step("Send refund completion webhook");if(p.webhookUrl)try{await(0,gateway_1.sendWebhook)(l.id,p.id,_.id,"refund.completed",p.webhookUrl,{id:`evt_${h}`,type:"refund.completed",createdAt:(new Date).toISOString(),data:{id:h,paymentId:p.paymentIntentId,merchantOrderId:p.merchantOrderId,amount:y,currency:p.currency,status:"COMPLETED",reason:s.reason||"REQUESTED_BY_CUSTOMER"}},l.webhookSecret)}catch(e){console_1.logger.error("GATEWAY_REFUND","Failed to send refund.completed webhook",e)}null==d||d.success("Refund created successfully");return{id:h,paymentId:p.paymentIntentId,amount:y,currency:p.currency,status:"COMPLETED",reason:s.reason||"REQUESTED_BY_CUSTOMER",description:s.description||null,createdAt:_.createdAt}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const gateway_1 = require("@b/utils/gateway");
+const utils_1 = require("../utils");
+const console_1 = require("@b/utils/console");
+exports.metadata = {
+    summary: "Create a refund",
+    description: "Creates a refund for a completed payment. Can be a full or partial refund.",
+    operationId: "createRefund",
+    tags: ["Gateway", "Refund"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: utils_1.createRefundSchema,
+            },
+        },
+    },
+    responses: {
+        201: {
+            description: "Refund created successfully",
+            content: {
+                "application/json": {
+                    schema: utils_1.refundResponseSchema,
+                },
+            },
+        },
+        400: {
+            description: "Invalid request or payment cannot be refunded",
+        },
+        401: {
+            description: "Invalid or missing API key",
+        },
+        404: {
+            description: "Payment not found",
+        },
+    },
+    requiresAuth: false,
+    logModule: "GATEWAY",
+    logTitle: "Create Refund",
+};
+exports.default = async (data) => {
+    var _a, _b, _c, _d;
+    const { body, headers, ctx } = data;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Authenticate API key");
+    const apiKeyHeader = (headers === null || headers === void 0 ? void 0 : headers["x-api-key"]) || (headers === null || headers === void 0 ? void 0 : headers["X-API-Key"]);
+    const clientIp = ((_b = (_a = headers === null || headers === void 0 ? void 0 : headers["x-forwarded-for"]) === null || _a === void 0 ? void 0 : _a.split(",")[0]) === null || _b === void 0 ? void 0 : _b.trim()) ||
+        (headers === null || headers === void 0 ? void 0 : headers["x-real-ip"]) ||
+        (headers === null || headers === void 0 ? void 0 : headers["cf-connecting-ip"]) ||
+        null;
+    const { merchant, apiKey, isTestMode, isSecretKey } = await (0, gateway_1.authenticateGatewayApi)(apiKeyHeader, clientIp);
+    if (!isSecretKey) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Secret key required");
+        throw (0, error_1.createError)({
+            statusCode: 403,
+            message: "Secret key required to create refunds",
+        });
+    }
+    (0, gateway_1.checkApiPermission)(apiKey, "refund.create");
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate required fields");
+    if (!body.paymentId) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Missing paymentId");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Missing required field: paymentId",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Find payment to refund");
+    const payment = await db_1.models.gatewayPayment.findOne({
+        where: {
+            paymentIntentId: body.paymentId,
+            merchantId: merchant.id,
+        },
+    });
+    if (!payment) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Payment not found");
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Payment not found",
+        });
+    }
+    if (payment.testMode !== isTestMode) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Test mode mismatch");
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Payment not found",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate payment can be refunded");
+    if (payment.status !== "COMPLETED" &&
+        payment.status !== "PARTIALLY_REFUNDED") {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Payment status is ${payment.status}`);
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Payment with status ${payment.status} cannot be refunded`,
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculate refund amount and validate");
+    const refundAmount = body.amount
+        ? parseFloat(body.amount)
+        : payment.amount;
+    const existingRefunds = await db_1.models.gatewayRefund.findAll({
+        where: {
+            paymentId: payment.id,
+            status: "COMPLETED",
+        },
+    });
+    const totalRefunded = existingRefunds.reduce((sum, r) => sum + parseFloat(String(r.amount)), 0);
+    const remainingRefundable = payment.amount - totalRefunded;
+    if (refundAmount > remainingRefundable) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Refund amount exceeds remaining refundable amount");
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Refund amount ${refundAmount} exceeds remaining refundable amount ${remainingRefundable}`,
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Generate refund ID and calculate fees");
+    const refundId = (0, gateway_1.generateRefundId)();
+    const feePercentage = payment.feeAmount / payment.amount;
+    const proportionalFee = refundAmount * feePercentage;
+    let result;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Process refund in database transaction");
+    try {
+        result = await db_1.sequelize.transaction(async (t) => {
+            const refund = await db_1.models.gatewayRefund.create({
+                paymentId: payment.id,
+                merchantId: merchant.id,
+                refundId,
+                amount: refundAmount,
+                currency: payment.currency,
+                reason: body.reason || "REQUESTED_BY_CUSTOMER",
+                description: body.description || null,
+                status: "COMPLETED",
+                metadata: body.metadata || null,
+            }, { transaction: t });
+            if (payment.customerId && !payment.testMode) {
+                const allocations = payment.allocations || [];
+                if (allocations.length === 0) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Payment has no allocation data for refund processing",
+                    });
+                }
+                const refundResult = await (0, gateway_1.processMultiWalletRefund)({
+                    userId: payment.customerId,
+                    merchantUserId: merchant.userId,
+                    merchantId: merchant.id,
+                    paymentCurrency: payment.currency,
+                    allocations,
+                    refundAmount,
+                    totalPaymentAmount: payment.amount,
+                    feeAmount: proportionalFee,
+                    refundId,
+                    paymentId: payment.paymentIntentId,
+                    description: `Refund for payment ${payment.paymentIntentId}`,
+                    transaction: t,
+                });
+                await refund.update({ transactionId: refundResult.userTransaction.id }, { transaction: t });
+            }
+            const newTotalRefunded = totalRefunded + refundAmount;
+            const newStatus = newTotalRefunded >= payment.amount ? "REFUNDED" : "PARTIALLY_REFUNDED";
+            await payment.update({ status: newStatus }, { transaction: t });
+            return refund;
+        });
+    }
+    catch (error) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Refund processing failed: ${error.message}`);
+        if (error.name === "SequelizeValidationError" || error.name === "SequelizeUniqueConstraintError") {
+            const errorMessages = [];
+            if (error.errors && Array.isArray(error.errors)) {
+                error.errors.forEach((err) => {
+                    errorMessages.push(err.message);
+                });
+            }
+            const message = errorMessages.length > 0
+                ? errorMessages.join("; ")
+                : error.message || "Validation failed";
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message,
+            });
+        }
+        if ((_c = error.message) === null || _c === void 0 ? void 0 : _c.includes("Insufficient")) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: error.message,
+            });
+        }
+        if ((_d = error.message) === null || _d === void 0 ? void 0 : _d.includes("wallet not found")) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: error.message,
+            });
+        }
+        if (error.statusCode) {
+            throw error;
+        }
+        console_1.logger.error("GATEWAY_REFUND", "Refund processing failed", error);
+        throw (0, error_1.createError)({
+            statusCode: 500,
+            message: `Failed to process refund: ${error.message}`,
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Send refund completion webhook");
+    if (payment.webhookUrl) {
+        try {
+            await (0, gateway_1.sendWebhook)(merchant.id, payment.id, result.id, "refund.completed", payment.webhookUrl, {
+                id: `evt_${refundId}`,
+                type: "refund.completed",
+                createdAt: new Date().toISOString(),
+                data: {
+                    id: refundId,
+                    paymentId: payment.paymentIntentId,
+                    merchantOrderId: payment.merchantOrderId,
+                    amount: refundAmount,
+                    currency: payment.currency,
+                    status: "COMPLETED",
+                    reason: body.reason || "REQUESTED_BY_CUSTOMER",
+                },
+            }, merchant.webhookSecret);
+        }
+        catch (error) {
+            console_1.logger.error("GATEWAY_REFUND", "Failed to send refund.completed webhook", error);
+        }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Refund created successfully");
+    return {
+        id: refundId,
+        paymentId: payment.paymentIntentId,
+        amount: refundAmount,
+        currency: payment.currency,
+        status: "COMPLETED",
+        reason: body.reason || "REQUESTED_BY_CUSTOMER",
+        description: body.description || null,
+        createdAt: result.createdAt,
+    };
+};

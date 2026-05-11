@@ -26,10 +26,10 @@ export default function InvestmentClient() {
 
   // 2. Check feature/kyc
   const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
-  const hasViewInvestment = hasKyc() && canAccessFeature("view_investment");
+  const hasViewInvestment = hasKyc() && canAccessFeature("invest_general");
 
   if (kycEnabled && !hasViewInvestment) {
-    return <KycRequiredNotice feature="view_investment" />;
+    return <KycRequiredNotice feature="invest_general" />;
   }
 
   // 3. Normal rendering - ensure plans is an array

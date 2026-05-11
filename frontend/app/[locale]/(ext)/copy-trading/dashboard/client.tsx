@@ -269,7 +269,7 @@ export default function DashboardPage() {
             $fetch({
               url: "/api/copy-trading/leader/me",
               method: "GET",
-              silentSuccess: true,
+              silent: true,
             }),
             $fetch({
               url: "/api/copy-trading/stats",
@@ -284,24 +284,41 @@ export default function DashboardPage() {
           ]);
 
         if (!leaderResponse.error) {
-          setLeaderProfile(leaderResponse.data);
+          // Transform API response to expected format (flatten stats)
+          const apiData = leaderResponse.data;
+          const stats = apiData.stats || {};
+          const transformedProfile = {
+            ...apiData,
+            // Map nested stats to top-level, converting strings to numbers
+            winRate: parseFloat(stats.winRate) || 0,
+            roi: parseFloat(stats.totalProfit) || 0, // Using totalProfit as ROI proxy
+            totalFollowers: stats.totalFollowers || 0,
+            totalTrades: stats.totalTrades || 0,
+            totalProfit: parseFloat(stats.totalProfit) || 0,
+            totalVolume: parseFloat(stats.totalVolume) || 0,
+            // Convert string decimals to numbers
+            profitSharePercent: parseFloat(apiData.profitSharePercent) || 0,
+            minFollowAmount: parseFloat(apiData.minFollowAmount) || 0,
+          };
+          setLeaderProfile(transformedProfile);
           // Fetch leader's declared markets if they are a leader
-          if (leaderResponse.data?.id) {
+          if (apiData?.id) {
             const { data: leaderMarketsData } = await $fetch({
               url: "/api/copy-trading/leader/market",
               method: "GET",
               silentSuccess: true,
             });
-            if (leaderMarketsData) {
+            if (leaderMarketsData?.markets) {
+              setLeaderMarkets(leaderMarketsData.markets);
+            } else if (Array.isArray(leaderMarketsData)) {
               setLeaderMarkets(leaderMarketsData);
             }
           }
           // Show onboarding for new leaders (less than 5 trades or no markets)
-          const profile = leaderResponse.data;
           const isNewLeader =
-            profile.totalTrades < 5 &&
-            profile.totalFollowers === 0 &&
-            !localStorage.getItem(`leader-onboarding-dismissed-${profile.id}`);
+            transformedProfile.totalTrades < 5 &&
+            transformedProfile.totalFollowers === 0 &&
+            !localStorage.getItem(`leader-onboarding-dismissed-${transformedProfile.id}`);
           setShowOnboarding(isNewLeader);
         }
 
@@ -343,8 +360,21 @@ export default function DashboardPage() {
       silentSuccess: true,
     });
 
-    if (!error) {
-      setLeaderProfile(data);
+    if (!error && data) {
+      // Transform API response to expected format (flatten stats)
+      const stats = data.stats || {};
+      const transformedProfile = {
+        ...data,
+        winRate: parseFloat(stats.winRate) || 0,
+        roi: parseFloat(stats.totalProfit) || 0,
+        totalFollowers: stats.totalFollowers || 0,
+        totalTrades: stats.totalTrades || 0,
+        totalProfit: parseFloat(stats.totalProfit) || 0,
+        totalVolume: parseFloat(stats.totalVolume) || 0,
+        profitSharePercent: parseFloat(data.profitSharePercent) || 0,
+        minFollowAmount: parseFloat(data.minFollowAmount) || 0,
+      };
+      setLeaderProfile(transformedProfile);
     }
   };
 
@@ -1595,7 +1625,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="font-medium text-zinc-900 dark:text-white">
                                       {leaderMarket.minBase > 0
-                                        ? leaderMarket.minBase
+                                        ? parseFloat(Number(leaderMarket.minBase).toPrecision(8))
                                         : "Not set"}
                                     </div>
                                   </div>
@@ -1605,7 +1635,7 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="font-medium text-zinc-900 dark:text-white">
                                       {leaderMarket.minQuote > 0
-                                        ? leaderMarket.minQuote
+                                        ? parseFloat(Number(leaderMarket.minQuote).toPrecision(8))
                                         : "Not set"}
                                     </div>
                                   </div>

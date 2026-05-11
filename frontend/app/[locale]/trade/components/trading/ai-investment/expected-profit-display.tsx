@@ -1,18 +1,18 @@
 import { useTranslations } from "next-intl";
 interface ExpectedProfitDisplayProps {
   investmentAmount: number;
-  profitPercentage: number;
+  defaultProfit: number;
   currency: string;
 }
 
 export default function ExpectedProfitDisplay({
   investmentAmount,
-  profitPercentage,
+  defaultProfit,
   currency,
 }: ExpectedProfitDisplayProps) {
   const t = useTranslations("common");
-  // Calculate expected profit
-  const profit = (investmentAmount * profitPercentage) / 100;
+  // Calculate expected profit using defaultProfit (matches cron payout logic)
+  const profit = (investmentAmount * defaultProfit) / 100;
 
   // Format the profit based on the currency
   const formattedProfit = formatCurrencyValue(profit, currency);
@@ -24,7 +24,7 @@ export default function ExpectedProfitDisplay({
           {t("expected_profit")}
         </span>
         <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-          {formattedProfit} {currency} ({profitPercentage}%)
+          {formattedProfit} {currency} ({defaultProfit}%)
         </span>
       </div>
     </div>

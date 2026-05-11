@@ -27,7 +27,7 @@ export const useRoadmapStore = create<RoadmapStore>((set, get) => ({
   lastTokenIdFetched: null,
 
   fetchRoadmap: async (tokenId: string) => {
-    if (get().lastTokenIdFetched === tokenId && get().roadmapItems.length > 0) {
+    if (get().lastTokenIdFetched === tokenId) {
       return;
     }
     set({ isLoading: true, error: null });

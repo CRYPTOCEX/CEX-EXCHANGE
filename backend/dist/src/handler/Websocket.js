@@ -70,7 +70,6 @@ async function setupWebSocketEndpoint(app, routePath, entryPath) {
     if (typeof handler !== "function") {
         throw (0, error_1.createError)({ statusCode: 500, message: `Handler is not a function for ${entryPath}` });
     }
-    console_1.logger.info("WS", `Registering WebSocket endpoint: ${routePath}`);
     app.ws(routePath, {
         pong: (ws, message) => {
             ws.isAlive = true;
@@ -187,8 +186,12 @@ const registerClient = (route, clientId, ws, initialSubscription) => {
             subscriptions: new Set(initialSubscription ? [initialSubscription] : []),
         });
     }
-    else if (initialSubscription) {
-        routeClients.get(clientId).subscriptions.add(initialSubscription);
+    else {
+        const clientRecord = routeClients.get(clientId);
+        clientRecord.ws = ws;
+        if (initialSubscription) {
+            clientRecord.subscriptions.add(initialSubscription);
+        }
     }
 };
 exports.registerClient = registerClient;
@@ -223,9 +226,11 @@ function processSubscriptionChange(ws, message) {
     const route = ws.path;
     const subscriptionKey = JSON.stringify(message.payload);
     if (message.action === "SUBSCRIBE") {
+        console_1.logger.info("WS", `Client ${clientId} subscribing on route ${route} with key: ${subscriptionKey}`);
         (0, exports.registerClient)(route, clientId, ws, subscriptionKey);
     }
     else if (message.action === "UNSUBSCRIBE") {
+        console_1.logger.info("WS", `Client ${clientId} unsubscribing on route ${route} with key: ${subscriptionKey}`);
         (0, exports.removeClientSubscription)(route, clientId, subscriptionKey);
     }
 }

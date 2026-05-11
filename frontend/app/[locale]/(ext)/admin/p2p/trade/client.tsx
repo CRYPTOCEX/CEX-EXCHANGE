@@ -35,7 +35,7 @@ export default function TradesPage() {
       columns={columns}
       formConfig={formConfig}
       analytics={tradeAnalytics}
-      isParanoid={true}
+      isParanoid={false}
       design={{
         animation: "orbs",
         primaryColor: 'blue',

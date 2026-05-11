@@ -139,8 +139,8 @@ const getFiatPriceInUSD = async (currency) => {
     }
     const price = typeof fiatCurrency.price === 'number' ? fiatCurrency.price : parseFloat(String((_a = fiatCurrency.price) !== null && _a !== void 0 ? _a : 0));
     if (!price || isNaN(price) || price <= 0) {
-        console_1.logger.warn("CURRENCY", `Invalid price for FIAT currency ${currency}, defaulting to 1`);
-        return 1;
+        console_1.logger.warn("CURRENCY", `Invalid price for FIAT currency ${currency}: ${fiatCurrency.price}`);
+        throw (0, error_1.createError)(400, `Price not configured for currency ${currency}. Please update the currency rate.`);
     }
     return price;
 };

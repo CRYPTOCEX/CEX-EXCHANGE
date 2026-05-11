@@ -50,6 +50,7 @@ export default function AffiliateReferralPage() {
         canEdit
         canDelete
         canView={true}
+        isParanoid={false}
         title={t("affiliate_referrals")}
         description={tExtAdmin("track_and_manage_user_referral_relationships")}
         itemTitle="Affiliate Referral"

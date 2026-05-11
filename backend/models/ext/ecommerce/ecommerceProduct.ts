@@ -298,6 +298,12 @@ export default class ecommerceProduct
             using: "BTREE",
             fields: [{ name: "categoryId" }],
           },
+          {
+            name: "ecommerceProductSlugUnique",
+            unique: true,
+            using: "BTREE",
+            fields: [{ name: "slug" }],
+          },
         ],
         hooks: {
           async beforeValidate(product) {
@@ -346,14 +352,8 @@ export default class ecommerceProduct
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
-    ecommerceProduct.belongsToMany(models.ecommerceShipping, {
-      as: "shippings",
-      through: models.ecommerceOrder,
-      foreignKey: "productId",
-      otherKey: "shippingId",
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
-    });
+    // BUG-11 fixed: removed incorrect belongsToMany through ecommerceOrder
+    // ecommerceOrder doesn't have a productId column
     ecommerceProduct.hasMany(models.ecommerceWishlistItem, {
       as: "wishlistItems",
       foreignKey: "productId",

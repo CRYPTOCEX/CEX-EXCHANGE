@@ -7,7 +7,7 @@ const query_1 = require("@b/utils/query");
 const Middleware_1 = require("@b/handler/Middleware");
 exports.metadata = {
     summary: "Validate discount code",
-    description: "Validates a discount code and returns discount information if valid.",
+    description: "Validates a discount code and returns discount information if valid. Does NOT consume the discount — that happens during order placement.",
     operationId: "validateDiscountCode",
     tags: ["Ecommerce", "Discounts"],
     requiresAuth: true,
@@ -42,6 +42,7 @@ exports.metadata = {
                             code: { type: "string" },
                             type: { type: "string", enum: ["PERCENTAGE", "FIXED", "FREE_SHIPPING"] },
                             value: { type: "number" },
+                            productId: { type: "string" },
                             message: { type: "string" },
                             isValid: { type: "boolean" },
                         },
@@ -83,44 +84,47 @@ exports.default = async (data) => {
         });
     }
     try {
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up discount code");
-        const discount = await db_1.models.ecommerceDiscount.findOne({
-            where: {
-                code: code.toUpperCase().trim(),
-                status: true,
-            },
-        });
-        if (!discount) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid discount code");
-            return {
-                error: "Invalid discount code",
-                isValid: false,
-            };
-        }
-        const discountData = discount.get({ plain: true });
-        const now = new Date();
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking discount validity dates");
-        if (discountData.validUntil && new Date(discountData.validUntil) < now) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code has expired");
-            return {
-                error: "This discount code has expired",
-                isValid: false,
-            };
-        }
-        if (discountData.validFrom && new Date(discountData.validFrom) > now) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code is not yet active");
-            return {
-                error: "This discount code is not yet active",
-                isValid: false,
-            };
-        }
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking user usage history");
-        if (discountData.maxUses === 1) {
+        return await db_1.sequelize.transaction(async (transaction) => {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Looking up discount code");
+            const discount = await db_1.models.ecommerceDiscount.findOne({
+                where: {
+                    code: code.toUpperCase().trim(),
+                    status: true,
+                },
+                transaction,
+            });
+            if (!discount) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid discount code");
+                return {
+                    error: "Invalid discount code",
+                    isValid: false,
+                };
+            }
+            const discountData = discount.get({ plain: true });
+            const now = new Date();
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking discount validity dates");
+            if (discountData.validUntil && new Date(discountData.validUntil) < now) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code has expired");
+                return {
+                    error: "This discount code has expired",
+                    isValid: false,
+                };
+            }
+            if (discountData.validFrom && new Date(discountData.validFrom) > now) {
+                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code is not yet active");
+                return {
+                    error: "This discount code is not yet active",
+                    isValid: false,
+                };
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking user usage history");
             const existingUse = await db_1.models.ecommerceUserDiscount.findOne({
                 where: {
                     userId: user.id,
                     discountId: discountData.id,
+                    status: true,
                 },
+                transaction,
             });
             if (existingUse) {
                 ctx === null || ctx === void 0 ? void 0 : ctx.fail("User has already used this discount code");
@@ -129,53 +133,53 @@ exports.default = async (data) => {
                     isValid: false,
                 };
             }
-        }
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking usage limits");
-        if (discountData.maxUses && discountData.maxUses > 0) {
-            const usageCount = await db_1.models.ecommerceUserDiscount.count({
-                where: {
-                    discountId: discountData.id,
-                },
-            });
-            if (usageCount >= discountData.maxUses) {
-                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code has reached usage limit");
-                return {
-                    error: "This discount code has reached its usage limit",
-                    isValid: false,
-                };
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking usage limits");
+            if (discountData.maxUses && discountData.maxUses > 0) {
+                const usageCount = await db_1.models.ecommerceUserDiscount.count({
+                    where: {
+                        discountId: discountData.id,
+                        status: true,
+                    },
+                    transaction,
+                });
+                if (usageCount >= discountData.maxUses) {
+                    ctx === null || ctx === void 0 ? void 0 : ctx.fail("Discount code has reached usage limit");
+                    return {
+                        error: "This discount code has reached its usage limit",
+                        isValid: false,
+                    };
+                }
             }
-        }
-        let message = "";
-        switch (discountData.type) {
-            case "PERCENTAGE":
-                message = `${discountData.percentage}% discount applied!`;
-                break;
-            case "FIXED":
-                message = `$${discountData.amount} discount applied!`;
-                break;
-            case "FREE_SHIPPING":
-                message = "Free shipping applied!";
-                break;
-            default:
-                message = "Discount applied successfully!";
-        }
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating user discount record");
-        await db_1.models.ecommerceUserDiscount.create({
-            userId: user.id,
-            discountId: discountData.id,
-            status: true,
+            let message = "";
+            const discountType = discountData.type || "PERCENTAGE";
+            switch (discountType) {
+                case "PERCENTAGE":
+                    message = `${discountData.percentage}% discount applied!`;
+                    break;
+                case "FIXED":
+                    message = `${discountData.amount} discount applied!`;
+                    break;
+                case "FREE_SHIPPING":
+                    message = "Free shipping applied!";
+                    break;
+                default:
+                    message = "Discount applied successfully!";
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.success(`Discount code "${discountData.code}" validated successfully`);
+            return {
+                id: discountData.id,
+                code: discountData.code,
+                type: discountType,
+                value: discountType === "PERCENTAGE" ? discountData.percentage : discountData.amount,
+                productId: discountData.productId,
+                message,
+                isValid: true,
+            };
         });
-        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Discount code "${discountData.code}" validated successfully`);
-        return {
-            id: discountData.id,
-            code: discountData.code,
-            type: discountData.type,
-            value: discountData.type === "PERCENTAGE" ? discountData.percentage : discountData.amount,
-            message,
-            isValid: true,
-        };
     }
     catch (error) {
+        if (error.statusCode)
+            throw error;
         console.error("Discount validation error:", error);
         throw (0, error_1.createError)({
             statusCode: 500,

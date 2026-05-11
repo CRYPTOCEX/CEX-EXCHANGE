@@ -18,6 +18,65 @@ interface State {
   errorInfo: React.ErrorInfo | null;
 }
 
+interface DefaultP2PErrorUIProps {
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
+  onReset: () => void;
+}
+
+function DefaultP2PErrorUI({ error, errorInfo, onReset }: DefaultP2PErrorUIProps) {
+  const t = useTranslations("common");
+  const tCommon = useTranslations("common");
+
+  return (
+    <div className="flex items-center justify-center min-h-[400px] p-4">
+      <Card className="max-w-lg w-full">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-6 w-6 text-destructive" />
+            <CardTitle>{t("something_went_wrong")}</CardTitle>
+          </div>
+          <CardDescription>
+            {t("we_encountered_an_error_while_loading_this_page")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {process.env.NODE_ENV === "development" && error && (
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm font-mono text-muted-foreground">
+                {error.message}
+              </p>
+              {errorInfo && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-sm text-muted-foreground">
+                    {t("component_stack")}
+                  </summary>
+                  <pre className="mt-2 text-xs overflow-auto">
+                    {errorInfo.componentStack}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <Button onClick={onReset} variant="default">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              {tCommon("try_again")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = "/p2p"}
+            >
+              {t("go_to_p2p_home")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export class P2PErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -30,7 +89,7 @@ export class P2PErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("P2P Error Boundary caught an error:", error, errorInfo);
-    
+
     // Call optional error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
@@ -42,10 +101,6 @@ export class P2PErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Log to error reporting service
-    if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
-      // TODO: Send to error reporting service (e.g., Sentry)
-    }
   }
 
   handleReset = () => {
@@ -61,51 +116,11 @@ export class P2PErrorBoundary extends Component<Props, State> {
 
       // Default error UI
       return (
-        <div className="flex items-center justify-center min-h-[400px] p-4">
-          <Card className="max-w-lg w-full">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-6 w-6 text-destructive" />
-                <CardTitle>{t("something_went_wrong")}</CardTitle>
-              </div>
-              <CardDescription>
-                {t("we_encountered_an_error_while_loading_this_page")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {process.env.NODE_ENV === "development" && this.state.error && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-mono text-muted-foreground">
-                    {this.state.error.message}
-                  </p>
-                  {this.state.errorInfo && (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-sm text-muted-foreground">
-                        {t("component_stack")}
-                      </summary>
-                      <pre className="mt-2 text-xs overflow-auto">
-                        {this.state.errorInfo.componentStack}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <Button onClick={this.handleReset} variant="default">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  {tCommon("try_again")}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.href = "/p2p"}
-                >
-                  {t("go_to_p2p_home")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DefaultP2PErrorUI
+          error={this.state.error}
+          errorInfo={this.state.errorInfo}
+          onReset={this.handleReset}
+        />
       );
     }
 

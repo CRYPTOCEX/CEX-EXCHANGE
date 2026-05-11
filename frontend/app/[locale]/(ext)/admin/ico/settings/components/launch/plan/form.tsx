@@ -202,7 +202,7 @@ export default function LaunchPlanForm({
                   id="price"
                   type="number"
                   min="0"
-                  step="0.01"
+                  step="any"
                   label="Price"
                   value={formValues.price}
                   onChange={(e) => handleChange("price", e.target.value)}

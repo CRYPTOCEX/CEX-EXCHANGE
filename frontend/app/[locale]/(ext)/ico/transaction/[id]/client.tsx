@@ -351,7 +351,12 @@ export default function TransactionDetailsClient() {
                   <div className="flex justify-between items-end">
                     <p className="text-muted-foreground">{tCommon("fee")}</p>
                     <p className="font-medium text-right">
-                      $0.00
+                      {(() => {
+                        try {
+                          const notes = JSON.parse(transaction.notes || '{}');
+                          return notes.feeAmount ? `$${Number(notes.feeAmount).toFixed(2)}` : '$0.00';
+                        } catch { return '$0.00'; }
+                      })()}
                     </p>
                   </div>
                   <div className="flex justify-between items-end">

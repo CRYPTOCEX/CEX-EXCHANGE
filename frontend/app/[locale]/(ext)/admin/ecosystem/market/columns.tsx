@@ -41,24 +41,32 @@ export function useColumns(): ColumnDefinition[] {
     {
       key: "currency",
       title: tCommon("currency"),
-      type: "text",
+      type: "select",
       icon: ClipboardList,
       sortable: true,
       searchable: true,
       filterable: true,
       description: tExtAdmin("base_cryptocurrency_asset_symbol_for_the"),
       priority: 1,
+      apiEndpoint: {
+        method: "GET",
+        url: "/api/admin/ecosystem/token/options",
+      },
     },
     {
       key: "pair",
       title: tDashboardAdmin("pair"),
-      type: "text",
+      type: "select",
       icon: Network,
       sortable: true,
       searchable: true,
       filterable: true,
       description: tExtAdmin("complete_trading_pair_notation_e_g"),
       priority: 1,
+      apiEndpoint: {
+        method: "GET",
+        url: "/api/admin/ecosystem/token/options",
+      },
     },
     {
       key: "status",
@@ -285,8 +293,22 @@ export function useFormConfig(): FormConfig {
           icon: Network,
           priority: 1,
           fields: [
-            { key: "currency", required: true },
-            { key: "pair", required: true },
+            {
+              key: "currency",
+              required: true,
+              apiEndpoint: {
+                method: "GET",
+                url: "/api/admin/ecosystem/token/options",
+              },
+            },
+            {
+              key: "pair",
+              required: true,
+              apiEndpoint: {
+                method: "GET",
+                url: "/api/admin/ecosystem/token/options",
+              },
+            },
           ],
         },
         {

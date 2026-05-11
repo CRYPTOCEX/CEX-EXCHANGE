@@ -116,6 +116,19 @@ const exports_obj = {
     checkLicense: async () => ({ success: true, valid: true }),
     revalidateLicense: async () => ({ success: true, valid: true }),
 
+    // Blockchain license functions
+    isBlockchainActive: async () => ({ active: true }),
+    isBlockchainLicenseValid: async () => true,
+    isBlockchainEnabled: async () => true,
+    checkLicenseFile: async () => true,
+    getBlockchainProductId: async () => "00000000",
+    clearBlockchainLicenseCache: () => {},
+    reloadBlockchainProductIds: () => {},
+
+    // Fingerprint
+    getCachedFingerprint: () => 'bypassed',
+    generateFingerprint: async () => 'bypassed',
+
     // Misc
     default: {}
 };

@@ -73,7 +73,7 @@ async function getBinaryOrdersByStatus(status, ctx) {
         throw error;
     }
 }
-async function processBinaryRewards(userId, amount, status, currency, ctx) {
+async function processBinaryRewards(userId, amount, status, currency, ctx, orderId) {
     var _a, _b, _c;
     try {
         (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Processing binary rewards for user " + userId + ", status: " + status);
@@ -84,7 +84,8 @@ async function processBinaryRewards(userId, amount, status, currency, ctx) {
         else if (status === "LOSS" || status === "DRAW") {
             rewardType = "BINARY_TRADE_VOLUME";
         }
-        await (0, affiliate_1.processRewards)(userId, amount, rewardType, currency);
+        const sourceId = orderId ? `${rewardType}:binary_order:${orderId}` : undefined;
+        await (0, affiliate_1.processRewards)(userId, amount, rewardType, currency, sourceId);
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Successfully processed binary rewards for user " + userId);
     }
     catch (error) {

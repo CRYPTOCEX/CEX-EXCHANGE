@@ -37,6 +37,7 @@ exports.metadata = void 0;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const console_1 = require("@b/utils/console");
+const fees_1 = require("@b/utils/fees");
 const Middleware_1 = require("@b/handler/Middleware");
 const ownership_1 = require("../../../../p2p/utils/ownership");
 const wallet_1 = require("@b/services/wallet");
@@ -114,7 +115,7 @@ exports.default = async (data) => {
                     include: [{
                             model: db_1.models.p2pOffer,
                             as: "offer",
-                            attributes: ["currency", "walletType"],
+                            attributes: ["currency", "walletType", "type", "id"],
                         }],
                 }],
             lock: true,
@@ -125,7 +126,15 @@ exports.default = async (data) => {
             ctx === null || ctx === void 0 ? void 0 : ctx.fail("Dispute not found");
             throw (0, error_1.createError)({ statusCode: 404, message: "Dispute not found" });
         }
-        const trade = dispute.trade;
+        const trade = await db_1.models.p2pTrade.findByPk(dispute.tradeId, {
+            lock: true,
+            transaction,
+            include: [{
+                    model: db_1.models.p2pOffer,
+                    as: "offer",
+                    attributes: ["currency", "walletType", "type", "id"],
+                }],
+        });
         let tradeUpdated = false;
         let fundsHandled = false;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing dispute update");
@@ -159,10 +168,11 @@ exports.default = async (data) => {
                     if (sellerWallet) {
                         const safeUnlockAmount = Math.min((_a = trade.amount) !== null && _a !== void 0 ? _a : 0, (_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0);
                         if (safeUnlockAmount > 0) {
+                            const sellerIsAdmin = await (0, fees_1.isSuperAdmin)(trade.sellerId);
                             const escrowFeeAmount = parseFloat(trade.escrowFee || "0");
-                            const platformFee = Math.min(escrowFeeAmount, trade.amount);
+                            const platformFee = sellerIsAdmin ? 0 : Math.min(escrowFeeAmount, trade.amount);
                             const buyerNetAmount = Math.max(0, trade.amount - platformFee);
-                            const sellerIdempotencyKey = `p2p_dispute_seller_${trade.id}_${Date.now()}`;
+                            const sellerIdempotencyKey = `p2p_dispute_seller_${trade.id}`;
                             await wallet_1.walletService.executeFromHold({
                                 idempotencyKey: sellerIdempotencyKey,
                                 userId: trade.sellerId,
@@ -171,13 +181,13 @@ exports.default = async (data) => {
                                 currency: trade.offer.currency,
                                 amount: trade.amount,
                                 operationType: "P2P_DISPUTE_RESOLVE",
-                                fee: platformFee,
                                 description: `P2P dispute resolved (${outcome}) - seller debit`,
                                 metadata: {
                                     tradeId: trade.id,
                                     disputeId: dispute.id,
                                     resolution: outcome,
                                     adminId: user.id,
+                                    platformFee,
                                 },
                                 transaction,
                             });
@@ -185,7 +195,7 @@ exports.default = async (data) => {
                                 console_1.logger.warn("P2P_DISPUTE", `Partial fund handling for trade ${trade.id}: unlocked=${safeUnlockAmount}, expected=${trade.amount}`);
                             }
                             const buyerWallet = await wallet_1.walletCreationService.getOrCreateWallet(trade.buyerId, trade.offer.walletType, trade.offer.currency);
-                            const buyerIdempotencyKey = `p2p_dispute_buyer_${trade.id}_${Date.now()}`;
+                            const buyerIdempotencyKey = `p2p_dispute_buyer_${trade.id}`;
                             await wallet_1.walletService.credit({
                                 idempotencyKey: buyerIdempotencyKey,
                                 userId: trade.buyerId,
@@ -222,6 +232,17 @@ exports.default = async (data) => {
                                         description: `P2P escrow fee for disputed trade #${trade.id.slice(0, 8)}... - ${trade.amount} ${trade.offer.currency} (${outcome})`,
                                         tradeId: trade.id,
                                     }, { transaction });
+                                    await (0, fees_1.collectPlatformFee)({
+                                        userId: trade.sellerId,
+                                        currency: trade.offer.currency,
+                                        walletType: trade.offer.walletType,
+                                        feeAmount: platformFee,
+                                        type: "P2P_TRADE",
+                                        description: `P2P escrow fee for trade #${trade.id.slice(0, 8)}`,
+                                        referenceId: trade.id,
+                                        metadata: { tradeId: trade.id, buyerId: trade.buyerId, sellerId: trade.sellerId, disputeId: dispute.id, outcome },
+                                        transaction,
+                                    });
                                     console_1.logger.info("P2P_DISPUTE", `Platform commission recorded for trade ${trade.id}: ${platformFee} ${trade.offer.currency}`);
                                 }
                                 else {
@@ -238,36 +259,43 @@ exports.default = async (data) => {
                     finalTradeStatus = "COMPLETED";
                 }
                 else if (outcome === "SELLER_WINS" || outcome === "CANCELLED") {
-                    const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
-                    if (sellerWallet) {
-                        const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
-                        if (safeUnlockAmount > 0) {
-                            const releaseIdempotencyKey = `p2p_dispute_release_${trade.id}_${Date.now()}`;
-                            await wallet_1.walletService.release({
-                                idempotencyKey: releaseIdempotencyKey,
-                                userId: trade.sellerId,
-                                walletId: sellerWallet.id,
-                                walletType: trade.offer.walletType,
-                                currency: trade.offer.currency,
-                                amount: safeUnlockAmount,
-                                operationType: "P2P_DISPUTE_RESOLVE",
-                                description: `P2P dispute resolved (${outcome}) - funds returned to seller`,
-                                metadata: {
-                                    tradeId: trade.id,
-                                    disputeId: dispute.id,
-                                    resolution: outcome,
-                                    adminId: user.id,
-                                },
-                                transaction,
-                            });
-                            fundsHandled = true;
-                            if (safeUnlockAmount < trade.amount) {
-                                console_1.logger.warn("P2P_DISPUTE", `Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
+                    const tradeOffer = trade.offer;
+                    if (tradeOffer && tradeOffer.type === "BUY") {
+                        const sellerWallet = await getWalletSafe(trade.sellerId, trade.offer.walletType, trade.offer.currency);
+                        if (sellerWallet) {
+                            const safeUnlockAmount = Math.min((_c = trade.amount) !== null && _c !== void 0 ? _c : 0, (_d = sellerWallet.inOrder) !== null && _d !== void 0 ? _d : 0);
+                            if (safeUnlockAmount > 0) {
+                                const releaseIdempotencyKey = `p2p_dispute_release_${trade.id}`;
+                                await wallet_1.walletService.release({
+                                    idempotencyKey: releaseIdempotencyKey,
+                                    userId: trade.sellerId,
+                                    walletId: sellerWallet.id,
+                                    walletType: trade.offer.walletType,
+                                    currency: trade.offer.currency,
+                                    amount: safeUnlockAmount,
+                                    operationType: "P2P_DISPUTE_RESOLVE",
+                                    description: `P2P dispute resolved (${outcome}) - funds returned to seller`,
+                                    metadata: {
+                                        tradeId: trade.id,
+                                        disputeId: dispute.id,
+                                        resolution: outcome,
+                                        adminId: user.id,
+                                    },
+                                    transaction,
+                                });
+                                fundsHandled = true;
+                                if (safeUnlockAmount < trade.amount) {
+                                    console_1.logger.warn("P2P_DISPUTE", `Partial unlock for trade ${trade.id}: ${safeUnlockAmount}/${trade.amount}`);
+                                }
+                            }
+                            else {
+                                console_1.logger.warn("P2P_DISPUTE", `No funds to unlock for trade ${trade.id}`);
                             }
                         }
-                        else {
-                            console_1.logger.warn("P2P_DISPUTE", `No funds to unlock for trade ${trade.id}`);
-                        }
+                    }
+                    else if (tradeOffer && tradeOffer.type === "SELL") {
+                        fundsHandled = true;
+                        console_1.logger.info("P2P_DISPUTE", `SELL offer: funds remain locked for offer ${tradeOffer.id}`);
                     }
                     if (trade.offerId) {
                         const offer = await db_1.models.p2pOffer.findByPk(trade.offerId, {
@@ -431,7 +459,7 @@ exports.default = async (data) => {
             tradeUpdated,
             fundsHandled,
             adminName: `${user.firstName} ${user.lastName}`,
-        });
+        }, undefined, transaction);
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Broadcasting updates");
         if (tradeUpdated && trade) {

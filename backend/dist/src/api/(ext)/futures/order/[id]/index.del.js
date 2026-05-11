@@ -112,7 +112,7 @@ exports.default = async (data) => {
             });
         }
         (_l = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _l === void 0 ? void 0 : _l.call(ctx, `Refunding ${refundAmount} ${walletCurrency}`);
-        await updateWalletBalance(wallet, refundAmount, "add");
+        await updateWalletBalance(wallet, refundAmount, "add", `futures_order_${id}_cancel`);
         (_m = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _m === void 0 ? void 0 : _m.call(ctx, "Notifying matching engine of cancellation");
         const matchingEngine = await matchingEngine_1.FuturesMatchingEngine.getInstance();
         await matchingEngine.handleOrderCancellation(id, order.symbol);

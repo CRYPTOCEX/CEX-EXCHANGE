@@ -68,7 +68,7 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching trade statistics and activity");
     try {
-        const [totalTrades, completedTrades, disputedTrades, activeTrades, pendingTrades, trades,] = await Promise.all([
+        const [totalTrades, completedTrades, disputedTrades, activeTrades, pendingTrades, cancelledTrades, trades,] = await Promise.all([
             db_1.models.p2pTrade.count({
                 where: { [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
             }),
@@ -101,7 +101,7 @@ exports.default = async (data) => {
             db_1.models.p2pTrade.findAll({
                 where: {
                     status: {
-                        [sequelize_1.Op.in]: ["IN_PROGRESS", "PENDING", "PAYMENT_SENT", "ESCROW_RELEASED"],
+                        [sequelize_1.Op.in]: ["PENDING", "PAYMENT_SENT"],
                     },
                     [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
                 },
@@ -137,6 +137,25 @@ exports.default = async (data) => {
                     }
                 ],
                 order: [["createdAt", "DESC"]],
+            }),
+            db_1.models.p2pTrade.findAll({
+                where: {
+                    status: "CANCELLED",
+                    [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }],
+                },
+                include: [
+                    {
+                        association: "paymentMethodDetails",
+                        attributes: ["id", "name", "icon"],
+                        required: false
+                    },
+                    {
+                        association: "offer",
+                        attributes: ["id", "priceCurrency"],
+                        required: false
+                    }
+                ],
+                order: [["updatedAt", "DESC"]],
             }),
             db_1.models.p2pTrade.findAll({
                 where: { [sequelize_1.Op.or]: [{ buyerId: user.id }, { sellerId: user.id }] },
@@ -249,6 +268,7 @@ exports.default = async (data) => {
                 .slice(0, 7)
                 .map(formatTrade),
             disputedTrades: disputedTrades.map(formatTrade),
+            cancelledTrades: cancelledTrades.map(formatTrade),
             availableCurrencies,
         };
     }

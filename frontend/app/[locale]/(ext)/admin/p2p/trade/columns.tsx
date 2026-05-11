@@ -289,16 +289,6 @@ export function useFormConfig(): FormConfig {
           priority: 4,
           fields: [
             {
-              key: "buyerFee",
-              required: false,
-              min: 0
-            },
-            {
-              key: "sellerFee",
-              required: false,
-              min: 0
-            },
-            {
               key: "escrowFee",
               required: false,
               maxLength: 50
@@ -407,16 +397,6 @@ export function useFormConfig(): FormConfig {
           icon: DollarSign,
           priority: 4,
           fields: [
-            {
-              key: "buyerFee",
-              required: false,
-              min: 0
-            },
-            {
-              key: "sellerFee",
-              required: false,
-              min: 0
-            },
             {
               key: "escrowFee",
               required: false,

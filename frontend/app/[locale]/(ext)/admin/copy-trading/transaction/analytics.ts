@@ -120,7 +120,7 @@ export function useAnalytics() {
             title: t("allocations"),
             metric: "ALLOCATION",
             model: "copyTradingTransaction",
-            aggregation: { field: "type", value: "ALLOCATION" },
+            aggregation: { field: "transactionType", value: "ALLOCATION" },
             icon: "mdi:cash-plus",
           },
           {
@@ -128,7 +128,7 @@ export function useAnalytics() {
             title: tCommon("withdrawals"),
             metric: "WITHDRAWAL",
             model: "copyTradingTransaction",
-            aggregation: { field: "type", value: "WITHDRAWAL" },
+            aggregation: { field: "transactionType", value: "WITHDRAWAL" },
             icon: "mdi:cash-minus",
           },
           {
@@ -136,7 +136,7 @@ export function useAnalytics() {
             title: t("profit_shares"),
             metric: "PROFIT_SHARE",
             model: "copyTradingTransaction",
-            aggregation: { field: "type", value: "PROFIT_SHARE" },
+            aggregation: { field: "transactionType", value: "PROFIT_SHARE" },
             icon: "mdi:cash-multiple",
           },
           {
@@ -144,7 +144,7 @@ export function useAnalytics() {
             title: tExt("platform_fees"),
             metric: "PLATFORM_FEE",
             model: "copyTradingTransaction",
-            aggregation: { field: "type", value: "PLATFORM_FEE" },
+            aggregation: { field: "transactionType", value: "PLATFORM_FEE" },
             icon: "mdi:percent",
           },
         ],
@@ -164,7 +164,7 @@ export function useAnalytics() {
             model: "copyTradingTransaction",
             metrics: ["ALLOCATION", "WITHDRAWAL", "PROFIT_SHARE", "PLATFORM_FEE"],
             config: {
-              field: "type",
+              field: "transactionType",
               status: [
                 {
                   value: "ALLOCATION",

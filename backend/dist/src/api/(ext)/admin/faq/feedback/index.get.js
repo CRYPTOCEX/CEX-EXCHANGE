@@ -48,13 +48,13 @@ exports.default = async (data) => {
     try {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching all faq feedback");
         const feedbacks = await db_1.models.faqFeedback.findAll({
-            order: [["createdAt", "ASC"]],
+            order: [["createdAt", "DESC"]],
+            limit: 100,
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.success("all FAQ feedback retrieved successfully");
         return feedbacks;
     }
     catch (error) {
-        console.error("Error fetching FAQ feedback:", error);
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch all faq feedback");
         throw (0, error_1.createError)({
             statusCode: 500,

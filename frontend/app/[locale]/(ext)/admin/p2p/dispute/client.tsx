@@ -35,7 +35,7 @@ export default function AdminDisputesClient() {
       columns={columns}
       formConfig={formConfig}
       analytics={disputeAnalytics}
-      isParanoid={true}
+      isParanoid={false}
       design={{
         animation: "orbs",
         primaryColor: 'blue',

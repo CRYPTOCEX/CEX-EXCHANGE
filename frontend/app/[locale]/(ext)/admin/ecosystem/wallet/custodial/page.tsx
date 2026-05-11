@@ -23,8 +23,9 @@ export default function EcosystemCustodialWalletPage() {
       pageSize={12}
       canCreate
       canEdit
-      canDelete
+      canDelete={false}
       canView
+      isParanoid={true}
       title={t("custodial_wallet_management")}
       description={t("manage_and_monitor_user_custodial_wallets")}
       itemTitle="Custodial Wallet"

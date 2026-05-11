@@ -18,6 +18,8 @@ const error_1 = require("./error");
 const db_1 = require("@b/db");
 const emailTemplates_1 = require("./emailTemplates");
 const console_1 = require("@b/utils/console");
+let smtpTransporter = null;
+let serviceTransporter = null;
 async function sendEmailWithProvider(provider, options) {
     try {
         switch (provider) {
@@ -135,20 +137,23 @@ async function emailWithNodemailerService(sender, password, service, options) {
             message: "Email password not specified. Aborting email send.",
         });
     try {
-        const transporter = await nodemailer_1.default.createTransport({
-            service: service,
-            auth: {
-                user: sender,
-                pass: password,
-            },
-            tls: {
-                rejectUnauthorized: false,
-            },
-        });
-        await transporter.verify();
-        await transporter.sendMail(emailOptions);
+        if (!serviceTransporter) {
+            serviceTransporter = nodemailer_1.default.createTransport({
+                service: service,
+                auth: {
+                    user: sender,
+                    pass: password,
+                },
+                tls: {
+                    rejectUnauthorized: false,
+                },
+            });
+            await serviceTransporter.verify();
+        }
+        await serviceTransporter.sendMail(emailOptions);
     }
     catch (error) {
+        serviceTransporter = null;
         console_1.logger.error("EMAIL", "Failed to send email with nodemailer service", error);
         throw error;
     }
@@ -176,29 +181,46 @@ async function emailWithNodemailerSmtp(sender, password, host, port, smtpEncrypt
             message: "Email password not specified. Aborting email send.",
         });
     try {
-        const portNum = parseInt(port);
-        const useSecure = portNum === 465 || smtpEncryption;
-        const transportConfig = {
-            host: host,
-            port: portNum,
-            pool: true,
-            secure: useSecure,
-            auth: {
-                user: sender,
-                pass: password,
-            },
-            tls: {
-                rejectUnauthorized: false,
-                minVersion: "TLSv1.2",
-            },
-        };
-        console_1.logger.debug("SMTP", `Connecting to ${host}:${portNum}, secure: ${useSecure}`);
-        const transporter = await nodemailer_1.default.createTransport(transportConfig);
-        await transporter.verify();
-        await transporter.sendMail(emailOptions);
+        if (!smtpTransporter) {
+            const portNum = parseInt(port);
+            const useSecure = portNum === 465 || smtpEncryption;
+            const transportConfig = {
+                host: host,
+                port: portNum,
+                secure: useSecure,
+                auth: {
+                    user: sender,
+                    pass: password,
+                },
+                tls: {
+                    rejectUnauthorized: false,
+                    minVersion: "TLSv1.2",
+                },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 30000,
+            };
+            if (portNum === 587 && !useSecure) {
+                transportConfig.requireTLS = true;
+            }
+            console_1.logger.info("SMTP", `Connecting to ${host}:${portNum}, secure: ${useSecure}, requireTLS: ${transportConfig.requireTLS || false}, user: ${sender}`);
+            smtpTransporter = nodemailer_1.default.createTransport(transportConfig);
+            try {
+                await smtpTransporter.verify();
+                console_1.logger.info("SMTP", `SMTP connection verified successfully to ${host}:${portNum}`);
+            }
+            catch (verifyError) {
+                smtpTransporter = null;
+                console_1.logger.error("SMTP", `SMTP connection verification FAILED to ${host}:${portNum} - ${verifyError.message}`);
+                throw verifyError;
+            }
+        }
+        await smtpTransporter.sendMail(emailOptions);
+        console_1.logger.info("SMTP", `Email sent to ${options.to}, subject: ${options.subject}`);
     }
     catch (error) {
-        console_1.logger.error("SMTP", "Error sending email", error);
+        smtpTransporter = null;
+        console_1.logger.error("SMTP", `Error sending email to ${options.to}: ${error.message}`, error);
         throw error;
     }
 }

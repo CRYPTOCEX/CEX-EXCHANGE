@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
 const error_1 = require("@b/utils/error");
 exports.metadata = {
     summary: "Update ICO Offering (Admin)",
@@ -113,13 +114,40 @@ exports.default = async (data) => {
             offeringUpdates.targetAmount = targetAmount;
         }
         if (tokenPrice !== undefined && tokenPrice > 0) {
+            if (offering.status === "ACTIVE") {
+                const hasInvestors = await db_1.models.icoTransaction.count({
+                    where: { offeringId: id, status: { [sequelize_1.Op.in]: ["PENDING", "VERIFICATION", "RELEASED"] } },
+                    transaction,
+                });
+                if (hasInvestors > 0) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: "Cannot change token price on an active offering with existing investments.",
+                    });
+                }
+            }
             offeringUpdates.tokenPrice = tokenPrice;
         }
         if (startDate !== undefined) {
-            offeringUpdates.startDate = new Date(startDate);
+            const parsedStart = new Date(startDate);
+            if (offering.status === "PENDING" && parsedStart < new Date()) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Start date cannot be in the past for pending offerings.",
+                });
+            }
+            offeringUpdates.startDate = parsedStart;
         }
         if (endDate !== undefined) {
-            offeringUpdates.endDate = new Date(endDate);
+            const parsedEnd = new Date(endDate);
+            const effectiveStart = offeringUpdates.startDate || offering.startDate;
+            if (parsedEnd <= effectiveStart) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "End date must be after start date.",
+                });
+            }
+            offeringUpdates.endDate = parsedEnd;
         }
         if (featured !== undefined) {
             offeringUpdates.featured = featured;
@@ -137,6 +165,19 @@ exports.default = async (data) => {
                 detailUpdates.blockchain = blockchain;
             }
             if (totalSupply !== undefined && totalSupply > 0) {
+                const soldTokens = await db_1.models.icoTransaction.sum('amount', {
+                    where: {
+                        offeringId: id,
+                        status: { [sequelize_1.Op.in]: ["PENDING", "VERIFICATION", "RELEASED"] },
+                    },
+                    transaction,
+                }) || 0;
+                if (totalSupply < soldTokens) {
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Cannot reduce total supply below already-sold tokens (${soldTokens}).`,
+                    });
+                }
                 detailUpdates.totalSupply = totalSupply;
             }
             if (Object.keys(detailUpdates).length > 0) {

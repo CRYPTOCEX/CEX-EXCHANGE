@@ -16,7 +16,7 @@ interface FAQFilters {
   category?: string;
   status?: "active" | "inactive" | "all";
   hasCategory?: boolean;
-  page?: string; // Changed from hasPages to page
+  pagePath?: string;
 }
 
 interface PaginationState {
@@ -77,6 +77,8 @@ interface FAQAdminStore {
   disablePageFAQs: (pagePath: string) => Promise<boolean>;
 }
 
+let fetchFAQsCounter = 0;
+
 export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
   // Data
   faqs: [],
@@ -103,6 +105,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
   // Actions
   fetchFAQs: async (page = 1) => {
+    const requestId = ++fetchFAQsCounter;
     set({ loading: true, error: null });
     try {
       const filters = get().filters;
@@ -120,9 +123,13 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
         url += `&status=${filters.status === "active" ? "active" : "inactive"}`;
       }
 
-      if (filters.page) {
-        url += `&page=${encodeURIComponent(filters.page)}`;
+      if (filters.pagePath) {
+        url += `&pagePath=${encodeURIComponent(filters.pagePath)}`;
       }
+
+      // H15: Send perPage to API
+      const { perPage } = get().pagination;
+      url += `&limit=${perPage}`;
 
       const { data, error } = await $fetch<{
         items: faqAttributes[];
@@ -132,6 +139,9 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
         silentSuccess: true,
       });
 
+      // H16: Discard stale responses
+      if (requestId !== fetchFAQsCounter) return;
+
       if (error) {
         set({ error, loading: false });
         return;
@@ -139,14 +149,19 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       if (data) {
         // Process each FAQ to parse tags and relatedFaqIds if they are strings.
+        // H12: Safe JSON.parse with fallback
+        const safeJsonParse = (val: any, fallback: any[] = []) => {
+          if (typeof val !== "string") return val;
+          try {
+            return JSON.parse(val);
+          } catch {
+            return fallback;
+          }
+        };
         const processedItems = data.items.map((item) => ({
           ...item,
-          tags:
-            typeof item.tags === "string" ? JSON.parse(item.tags) : item.tags,
-          relatedFaqIds:
-            typeof item.relatedFaqIds === "string"
-              ? JSON.parse(item.relatedFaqIds)
-              : item.relatedFaqIds,
+          tags: safeJsonParse(item.tags, []),
+          relatedFaqIds: safeJsonParse(item.relatedFaqIds, []),
         }));
 
         set({
@@ -161,7 +176,6 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error("Error fetching FAQs:", error);
       set({
         error: error instanceof Error ? error.message : "Failed to fetch FAQs",
         loading: false,
@@ -184,7 +198,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
         set({ categories: data });
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      // silently ignore
     }
   },
 
@@ -202,8 +216,8 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
       if (data) {
         set({ pageLinks: data });
       }
-    } catch (error) {
-      console.error("Error fetching page links:", error);
+    } catch {
+      // silently ignore
     }
   },
 
@@ -228,6 +242,10 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
         // Update local state
         set((state) => ({
           faqs: [data, ...state.faqs],
+          pagination: {
+            ...state.pagination,
+            totalItems: state.pagination.totalItems + 1,
+          },
         }));
 
         return data;
@@ -235,7 +253,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return null;
     } catch (error) {
-      console.error("Error creating FAQ:", error);
+      // silently ignore
       return null;
     }
   },
@@ -268,7 +286,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return null;
     } catch (error) {
-      console.error("Error updating FAQ:", error);
+      // silently ignore
       return null;
     }
   },
@@ -287,11 +305,15 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
       // Update local state
       set((state) => ({
         faqs: state.faqs.filter((f) => f.id !== id),
+        pagination: {
+          ...state.pagination,
+          totalItems: state.pagination.totalItems - 1,
+        },
       }));
 
       return true;
     } catch (error) {
-      console.error("Error deleting FAQ:", error);
+      // silently ignore
       return false;
     }
   },
@@ -309,10 +331,10 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
       }
 
       if (data) {
-        // Update local state
+        // M20: Use server response instead of optimistic value
         set((state) => ({
           faqs: state.faqs.map((f) =>
-            f.id === id ? { ...f, status: active } : f
+            f.id === id ? { ...f, status: data.status ?? active } : f
           ),
         }));
 
@@ -321,7 +343,6 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return false;
     } catch (error) {
-      console.error("Error toggling FAQ status:", error);
       return false;
     }
   },
@@ -421,7 +442,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return true;
     } catch (error) {
-      console.error("Error reordering FAQs:", error);
+      // silently ignore
       return false;
     }
   },
@@ -447,7 +468,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return true;
     } catch (error) {
-      console.error("Error bulk updating FAQs:", error);
+      // silently ignore
       return false;
     }
   },
@@ -467,11 +488,15 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
       // Update local state
       set((state) => ({
         faqs: state.faqs.filter((f) => !ids.includes(f.id)),
+        pagination: {
+          ...state.pagination,
+          totalItems: state.pagination.totalItems - ids.length,
+        },
       }));
 
       return true;
     } catch (error) {
-      console.error("Error bulk deleting FAQs:", error);
+      // silently ignore
       return false;
     }
   },
@@ -518,13 +543,20 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
       }
 
       // Update local state by removing all FAQs with the given pagePath
-      set((state) => ({
-        faqs: state.faqs.filter((f) => f.pagePath !== pagePath),
-      }));
+      set((state) => {
+        const removedCount = state.faqs.filter((f) => f.pagePath === pagePath).length;
+        return {
+          faqs: state.faqs.filter((f) => f.pagePath !== pagePath),
+          pagination: {
+            ...state.pagination,
+            totalItems: Math.max(0, state.pagination.totalItems - removedCount),
+          },
+        };
+      });
 
       return true;
     } catch (error) {
-      console.error("Error deleting page with FAQs:", error);
+      // silently ignore
       return false;
     }
   },
@@ -550,7 +582,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return true;
     } catch (error) {
-      console.error("Error enabling page FAQs:", error);
+      // silently ignore
       return false;
     }
   },
@@ -576,7 +608,7 @@ export const useFAQAdminStore = create<FAQAdminStore>((set, get) => ({
 
       return true;
     } catch (error) {
-      console.error("Error disabling page FAQs:", error);
+      // silently ignore
       return false;
     }
   },

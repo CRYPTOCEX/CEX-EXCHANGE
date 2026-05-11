@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEcoWithdrawalConfirmationEmail = sendEcoWithdrawalConfirmationEmail;
 exports.sendEcoWithdrawalFailedEmail = sendEcoWithdrawalFailedEmail;
 const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
 const utxo_1 = require("@b/api/(ext)/ecosystem/utils/utxo");
 const notifications_1 = require("@b/utils/notifications");
 const safe_imports_1 = require("@b/utils/safe-imports");
@@ -11,11 +12,13 @@ const emails_1 = require("@b/utils/emails");
 const withdraw_1 = require("./withdraw");
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+const fees_1 = require("@b/utils/fees");
 class WithdrawalQueue {
     constructor() {
         this.queue = [];
         this.isProcessing = false;
         this.processingTransactions = new Set();
+        this.lastProcessedByChain = new Map();
     }
     static getInstance() {
         if (!WithdrawalQueue.instance) {
@@ -35,7 +38,62 @@ class WithdrawalQueue {
             this.processNext();
         }
     }
+    has(transactionId) {
+        return (this.processingTransactions.has(transactionId) ||
+            this.queue.includes(transactionId));
+    }
+    enqueueIfAbsent(transactionId) {
+        if (this.has(transactionId))
+            return false;
+        this.queue.push(transactionId);
+        return true;
+    }
+    kick() {
+        this.processNext();
+    }
+    async recoverPendingTransactions(olderThanMs = 0, autoKick = true) {
+        var _a;
+        try {
+            const where = {
+                type: "WITHDRAW",
+                status: "PENDING",
+            };
+            if (olderThanMs > 0) {
+                where.createdAt = { [sequelize_1.Op.lt]: new Date(Date.now() - olderThanMs) };
+            }
+            const rows = await db_1.models.transaction.findAll({
+                where,
+                include: [
+                    {
+                        model: db_1.models.wallet,
+                        as: "wallet",
+                        where: { type: "ECO" },
+                        required: true,
+                    },
+                ],
+                order: [["createdAt", "ASC"]],
+            });
+            let recovered = 0;
+            for (const row of rows) {
+                if (this.enqueueIfAbsent(row.id)) {
+                    recovered++;
+                    console_1.logger.info("WITHDRAW", `Recovered orphaned PENDING withdrawal ${row.id}`);
+                }
+            }
+            if (recovered > 0) {
+                console_1.logger.info("WITHDRAW", `Re-enqueued ${recovered} orphaned withdrawal(s); queue size now ${this.queue.length}`);
+                if (autoKick)
+                    this.kick();
+            }
+            return recovered;
+        }
+        catch (error) {
+            console_1.logger.error("WITHDRAW", `recoverPendingTransactions failed: ${(_a = error === null || error === void 0 ? void 0 : error.message) !== null && _a !== void 0 ? _a : error}`);
+            return 0;
+        }
+    }
     async processNext() {
+        var _a;
         if (this.isProcessing || this.queue.length === 0) {
             if (this.isProcessing) {
                 console_1.logger.debug("WITHDRAW", `Already processing, skipping`);
@@ -88,8 +146,15 @@ class WithdrawalQueue {
             }
             catch (error) {
                 console_1.logger.error("WITHDRAW", `Failed to process transaction ${transactionId}: ${error.message}`);
-                console_1.logger.info("WITHDRAW", `Marking transaction as failed`);
-                await this.markTransactionFailed(transactionId, error.message);
+                const isUnknownStatus = (_a = error.message) === null || _a === void 0 ? void 0 : _a.includes("WITHDRAWAL_STATUS_UNKNOWN");
+                if (isUnknownStatus) {
+                    console_1.logger.warn("WITHDRAW", `Transaction ${transactionId} has unknown status - NOT refunding. Manual review required.`);
+                    await this.notifyUnknownStatus(transactionId, error.message);
+                }
+                else {
+                    console_1.logger.info("WITHDRAW", `Marking transaction as failed`);
+                    await this.markTransactionFailed(transactionId, error.message);
+                }
                 await new Promise((resolve) => setTimeout(resolve, 1000));
             }
             finally {
@@ -104,6 +169,15 @@ class WithdrawalQueue {
     }
     async processWithdrawal(transaction, metadata) {
         console_1.logger.info("WITHDRAW", `processWithdrawal started for chain ${metadata.chain}`);
+        const chain = metadata.chain;
+        const lastProcessed = this.lastProcessedByChain.get(chain) || 0;
+        const elapsed = Date.now() - lastProcessed;
+        if (elapsed < WithdrawalQueue.CHAIN_COOLDOWN_MS) {
+            const waitTime = WithdrawalQueue.CHAIN_COOLDOWN_MS - elapsed;
+            console_1.logger.info("WITHDRAW", `Waiting ${waitTime}ms cooldown for chain ${chain}`);
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+        }
+        this.lastProcessedByChain.set(chain, Date.now());
         if (["BTC", "LTC", "DOGE", "DASH"].includes(metadata.chain)) {
             await (0, utxo_1.handleUTXOWithdrawal)(transaction);
         }
@@ -120,7 +194,12 @@ class WithdrawalQueue {
         else if (metadata.chain === "TRON") {
             const TronService = await (0, safe_imports_1.getTronService)();
             const tronService = await TronService.getInstance();
-            await tronService.handleTronWithdrawal(transaction.id, transaction.walletId, transaction.amount, metadata.toAddress);
+            if (metadata.contractType && metadata.contractType !== "NATIVE" && metadata.contract) {
+                await tronService.handleTrc20Withdrawal(transaction.id, transaction.walletId, metadata.contract, transaction.amount, metadata.toAddress, metadata.decimals || 6);
+            }
+            else {
+                await tronService.handleTronWithdrawal(transaction.id, transaction.walletId, transaction.amount, metadata.toAddress);
+            }
         }
         else if (metadata.chain === "XMR") {
             const MoneroService = await (0, safe_imports_1.getMoneroService)();
@@ -163,13 +242,16 @@ class WithdrawalQueue {
         if (transaction &&
             typeof transaction.fee === "number" &&
             transaction.fee > 0) {
-            await db_1.models.adminProfit.create({
-                amount: transaction.fee,
+            await (0, fees_1.collectPlatformFee)({
+                userId: transaction.userId,
                 currency: transaction.wallet.currency,
+                walletType: "ECO",
                 chain: metadata.chain,
+                feeAmount: transaction.fee,
                 type: "WITHDRAW",
-                transactionId: transaction.id,
                 description: `Admin profit from withdrawal fee of ${transaction.fee} ${transaction.wallet.currency} for transaction (${transaction.id})`,
+                referenceId: transaction.id,
+                metadata: { transactionId: transaction.id, chain: metadata.chain },
             });
         }
     }
@@ -209,7 +291,35 @@ class WithdrawalQueue {
             });
         }
     }
+    async notifyUnknownStatus(transactionId, errorMessage) {
+        try {
+            const transaction = await db_1.models.transaction.findByPk(transactionId, {
+                include: [{ model: db_1.models.wallet, as: "wallet", where: { type: "ECO" } }],
+            });
+            if (transaction && transaction.wallet) {
+                await (0, notifications_1.createNotification)({
+                    userId: transaction.userId,
+                    relatedId: transaction.id,
+                    title: "Withdrawal Under Review",
+                    message: `Your withdrawal of ${transaction.amount} ${transaction.wallet.currency} is being reviewed. This may take a few minutes.`,
+                    type: "system",
+                    link: `/finance/wallet/withdrawals/${transaction.id}`,
+                    actions: [
+                        {
+                            label: "View Withdrawal",
+                            link: `/finance/wallet/withdrawals/${transaction.id}`,
+                            primary: true,
+                        },
+                    ],
+                });
+            }
+        }
+        catch (notifyError) {
+            console_1.logger.error("WITHDRAW", `Failed to send unknown status notification: ${notifyError.message}`);
+        }
+    }
 }
+WithdrawalQueue.CHAIN_COOLDOWN_MS = 5000;
 async function sendEcoWithdrawalConfirmationEmail(user, transaction, wallet, toAddress, chain) {
     const emailType = "EcoWithdrawalConfirmation";
     const emailData = {

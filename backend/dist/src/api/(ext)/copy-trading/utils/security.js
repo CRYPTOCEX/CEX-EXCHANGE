@@ -1,1 +1,600 @@
-"use strict";async function leaderApplyRateLimiter(e){var i,a,t;const{user:o}=e,r=(await(0,index_1.getCopyTradingSettings)()).leaderApplicationRateLimit||10,n="copytrading:leader:apply";let s;if(null==o?void 0:o.id)s=`${n}:user:${o.id}`;else{s=`${n}:ip:${(null===(i=e.req)||void 0===i?void 0:i.ip)||(null===(t=null===(a=e.req)||void 0===a?void 0:a.connection)||void 0===t?void 0:t.remoteAddress)||"unknown"}`}const l=redis_1.RedisSingleton.getInstance(),d=await l.get(s);if(null!==d&&parseInt(d,10)>=r)throw(0,error_1.createError)({statusCode:429,message:"Too many leader applications. Please wait 24 hours before trying again."});null===d?await l.set(s,"1","EX",86400):await l.incr(s)}function isValidUUID(e){return"string"==typeof e&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(e)}function sanitizeString(e,i=1e3){return"string"!=typeof e?"":e.trim().slice(0,i).replace(/[<>]/g,"").replace(/'/g,"''").replace(/\\/g,"\\\\")}function validateNumber(e,i={}){const{min:a,max:t,allowZero:o=!0,allowNegative:r=!1}=i,n=parseFloat(e);return isNaN(n)?{valid:!1,value:0,error:"Invalid number"}:o||0!==n?!r&&n<0?{valid:!1,value:0,error:"Negative values are not allowed"}:void 0!==a&&n<a?{valid:!1,value:n,error:`Value must be at least ${a}`}:void 0!==t&&n>t?{valid:!1,value:n,error:`Value must not exceed ${t}`}:{valid:!0,value:n}:{valid:!1,value:0,error:"Zero is not allowed"}}function validateLeaderApplication(e){const i=[],a={};if(e.displayName&&"string"==typeof e.displayName){const t=sanitizeString(e.displayName,100);t.length<2?i.push("Display name must be at least 2 characters"):t.length>100?i.push("Display name must not exceed 100 characters"):/^[a-zA-Z0-9\s\-_]+$/.test(t)?a.displayName=t:i.push("Display name can only contain letters, numbers, spaces, hyphens, and underscores")}else i.push("Display name is required");e.bio&&(a.bio=sanitizeString(e.bio,1e3));const t=["SCALPING","DAY_TRADING","SWING","POSITION"];e.tradingStyle&&t.includes(e.tradingStyle)?a.tradingStyle=e.tradingStyle:i.push(`Trading style must be one of: ${t.join(", ")}`);const o=["LOW","MEDIUM","HIGH"];e.riskLevel&&o.includes(e.riskLevel)?a.riskLevel=e.riskLevel:i.push(`Risk level must be one of: ${o.join(", ")}`);if(void 0!==e.profitSharePercent){const t=validateNumber(e.profitSharePercent,{min:0,max:50});t.valid?a.profitSharePercent=t.value:i.push(`Profit share: ${t.error}`)}if(void 0!==e.minFollowAmount){const t=validateNumber(e.minFollowAmount,{min:0,max:1e6});t.valid?a.minFollowAmount=t.value:i.push(`Minimum follow amount: ${t.error}`)}e.applicationNote&&(a.applicationNote=sanitizeString(e.applicationNote,2e3));return{valid:0===i.length,errors:i,sanitized:a}}function validateFollowRequest(e){const i=[],a={};e.leaderId?isValidUUID(e.leaderId)?a.leaderId=e.leaderId:i.push("Invalid leader ID format"):i.push("Leader ID is required");const t=["PROPORTIONAL","FIXED_AMOUNT","FIXED_RATIO"];e.copyMode&&!t.includes(e.copyMode)?i.push(`Copy mode must be one of: ${t.join(", ")}`):a.copyMode=e.copyMode||"PROPORTIONAL";if("FIXED_AMOUNT"===a.copyMode)if(e.fixedAmount){const t=validateNumber(e.fixedAmount,{min:.01,max:1e5,allowZero:!1});t.valid?a.fixedAmount=t.value:i.push(`Fixed amount: ${t.error}`)}else i.push("Fixed amount is required for FIXED_AMOUNT mode");if("FIXED_RATIO"===a.copyMode)if(e.fixedRatio){const t=validateNumber(e.fixedRatio,{min:.01,max:10,allowZero:!1});t.valid?a.fixedRatio=t.value:i.push(`Fixed ratio: ${t.error}`)}else i.push("Fixed ratio is required for FIXED_RATIO mode");if(void 0!==e.maxDailyLoss){const t=validateNumber(e.maxDailyLoss,{min:0,max:100});t.valid?a.maxDailyLoss=t.value:i.push(`Max daily loss: ${t.error}`)}if(void 0!==e.maxPositionSize){const t=validateNumber(e.maxPositionSize,{min:0,max:100});t.valid?a.maxPositionSize=t.value:i.push(`Max position size: ${t.error}`)}if(void 0!==e.stopLossPercent){const t=validateNumber(e.stopLossPercent,{min:0,max:100});t.valid?a.stopLossPercent=t.value:i.push(`Stop loss: ${t.error}`)}if(void 0!==e.takeProfitPercent){const t=validateNumber(e.takeProfitPercent,{min:0,max:1e3});t.valid?a.takeProfitPercent=t.value:i.push(`Take profit: ${t.error}`)}return{valid:0===i.length,errors:i,sanitized:a}}function validateFundOperation(e){const i=[],a={};if(e.amount){const t=validateNumber(e.amount,{min:.01,max:1e7,allowZero:!1});t.valid?a.amount=t.value:i.push(`Amount: ${t.error}`)}else i.push("Amount is required");return{valid:0===i.length,errors:i,sanitized:a}}function validateSubscriptionUpdate(e){const i=[],a={};if(e.copyMode){const t=["PROPORTIONAL","FIXED_AMOUNT","FIXED_RATIO"];t.includes(e.copyMode)?a.copyMode=e.copyMode:i.push(`Copy mode must be one of: ${t.join(", ")}`)}if(void 0!==e.fixedAmount){const t=validateNumber(e.fixedAmount,{min:.01,max:1e5});t.valid?a.fixedAmount=t.value:i.push(`Fixed amount: ${t.error}`)}if(void 0!==e.fixedRatio){const t=validateNumber(e.fixedRatio,{min:.01,max:10});t.valid?a.fixedRatio=t.value:i.push(`Fixed ratio: ${t.error}`)}if(void 0!==e.maxDailyLoss){const t=validateNumber(e.maxDailyLoss,{min:0,max:100});t.valid?a.maxDailyLoss=t.value:i.push(`Max daily loss: ${t.error}`)}if(void 0!==e.maxPositionSize){const t=validateNumber(e.maxPositionSize,{min:0,max:100});t.valid?a.maxPositionSize=t.value:i.push(`Max position size: ${t.error}`)}if(void 0!==e.stopLossPercent){const t=validateNumber(e.stopLossPercent,{min:0,max:100});t.valid?a.stopLossPercent=t.value:i.push(`Stop loss: ${t.error}`)}if(void 0!==e.takeProfitPercent){const t=validateNumber(e.takeProfitPercent,{min:0,max:1e3});t.valid?a.takeProfitPercent=t.value:i.push(`Take profit: ${t.error}`)}return{valid:0===i.length,errors:i,sanitized:a}}function validateLeaderUpdate(e){const i=[],a={};if(void 0!==e.displayName)if("string"!=typeof e.displayName)i.push("Display name must be a string");else{const t=sanitizeString(e.displayName,100);t.length<2?i.push("Display name must be at least 2 characters"):/^[a-zA-Z0-9\s\-_]+$/.test(t)?a.displayName=t:i.push("Display name can only contain letters, numbers, spaces, hyphens, and underscores")}void 0!==e.bio&&(a.bio=sanitizeString(e.bio,1e3));if(void 0!==e.tradingStyle){const t=["SCALPING","DAY_TRADING","SWING","POSITION"];t.includes(e.tradingStyle)?a.tradingStyle=e.tradingStyle:i.push(`Trading style must be one of: ${t.join(", ")}`)}if(void 0!==e.riskLevel){const t=["LOW","MEDIUM","HIGH"];t.includes(e.riskLevel)?a.riskLevel=e.riskLevel:i.push(`Risk level must be one of: ${t.join(", ")}`)}if(void 0!==e.profitSharePercent){const t=validateNumber(e.profitSharePercent,{min:0,max:50});t.valid?a.profitSharePercent=t.value:i.push(`Profit share: ${t.error}`)}if(void 0!==e.minFollowAmount){const t=validateNumber(e.minFollowAmount,{min:0,max:1e6});t.valid?a.minFollowAmount=t.value:i.push(`Minimum follow amount: ${t.error}`)}if(void 0!==e.maxFollowers){const t=validateNumber(e.maxFollowers,{min:1,max:1e4});t.valid?a.maxFollowers=t.value:i.push(`Max followers: ${t.error}`)}void 0!==e.isPublic&&(a.isPublic=Boolean(e.isPublic));return{valid:0===i.length,errors:i,sanitized:a}}function validatePagination(e){let i=parseInt(e.page||"1",10),a=parseInt(e.limit||"20",10);i=Math.max(1,Math.min(i,1e3));a=Math.max(1,Math.min(a,100));return{page:i,limit:a,offset:(i-1)*a}}function validateSort(e,i){let a=e.sortBy||i[0],t=(e.sortOrder||"DESC").toUpperCase();i.includes(a)||(a=i[0]);["ASC","DESC"].includes(t)||(t="DESC");return{sortBy:a,sortOrder:t}}async function checkMarketConflict(e,i,a){const{models:t}=await Promise.resolve().then(()=>__importStar(require("@b/db"))),{Op:o}=await Promise.resolve().then(()=>__importStar(require("sequelize"))),r=await t.copyTradingFollower.findAll({where:{userId:e,leaderId:{[o.ne]:i},status:{[o.in]:["ACTIVE","PAUSED"]}},include:[{model:t.copyTradingFollowerAllocation,as:"allocations",where:{symbol:{[o.in]:a},isActive:!0},required:!1},{model:t.copyTradingLeader,as:"leader",attributes:["displayName"]}]}),n=[];for(const e of r)e.allocations&&e.allocations.length>0&&n.push({leaderName:e.leader.displayName,markets:e.allocations.map(e=>e.symbol)});return n.length>0?{hasConflict:!0,conflictDetails:n}:{hasConflict:!1}}function throwValidationError(e){throw(0,error_1.createError)({statusCode:400,message:e.errors.join("; ")})}var __createBinding=this&&this.__createBinding||(Object.create?function(e,i,a,t){void 0===t&&(t=a);var o=Object.getOwnPropertyDescriptor(i,a);o&&!("get"in o?!i.__esModule:o.writable||o.configurable)||(o={enumerable:!0,get:function(){return i[a]}});Object.defineProperty(e,t,o)}:function(e,i,a,t){void 0===t&&(t=a);e[t]=i[a]}),__setModuleDefault=this&&this.__setModuleDefault||(Object.create?function(e,i){Object.defineProperty(e,"default",{enumerable:!0,value:i})}:function(e,i){e.default=i}),__importStar=this&&this.__importStar||function(){var e=function(i){e=Object.getOwnPropertyNames||function(e){var i=[];for(var a in e)Object.prototype.hasOwnProperty.call(e,a)&&(i[i.length]=a);return i};return e(i)};return function(i){if(i&&i.__esModule)return i;var a={};if(null!=i)for(var t=e(i),o=0;o<t.length;o++)"default"!==t[o]&&__createBinding(a,i,t[o]);__setModuleDefault(a,i);return a}}();Object.defineProperty(exports,"__esModule",{value:!0});exports.copyTradingRateLimiters=void 0;exports.isValidUUID=isValidUUID;exports.sanitizeString=sanitizeString;exports.validateNumber=validateNumber;exports.validateLeaderApplication=validateLeaderApplication;exports.validateFollowRequest=validateFollowRequest;exports.validateFundOperation=validateFundOperation;exports.validateSubscriptionUpdate=validateSubscriptionUpdate;exports.validateLeaderUpdate=validateLeaderUpdate;exports.validatePagination=validatePagination;exports.validateSort=validateSort;exports.checkMarketConflict=checkMarketConflict;exports.throwValidationError=throwValidationError;const Middleware_1=require("@b/handler/Middleware"),error_1=require("@b/utils/error"),index_1=require("./index"),redis_1=require("@b/utils/redis");exports.copyTradingRateLimiters={leaderApply:leaderApplyRateLimiter,leaderUpdate:(0,Middleware_1.createRateLimiter)({limit:10,window:3600,keyPrefix:"copytrading:leader:update",message:"Too many profile updates. Please wait before making more changes."}),followerFollow:(0,Middleware_1.createRateLimiter)({limit:10,window:3600,keyPrefix:"copytrading:follower:follow",message:"Too many follow requests. Please wait before following more leaders."}),followerAction:(0,Middleware_1.createRateLimiter)({limit:30,window:3600,keyPrefix:"copytrading:follower:action",message:"Too many subscription actions. Please slow down."}),fundManagement:(0,Middleware_1.createRateLimiter)({limit:20,window:3600,keyPrefix:"copytrading:funds",message:"Too many fund operations. Please wait before making more changes."}),tradeQuery:(0,Middleware_1.createRateLimiter)({limit:100,window:60,keyPrefix:"copytrading:trade:query",message:"Too many requests. Please slow down."}),analyticsQuery:(0,Middleware_1.createRateLimiter)({limit:30,window:60,keyPrefix:"copytrading:analytics",message:"Too many analytics requests. Please wait."}),wsSubscribe:(0,Middleware_1.createRateLimiter)({limit:50,window:60,keyPrefix:"copytrading:ws:subscribe",message:"Too many WebSocket subscriptions. Please wait."}),adminAction:(0,Middleware_1.createRateLimiter)({limit:50,window:3600,keyPrefix:"copytrading:admin",message:"Too many admin actions. Please wait."})};
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.copyTradingRateLimiters = void 0;
+exports.isValidUUID = isValidUUID;
+exports.sanitizeString = sanitizeString;
+exports.validateNumber = validateNumber;
+exports.validateLeaderApplication = validateLeaderApplication;
+exports.validateFollowRequest = validateFollowRequest;
+exports.validateFundOperation = validateFundOperation;
+exports.validateSubscriptionUpdate = validateSubscriptionUpdate;
+exports.validateLeaderUpdate = validateLeaderUpdate;
+exports.validatePagination = validatePagination;
+exports.validateSort = validateSort;
+exports.checkMarketConflict = checkMarketConflict;
+exports.throwValidationError = throwValidationError;
+const Middleware_1 = require("@b/handler/Middleware");
+const error_1 = require("@b/utils/error");
+const index_1 = require("./index");
+const redis_1 = require("@b/utils/redis");
+async function leaderApplyRateLimiter(data) {
+    var _a, _b, _c;
+    const { user } = data;
+    const settings = await (0, index_1.getCopyTradingSettings)();
+    const limit = settings.leaderApplicationRateLimit || 10;
+    const window = 86400;
+    const keyPrefix = "copytrading:leader:apply";
+    const message = "Too many leader applications. Please wait 24 hours before trying again.";
+    let key;
+    if (user === null || user === void 0 ? void 0 : user.id) {
+        key = `${keyPrefix}:user:${user.id}`;
+    }
+    else {
+        const clientIp = ((_a = data.req) === null || _a === void 0 ? void 0 : _a.ip) || ((_c = (_b = data.req) === null || _b === void 0 ? void 0 : _b.connection) === null || _c === void 0 ? void 0 : _c.remoteAddress) || "unknown";
+        key = `${keyPrefix}:ip:${clientIp}`;
+    }
+    const redis = redis_1.RedisSingleton.getInstance();
+    const current = await redis.get(key);
+    if (current !== null && parseInt(current, 10) >= limit) {
+        throw (0, error_1.createError)({ statusCode: 429, message });
+    }
+    if (current === null) {
+        await redis.set(key, "1", "EX", window);
+    }
+    else {
+        await redis.incr(key);
+    }
+}
+exports.copyTradingRateLimiters = {
+    leaderApply: leaderApplyRateLimiter,
+    leaderUpdate: (0, Middleware_1.createRateLimiter)({
+        limit: 10,
+        window: 3600,
+        keyPrefix: "copytrading:leader:update",
+        message: "Too many profile updates. Please wait before making more changes.",
+    }),
+    followerFollow: (0, Middleware_1.createRateLimiter)({
+        limit: 10,
+        window: 3600,
+        keyPrefix: "copytrading:follower:follow",
+        message: "Too many follow requests. Please wait before following more leaders.",
+    }),
+    followerAction: (0, Middleware_1.createRateLimiter)({
+        limit: 30,
+        window: 3600,
+        keyPrefix: "copytrading:follower:action",
+        message: "Too many subscription actions. Please slow down.",
+    }),
+    fundManagement: (0, Middleware_1.createRateLimiter)({
+        limit: 20,
+        window: 3600,
+        keyPrefix: "copytrading:funds",
+        message: "Too many fund operations. Please wait before making more changes.",
+    }),
+    tradeQuery: (0, Middleware_1.createRateLimiter)({
+        limit: 100,
+        window: 60,
+        keyPrefix: "copytrading:trade:query",
+        message: "Too many requests. Please slow down.",
+    }),
+    analyticsQuery: (0, Middleware_1.createRateLimiter)({
+        limit: 30,
+        window: 60,
+        keyPrefix: "copytrading:analytics",
+        message: "Too many analytics requests. Please wait.",
+    }),
+    wsSubscribe: (0, Middleware_1.createRateLimiter)({
+        limit: 50,
+        window: 60,
+        keyPrefix: "copytrading:ws:subscribe",
+        message: "Too many WebSocket subscriptions. Please wait.",
+    }),
+    adminAction: (0, Middleware_1.createRateLimiter)({
+        limit: 50,
+        window: 3600,
+        keyPrefix: "copytrading:admin",
+        message: "Too many admin actions. Please wait.",
+    }),
+};
+function isValidUUID(value) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return typeof value === "string" && uuidRegex.test(value);
+}
+function sanitizeString(value, maxLength = 1000) {
+    if (typeof value !== "string")
+        return "";
+    return value
+        .trim()
+        .slice(0, maxLength)
+        .replace(/[<>]/g, "")
+        .replace(/'/g, "''")
+        .replace(/\\/g, "\\\\");
+}
+function validateNumber(value, options = {}) {
+    const { min, max, allowZero = true, allowNegative = false } = options;
+    const num = parseFloat(value);
+    if (isNaN(num)) {
+        return { valid: false, value: 0, error: "Invalid number" };
+    }
+    if (!allowZero && num === 0) {
+        return { valid: false, value: 0, error: "Zero is not allowed" };
+    }
+    if (!allowNegative && num < 0) {
+        return { valid: false, value: 0, error: "Negative values are not allowed" };
+    }
+    if (min !== undefined && num < min) {
+        return { valid: false, value: num, error: `Value must be at least ${min}` };
+    }
+    if (max !== undefined && num > max) {
+        return {
+            valid: false,
+            value: num,
+            error: `Value must not exceed ${max}`,
+        };
+    }
+    return { valid: true, value: num };
+}
+function validateLeaderApplication(body) {
+    const errors = [];
+    const sanitized = {};
+    if (!body.displayName || typeof body.displayName !== "string") {
+        errors.push("Display name is required");
+    }
+    else {
+        const displayName = sanitizeString(body.displayName, 100);
+        if (displayName.length < 2) {
+            errors.push("Display name must be at least 2 characters");
+        }
+        else if (displayName.length > 100) {
+            errors.push("Display name must not exceed 100 characters");
+        }
+        else if (!/^[a-zA-Z0-9\s\-_]+$/.test(displayName)) {
+            errors.push("Display name can only contain letters, numbers, spaces, hyphens, and underscores");
+        }
+        else {
+            sanitized.displayName = displayName;
+        }
+    }
+    if (body.bio) {
+        sanitized.bio = sanitizeString(body.bio, 1000);
+    }
+    const validTradingStyles = ["SCALPING", "DAY_TRADING", "SWING", "POSITION"];
+    if (!body.tradingStyle || !validTradingStyles.includes(body.tradingStyle)) {
+        errors.push(`Trading style must be one of: ${validTradingStyles.join(", ")}`);
+    }
+    else {
+        sanitized.tradingStyle = body.tradingStyle;
+    }
+    const validRiskLevels = ["LOW", "MEDIUM", "HIGH"];
+    if (!body.riskLevel || !validRiskLevels.includes(body.riskLevel)) {
+        errors.push(`Risk level must be one of: ${validRiskLevels.join(", ")}`);
+    }
+    else {
+        sanitized.riskLevel = body.riskLevel;
+    }
+    if (body.profitSharePercent !== undefined) {
+        const profitShare = validateNumber(body.profitSharePercent, {
+            min: 0,
+            max: 50,
+        });
+        if (!profitShare.valid) {
+            errors.push(`Profit share: ${profitShare.error}`);
+        }
+        else {
+            sanitized.profitSharePercent = profitShare.value;
+        }
+    }
+    if (body.minFollowAmount !== undefined) {
+        const minAmount = validateNumber(body.minFollowAmount, {
+            min: 0,
+            max: 1000000,
+        });
+        if (!minAmount.valid) {
+            errors.push(`Minimum follow amount: ${minAmount.error}`);
+        }
+        else {
+            sanitized.minFollowAmount = minAmount.value;
+        }
+    }
+    if (body.applicationNote) {
+        sanitized.applicationNote = sanitizeString(body.applicationNote, 2000);
+    }
+    return {
+        valid: errors.length === 0,
+        errors,
+        sanitized,
+    };
+}
+function validateFollowRequest(body) {
+    const errors = [];
+    const sanitized = {};
+    if (!body.leaderId) {
+        errors.push("Leader ID is required");
+    }
+    else if (!isValidUUID(body.leaderId)) {
+        errors.push("Invalid leader ID format");
+    }
+    else {
+        sanitized.leaderId = body.leaderId;
+    }
+    const validCopyModes = ["PROPORTIONAL", "FIXED_AMOUNT", "FIXED_RATIO"];
+    if (body.copyMode && !validCopyModes.includes(body.copyMode)) {
+        errors.push(`Copy mode must be one of: ${validCopyModes.join(", ")}`);
+    }
+    else {
+        sanitized.copyMode = body.copyMode || "PROPORTIONAL";
+    }
+    if (sanitized.copyMode === "FIXED_AMOUNT") {
+        if (!body.fixedAmount) {
+            errors.push("Fixed amount is required for FIXED_AMOUNT mode");
+        }
+        else {
+            const fixedAmount = validateNumber(body.fixedAmount, {
+                min: 0.01,
+                max: 100000,
+                allowZero: false,
+            });
+            if (!fixedAmount.valid) {
+                errors.push(`Fixed amount: ${fixedAmount.error}`);
+            }
+            else {
+                sanitized.fixedAmount = fixedAmount.value;
+            }
+        }
+    }
+    if (sanitized.copyMode === "FIXED_RATIO") {
+        if (!body.fixedRatio) {
+            errors.push("Fixed ratio is required for FIXED_RATIO mode");
+        }
+        else {
+            const fixedRatio = validateNumber(body.fixedRatio, {
+                min: 0.01,
+                max: 10,
+                allowZero: false,
+            });
+            if (!fixedRatio.valid) {
+                errors.push(`Fixed ratio: ${fixedRatio.error}`);
+            }
+            else {
+                sanitized.fixedRatio = fixedRatio.value;
+            }
+        }
+    }
+    if (body.maxDailyLoss !== undefined) {
+        const maxLoss = validateNumber(body.maxDailyLoss, { min: 0, max: 100 });
+        if (!maxLoss.valid) {
+            errors.push(`Max daily loss: ${maxLoss.error}`);
+        }
+        else {
+            sanitized.maxDailyLoss = maxLoss.value;
+        }
+    }
+    if (body.maxPositionSize !== undefined) {
+        const maxPos = validateNumber(body.maxPositionSize, { min: 0, max: 100 });
+        if (!maxPos.valid) {
+            errors.push(`Max position size: ${maxPos.error}`);
+        }
+        else {
+            sanitized.maxPositionSize = maxPos.value;
+        }
+    }
+    if (body.stopLossPercent !== undefined) {
+        const stopLoss = validateNumber(body.stopLossPercent, { min: 0, max: 100 });
+        if (!stopLoss.valid) {
+            errors.push(`Stop loss: ${stopLoss.error}`);
+        }
+        else {
+            sanitized.stopLossPercent = stopLoss.value;
+        }
+    }
+    if (body.takeProfitPercent !== undefined) {
+        const takeProfit = validateNumber(body.takeProfitPercent, {
+            min: 0,
+            max: 1000,
+        });
+        if (!takeProfit.valid) {
+            errors.push(`Take profit: ${takeProfit.error}`);
+        }
+        else {
+            sanitized.takeProfitPercent = takeProfit.value;
+        }
+    }
+    return {
+        valid: errors.length === 0,
+        errors,
+        sanitized,
+    };
+}
+function validateFundOperation(body) {
+    const errors = [];
+    const sanitized = {};
+    if (!body.amount) {
+        errors.push("Amount is required");
+    }
+    else {
+        const amount = validateNumber(body.amount, {
+            min: 0.01,
+            max: 10000000,
+            allowZero: false,
+        });
+        if (!amount.valid) {
+            errors.push(`Amount: ${amount.error}`);
+        }
+        else {
+            sanitized.amount = amount.value;
+        }
+    }
+    return {
+        valid: errors.length === 0,
+        errors,
+        sanitized,
+    };
+}
+function validateSubscriptionUpdate(body) {
+    const errors = [];
+    const sanitized = {};
+    if (body.copyMode) {
+        const validCopyModes = ["PROPORTIONAL", "FIXED_AMOUNT", "FIXED_RATIO"];
+        if (!validCopyModes.includes(body.copyMode)) {
+            errors.push(`Copy mode must be one of: ${validCopyModes.join(", ")}`);
+        }
+        else {
+            sanitized.copyMode = body.copyMode;
+        }
+    }
+    if (body.fixedAmount !== undefined) {
+        const fixedAmount = validateNumber(body.fixedAmount, {
+            min: 0.01,
+            max: 100000,
+        });
+        if (!fixedAmount.valid) {
+            errors.push(`Fixed amount: ${fixedAmount.error}`);
+        }
+        else {
+            sanitized.fixedAmount = fixedAmount.value;
+        }
+    }
+    if (body.fixedRatio !== undefined) {
+        const fixedRatio = validateNumber(body.fixedRatio, { min: 0.01, max: 10 });
+        if (!fixedRatio.valid) {
+            errors.push(`Fixed ratio: ${fixedRatio.error}`);
+        }
+        else {
+            sanitized.fixedRatio = fixedRatio.value;
+        }
+    }
+    if (body.maxDailyLoss !== undefined) {
+        const maxLoss = validateNumber(body.maxDailyLoss, { min: 0, max: 100 });
+        if (!maxLoss.valid) {
+            errors.push(`Max daily loss: ${maxLoss.error}`);
+        }
+        else {
+            sanitized.maxDailyLoss = maxLoss.value;
+        }
+    }
+    if (body.maxPositionSize !== undefined) {
+        const maxPos = validateNumber(body.maxPositionSize, { min: 0, max: 100 });
+        if (!maxPos.valid) {
+            errors.push(`Max position size: ${maxPos.error}`);
+        }
+        else {
+            sanitized.maxPositionSize = maxPos.value;
+        }
+    }
+    if (body.stopLossPercent !== undefined) {
+        const stopLoss = validateNumber(body.stopLossPercent, { min: 0, max: 100 });
+        if (!stopLoss.valid) {
+            errors.push(`Stop loss: ${stopLoss.error}`);
+        }
+        else {
+            sanitized.stopLossPercent = stopLoss.value;
+        }
+    }
+    if (body.takeProfitPercent !== undefined) {
+        const takeProfit = validateNumber(body.takeProfitPercent, {
+            min: 0,
+            max: 1000,
+        });
+        if (!takeProfit.valid) {
+            errors.push(`Take profit: ${takeProfit.error}`);
+        }
+        else {
+            sanitized.takeProfitPercent = takeProfit.value;
+        }
+    }
+    return {
+        valid: errors.length === 0,
+        errors,
+        sanitized,
+    };
+}
+function validateLeaderUpdate(body) {
+    const errors = [];
+    const sanitized = {};
+    if (body.displayName !== undefined) {
+        if (typeof body.displayName !== "string") {
+            errors.push("Display name must be a string");
+        }
+        else {
+            const displayName = sanitizeString(body.displayName, 100);
+            if (displayName.length < 2) {
+                errors.push("Display name must be at least 2 characters");
+            }
+            else if (!/^[a-zA-Z0-9\s\-_]+$/.test(displayName)) {
+                errors.push("Display name can only contain letters, numbers, spaces, hyphens, and underscores");
+            }
+            else {
+                sanitized.displayName = displayName;
+            }
+        }
+    }
+    if (body.bio !== undefined) {
+        sanitized.bio = sanitizeString(body.bio, 1000);
+    }
+    if (body.tradingStyle !== undefined) {
+        const validTradingStyles = ["SCALPING", "DAY_TRADING", "SWING", "POSITION"];
+        if (!validTradingStyles.includes(body.tradingStyle)) {
+            errors.push(`Trading style must be one of: ${validTradingStyles.join(", ")}`);
+        }
+        else {
+            sanitized.tradingStyle = body.tradingStyle;
+        }
+    }
+    if (body.riskLevel !== undefined) {
+        const validRiskLevels = ["LOW", "MEDIUM", "HIGH"];
+        if (!validRiskLevels.includes(body.riskLevel)) {
+            errors.push(`Risk level must be one of: ${validRiskLevels.join(", ")}`);
+        }
+        else {
+            sanitized.riskLevel = body.riskLevel;
+        }
+    }
+    if (body.profitSharePercent !== undefined) {
+        const profitShare = validateNumber(body.profitSharePercent, {
+            min: 0,
+            max: 50,
+        });
+        if (!profitShare.valid) {
+            errors.push(`Profit share: ${profitShare.error}`);
+        }
+        else {
+            sanitized.profitSharePercent = profitShare.value;
+        }
+    }
+    if (body.minFollowAmount !== undefined) {
+        const minAmount = validateNumber(body.minFollowAmount, {
+            min: 0,
+            max: 1000000,
+        });
+        if (!minAmount.valid) {
+            errors.push(`Minimum follow amount: ${minAmount.error}`);
+        }
+        else {
+            sanitized.minFollowAmount = minAmount.value;
+        }
+    }
+    if (body.maxFollowers !== undefined) {
+        const maxFollowers = validateNumber(body.maxFollowers, {
+            min: 1,
+            max: 10000,
+        });
+        if (!maxFollowers.valid) {
+            errors.push(`Max followers: ${maxFollowers.error}`);
+        }
+        else {
+            sanitized.maxFollowers = maxFollowers.value;
+        }
+    }
+    if (body.isPublic !== undefined) {
+        sanitized.isPublic = Boolean(body.isPublic);
+    }
+    return {
+        valid: errors.length === 0,
+        errors,
+        sanitized,
+    };
+}
+function validatePagination(query) {
+    let page = parseInt(query.page || "1", 10);
+    let limit = parseInt(query.limit || "20", 10);
+    page = Math.max(1, Math.min(page, 1000));
+    limit = Math.max(1, Math.min(limit, 100));
+    return {
+        page,
+        limit,
+        offset: (page - 1) * limit,
+    };
+}
+function validateSort(query, allowedFields) {
+    let sortBy = query.sortBy || allowedFields[0];
+    let sortOrder = (query.sortOrder || "DESC").toUpperCase();
+    if (!allowedFields.includes(sortBy)) {
+        sortBy = allowedFields[0];
+    }
+    if (!["ASC", "DESC"].includes(sortOrder)) {
+        sortOrder = "DESC";
+    }
+    return { sortBy, sortOrder: sortOrder };
+}
+async function checkMarketConflict(userId, leaderId, symbols) {
+    const { models } = await Promise.resolve().then(() => __importStar(require("@b/db")));
+    const { Op } = await Promise.resolve().then(() => __importStar(require("sequelize")));
+    const activeSubscriptions = await models.copyTradingFollower.findAll({
+        where: {
+            userId,
+            leaderId: { [Op.ne]: leaderId },
+            status: { [Op.in]: ["ACTIVE", "PAUSED"] },
+        },
+        include: [
+            {
+                model: models.copyTradingFollowerAllocation,
+                as: "allocations",
+                where: {
+                    symbol: { [Op.in]: symbols },
+                    isActive: true,
+                },
+                required: false,
+            },
+            {
+                model: models.copyTradingLeader,
+                as: "leader",
+                attributes: ["displayName"],
+            },
+        ],
+    });
+    const conflicts = [];
+    for (const sub of activeSubscriptions) {
+        if (sub.allocations && sub.allocations.length > 0) {
+            conflicts.push({
+                leaderName: sub.leader.displayName,
+                markets: sub.allocations.map((a) => a.symbol),
+            });
+        }
+    }
+    if (conflicts.length > 0) {
+        return {
+            hasConflict: true,
+            conflictDetails: conflicts,
+        };
+    }
+    return { hasConflict: false };
+}
+function throwValidationError(result) {
+    throw (0, error_1.createError)({
+        statusCode: 400,
+        message: result.errors.join("; "),
+    });
+}

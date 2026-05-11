@@ -905,9 +905,9 @@ export function DynamicForm({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {getFieldRows().map((row, rowIndex) => (
-            <div key={rowIndex} className={row.length > 1 ? "flex flex-col sm:flex-row gap-4" : ""}>
+            <div key={rowIndex} className={row.length > 1 ? "flex flex-col sm:flex-row gap-2 sm:gap-4" : ""}>
               {row.map((field) => (
-                <div key={field.id} className="w-full">
+                <div key={field.id} className="w-full min-w-0">
                   {renderField(field)}
                 </div>
               ))}
@@ -936,7 +936,7 @@ export function DynamicForm({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               {onCancel && (
                 <Button
                   type="button"

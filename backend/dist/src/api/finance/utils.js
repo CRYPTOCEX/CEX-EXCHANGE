@@ -8,6 +8,7 @@ exports.processEcoDeposit = processEcoDeposit;
 exports.processEcoWithdrawal = processEcoWithdrawal;
 exports.updateTransaction = updateTransaction;
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const wallet_1 = require("@b/services/wallet");
 const error_1 = require("@b/utils/error");
 async function processFiatDeposit({ userId, currency, amount, fee, referenceId, method, description, metadata, idempotencyKey, ctx, }) {
@@ -15,7 +16,9 @@ async function processFiatDeposit({ userId, currency, amount, fee, referenceId, 
     (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Processing fiat deposit via wallet service");
     const wallet = await wallet_1.walletCreationService.getOrCreateWallet(userId, "FIAT", currency);
     const operationKey = idempotencyKey || `fiat_deposit_${referenceId}`;
-    const netAmount = amount - fee;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(userId);
+    const effectiveFee = isAdmin ? 0 : fee;
+    const netAmount = amount - effectiveFee;
     const result = await wallet_1.walletService.credit({
         idempotencyKey: operationKey,
         userId,
@@ -24,24 +27,27 @@ async function processFiatDeposit({ userId, currency, amount, fee, referenceId, 
         currency,
         amount: netAmount,
         operationType: "DEPOSIT",
-        fee,
+        fee: effectiveFee,
         referenceId,
         description: description || `Deposit of ${amount} ${currency} via ${method}`,
         metadata: {
             method,
             originalAmount: amount,
-            fee,
+            fee: effectiveFee,
             ...metadata,
         },
     });
-    if (fee > 0) {
-        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Recording admin profit");
-        await db_1.models.adminProfit.create({
-            amount: fee,
+    if (effectiveFee > 0) {
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Collecting platform fee");
+        await (0, fees_1.collectPlatformFee)({
+            userId,
             currency,
+            walletType: "FIAT",
+            feeAmount: effectiveFee,
             type: "DEPOSIT",
-            transactionId: result.transactionId,
-            description: `Admin profit from ${method} deposit fee of ${fee} ${currency} for user (${userId})`,
+            description: `Platform fee from ${method} deposit of ${effectiveFee} ${currency}`,
+            referenceId: result.transactionId,
+            metadata: { method, userId },
         });
     }
     (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Fiat deposit completed: ${netAmount} ${currency}`);
@@ -50,7 +56,7 @@ async function processFiatDeposit({ userId, currency, amount, fee, referenceId, 
         walletId: result.walletId,
         newBalance: result.newBalance,
         amount: netAmount,
-        fee,
+        fee: effectiveFee,
         currency,
     };
 }
@@ -59,7 +65,9 @@ async function processSpotDeposit({ userId, currency, amount, fee, referenceId, 
     (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Processing spot deposit via wallet service");
     const wallet = await wallet_1.walletCreationService.getOrCreateWallet(userId, "SPOT", currency);
     const operationKey = idempotencyKey || `spot_deposit_${referenceId}`;
-    const netAmount = amount - fee;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(userId);
+    const effectiveFee = isAdmin ? 0 : fee;
+    const netAmount = amount - effectiveFee;
     const result = await wallet_1.walletService.credit({
         idempotencyKey: operationKey,
         userId,
@@ -68,25 +76,27 @@ async function processSpotDeposit({ userId, currency, amount, fee, referenceId, 
         currency,
         amount: netAmount,
         operationType: "DEPOSIT",
-        fee,
+        fee: effectiveFee,
         referenceId,
         description: description || `Deposit of ${amount} ${currency} via ${chain}`,
         metadata: {
             chain,
             originalAmount: amount,
-            fee,
+            fee: effectiveFee,
             ...metadata,
         },
     });
-    if (fee > 0) {
-        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Recording admin profit");
-        await db_1.models.adminProfit.create({
-            amount: fee,
+    if (effectiveFee > 0) {
+        (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Collecting platform fee");
+        await (0, fees_1.collectPlatformFee)({
+            userId,
             currency,
+            walletType: "SPOT",
+            feeAmount: effectiveFee,
             type: "DEPOSIT",
-            transactionId: result.transactionId,
-            chain,
-            description: `Admin profit from spot deposit fee of ${fee} ${currency} on ${chain} for user (${userId})`,
+            description: `Platform fee from spot deposit of ${effectiveFee} ${currency}`,
+            referenceId: result.transactionId,
+            metadata: { chain, userId },
         });
     }
     (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `Spot deposit completed: ${netAmount} ${currency}`);
@@ -95,7 +105,7 @@ async function processSpotDeposit({ userId, currency, amount, fee, referenceId, 
         walletId: result.walletId,
         newBalance: result.newBalance,
         amount: netAmount,
-        fee,
+        fee: effectiveFee,
         currency,
     };
 }
@@ -109,7 +119,9 @@ async function processSpotWithdrawal({ userId, currency, amount, fee, toAddress,
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, `${currency} SPOT wallet not found`);
         throw new wallet_1.WalletError("WALLET_NOT_FOUND", `${currency} wallet not found in your spot wallets`);
     }
-    const totalDeduction = amount + fee;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(userId);
+    const effectiveFee = isAdmin ? 0 : fee;
+    const totalDeduction = amount + effectiveFee;
     const result = await wallet_1.walletService.debit({
         idempotencyKey,
         userId,
@@ -118,7 +130,7 @@ async function processSpotWithdrawal({ userId, currency, amount, fee, toAddress,
         currency,
         amount: totalDeduction,
         operationType: "WITHDRAW",
-        fee,
+        fee: effectiveFee,
         description: description ||
             `Withdrawal of ${amount} ${currency} to ${toAddress} via ${chain}`,
         metadata: {
@@ -126,19 +138,19 @@ async function processSpotWithdrawal({ userId, currency, amount, fee, toAddress,
             toAddress,
             memo,
             originalAmount: amount,
-            fee,
+            fee: effectiveFee,
             ...metadata,
         },
     });
-    if (fee > 0) {
+    if (effectiveFee > 0) {
         (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Recording admin profit");
         await db_1.models.adminProfit.create({
-            amount: fee,
+            amount: effectiveFee,
             currency,
             type: "WITHDRAW",
             transactionId: result.transactionId,
             chain,
-            description: `Admin profit from user (${userId}) withdrawal fee of ${fee} ${currency} on ${chain}`,
+            description: `Admin profit from user (${userId}) withdrawal fee of ${effectiveFee} ${currency} on ${chain}`,
         });
     }
     (_d = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _d === void 0 ? void 0 : _d.call(ctx, `Spot withdrawal initiated: ${amount} ${currency}`);
@@ -147,7 +159,7 @@ async function processSpotWithdrawal({ userId, currency, amount, fee, toAddress,
         walletId: result.walletId,
         newBalance: result.newBalance,
         amount,
-        fee,
+        fee: effectiveFee,
         currency,
     };
 }
@@ -192,7 +204,9 @@ async function processEcoDeposit({ userId, currency, amount, fee, referenceId, c
     (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, "Processing ECO deposit via wallet service");
     const wallet = await wallet_1.walletCreationService.getOrCreateWallet(userId, "ECO", currency);
     const operationKey = idempotencyKey || `eco_deposit_${referenceId}`;
-    const netAmount = amount - fee;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(userId);
+    const effectiveFee = isAdmin ? 0 : fee;
+    const netAmount = amount - effectiveFee;
     const result = await wallet_1.walletService.credit({
         idempotencyKey: operationKey,
         userId,
@@ -201,25 +215,25 @@ async function processEcoDeposit({ userId, currency, amount, fee, referenceId, c
         currency,
         amount: netAmount,
         operationType: "DEPOSIT",
-        fee,
+        fee: effectiveFee,
         referenceId,
         description: description || `ECO Deposit of ${amount} ${currency} via ${chain}`,
         metadata: {
             chain,
             originalAmount: amount,
-            fee,
+            fee: effectiveFee,
             ...metadata,
         },
     });
-    if (fee > 0) {
+    if (effectiveFee > 0) {
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Recording admin profit");
         await db_1.models.adminProfit.create({
-            amount: fee,
+            amount: effectiveFee,
             currency,
             type: "DEPOSIT",
             transactionId: result.transactionId,
             chain,
-            description: `Admin profit from ECO deposit fee of ${fee} ${currency} on ${chain} for user (${userId})`,
+            description: `Admin profit from ECO deposit fee of ${effectiveFee} ${currency} on ${chain} for user (${userId})`,
         });
     }
     (_c = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _c === void 0 ? void 0 : _c.call(ctx, `ECO deposit completed: ${netAmount} ${currency}`);
@@ -228,7 +242,7 @@ async function processEcoDeposit({ userId, currency, amount, fee, referenceId, c
         walletId: result.walletId,
         newBalance: result.newBalance,
         amount: netAmount,
-        fee,
+        fee: effectiveFee,
         currency,
     };
 }
@@ -242,7 +256,9 @@ async function processEcoWithdrawal({ userId, currency, amount, fee, toAddress, 
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _b === void 0 ? void 0 : _b.call(ctx, `${currency} ECO wallet not found`);
         throw new wallet_1.WalletError("WALLET_NOT_FOUND", `${currency} ECO wallet not found`);
     }
-    const totalDeduction = amount + fee;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(userId);
+    const effectiveFee = isAdmin ? 0 : fee;
+    const totalDeduction = amount + effectiveFee;
     const result = await wallet_1.walletService.debit({
         idempotencyKey,
         userId,
@@ -251,7 +267,7 @@ async function processEcoWithdrawal({ userId, currency, amount, fee, toAddress, 
         currency,
         amount: totalDeduction,
         operationType: "WITHDRAW",
-        fee,
+        fee: effectiveFee,
         description: description ||
             `ECO Withdrawal of ${amount} ${currency} to ${toAddress} via ${chain}`,
         metadata: {
@@ -259,19 +275,19 @@ async function processEcoWithdrawal({ userId, currency, amount, fee, toAddress, 
             toAddress,
             memo,
             originalAmount: amount,
-            fee,
+            fee: effectiveFee,
             ...metadata,
         },
     });
-    if (fee > 0) {
+    if (effectiveFee > 0) {
         (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, "Recording admin profit");
         await db_1.models.adminProfit.create({
-            amount: fee,
+            amount: effectiveFee,
             currency,
             type: "WITHDRAW",
             transactionId: result.transactionId,
             chain,
-            description: `Admin profit from ECO withdrawal fee of ${fee} ${currency} on ${chain} for user (${userId})`,
+            description: `Admin profit from ECO withdrawal fee of ${effectiveFee} ${currency} on ${chain} for user (${userId})`,
         });
     }
     (_d = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _d === void 0 ? void 0 : _d.call(ctx, `ECO withdrawal initiated: ${amount} ${currency}`);
@@ -280,7 +296,7 @@ async function processEcoWithdrawal({ userId, currency, amount, fee, toAddress, 
         walletId: result.walletId,
         newBalance: result.newBalance,
         amount,
-        fee,
+        fee: effectiveFee,
         currency,
     };
 }

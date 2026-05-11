@@ -472,6 +472,7 @@ interface P2PTradeDashboardData {
   activeTrades: any[];
   completedTrades: any[];
   disputedTrades: any[];
+  cancelledTrades: any[];
   pendingTrades?: any[];
   availableCurrencies?: string[];
 }

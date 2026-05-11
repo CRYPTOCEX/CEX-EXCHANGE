@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { $fetch } from "@/lib/api";
 import { marketDataWs } from "@/services/market-data-ws";
 import { marketService } from "@/services/market-service";
+import { useConfigStore } from "@/store/config";
 import BalanceDisplay from "./balance-display";
 import LimitOrderForm from "./limit-order-form";
 import MarketOrderForm from "./market-order-form";
@@ -143,6 +144,8 @@ export default function TradingFormPanel({
 }: TradingFormPanelProps) {
   const t = useTranslations("trade_components");
   const tCommon = useTranslations("common");
+  const extensions = useConfigStore((state) => state.extensions);
+  const isAiInvestmentEnabled = extensions?.includes("ai_investment");
   const [buyMode, setBuyMode] = useState(true);
   const [orderType, setOrderType] = useState<"limit" | "market" | "stop">("limit");
   const [tradingType, setTradingType] = useState<"standard" | "ai">("standard");
@@ -422,13 +425,15 @@ export default function TradingFormPanel({
         >
           {t("standard_trading")}
         </AnimatedTabButton>
-        <AnimatedTabButton
-          active={tradingType === "ai"}
-          onClick={() => setTradingType("ai")}
-          icon={<Sparkles className="h-3 w-3" />}
-        >
-          {tCommon("ai_investment")}
-        </AnimatedTabButton>
+        {isAiInvestmentEnabled && (
+          <AnimatedTabButton
+            active={tradingType === "ai"}
+            onClick={() => setTradingType("ai")}
+            icon={<Sparkles className="h-3 w-3" />}
+          >
+            {tCommon("ai_investment")}
+          </AnimatedTabButton>
+        )}
       </motion.div>
 
       {/* Balance display */}
@@ -446,7 +451,7 @@ export default function TradingFormPanel({
 
       {/* Trading forms */}
       <AnimatePresence mode="wait">
-        {tradingType === "standard" ? (
+        {tradingType === "standard" || !isAiInvestmentEnabled ? (
           <motion.div
             key="standard"
             variants={tabContentVariants}

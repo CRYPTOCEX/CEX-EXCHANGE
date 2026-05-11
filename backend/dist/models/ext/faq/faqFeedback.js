@@ -46,7 +46,6 @@ class faqFeedback extends sequelize_1.Model {
                     name: "faq_feedbacks_unique_user_faq",
                     unique: true,
                     fields: [{ name: "userId" }, { name: "faqId" }],
-                    where: { deletedAt: null }
                 },
             ],
         });

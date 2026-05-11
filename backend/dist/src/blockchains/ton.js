@@ -84,6 +84,9 @@ class TonService {
             await TonService.instance.checkChainStatus();
             setInterval(() => TonService.cleanupProcessedTransactions(), 60 * 1000);
         }
+        else if (!TonService.instance.chainActive) {
+            await TonService.instance.checkChainStatus();
+        }
         return TonService.instance;
     }
     static cleanupProcessedTransactions() {

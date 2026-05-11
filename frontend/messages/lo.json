@@ -11409,6 +11409,12 @@
         "settings": {
           "title": "ການຕັ້ງຄ່າ Binary",
           "description": "ກຳນົດຄ່າໄລຍະເວລາການຊື້ຂາຍ, ການຈ່າຍເງິນ, ປະເພດຄຳສັ່ງ, ແລະການຄຸ້ມຄອງຄວາມສ່ຽງ."
+        },
+        "ai": {
+          "engine": {
+            "title": "Binary AI Engine",
+            "description": "AI-powered binary options trading engine with adaptive win rates, ML optimization, and multi-tier user management."
+          }
         }
       },
       "blockchain": {
@@ -11751,6 +11757,12 @@
         "settings": {
           "title": "ການຕັ້ງຄ່າການຊື້ຂາຍ",
           "description": "ຕັ້ງຄ່າອິນເຕີເຟດການຊື້ຂາຍຂັ້ນສູງພ້ອມໂຄງຮ່າງ, ປຸ່ມລັດ, ແລະການຕັ້ງຄ່າການວິເຄາະ."
+        },
+        "bot": {
+          "platform": {
+            "title": "Trading Bot",
+            "description": "Automated trading bot system with multiple strategies, strategy marketplace, and comprehensive risk management."
+          }
         }
       },
       "transaction": {
@@ -11859,6 +11871,10 @@
         "copy": {
           "title": "ການຊື້ຂາຍແບບຄັດລອກ",
           "description": "ຕິດຕາມ ແລະຄັດລອກການຊື້ຂາຍຈາກຜູ້ຊື້ຂາຍທີ່ປະສົບຜົນສຳເລັດແບບອັດຕະໂນມັດດ້ວຍການຕັ້ງຄ່າຄວາມສ່ຽງທີ່ປັບແຕ່ງໄດ້ ແລະການຕິດຕາມປະສິດທິພາບແບບ real-time."
+        },
+        "bot": {
+          "title": "Trading Bot",
+          "description": "Automated trading with multiple strategies including DCA, Grid, and Indicator-based bots with paper trading simulation."
         }
       },
       "portfolio": {
@@ -12087,5 +12103,129 @@
     "to_use_your_saved_api_keys": "ເພື່ອໃຊ້ API keys ທີ່ບັນທຶກໄວ້ ຫຼື ປ້ອນເອງຂ້າງເທິງ.",
     "unable_to_fetch_the_api_specification": "ບໍ່ສາມາດດຶງຂໍ້ມູນ API specification ໄດ້",
     "use_the_api_playground_to_test": "Use the API Playground to test endpoints, then copy\n                            generated code to your application."
+  },
+  "ext_trading-bot": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Overview of all your trading bots with real-time performance metrics and quick actions."
+      },
+      "my": {
+        "bots": {
+          "title": "My Bots",
+          "description": "View and manage all your trading bots with filtering and quick actions."
+        }
+      },
+      "create": {
+        "bot": {
+          "title": "Create Bot",
+          "description": "Create a new trading bot by selecting a strategy, configuring parameters, and allocating funds."
+        }
+      },
+      "strategy": {
+        "builder": {
+          "title": "Strategy Builder",
+          "description": "Build custom trading strategies visually using conditions, indicators, and actions."
+        }
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Browse and purchase proven trading strategies from other traders or sell your own."
+      },
+      "creator": {
+        "title": "Creator Dashboard",
+        "description": "Manage your marketplace strategies, track sales, and view performance metrics."
+      },
+      "guide": {
+        "title": "Guide",
+        "description": "Learn how to create effective trading bots and manage risk with our comprehensive guide."
+      }
+    }
+  },
+  "ext_admin_trading-bot": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Trading bot platform overview with bot statistics, marketplace metrics, and system health."
+      },
+      "management": {
+        "title": "Management",
+        "description": "Manage trading bots and marketplace."
+      },
+      "bots": {
+        "title": "Bots",
+        "description": "View and manage all user bots, monitor performance, and control bot execution."
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Review and approve marketplace strategies, manage listings, and track sales."
+      },
+      "reviews": {
+        "title": "Reviews",
+        "description": "Moderate strategy reviews, approve or reject user feedback."
+      },
+      "system": {
+        "title": "System",
+        "description": "System administration and monitoring tools."
+      },
+      "logs": {
+        "title": "Audit Logs",
+        "description": "Comprehensive audit trail of all bot activities and administrative actions."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Platform configuration including bot limits, fees, and risk controls."
+      }
+    }
+  },
+  "ext_admin_ai_binary-engine": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Binary AI Engine overview with win rates, profits, and system health."
+      },
+      "engines": {
+        "title": "Engines",
+        "description": "Manage Binary AI Engines with win rate targeting and price optimization."
+      },
+      "optimization": {
+        "title": "Optimization",
+        "description": "Analytics, correlation monitoring, and performance tools."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "ML optimization, cohort analysis, A/B testing, and time-based analytics."
+      },
+      "correlation": {
+        "title": "Price Correlation",
+        "description": "Monitor external price feeds and detect deviations from market prices."
+      },
+      "user": {
+        "management": {
+          "title": "Users",
+          "description": "User tiers and cooldown management."
+        }
+      },
+      "tiers": {
+        "title": "User Tiers",
+        "description": "Configure user tier levels with volume thresholds and win rate bonuses."
+      },
+      "cooldowns": {
+        "title": "Cooldowns",
+        "description": "View and manage active user cooldowns after big wins."
+      },
+      "system": {
+        "title": "System",
+        "description": "Snapshots and global settings."
+      },
+      "snapshots": {
+        "title": "Snapshots",
+        "description": "Configuration snapshots for rollback and version control."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Global Binary AI Engine settings and emergency controls."
+      }
+    }
   }
 }

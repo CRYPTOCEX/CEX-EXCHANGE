@@ -24,6 +24,7 @@ export default function EcommerceCategoryPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("product_categories")}
       description={t("organize_product_categories")}
       itemTitle="Category"

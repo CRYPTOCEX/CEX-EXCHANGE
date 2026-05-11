@@ -189,7 +189,7 @@ exports.default = async (data) => {
         successRaisedMap[r.offeringId] = parseFloat(r.raised) || 0;
     });
     const transformedFeatured = featuredOfferings.map((offering) => {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         const phases = offering.phases || [];
         const startDate = new Date(offering.startDate);
         const endDate = new Date(offering.endDate);
@@ -197,21 +197,27 @@ exports.default = async (data) => {
         let currentPhase = null;
         let nextPhase = null;
         let cumulativeDays = 0;
-        const daysSinceStart = Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        const daysSinceStart = (now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+        const phaseTimeInfo = {};
         for (let i = 0; i < phases.length; i++) {
             cumulativeDays += phases[i].duration;
-            if (daysSinceStart < cumulativeDays) {
+            phaseTimeInfo[phases[i].id] = {
+                endsIn: Math.max(0, Math.ceil(cumulativeDays - daysSinceStart)),
+            };
+        }
+        for (let i = 0; i < phases.length; i++) {
+            if (phases[i].remaining > 0) {
                 currentPhase = {
                     name: phases[i].name,
                     tokenPrice: phases[i].tokenPrice,
                     remaining: phases[i].remaining,
-                    endsIn: cumulativeDays - daysSinceStart,
+                    endsIn: ((_a = phaseTimeInfo[phases[i].id]) === null || _a === void 0 ? void 0 : _a.endsIn) || 0,
                 };
                 if (i + 1 < phases.length) {
                     nextPhase = {
                         name: phases[i + 1].name,
                         tokenPrice: phases[i + 1].tokenPrice,
-                        startsIn: cumulativeDays - daysSinceStart,
+                        startsIn: ((_b = phaseTimeInfo[phases[i].id]) === null || _b === void 0 ? void 0 : _b.endsIn) || 0,
                     };
                 }
                 break;
@@ -226,7 +232,7 @@ exports.default = async (data) => {
             name: offering.name,
             symbol: offering.symbol,
             icon: offering.icon,
-            description: ((_a = offering.tokenDetail) === null || _a === void 0 ? void 0 : _a.description) || "",
+            description: ((_c = offering.tokenDetail) === null || _c === void 0 ? void 0 : _c.description) || "",
             status: offering.status,
             targetAmount: offering.targetAmount,
             currentRaised: raised,
@@ -243,8 +249,8 @@ exports.default = async (data) => {
                 role: tm.role,
                 avatar: tm.avatar,
             })),
-            blockchain: ((_b = offering.tokenDetail) === null || _b === void 0 ? void 0 : _b.blockchain) || "Unknown",
-            tokenType: ((_c = offering.tokenDetail) === null || _c === void 0 ? void 0 : _c.tokenType) || "Unknown",
+            blockchain: ((_d = offering.tokenDetail) === null || _d === void 0 ? void 0 : _d.blockchain) || "Unknown",
+            tokenType: ((_e = offering.tokenDetail) === null || _e === void 0 ? void 0 : _e.tokenType) || "Unknown",
         };
     });
     const transformedUpcoming = upcomingOfferings.map((offering) => {

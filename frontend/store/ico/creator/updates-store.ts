@@ -31,7 +31,7 @@ export const useTokenUpdateStore = create<TokenUpdateStore>((set, get) => ({
   // Fetch updates only if they haven't been fetched for this token.
   fetchUpdates: async (tokenId: string) => {
     // If we've already fetched updates for this token and the list is not empty, skip refetch.
-    if (get().lastTokenIdFetched === tokenId && get().updates.length > 0) {
+    if (get().lastTokenIdFetched === tokenId) {
       return;
     }
     set({ isLoading: true, error: null });
@@ -125,11 +125,13 @@ export const useTokenUpdateStore = create<TokenUpdateStore>((set, get) => ({
   getUpdatesThisMonth: (tokenId: string) => {
     const now = new Date();
     const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
     return get().updates.filter(
       (u) =>
         u.offeringId === tokenId &&
         u.createdAt &&
-        new Date(u.createdAt).getMonth() === currentMonth
+        new Date(u.createdAt).getMonth() === currentMonth &&
+        new Date(u.createdAt).getFullYear() === currentYear
     );
   },
 }));

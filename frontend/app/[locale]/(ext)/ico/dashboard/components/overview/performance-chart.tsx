@@ -32,7 +32,7 @@ export function PerformanceChart() {
       </div>
     );
   }
-  if (!performanceData.length || !metrics) {
+  if (!performanceData || !performanceData.length || !metrics) {
     return <div>{t("no_performance_data_available")}.</div>;
   }
 

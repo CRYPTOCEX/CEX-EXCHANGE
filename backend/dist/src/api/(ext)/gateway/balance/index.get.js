@@ -1,1 +1,61 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Get merchant balance",description:"Gets the merchant's balance across all currencies.",operationId:"getMerchantBalance",tags:["Gateway","Merchant","Balance"],responses:{200:{description:"Balance information"}},requiresAuth:!0,logModule:"GATEWAY",logTitle:"Get Gateway Balance"};exports.default=async e=>{const{user:t,ctx:a}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const r=await db_1.models.gatewayMerchant.findOne({where:{userId:t.id}});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Merchant account not found"});const l=await db_1.models.gatewayMerchantBalance.findAll({where:{merchantId:r.id},order:[["currency","ASC"]]});let o=0,s=0,n=0;const d=l.map(e=>{o+=parseFloat(e.available);s+=parseFloat(e.pending);n+=parseFloat(e.reserved);return{currency:e.currency,walletType:e.walletType,available:e.available,pending:e.pending,reserved:e.reserved,totalReceived:e.totalReceived,totalRefunded:e.totalRefunded,totalFees:e.totalFees,totalPaidOut:e.totalPaidOut}});null==a||a.success("Request completed successfully");return{balances:d,summary:{totalAvailable:o,totalPending:s,totalReserved:n},payoutSettings:{schedule:r.payoutSchedule,threshold:r.payoutThreshold,defaultCurrency:r.defaultCurrency}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = { summary: "Get merchant balance",
+    description: "Gets the merchant's balance across all currencies.",
+    operationId: "getMerchantBalance",
+    tags: ["Gateway", "Merchant", "Balance"],
+    responses: { 200: { description: "Balance information",
+        },
+    },
+    requiresAuth: true,
+    logModule: "GATEWAY",
+    logTitle: "Get Gateway Balance",
+};
+exports.default = async (data) => {
+    const { user, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const merchant = await db_1.models.gatewayMerchant.findOne({ where: { userId: user.id },
+    });
+    if (!merchant) {
+        throw (0, error_1.createError)({ statusCode: 404,
+            message: "Merchant account not found",
+        });
+    }
+    const balances = await db_1.models.gatewayMerchantBalance.findAll({ where: { merchantId: merchant.id },
+        order: [["currency", "ASC"]],
+    });
+    let totalAvailable = 0;
+    let totalPending = 0;
+    let totalReserved = 0;
+    const balanceList = balances.map((b) => {
+        totalAvailable += parseFloat(String(b.available));
+        totalPending += parseFloat(String(b.pending));
+        totalReserved += parseFloat(String(b.reserved));
+        return { currency: b.currency,
+            walletType: b.walletType,
+            available: b.available,
+            pending: b.pending,
+            reserved: b.reserved,
+            totalReceived: b.totalReceived,
+            totalRefunded: b.totalRefunded,
+            totalFees: b.totalFees,
+            totalPaidOut: b.totalPaidOut,
+        };
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Request completed successfully");
+    return { balances: balanceList,
+        summary: { totalAvailable,
+            totalPending,
+            totalReserved,
+        },
+        payoutSettings: { schedule: merchant.payoutSchedule,
+            threshold: merchant.payoutThreshold,
+            defaultCurrency: merchant.defaultCurrency,
+        },
+    };
+};

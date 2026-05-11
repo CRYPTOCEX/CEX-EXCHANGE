@@ -44,14 +44,6 @@ exports.metadata = {
             schema: { type: "string" },
             description: "Filter by FAQ category",
         },
-        {
-            index: 4,
-            name: "active",
-            in: "query",
-            required: false,
-            schema: { type: "string" },
-            description: "Filter by active status",
-        },
     ],
     responses: {
         200: {
@@ -83,14 +75,9 @@ exports.default = async (data) => {
     const { query, ctx } = data;
     const where = {};
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Building query filters");
-    if (query.active === "false") {
-        where.status = false;
-    }
-    else {
-        where.status = true;
-    }
+    where.status = true;
     if (query.search) {
-        const search = query.search.toLowerCase();
+        const search = query.search.toLowerCase().replace(/[%_\\]/g, '\\$&');
         where[sequelize_1.Op.or] = [
             { question: { [sequelize_1.Op.like]: `%${search}%` } },
             { answer: { [sequelize_1.Op.like]: `%${search}%` } },
@@ -133,8 +120,7 @@ exports.default = async (data) => {
         }
     }
     catch (error) {
-        console.error("Error fetching public FAQs:", error);
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(error instanceof Error ? error.message : "Failed to fetch FAQs");
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch FAQs");
         throw (0, error_1.createError)({ statusCode: 500, message: "Failed to fetch FAQs" });
     }
 };

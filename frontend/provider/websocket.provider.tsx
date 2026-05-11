@@ -189,17 +189,16 @@ export const WebSocketProvider = ({
 
     // Listen for messages and handle notification messages.
     const messageHandler = (msg: any) => {
-      if (msg.type === "notification") {
-        // Update the store with the new notification using stable ref.
+      // Handle real-time notification from InAppChannel (sent via sendToClient with stream format)
+      if (msg.stream === "notification" && msg.data) {
         handleNotificationMessageRef.current({
-          method: msg.method,
-          payload: msg.payload,
+          method: msg.data.method || "create",
+          payload: msg.data,
         });
 
         // Play the notification sound with throttling
         playNotificationSound();
       }
-      // Note: "notifications" (bulk) type is handled by initial HTTP fetch
     };
 
     manager.on("message", messageHandler);

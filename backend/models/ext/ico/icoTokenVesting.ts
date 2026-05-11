@@ -73,14 +73,14 @@ export default class icoTokenVesting
           onDelete: "CASCADE",
         },
         totalAmount: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             min: 0,
           },
         },
         releasedAmount: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           defaultValue: 0,
           validate: {

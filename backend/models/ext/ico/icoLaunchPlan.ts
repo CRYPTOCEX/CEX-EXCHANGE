@@ -30,7 +30,7 @@ export interface icoLaunchPlanAttributes {
 }
 
 export interface icoLaunchPlanCreationAttributes
-  extends Partial<icoLaunchPlanAttributes> {}
+  extends Omit<icoLaunchPlanAttributes, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export default class icoLaunchPlan
   extends Model<icoLaunchPlanAttributes, icoLaunchPlanCreationAttributes>
@@ -88,7 +88,7 @@ export default class icoLaunchPlan
           },
         },
         price: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 2),
           allowNull: false,
           validate: {
             isFloat: { msg: "price: Must be a valid number" },

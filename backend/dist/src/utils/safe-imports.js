@@ -72,6 +72,7 @@ exports.getNftCronUtils = getNftCronUtils;
 exports.getGatewayCronUtils = getGatewayCronUtils;
 exports.getCopyTradingCronUtils = getCopyTradingCronUtils;
 exports.getCopyTradingQueueUtils = getCopyTradingQueueUtils;
+exports.getAffiliateUtils = getAffiliateUtils;
 exports.getScyllaClientUtils = getScyllaClientUtils;
 exports.initializeScylla = initializeScylla;
 exports.initializeMatchingEngine = initializeMatchingEngine;
@@ -433,6 +434,15 @@ async function getCopyTradingQueueUtils() {
         copyTradingQueueUtilsChecked = true;
     }
     return copyTradingQueueUtils;
+}
+let affiliateUtils = null;
+let affiliateUtilsChecked = false;
+async function getAffiliateUtils() {
+    if (!affiliateUtilsChecked) {
+        affiliateUtils = await safeImportModule('@b/api/(ext)/affiliate/utils');
+        affiliateUtilsChecked = true;
+    }
+    return affiliateUtils;
 }
 let scyllaClientUtils = null;
 let scyllaClientUtilsChecked = false;

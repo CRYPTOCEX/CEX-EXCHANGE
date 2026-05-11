@@ -1,1 +1,344 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/(ext)/copy-trading/utils"),wallet_1=require("@b/services/wallet"),sequelize_1=require("sequelize");exports.metadata={summary:"Toggle leader market status",description:"Enables or disables a market for the leader. When disabling a market with follower allocations, refunds are automatically processed.",operationId:"toggleLeaderMarket",tags:["Copy Trading","Leader"],requiresAuth:!0,logModule:"COPY",logTitle:"Toggle leader market",parameters:[{name:"symbol",in:"path",required:!0,schema:{type:"string"},description:"Market symbol (URL encoded, e.g., BTC%2FUSDT)"}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{isActive:{type:"boolean",description:"Whether to enable (true) or disable (false) the market"}},required:["isActive"]}}}},responses:{200:{description:"Market status toggled successfully",content:{"application/json":{schema:{type:"object",properties:{success:{type:"boolean"},message:{type:"string"},market:{type:"object"},refundedAllocations:{type:"number"}}}}}},400:{description:"Bad Request - Has open positions"},401:{description:"Unauthorized"},404:{description:"Leader or Market not found"}}};exports.default=async e=>{const{user:t,params:a,body:r,ctx:s}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});const o=decodeURIComponent(a.symbol),{isActive:i}=r;if("boolean"!=typeof i)throw(0,error_1.createError)({statusCode:400,message:"isActive must be a boolean"});null==s||s.step("Finding leader profile");const l=await db_1.models.copyTradingLeader.findOne({where:{userId:t.id}});if(!l)throw(0,error_1.createError)({statusCode:404,message:"Leader not found"});const n=l.id,d=o.split("/");if(2!==d.length)throw(0,error_1.createError)({statusCode:400,message:"Invalid symbol format. Use BASE/QUOTE (e.g., BTC/USDT)"});const[c,u]=d;null==s||s.step("Finding market");let m=await db_1.models.copyTradingLeaderMarket.findOne({where:{leaderId:n,symbol:o}});if(i&&!m){null==s||s.step("Validating market exists in ecosystem");if(!await db_1.models.ecosystemMarket.findOne({where:{currency:c,pair:u,status:!0}}))throw(0,error_1.createError)({statusCode:400,message:`Market ${o} not found or inactive in ecosystem`});null==s||s.step("Creating new market entry");m=await db_1.models.copyTradingLeaderMarket.create({leaderId:n,symbol:o,baseCurrency:c,quoteCurrency:u,isActive:!0});await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:n,action:"UPDATE",newValue:{symbol:o,baseCurrency:c,quoteCurrency:u,isActive:!0},userId:t.id,reason:"Market enabled"});null==s||s.success("Market enabled");return{success:!0,message:`Market ${o} enabled`,market:m,refundedAllocations:0}}if(!m)throw(0,error_1.createError)({statusCode:404,message:"Market not found"});if(m.isActive===i)return{success:!0,message:`Market ${o} is already ${i?"enabled":"disabled"}`,market:m,refundedAllocations:0};if(!i){null==s||s.step("Checking for open positions");const e=await db_1.models.copyTradingTrade.count({where:{leaderId:n,symbol:o,status:{[sequelize_1.Op.in]:["OPEN","PENDING","PARTIALLY_FILLED"]}}});if(e>0)throw(0,error_1.createError)({statusCode:400,message:`Cannot disable market with ${e} open positions. Please close all positions first.`});null==s||s.step("Finding follower allocations to refund");const a=await db_1.models.copyTradingFollowerAllocation.findAll({where:{symbol:o,isActive:!0},include:[{model:db_1.models.copyTradingFollower,as:"follower",where:{leaderId:n},attributes:["id","userId"]}]});let r=0;if(a.length>0){null==s||s.step(`Refunding ${a.length} follower allocations`);await db_1.sequelize.transaction(async e=>{for(const t of a){const a=t,s=a.follower,i=Math.max(0,a.baseAmount-a.baseUsedAmount),l=Math.max(0,a.quoteAmount-a.quoteUsedAmount);if(i>0){const t=`ct_toggle_base_${a.id}`,r=await wallet_1.walletService.transfer({idempotencyKey:t,fromUserId:s.userId,toUserId:s.userId,fromWalletType:"COPY_TRADING",toWalletType:"ECO",fromCurrency:c,toCurrency:c,amount:i,description:`Transfer ${i} ${c} from CT to ECO wallet (leader disabled ${o})`,metadata:{allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"},transaction:e});await(0,utils_1.createCopyTradingTransaction)({userId:s.userId,leaderId:n,followerId:s.id,type:"DEALLOCATION",amount:-i,currency:c,balanceBefore:r.fromResult.previousBalance,balanceAfter:r.fromResult.newBalance,description:`Transfer ${i} ${c} from CT to ECO wallet (leader disabled ${o})`,metadata:JSON.stringify({allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"})},e);await(0,utils_1.createCopyTradingTransaction)({userId:s.userId,leaderId:n,followerId:s.id,type:"DEALLOCATION",amount:i,currency:c,balanceBefore:r.toResult.previousBalance,balanceAfter:r.toResult.newBalance,description:`Received ${i} ${c} in ECO wallet (leader disabled ${o})`,metadata:JSON.stringify({allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"})},e)}if(l>0){const t=`ct_toggle_quote_${a.id}`,r=await wallet_1.walletService.transfer({idempotencyKey:t,fromUserId:s.userId,toUserId:s.userId,fromWalletType:"COPY_TRADING",toWalletType:"ECO",fromCurrency:u,toCurrency:u,amount:l,description:`Transfer ${l} ${u} from CT to ECO wallet (leader disabled ${o})`,metadata:{allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"},transaction:e});await(0,utils_1.createCopyTradingTransaction)({userId:s.userId,leaderId:n,followerId:s.id,type:"DEALLOCATION",amount:-l,currency:u,balanceBefore:r.fromResult.previousBalance,balanceAfter:r.fromResult.newBalance,description:`Transfer ${l} ${u} from CT to ECO wallet (leader disabled ${o})`,metadata:JSON.stringify({allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"})},e);await(0,utils_1.createCopyTradingTransaction)({userId:s.userId,leaderId:n,followerId:s.id,type:"DEALLOCATION",amount:l,currency:u,balanceBefore:r.toResult.previousBalance,balanceAfter:r.toResult.newBalance,description:`Received ${l} ${u} in ECO wallet (leader disabled ${o})`,metadata:JSON.stringify({allocationId:a.id,symbol:o,reason:"LEADER_MARKET_DISABLED"})},e)}await a.update({isActive:!1,baseAmount:a.baseUsedAmount,quoteAmount:a.quoteUsedAmount},{transaction:e});r++}await m.update({isActive:!1},{transaction:e})});await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:n,action:"UPDATE",oldValue:{symbol:o,isActive:!0},newValue:{symbol:o,isActive:!1,refundedAllocations:r},userId:t.id,reason:`Market disabled, ${r} allocations refunded`});null==s||s.success(`Market disabled, ${r} allocations refunded`);return{success:!0,message:`Market ${o} disabled. ${r} follower allocation(s) refunded.`,market:await m.reload(),refundedAllocations:r}}await m.update({isActive:!1});await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:n,action:"UPDATE",oldValue:{symbol:o,isActive:!0},newValue:{symbol:o,isActive:!1},userId:t.id,reason:"Market disabled"});null==s||s.success("Market disabled");return{success:!0,message:`Market ${o} disabled`,market:m,refundedAllocations:0}}null==s||s.step("Enabling market");await m.update({isActive:!0});await(0,utils_1.createAuditLog)({entityType:"LEADER",entityId:n,action:"UPDATE",oldValue:{symbol:o,isActive:!1},newValue:{symbol:o,isActive:!0},userId:t.id,reason:"Market enabled"});null==s||s.success("Market enabled");return{success:!0,message:`Market ${o} enabled`,market:m,refundedAllocations:0}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/(ext)/copy-trading/utils");
+const wallet_1 = require("@b/services/wallet");
+const sequelize_1 = require("sequelize");
+exports.metadata = {
+    summary: "Toggle leader market status",
+    description: "Enables or disables a market for the leader. When disabling a market with follower allocations, refunds are automatically processed.",
+    operationId: "toggleLeaderMarket",
+    tags: ["Copy Trading", "Leader"],
+    requiresAuth: true,
+    logModule: "COPY",
+    logTitle: "Toggle leader market",
+    parameters: [
+        {
+            name: "symbol",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+            description: "Market symbol (URL encoded, e.g., BTC%2FUSDT)",
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        isActive: {
+                            type: "boolean",
+                            description: "Whether to enable (true) or disable (false) the market",
+                        },
+                    },
+                    required: ["isActive"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Market status toggled successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            success: { type: "boolean" },
+                            message: { type: "string" },
+                            market: { type: "object" },
+                            refundedAllocations: { type: "number" },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Bad Request - Has open positions" },
+        401: { description: "Unauthorized" },
+        404: { description: "Leader or Market not found" },
+    },
+};
+exports.default = async (data) => {
+    const { user, params, body, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    const symbol = decodeURIComponent(params.symbol);
+    const { isActive } = body;
+    if (typeof isActive !== "boolean") {
+        throw (0, error_1.createError)({ statusCode: 400, message: "isActive must be a boolean" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding leader profile");
+    const leader = await db_1.models.copyTradingLeader.findOne({
+        where: { userId: user.id },
+    });
+    if (!leader) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Leader not found" });
+    }
+    const leaderId = leader.id;
+    const parts = symbol.split("/");
+    if (parts.length !== 2) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid symbol format. Use BASE/QUOTE (e.g., BTC/USDT)",
+        });
+    }
+    const [baseCurrency, quoteCurrency] = parts;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding market");
+    let leaderMarket = await db_1.models.copyTradingLeaderMarket.findOne({
+        where: { leaderId, symbol },
+    });
+    if (isActive && !leaderMarket) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating market exists in ecosystem");
+        const ecoMarket = await db_1.models.ecosystemMarket.findOne({
+            where: { currency: baseCurrency, pair: quoteCurrency, status: true },
+        });
+        if (!ecoMarket) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Market ${symbol} not found or inactive in ecosystem`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating new market entry");
+        leaderMarket = await db_1.models.copyTradingLeaderMarket.create({
+            leaderId,
+            symbol,
+            baseCurrency,
+            quoteCurrency,
+            isActive: true,
+        });
+        await (0, utils_1.createAuditLog)({
+            entityType: "LEADER",
+            entityId: leaderId,
+            action: "UPDATE",
+            newValue: { symbol, baseCurrency, quoteCurrency, isActive: true },
+            userId: user.id,
+            reason: "Market enabled",
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Market enabled");
+        return {
+            success: true,
+            message: `Market ${symbol} enabled`,
+            market: leaderMarket,
+            refundedAllocations: 0,
+        };
+    }
+    if (!leaderMarket) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Market not found" });
+    }
+    const currentStatus = leaderMarket.isActive;
+    if (currentStatus === isActive) {
+        return {
+            success: true,
+            message: `Market ${symbol} is already ${isActive ? "enabled" : "disabled"}`,
+            market: leaderMarket,
+            refundedAllocations: 0,
+        };
+    }
+    if (!isActive) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for open positions");
+        const openTrades = await db_1.models.copyTradingTrade.count({
+            where: {
+                leaderId,
+                symbol,
+                status: { [sequelize_1.Op.in]: ["OPEN", "PENDING", "PARTIALLY_FILLED"] },
+            },
+        });
+        if (openTrades > 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Cannot disable market with ${openTrades} open positions. Please close all positions first.`,
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding follower allocations to refund");
+        const allocations = await db_1.models.copyTradingFollowerAllocation.findAll({
+            where: { symbol, isActive: true },
+            include: [
+                {
+                    model: db_1.models.copyTradingFollower,
+                    as: "follower",
+                    where: { leaderId },
+                    attributes: ["id", "userId"],
+                },
+            ],
+        });
+        let refundedCount = 0;
+        if (allocations.length > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Refunding ${allocations.length} follower allocations`);
+            await db_1.sequelize.transaction(async (transaction) => {
+                for (const allocation of allocations) {
+                    const alloc = allocation;
+                    const follower = alloc.follower;
+                    const baseToRefund = Math.max(0, alloc.baseAmount - alloc.baseUsedAmount);
+                    const quoteToRefund = Math.max(0, alloc.quoteAmount - alloc.quoteUsedAmount);
+                    if (baseToRefund > 0) {
+                        const transferIdempotencyKey = `ct_toggle_base_${alloc.id}`;
+                        const transferResult = await wallet_1.walletService.transfer({
+                            idempotencyKey: transferIdempotencyKey,
+                            fromUserId: follower.userId,
+                            toUserId: follower.userId,
+                            fromWalletType: "COPY_TRADING",
+                            toWalletType: "ECO",
+                            fromCurrency: baseCurrency,
+                            toCurrency: baseCurrency,
+                            amount: baseToRefund,
+                            description: `Transfer ${baseToRefund} ${baseCurrency} from CT to ECO wallet (leader disabled ${symbol})`,
+                            metadata: {
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            },
+                            transaction,
+                        });
+                        await (0, utils_1.createCopyTradingTransaction)({
+                            userId: follower.userId,
+                            leaderId,
+                            followerId: follower.id,
+                            type: "DEALLOCATION",
+                            amount: -baseToRefund,
+                            currency: baseCurrency,
+                            balanceBefore: transferResult.fromResult.previousBalance,
+                            balanceAfter: transferResult.fromResult.newBalance,
+                            description: `Transfer ${baseToRefund} ${baseCurrency} from CT to ECO wallet (leader disabled ${symbol})`,
+                            metadata: JSON.stringify({
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            }),
+                        }, transaction);
+                        await (0, utils_1.createCopyTradingTransaction)({
+                            userId: follower.userId,
+                            leaderId,
+                            followerId: follower.id,
+                            type: "DEALLOCATION",
+                            amount: baseToRefund,
+                            currency: baseCurrency,
+                            balanceBefore: transferResult.toResult.previousBalance,
+                            balanceAfter: transferResult.toResult.newBalance,
+                            description: `Received ${baseToRefund} ${baseCurrency} in ECO wallet (leader disabled ${symbol})`,
+                            metadata: JSON.stringify({
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            }),
+                        }, transaction);
+                    }
+                    if (quoteToRefund > 0) {
+                        const transferIdempotencyKey = `ct_toggle_quote_${alloc.id}`;
+                        const transferResult = await wallet_1.walletService.transfer({
+                            idempotencyKey: transferIdempotencyKey,
+                            fromUserId: follower.userId,
+                            toUserId: follower.userId,
+                            fromWalletType: "COPY_TRADING",
+                            toWalletType: "ECO",
+                            fromCurrency: quoteCurrency,
+                            toCurrency: quoteCurrency,
+                            amount: quoteToRefund,
+                            description: `Transfer ${quoteToRefund} ${quoteCurrency} from CT to ECO wallet (leader disabled ${symbol})`,
+                            metadata: {
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            },
+                            transaction,
+                        });
+                        await (0, utils_1.createCopyTradingTransaction)({
+                            userId: follower.userId,
+                            leaderId,
+                            followerId: follower.id,
+                            type: "DEALLOCATION",
+                            amount: -quoteToRefund,
+                            currency: quoteCurrency,
+                            balanceBefore: transferResult.fromResult.previousBalance,
+                            balanceAfter: transferResult.fromResult.newBalance,
+                            description: `Transfer ${quoteToRefund} ${quoteCurrency} from CT to ECO wallet (leader disabled ${symbol})`,
+                            metadata: JSON.stringify({
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            }),
+                        }, transaction);
+                        await (0, utils_1.createCopyTradingTransaction)({
+                            userId: follower.userId,
+                            leaderId,
+                            followerId: follower.id,
+                            type: "DEALLOCATION",
+                            amount: quoteToRefund,
+                            currency: quoteCurrency,
+                            balanceBefore: transferResult.toResult.previousBalance,
+                            balanceAfter: transferResult.toResult.newBalance,
+                            description: `Received ${quoteToRefund} ${quoteCurrency} in ECO wallet (leader disabled ${symbol})`,
+                            metadata: JSON.stringify({
+                                allocationId: alloc.id,
+                                symbol,
+                                reason: "LEADER_MARKET_DISABLED",
+                            }),
+                        }, transaction);
+                    }
+                    await alloc.update({
+                        isActive: false,
+                        baseAmount: alloc.baseUsedAmount,
+                        quoteAmount: alloc.quoteUsedAmount,
+                    }, { transaction });
+                    refundedCount++;
+                }
+                await leaderMarket.update({ isActive: false }, { transaction });
+            });
+            await (0, utils_1.createAuditLog)({
+                entityType: "LEADER",
+                entityId: leaderId,
+                action: "UPDATE",
+                oldValue: { symbol, isActive: true },
+                newValue: { symbol, isActive: false, refundedAllocations: refundedCount },
+                userId: user.id,
+                reason: `Market disabled, ${refundedCount} allocations refunded`,
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.success(`Market disabled, ${refundedCount} allocations refunded`);
+            return {
+                success: true,
+                message: `Market ${symbol} disabled. ${refundedCount} follower allocation(s) refunded.`,
+                market: await leaderMarket.reload(),
+                refundedAllocations: refundedCount,
+            };
+        }
+        await leaderMarket.update({ isActive: false });
+        await (0, utils_1.createAuditLog)({
+            entityType: "LEADER",
+            entityId: leaderId,
+            action: "UPDATE",
+            oldValue: { symbol, isActive: true },
+            newValue: { symbol, isActive: false },
+            userId: user.id,
+            reason: "Market disabled",
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Market disabled");
+        return {
+            success: true,
+            message: `Market ${symbol} disabled`,
+            market: leaderMarket,
+            refundedAllocations: 0,
+        };
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Enabling market");
+    await leaderMarket.update({ isActive: true });
+    await (0, utils_1.createAuditLog)({
+        entityType: "LEADER",
+        entityId: leaderId,
+        action: "UPDATE",
+        oldValue: { symbol, isActive: false },
+        newValue: { symbol, isActive: true },
+        userId: user.id,
+        reason: "Market enabled",
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Market enabled");
+    return {
+        success: true,
+        message: `Market ${symbol} enabled`,
+        market: leaderMarket,
+        refundedAllocations: 0,
+    };
+};

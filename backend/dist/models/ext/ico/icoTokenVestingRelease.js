@@ -25,7 +25,7 @@ class icoTokenVestingRelease extends sequelize_1.Model {
                 comment: "Date when tokens should be released",
             },
             releaseAmount: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     min: 0,
@@ -33,7 +33,7 @@ class icoTokenVestingRelease extends sequelize_1.Model {
                 comment: "Amount of tokens to release",
             },
             percentage: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(5, 2),
                 allowNull: false,
                 validate: {
                     min: 0,

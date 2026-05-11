@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,14 +52,13 @@ export function FAQAIAssistant() {
     useFAQAdminStore();
 
   // Fetch FAQs and page links on mount if not already loaded.
+  const hasFetched = useRef(false);
   useEffect(() => {
-    if (!faqs.length) {
-      fetchFAQs();
-    }
-    if (!pageLinks.length) {
-      fetchPageLinks();
-    }
-  }, [faqs, pageLinks, fetchFAQs, fetchPageLinks]);
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    fetchFAQs();
+    fetchPageLinks();
+  }, [fetchFAQs, fetchPageLinks]);
 
   // Get pages from the structured pageLinks (each is an object with id, path, name, group)
   const pages = pageLinks.sort((a, b) => a.name.localeCompare(b.name));
@@ -189,21 +188,21 @@ export function FAQAIAssistant() {
               <TabsList className="grid w-full grid-cols-3 bg-muted/30">
                 <TabsTrigger
                   value="single"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   {t("single_faq")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="page"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
                 >
                   <Layers className="h-4 w-4 mr-2" />
                   {t("page_faqs")}
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
                 >
                   <Zap className="h-4 w-4 mr-2" />
                   {tExt("all_faqs")}
@@ -218,7 +217,7 @@ export function FAQAIAssistant() {
                         {t("select_an_faq_to_improve")}
                       </label>
                       <select
-                        className="w-full p-3 rounded-lg border bg-white/50 backdrop-blur-sm transition-colors hover:bg-white/80 focus:bg-white"
+                        className="w-full p-3 rounded-lg border bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm transition-colors hover:bg-white/80 dark:hover:bg-gray-700/80 focus:bg-white dark:focus:bg-gray-700 dark:text-white dark:border-gray-600"
                         value={selectedFaqId || ""}
                         onChange={(e) => setSelectedFaqId(e.target.value)}
                         disabled={isProcessing}
@@ -241,7 +240,7 @@ export function FAQAIAssistant() {
                         {t("select_a_page")}
                       </label>
                       <select
-                        className="w-full p-3 rounded-lg border bg-white/50 backdrop-blur-sm transition-colors hover:bg-white/80 focus:bg-white"
+                        className="w-full p-3 rounded-lg border bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm transition-colors hover:bg-white/80 dark:hover:bg-gray-700/80 focus:bg-white dark:focus:bg-gray-700 dark:text-white dark:border-gray-600"
                         value={selectedPage || ""}
                         onChange={(e) => setSelectedPage(e.target.value)}
                         disabled={isProcessing}
@@ -264,12 +263,12 @@ export function FAQAIAssistant() {
                             {t("faqs_on_this_page")}
                             {faqsForSelectedPage.length}
                           </p>
-                          <div className="max-h-40 overflow-y-auto rounded-lg border bg-white/50 backdrop-blur-sm p-3">
+                          <div className="max-h-40 overflow-y-auto rounded-lg border bg-white/50 dark:bg-gray-800/50 dark:border-gray-600 backdrop-blur-sm p-3">
                             {faqsForSelectedPage.length > 0 ? (
                               faqsForSelectedPage.map((faq) => (
                                 <div
                                   key={faq.id}
-                                  className="py-2 px-3 rounded-md hover:bg-white/50 transition-colors"
+                                  className="py-2 px-3 rounded-md hover:bg-white/50 dark:hover:bg-gray-700/50 transition-colors dark:text-white"
                                 >
                                   {faq.question}
                                 </div>
@@ -287,8 +286,8 @@ export function FAQAIAssistant() {
                 </TabsContent>
 
                 <TabsContent value="all">
-                  <Alert className="bg-white/50 backdrop-blur-sm border-indigo-100">
-                    <Zap className="h-4 w-4 text-indigo-500" />
+                  <Alert className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border-indigo-100 dark:border-indigo-900">
+                    <Zap className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                     <AlertTitle>
                       {t("improve_all")}
                       {faqs.length}
@@ -356,10 +355,10 @@ export function FAQAIAssistant() {
                         {tCommon("results")}
                       </h3>
                       <div className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-lg border bg-white/50 backdrop-blur-sm p-4 space-y-2">
+                        <div className="rounded-lg border bg-white/50 dark:bg-gray-800/50 dark:border-gray-600 backdrop-blur-sm p-4 space-y-2">
                           <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-green-100 p-1">
-                              <Check className="h-4 w-4 text-green-600" />
+                            <div className="rounded-full bg-green-100 dark:bg-green-900/50 p-1">
+                              <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                             </div>
                             <p className="font-medium">{t("improved")}</p>
                           </div>
@@ -368,10 +367,10 @@ export function FAQAIAssistant() {
                           </p>
                         </div>
 
-                        <div className="rounded-lg border bg-white/50 backdrop-blur-sm p-4 space-y-2">
+                        <div className="rounded-lg border bg-white/50 dark:bg-gray-800/50 dark:border-gray-600 backdrop-blur-sm p-4 space-y-2">
                           <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-red-100 p-1">
-                              <AlertCircle className="h-4 w-4 text-red-600" />
+                            <div className="rounded-full bg-red-100 dark:bg-red-900/50 p-1">
+                              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
                             </div>
                             <p className="font-medium">{tCommon("failed")}</p>
                           </div>
@@ -380,10 +379,10 @@ export function FAQAIAssistant() {
                           </p>
                         </div>
 
-                        <div className="rounded-lg border bg-white/50 backdrop-blur-sm p-4 space-y-2">
+                        <div className="rounded-lg border bg-white/50 dark:bg-gray-800/50 dark:border-gray-600 backdrop-blur-sm p-4 space-y-2">
                           <div className="flex items-center gap-2">
-                            <div className="rounded-full bg-yellow-100 p-1">
-                              <AlertCircle className="h-4 w-4 text-yellow-600" />
+                            <div className="rounded-full bg-yellow-100 dark:bg-yellow-900/50 p-1">
+                              <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                             </div>
                             <p className="font-medium">{t("skipped")}</p>
                           </div>

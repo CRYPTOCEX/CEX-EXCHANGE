@@ -47,7 +47,13 @@ export function ReferralTree({ networkData, mlmSystem }: ReferralTreeProps) {
 
   useEffect(() => {
     if (networkData && networkData.treeData && networkContainer.current) {
-      createTree(networkContainer.current, networkData.treeData);
+      // Use a small delay to ensure the container has rendered with proper dimensions
+      const timer = setTimeout(() => {
+        if (networkContainer.current && networkContainer.current.clientWidth > 0 && networkContainer.current.clientHeight > 0) {
+          createTree(networkContainer.current, networkData.treeData!);
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [networkData, mlmSystem]);
 

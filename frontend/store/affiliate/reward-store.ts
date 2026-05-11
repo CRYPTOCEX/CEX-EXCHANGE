@@ -129,7 +129,7 @@ export const useRewardStore = create<RewardStore>((set) => ({
     set({ loading: true, error: null });
     try {
       const { data, error } = await $fetch({
-        url: `/api/admin/affiliates/${affiliateId}/rewards`,
+        url: `/api/admin/affiliate/reward?referrerId=${affiliateId}`,
         silentSuccess: true,
       });
 

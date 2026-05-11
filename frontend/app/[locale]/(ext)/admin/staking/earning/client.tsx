@@ -301,10 +301,10 @@ export function StakingEarningsClient() {
             />
             <StatsCard
               label={t("average_apr")}
-              value={`${(pools.reduce((sum, pool) => sum + pool.apr, 0) / (pools.filter((p) => p.status === "ACTIVE").length || 1)).toFixed(2)}%`}
+              value={`${(pools.reduce((sum, pool) => sum + Number(pool.apr ?? 0), 0) / (pools.filter((p) => p.status === "ACTIVE").length || 1)).toFixed(2)}%`}
               icon={Percent}
               index={3}
-              description={`${tCommon("avg")}. ${tExt("admin_fee")} ${(pools.reduce((sum, pool) => sum + pool.adminFeePercentage, 0) / (pools.length || 1)).toFixed(2)}%`}
+              description={`${tCommon("avg")}. ${tExt("admin_fee")} ${(pools.reduce((sum, pool) => sum + Number(pool.adminFeePercentage ?? 0), 0) / (pools.length || 1)).toFixed(2)}%`}
               {...statsCardColors.amber}
             />
           </div>
@@ -448,19 +448,19 @@ export function StakingEarningsClient() {
                           <div className="flex items-center justify-between text-sm">
                             <span>{tExt("total_staked")}</span>
                             <span className="font-medium">
-                              {(pool.totalStaked ?? 0).toFixed(4)} {pool.symbol}
+                              {Number(pool.totalStaked ?? 0).toFixed(4)} {pool.symbol}
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span>{tCommon("apr")}</span>
                             <span className="font-medium">
-                              {pool.apr.toFixed(2)}%
+                              {Number(pool.apr ?? 0).toFixed(2)}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
                             <span>{tExt("admin_fee")}</span>
                             <span className="font-medium">
-                              {pool.adminFeePercentage.toFixed(2)}%
+                              {Number(pool.adminFeePercentage ?? 0).toFixed(2)}%
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">

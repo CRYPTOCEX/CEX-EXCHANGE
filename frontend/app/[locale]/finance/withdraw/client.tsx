@@ -402,7 +402,7 @@ export function WithdrawForm() {
     // Check KYC requirements for withdrawal feature only if KYC is enabled
     const kycEnabled = settings?.kycStatus === true || settings?.kycStatus === "true";
     if (kycEnabled) {
-      const kycRequirement = getKycRequirement(user as any, 'WITHDRAW');
+      const kycRequirement = getKycRequirement(user as any, 'withdraw_wallet');
       if (kycRequirement.required) {
         return kycRequirement.message;
       }

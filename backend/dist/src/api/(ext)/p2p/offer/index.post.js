@@ -41,6 +41,7 @@ const utils_1 = require("@b/api/finance/wallet/utils");
 const sequelize_1 = require("sequelize");
 const cache_1 = require("@b/utils/cache");
 const wallet_1 = require("@b/services/wallet");
+const console_1 = require("@b/utils/console");
 exports.metadata = {
     summary: "Create a P2P Offer",
     description: "Creates a new offer with structured configurations for the authenticated user, and associates payment methods.",
@@ -143,7 +144,7 @@ exports.metadata = {
     },
 };
 async function handler(data) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     const { user, body, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
@@ -161,24 +162,41 @@ async function handler(data) {
             message: "Trade terms are required for P2P offers",
         });
     }
-    console.log('[P2P Offer Create] Received body:', {
+    console_1.logger.debug("P2P", "Received body", {
         type: body.type,
         currency: body.currency,
         paymentMethodIds: body.paymentMethodIds,
     });
     if (!body.paymentMethodIds || !Array.isArray(body.paymentMethodIds) || body.paymentMethodIds.length === 0) {
-        console.error('[P2P Offer Create] Invalid payment methods:', body.paymentMethodIds);
+        console_1.logger.error("P2P", "Invalid payment methods", body.paymentMethodIds);
         throw (0, error_1.createError)({
             statusCode: 400,
             message: "At least one payment method is required for P2P offers",
         });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking offer type and requirements");
+    if (!((_d = body.amountConfig) === null || _d === void 0 ? void 0 : _d.total) || body.amountConfig.total <= 0) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Total amount must be greater than 0" });
+    }
+    if (body.amountConfig.min && body.amountConfig.max && body.amountConfig.min > body.amountConfig.max) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Minimum amount cannot exceed maximum amount" });
+    }
+    const finalPrice = (_e = body.priceConfig) === null || _e === void 0 ? void 0 : _e.finalPrice;
+    if (finalPrice && finalPrice > 0 && body.amountConfig.total) {
+        const minInCrypto = body.amountConfig.min ? body.amountConfig.min / finalPrice : 0;
+        const maxInCrypto = body.amountConfig.max ? body.amountConfig.max / finalPrice : 0;
+        if (minInCrypto > 0 && minInCrypto > body.amountConfig.total) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Minimum amount cannot exceed total amount" });
+        }
+        if (maxInCrypto > 0 && maxInCrypto > body.amountConfig.total) {
+            throw (0, error_1.createError)({ statusCode: 400, message: "Maximum amount cannot exceed total amount" });
+        }
+    }
     let sellerWallet = null;
     let requiredAmount = 0;
     if (body.type === "SELL") {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking seller balance for SELL offer");
-        requiredAmount = ((_d = body.amountConfig) === null || _d === void 0 ? void 0 : _d.total) || 0;
+        requiredAmount = ((_f = body.amountConfig) === null || _f === void 0 ? void 0 : _f.total) || 0;
         if (requiredAmount <= 0) {
             throw (0, error_1.createError)({
                 statusCode: 400,
@@ -192,7 +210,7 @@ async function handler(data) {
                 message: `You don't have a ${body.currency} ${body.walletType} wallet. Please create one first.`,
             });
         }
-        const availableBalance = sellerWallet.balance - sellerWallet.inOrder;
+        const availableBalance = sellerWallet.balance;
         if (availableBalance < requiredAmount) {
             throw (0, error_1.createError)({
                 statusCode: 400,
@@ -231,11 +249,11 @@ async function handler(data) {
     if (preparedData.tradeSettings && preparedData.tradeSettings.kycRequired === undefined) {
         preparedData.tradeSettings.kycRequired = false;
     }
-    const priceCurrency = ((_e = preparedData.priceConfig) === null || _e === void 0 ? void 0 : _e.currency) || "USD";
+    const priceCurrency = ((_g = preparedData.priceConfig) === null || _g === void 0 ? void 0 : _g.currency) || "USD";
     const minTradeAmount = await cacheManager.getSetting("p2pMinimumTradeAmount");
     const maxTradeAmount = await cacheManager.getSetting("p2pMaximumTradeAmount");
-    const offerMin = ((_f = preparedData.amountConfig) === null || _f === void 0 ? void 0 : _f.min) || 0;
-    const offerMax = ((_g = preparedData.amountConfig) === null || _g === void 0 ? void 0 : _g.max) || ((_h = preparedData.amountConfig) === null || _h === void 0 ? void 0 : _h.total) || 0;
+    const offerMin = ((_h = preparedData.amountConfig) === null || _h === void 0 ? void 0 : _h.min) || 0;
+    const offerMax = ((_j = preparedData.amountConfig) === null || _j === void 0 ? void 0 : _j.max) || ((_k = preparedData.amountConfig) === null || _k === void 0 ? void 0 : _k.total) || 0;
     if (minTradeAmount && offerMin < minTradeAmount) {
         throw (0, error_1.createError)({
             statusCode: 400,
@@ -249,7 +267,7 @@ async function handler(data) {
         });
     }
     const { validateMinimumTradeAmount } = await Promise.resolve().then(() => __importStar(require("../utils/fees")));
-    if (((_j = preparedData.amountConfig) === null || _j === void 0 ? void 0 : _j.min) && ((_k = preparedData.priceConfig) === null || _k === void 0 ? void 0 : _k.finalPrice)) {
+    if (((_l = preparedData.amountConfig) === null || _l === void 0 ? void 0 : _l.min) && ((_m = preparedData.priceConfig) === null || _m === void 0 ? void 0 : _m.finalPrice)) {
         const cryptoMinAmount = preparedData.amountConfig.min / preparedData.priceConfig.finalPrice;
         const minimumValidation = await validateMinimumTradeAmount(cryptoMinAmount, body.currency);
         if (!minimumValidation.valid && minimumValidation.minimum) {
@@ -296,7 +314,7 @@ async function handler(data) {
                 },
                 transaction: t,
             });
-            console.log('[P2P Offer Create] SELL offer - funds locked:', {
+            console_1.logger.debug("P2P", "SELL offer - funds locked", {
                 userId: user.id,
                 walletId: sellerWallet.id,
                 walletType: body.walletType,
@@ -311,7 +329,7 @@ async function handler(data) {
             : [];
         if (ids.length) {
             ctx === null || ctx === void 0 ? void 0 : ctx.step(`Validating and associating ${ids.length} payment method(s)`);
-            console.log('[P2P Offer Create] Validating payment method IDs:', ids);
+            console_1.logger.debug("P2P", "Validating payment method IDs", ids);
             const methods = await db_1.models.p2pPaymentMethod.findAll({
                 where: {
                     id: ids,
@@ -322,18 +340,18 @@ async function handler(data) {
                 },
                 transaction: t,
             });
-            console.log('[P2P Offer Create] Found payment methods:', methods.map(m => ({ id: m.id, name: m.name, userId: m.userId })));
+            console_1.logger.debug("P2P", "Found payment methods", methods.map(m => ({ id: m.id, name: m.name, userId: m.userId })));
             if (methods.length !== ids.length) {
                 const foundIds = methods.map(m => m.id);
                 const missingIds = ids.filter(id => !foundIds.includes(id));
-                console.error('[P2P Offer Create] Missing payment method IDs:', missingIds);
+                console_1.logger.error("P2P", "Missing payment method IDs", missingIds);
                 throw (0, error_1.createError)({
                     statusCode: 400,
                     message: `Invalid payment method IDs: ${missingIds.join(', ')}. Please ensure all payment methods are properly created first.`,
                 });
             }
             await offer.setPaymentMethods(methods, { transaction: t });
-            console.log('[P2P Offer Create] Associated payment methods successfully');
+            console_1.logger.debug("P2P", "Associated payment methods successfully");
         }
         await t.commit();
         await offer.reload({
@@ -347,16 +365,16 @@ async function handler(data) {
             ]
         });
         const offerStatus = shouldAutoApprove ? "ACTIVE" : "PENDING_APPROVAL";
-        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Created ${body.type} offer for ${(_l = body.amountConfig) === null || _l === void 0 ? void 0 : _l.total} ${body.currency} (${offerStatus})`);
+        ctx === null || ctx === void 0 ? void 0 : ctx.success(`Created ${body.type} offer for ${(_o = body.amountConfig) === null || _o === void 0 ? void 0 : _o.total} ${body.currency} (${offerStatus})`);
         return { message: "Offer created successfully.", offer };
     }
     catch (err) {
         await t.rollback();
+        if (err.statusCode)
+            throw err;
         throw (0, error_1.createError)({
-            statusCode: (_m = err.statusCode) !== null && _m !== void 0 ? _m : 500,
-            message: err.message
-                ? `Internal Server Error: ${err.message}`
-                : "Internal Server Error",
+            statusCode: 500,
+            message: "Failed to create offer: " + err.message,
         });
     }
 }

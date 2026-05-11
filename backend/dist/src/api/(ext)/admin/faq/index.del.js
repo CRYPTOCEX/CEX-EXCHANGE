@@ -48,6 +48,11 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("No FAQ IDs provided");
         throw (0, error_1.createError)({ statusCode: 400, message: "No FAQ IDs provided" });
     }
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (ids.some((id) => !uuidRegex.test(id))) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid ID format");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Invalid ID format" });
+    }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Deleting FAQs");
     await db_1.models.faq.destroy({ where: { id: ids } });
     ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQs deleted successfully");

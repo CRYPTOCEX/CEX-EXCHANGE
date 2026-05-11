@@ -13,7 +13,7 @@ const verificationAttempts = new Map();
 const MAX_VERIFICATION_ATTEMPTS = 5;
 const VERIFICATION_ATTEMPT_RESET_TIME = 30 * 60 * 1000;
 async function verifyPendingTransactions() {
-    if (!(0, Websocket_1.hasClients)(`/ws/ecosystem/deposit`)) {
+    if (!(0, Websocket_1.hasClients)(`/api/ecosystem/deposit`)) {
         return;
     }
     const processingTransactions = new Set();
@@ -160,7 +160,7 @@ async function verifyPendingTransactions() {
                                     ? txDetails.to
                                     : (_e = txDetails.address) === null || _e === void 0 ? void 0 : _e.toLowerCase();
                             try {
-                                Websocket_1.messageBroker.broadcastToSubscribedClients("/ws/ecosystem/deposit", {
+                                Websocket_1.messageBroker.broadcastToSubscribedClients("/api/ecosystem/deposit", {
                                     currency: (_f = response.wallet) === null || _f === void 0 ? void 0 : _f.currency,
                                     chain,
                                     address,

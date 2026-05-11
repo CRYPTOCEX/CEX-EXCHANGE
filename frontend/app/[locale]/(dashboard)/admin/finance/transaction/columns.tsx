@@ -105,23 +105,21 @@ export function useColumns(): ColumnDefinition[] {
       priority: 1,
     },
     {
-      key: "wallet",
+      key: "wallet.currency",
       title: tCommon("wallet"),
-      type: "custom",
+      type: "text",
       icon: DollarSign,
       sortable: true,
       searchable: true,
       filterable: true,
       description: tDashboardAdmin("associated_wallet"),
       render: (value: any, row: any) => {
-        const wallet = row?.wallet || value;
-        if (!wallet) return "N/A";
-        // If wallet has 'currency' and 'type', show them in a formatted string.
+        const wallet = row?.wallet;
+        if (!wallet) return value || "N/A";
         if (wallet.currency && wallet.type) {
           return `${wallet.currency} (${wallet.type})`;
         }
-        // Otherwise fallback to wallet.name or wallet.id
-        return wallet.name || wallet.id || "N/A";
+        return wallet.currency || value || "N/A";
       },
       priority: 2,
     },

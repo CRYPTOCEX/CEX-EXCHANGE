@@ -45,7 +45,7 @@ const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
 const safe_imports_1 = require("@b/utils/safe-imports");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
-const uuid_1 = require("uuid");
+const redis_1 = require("@b/utils/redis");
 exports.metadata = {
     summary: "Initiate Trade from P2P Offer",
     description: "Creates a new trade from an active P2P offer with proper validation and balance locking",
@@ -107,13 +107,33 @@ async function handler(data) {
     const { id } = data.params || {};
     const { amount, paymentMethodId, message } = data.body;
     const { user, ctx } = data;
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Amount must be a positive finite number" });
+    }
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding and locking offer");
     let transaction;
+    let redis = null;
+    let lockAcquired = false;
     try {
-        transaction = await db_1.sequelize.transaction();
+        redis = redis_1.RedisSingleton.getInstance();
+        const lockKey = `p2p:initiate:${id}:lock`;
+        lockAcquired = !!(await redis.set(lockKey, "1", "EX", 30, "NX"));
+        if (!lockAcquired) {
+            throw (0, error_1.createError)({ statusCode: 409, message: "Trade initiation already in progress for this offer. Please try again." });
+        }
+    }
+    catch (lockError) {
+        if (lockError.statusCode === 409)
+            throw lockError;
+        throw (0, error_1.createError)({ statusCode: 503, message: "Service temporarily unavailable. Please retry." });
+    }
+    try {
+        transaction = await db_1.sequelize.transaction({
+            isolationLevel: db_1.sequelize.constructor.Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+        });
         const offer = await db_1.models.p2pOffer.findOne({
             where: {
                 id,
@@ -164,12 +184,18 @@ async function handler(data) {
         }
         else {
             minAmount = (min || 0) / price;
-            maxAmount = (max || total || 0) / price;
+            maxAmount = max ? (max / price) : total;
         }
         if (amount < minAmount || amount > maxAmount) {
             throw (0, error_1.createError)({
                 statusCode: 400,
                 message: `Amount must be between ${minAmount} and ${maxAmount} ${offer.currency}`
+            });
+        }
+        if (total < amount) {
+            throw (0, error_1.createError)({
+                statusCode: 409,
+                message: `Insufficient offer amount. Available: ${total} ${offer.currency}, Requested: ${amount} ${offer.currency}`
             });
         }
         const existingActiveTrade = await db_1.models.p2pTrade.findOne({
@@ -188,6 +214,61 @@ async function handler(data) {
                 statusCode: 409,
                 message: `You already have an active trade on this offer (ID: ${existingActiveTrade.id.slice(0, 8)}...). Please complete or cancel it first.`
             });
+        }
+        const { parseUserRequirements } = await Promise.resolve().then(() => __importStar(require("../../utils/json-parser")));
+        const userReqs = parseUserRequirements(offer.userRequirements);
+        if (userReqs) {
+            const tradingUserId = user.id;
+            if (userReqs.minCompletedTrades) {
+                const completedCount = await db_1.models.p2pTrade.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ buyerId: tradingUserId }, { sellerId: tradingUserId }],
+                        status: "COMPLETED",
+                    },
+                    transaction,
+                });
+                if (completedCount < userReqs.minCompletedTrades) {
+                    throw (0, error_1.createError)({
+                        statusCode: 403,
+                        message: `This offer requires at least ${userReqs.minCompletedTrades} completed trades. You have ${completedCount}.`
+                    });
+                }
+            }
+            if (userReqs.minSuccessRate) {
+                const totalUserTrades = await db_1.models.p2pTrade.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ buyerId: tradingUserId }, { sellerId: tradingUserId }],
+                        status: { [sequelize_1.Op.in]: ["COMPLETED", "CANCELLED", "EXPIRED"] },
+                    },
+                    transaction,
+                });
+                const completedUserTrades = await db_1.models.p2pTrade.count({
+                    where: {
+                        [sequelize_1.Op.or]: [{ buyerId: tradingUserId }, { sellerId: tradingUserId }],
+                        status: "COMPLETED",
+                    },
+                    transaction,
+                });
+                const successRate = totalUserTrades > 0 ? (completedUserTrades / totalUserTrades) * 100 : 100;
+                if (successRate < userReqs.minSuccessRate) {
+                    throw (0, error_1.createError)({
+                        statusCode: 403,
+                        message: `This offer requires a minimum success rate of ${userReqs.minSuccessRate}%. Your rate is ${successRate.toFixed(1)}%.`
+                    });
+                }
+            }
+            if (userReqs.minAccountAge) {
+                const tradingUser = await db_1.models.user.findByPk(tradingUserId, { attributes: ["createdAt"], transaction });
+                if (tradingUser) {
+                    const accountAgeDays = Math.floor((Date.now() - new Date((_a = tradingUser.createdAt) !== null && _a !== void 0 ? _a : 0).getTime()) / (1000 * 60 * 60 * 24));
+                    if (accountAgeDays < userReqs.minAccountAge) {
+                        throw (0, error_1.createError)({
+                            statusCode: 403,
+                            message: `This offer requires an account age of at least ${userReqs.minAccountAge} days. Your account is ${accountAgeDays} days old.`
+                        });
+                    }
+                }
+            }
         }
         const { validateMinimumTradeAmount } = await Promise.resolve().then(() => __importStar(require("../../utils/fees")));
         const minimumValidation = await validateMinimumTradeAmount(amount, offer.currency);
@@ -265,14 +346,14 @@ async function handler(data) {
                     message: "Failed to create or retrieve seller wallet"
                 });
             }
-            const availableBalance = sellerWallet.balance - ((_a = sellerWallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+            const availableBalance = sellerWallet.balance;
             if (availableBalance < amount) {
                 throw (0, error_1.createError)({
                     statusCode: 409,
                     message: `Insufficient balance. Available: ${availableBalance} ${offer.currency}, Required: ${amount} ${offer.currency}. Please deposit more funds to your ${offer.walletType} wallet.`
                 });
             }
-            const idempotencyKey = `p2p_trade_lock_${(0, uuid_1.v4)()}`;
+            const idempotencyKey = `p2p_trade_lock_${offer.id}_${user.id}`;
             await wallet_1.walletService.hold({
                 idempotencyKey,
                 userId: sellerId,
@@ -297,14 +378,11 @@ async function handler(data) {
                     message: "Seller wallet not found. The offer may be invalid."
                 });
             }
-            if (amountConfig.total < amount) {
+            if (((_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0) < amount) {
                 throw (0, error_1.createError)({
                     statusCode: 409,
-                    message: `This offer is currently unavailable. Only ${amountConfig.total} ${offer.currency} is available for this offer.`
+                    message: `Insufficient locked funds for this offer. The offer may have been partially consumed by another trade.`
                 });
-            }
-            if (((_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0) <= 0) {
-                console_1.logger.warn("P2P_TRADE", `SELL offer ${offer.id} has zero inOrder but amountConfig.total=${amountConfig.total}. This may indicate a data inconsistency.`);
             }
         }
         (0, audit_1.createP2PAuditLog)({
@@ -326,8 +404,7 @@ async function handler(data) {
             riskLevel: audit_1.P2PRiskLevel.HIGH,
         }).catch(err => console_1.logger.error("P2P_TRADE", "Failed to create audit log", err));
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating trade fees");
-        const { calculateTradeFees, calculateEscrowFee } = await Promise.resolve().then(() => __importStar(require("../../utils/fees")));
-        const fees = await calculateTradeFees(amount, offer.currency, offer.userId, user.id, buyerId, sellerId);
+        const { calculateEscrowFee } = await Promise.resolve().then(() => __importStar(require("../../utils/fees")));
         const escrowFee = await calculateEscrowFee(amount, offer.currency);
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating trade record");
         let parsedMetadata = {};
@@ -364,8 +441,6 @@ async function handler(data) {
             paymentDetails,
             status: "PENDING",
             escrowFee: escrowFee.toString(),
-            buyerFee: fees.buyerFee,
-            sellerFee: fees.sellerFee,
             timeline: [
                 {
                     event: "TRADE_INITIATED",
@@ -392,6 +467,12 @@ async function handler(data) {
         await offer.update({ amountConfig: { ...amountConfig, total: newTotal, originalTotal } }, { transaction });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating offer available amount");
         await transaction.commit();
+        if (redis) {
+            try {
+                await redis.del(`p2p:initiate:${id}:lock`);
+            }
+            catch (_) { }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Initiated ${offer.type} trade: ${amount} ${offer.currency} @ ${priceConfig.finalPrice}`);
         (0, audit_1.createP2PAuditLog)({
             userId: user.id,
@@ -406,8 +487,6 @@ async function handler(data) {
                 paymentMethodId,
                 buyerId,
                 sellerId,
-                buyerFee: fees.buyerFee,
-                sellerFee: fees.sellerFee,
                 escrowFee,
                 totalValue: amount * priceConfig.finalPrice,
                 offerType: offer.type,
@@ -424,7 +503,7 @@ async function handler(data) {
             amount,
             currency: offer.currency,
             initiatorId: user.id,
-        }).catch(console.error);
+        }).catch((err) => console_1.logger.error("P2P_TRADE", "Failed to send trade initiation notification", err));
         return {
             message: "Trade initiated successfully",
             trade: {
@@ -435,19 +514,20 @@ async function handler(data) {
                 buyer: isBuyOffer ? offer.user : { id: user.id },
                 seller: isBuyOffer ? { id: user.id } : offer.user,
                 fees: {
-                    buyerFee: fees.buyerFee,
-                    sellerFee: fees.sellerFee,
                     escrowFee,
-                    totalFee: fees.totalFee,
+                    platformFee: escrowFee,
                 },
-                netAmounts: {
-                    buyer: fees.netAmountBuyer,
-                    seller: fees.netAmountSeller,
-                }
+                netAmount: amount - escrowFee,
             }
         };
     }
     catch (error) {
+        if (redis && lockAcquired) {
+            try {
+                await redis.del(`p2p:initiate:${id}:lock`);
+            }
+            catch (_) { }
+        }
         if (transaction) {
             try {
                 if (!transaction.finished) {

@@ -44,18 +44,20 @@ export function PlatformAnnouncement() {
   }
 
   return (
-    <Alert className="mb-4 container mt-5 relative bg-primary/10 border-primary">
-      <AlertTitle className="font-semibold">{t("announcement")}</AlertTitle>
-      <AlertDescription className="mt-1">{announcement}</AlertDescription>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2 text-primary"
-        onClick={handleDismiss}
-      >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Dismiss</span>
-      </Button>
-    </Alert>
+    <div className="absolute left-0 right-0 top-24 z-50 px-4">
+      <Alert className="container relative bg-primary/10 border-primary">
+        <AlertTitle className="font-semibold">{t("announcement")}</AlertTitle>
+        <AlertDescription className="mt-1">{announcement}</AlertDescription>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 text-primary"
+          onClick={handleDismiss}
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Dismiss</span>
+        </Button>
+      </Alert>
+    </div>
   );
 }

@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const wallet_1 = require("@b/services/wallet");
@@ -104,13 +105,16 @@ exports.default = async (data) => {
             description: `Deposit ${parsedAmount} ${wallet.currency} by ${method.title}`,
         }, { transaction: t });
         if (taxAmount > 0) {
-            await db_1.models.adminProfit.create({
-                amount: taxAmount,
+            await (0, fees_1.collectPlatformFee)({
+                userId: user.id,
                 currency: wallet.currency,
+                walletType: "FIAT",
+                feeAmount: taxAmount,
                 type: "DEPOSIT",
-                transactionId: trx.id,
-                description: `Admin profit from deposit fee of ${taxAmount} ${wallet.currency} by ${method.title} for user (${user.id})`,
-            }, { transaction: t });
+                description: `Platform fee from ${method.title} deposit of ${taxAmount} ${wallet.currency}`,
+                referenceId: trx.id,
+                metadata: { method: method.title, userId: user.id },
+            });
         }
         return trx;
     });

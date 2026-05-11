@@ -792,7 +792,7 @@ export default function AdminDashboardPage() {
                         {isLoadingStats ? (
                           <Skeleton className="h-8 w-24" />
                         ) : (
-                          `$${(stats?.totalVolume || 0).toLocaleString()}`
+                          `$${Number(stats?.totalVolume || 0).toLocaleString()}`
                         )}
                       </div>
                     </div>
@@ -802,7 +802,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="mt-4">
                     <p className="text-xs text-muted-foreground">
-                      This week: ${(stats?.weekVolume || 0).toLocaleString()}
+                      This week: ${Number(stats?.weekVolume || 0).toLocaleString()}
                     </p>
                   </div>
                 </CardContent>
@@ -818,7 +818,7 @@ export default function AdminDashboardPage() {
                         {isLoadingStats ? (
                           <Skeleton className="h-8 w-20" />
                         ) : (
-                          `$${(stats?.avgTradeValue || 0).toFixed(2)}`
+                          `$${Number(stats?.avgTradeValue || 0).toFixed(2)}`
                         )}
                       </div>
                     </div>

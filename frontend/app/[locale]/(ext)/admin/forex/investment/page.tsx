@@ -27,6 +27,7 @@ export default function ForexInvestmentPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("forex_investments")}
       description={tExtAdmin("monitor_and_manage_all_active_forex")}
       itemTitle="Investment"

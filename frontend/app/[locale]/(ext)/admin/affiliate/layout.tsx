@@ -14,9 +14,10 @@ export default function AdminAffiliateLayout({
 }) {
   const pathname = usePathname();
   const isSettingsPage = pathname.endsWith("/settings");
+  const isConditionsPage = pathname.includes("/condition");
 
-  // Full-screen layout for settings page
-  if (isSettingsPage) {
+  // Full-screen layout for settings and conditions pages
+  if (isSettingsPage || isConditionsPage) {
     return <>{children}</>;
   }
 

@@ -101,7 +101,7 @@ export default function ReviewStep({
                 <div key={phase.id} className="text-sm p-2 bg-muted/50 rounded">
                   <p className="font-medium">{phase.name}</p>
                   <p className="text-muted-foreground">
-                    {tCommon("price")}{phase.tokenPrice.toFixed(4)} {tExt('allocation')}:{" "}
+                    {tCommon("price")}{phase.tokenPrice} {tExt('allocation')}:{" "}
                     {phase.allocation.toLocaleString()} {tCommon("duration")}:{" "}
                     {phase.durationDays} days
                   </p>

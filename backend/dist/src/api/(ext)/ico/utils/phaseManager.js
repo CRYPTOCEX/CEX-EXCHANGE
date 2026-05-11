@@ -26,8 +26,8 @@ async function getCurrentPhase(offeringId, transaction) {
     for (let i = 0; i < phases.length; i++) {
         const phase = phases[i];
         const phaseEndDate = new Date(currentDate);
-        phaseEndDate.setDate(phaseEndDate.getDate() + phase.duration);
-        if (now >= currentDate && now < phaseEndDate && phase.remaining > 0) {
+        phaseEndDate.setTime(phaseEndDate.getTime() + phase.duration * 86400000);
+        if (now >= currentDate && now < phaseEndDate) {
             return {
                 id: phase.id,
                 name: phase.name,
@@ -61,7 +61,7 @@ async function getNextPhase(offeringId, currentPhaseIndex, transaction) {
         const phase = phases[i];
         if (i === currentPhaseIndex + 1) {
             const phaseEndDate = new Date(currentDate);
-            phaseEndDate.setDate(phaseEndDate.getDate() + phase.duration);
+            phaseEndDate.setTime(phaseEndDate.getTime() + phase.duration * 86400000);
             return {
                 id: phase.id,
                 name: phase.name,
@@ -75,7 +75,7 @@ async function getNextPhase(offeringId, currentPhaseIndex, transaction) {
                 index: i,
             };
         }
-        currentDate.setDate(currentDate.getDate() + phase.duration);
+        currentDate.setTime(currentDate.getTime() + phase.duration * 86400000);
     }
     return null;
 }
@@ -90,13 +90,18 @@ async function checkAndUpdateOfferingStatus() {
             transaction,
         });
         for (const offering of activeOfferings) {
-            const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+            const totalRaisedResult = await db_1.models.icoTransaction.findOne({
                 where: {
                     offeringId: offering.id,
-                    status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED'] }
+                    status: { [sequelize_1.Op.in]: ['VERIFICATION', 'RELEASED'] }
                 },
+                attributes: [
+                    [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised']
+                ],
+                raw: true,
                 transaction,
-            }) || 0;
+            });
+            const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
             const status = totalRaised >= offering.targetAmount * 0.75 ? 'SUCCESS' : 'FAILED';
             await offering.update({ status }, { transaction });
             await (0, notifications_1.createNotification)({
@@ -191,12 +196,17 @@ async function checkSoftCap(offeringId) {
     const offering = await db_1.models.icoTokenOffering.findByPk(offeringId);
     if (!offering)
         return false;
-    const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+    const totalRaisedResult = await db_1.models.icoTransaction.findOne({
         where: {
             offeringId: offering.id,
-            status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED'] }
-        }
-    }) || 0;
+            status: { [sequelize_1.Op.in]: ['VERIFICATION', 'RELEASED'] }
+        },
+        attributes: [
+            [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised']
+        ],
+        raw: true,
+    });
+    const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
     const softCap = offering.targetAmount * 0.3;
     return totalRaised >= softCap;
 }
@@ -204,11 +214,16 @@ async function checkHardCap(offeringId) {
     const offering = await db_1.models.icoTokenOffering.findByPk(offeringId);
     if (!offering)
         return false;
-    const totalRaised = await db_1.models.icoTransaction.sum('amount', {
+    const totalRaisedResult = await db_1.models.icoTransaction.findOne({
         where: {
             offeringId: offering.id,
-            status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'RELEASED'] }
-        }
-    }) || 0;
+            status: { [sequelize_1.Op.in]: ['VERIFICATION', 'RELEASED'] }
+        },
+        attributes: [
+            [db_1.sequelize.fn('SUM', db_1.sequelize.literal('amount * price')), 'totalRaised']
+        ],
+        raw: true,
+    });
+    const totalRaised = parseFloat(totalRaisedResult === null || totalRaisedResult === void 0 ? void 0 : totalRaisedResult.totalRaised) || 0;
     return totalRaised >= offering.targetAmount;
 }

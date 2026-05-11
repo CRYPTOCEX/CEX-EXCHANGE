@@ -110,10 +110,10 @@ exports.default = async (data) => {
             }
             (_l = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _l === void 0 ? void 0 : _l.call(ctx, `Updating wallet balance by ${finalBalanceChange > 0 ? "+" : ""}${finalBalanceChange}`);
             if (finalBalanceChange > 0) {
-                await updateWalletBalance(wallet, finalBalanceChange, "add");
+                await updateWalletBalance(wallet, finalBalanceChange, "add", `futures_position_${position.id}_close_pnl`);
             }
             else {
-                await updateWalletBalance(wallet, Math.abs(finalBalanceChange), "subtract");
+                await updateWalletBalance(wallet, Math.abs(finalBalanceChange), "subtract", `futures_position_${position.id}_close_margin`);
             }
         }
         (_m = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _m === void 0 ? void 0 : _m.call(ctx, "Updating position status to CLOSED");

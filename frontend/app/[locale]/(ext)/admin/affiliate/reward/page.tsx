@@ -26,6 +26,7 @@ export default function AffiliateRewardPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("referral_rewards")}
       description={t("manage_affiliate_reward_payouts_and_commission")}
       itemTitle="Referral Reward"

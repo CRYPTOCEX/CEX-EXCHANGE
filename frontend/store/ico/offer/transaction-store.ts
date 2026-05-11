@@ -38,6 +38,9 @@ export interface IcoTransactionExtended {
 
 interface icoTransactionStoreState {
   transactions: IcoTransactionExtended[];
+  isLoading: boolean;
+  isSubmitting: boolean;
+  error: string | null;
   fetchTransactions: () => Promise<void>;
   purchase: (
     offeringId: string,
@@ -49,8 +52,12 @@ interface icoTransactionStoreState {
 export const useIcoTransactionStore = create<icoTransactionStoreState>(
   (set, get) => ({
     transactions: [],
+    isLoading: false,
+    isSubmitting: false,
+    error: null,
 
     fetchTransactions: async () => {
+      set({ isLoading: true, error: null });
       const { data, error } = await $fetch<{
         items: IcoTransactionExtended[];
         total: number;
@@ -73,7 +80,9 @@ export const useIcoTransactionStore = create<icoTransactionStoreState>(
           profitLossPercentage: tx.profitLossPercentage ?? 0,
           transactionDate: tx.createdAt,
         }));
-        set({ transactions: enriched });
+        set({ transactions: enriched, isLoading: false });
+      } else {
+        set({ isLoading: false, error: error || "Failed to fetch transactions" });
       }
     },
 
@@ -82,6 +91,7 @@ export const useIcoTransactionStore = create<icoTransactionStoreState>(
       amount: number,
       walletAddress: string
     ) => {
+      set({ isSubmitting: true, error: null });
       const { data, error } = await $fetch<IcoTransactionExtended>({
         url: "/api/ico/transaction",
         method: "POST",
@@ -89,8 +99,10 @@ export const useIcoTransactionStore = create<icoTransactionStoreState>(
       });
 
       if (data && !error) {
+        set({ isSubmitting: false });
         await useOfferStore.getState().fetchOffering(offeringId);
       } else {
+        set({ isSubmitting: false, error: error || "Failed to process investment" });
         throw new Error("Failed to process investment");
       }
     },

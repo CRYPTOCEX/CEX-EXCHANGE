@@ -28,7 +28,7 @@ class RedisSingleton {
             RedisSingleton.isConnecting = true;
             try {
                 RedisSingleton.instance = new ioredis_1.Redis({
-                    host: process.env.REDIS_HOST || "localhost",
+                    host: process.env.REDIS_HOST || "127.0.0.1",
                     port: parseInt(process.env.REDIS_PORT || "6379"),
                     password: process.env.REDIS_PASSWORD,
                     db: parseInt(process.env.REDIS_DB || "0"),

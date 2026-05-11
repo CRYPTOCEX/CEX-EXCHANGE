@@ -1,1 +1,52 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query");exports.metadata={summary:"Updates a Forex signal status",description:"Updates the active/inactive status of a specific Forex signal. Active signals are available for user subscriptions.",operationId:"updateForexSignalStatus",tags:["Admin","Forex","Signal"],parameters:[{index:0,name:"id",in:"path",required:!0,description:"ID of the forex signal to update",schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{status:{type:"boolean",description:"New status to apply (true for active, false for inactive)"}},required:["status"]}}}},responses:(0,query_1.updateRecordResponses)("Forex Signal"),requiresAuth:!0,permission:"edit.forex.signal",logModule:"ADMIN_FOREX",logTitle:"Update forex signal status"};exports.default=async e=>{const{body:t,params:s,ctx:a}=e,{id:r}=s,{status:i}=t;null==a||a.step(`Validating record ${r}`);null==a||a.step("Updating status");const o=await(0,query_1.updateStatus)("forexSignal",r,i);null==a||a.success("Status updated successfully");return o};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Updates a Forex signal status",
+    description: "Updates the active/inactive status of a specific Forex signal. Active signals are available for user subscriptions.",
+    operationId: "updateForexSignalStatus",
+    tags: ["Admin", "Forex", "Signal"],
+    parameters: [
+        {
+            index: 0,
+            name: "id",
+            in: "path",
+            required: true,
+            description: "ID of the forex signal to update",
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        status: {
+                            type: "boolean",
+                            description: "New status to apply (true for active, false for inactive)",
+                        },
+                    },
+                    required: ["status"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.updateRecordResponses)("Forex Signal"),
+    requiresAuth: true,
+    permission: "edit.forex.signal",
+    logModule: "ADMIN_FOREX",
+    logTitle: "Update forex signal status",
+};
+exports.default = async (data) => {
+    const { body, params, ctx } = data;
+    const { id } = params;
+    const { status } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Validating record ${id}`);
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Updating status");
+    const result = await (0, query_1.updateStatus)("forexSignal", id, status);
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Status updated successfully");
+    return result;
+};

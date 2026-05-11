@@ -1,24 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.redisCache = exports.RedisCache = void 0;
-const ioredis_1 = __importDefault(require("ioredis"));
+const redis_1 = require("@b/utils/redis");
 class RedisCache {
     constructor() {
-        this.redis = new ioredis_1.default({
-            host: process.env.REDIS_HOST || "127.0.0.1",
-            port: parseInt(process.env.REDIS_PORT || "6379"),
-            password: process.env.REDIS_PASSWORD || undefined,
-            retryStrategy: (times) => {
-                const delay = Math.min(times * 50, 2000);
-                return delay;
-            },
-        });
-        this.redis.on("error", (error) => {
-            console.error("[RedisCache] Connection error:", error);
-        });
+        this.redis = redis_1.RedisSingleton.getInstance();
     }
     static getInstance() {
         if (!RedisCache.instance) {
@@ -172,7 +158,6 @@ class RedisCache {
         }
     }
     async close() {
-        await this.redis.quit();
     }
 }
 exports.RedisCache = RedisCache;

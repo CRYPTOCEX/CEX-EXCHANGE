@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, RefObject } from "react";
+import { useState, useEffect, useRef, useCallback, RefObject } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TradeHeader } from "./trade-header";
@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle, Clock, Shield } from "lucide-react";
 import { useP2PStore } from "@/store/p2p/p2p-store";
 import { useTranslations } from "next-intl";
-import { canDispute, isDisputed } from "@/utils/p2p-status";
+import { canDispute, isDisputed, isWaitingPayment } from "@/utils/p2p-status";
 
 interface Message {
   id: string;
@@ -69,6 +69,7 @@ export function TradeDetails({
     releaseFunds,
     cancelTrade,
     disputeTrade,
+    fetchTradeById,
     isConfirmingPayment,
     isReleasingFunds,
     isCancellingTrade,
@@ -82,52 +83,81 @@ export function TradeDetails({
     isCancellingTrade ||
     isDisputingTrade;
 
+  // When the trade timer expires, re-fetch trade data so the UI updates
+  // even before the cron job runs (the cron will broadcast via WebSocket too)
+  const handleTradeExpiry = useCallback(() => {
+    fetchTradeById(tradeId);
+  }, [fetchTradeById, tradeId]);
+
+  // M13: synchronous guard against double-clicks on action buttons
+  const isSubmittingRef = useRef(false);
+
   // Create handler functions that update the local trade state
   const handleConfirmPayment = async (): Promise<void> => {
-    const success = await confirmPayment(tradeId);
-    if (success) {
-      // Update local state with the new status
-      setTrade((prev) => ({
-        ...prev,
-        status: "payment_confirmed",
-      }));
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    try {
+      const success = await confirmPayment(tradeId);
+      if (success) {
+        // Update local state with the new status (use uppercase to match backend)
+        setTrade((prev) => ({
+          ...prev,
+          status: "PAYMENT_SENT",
+        }));
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
   const handleReleaseFunds = async (): Promise<void> => {
-    const success = await releaseFunds(tradeId);
-    if (success) {
-      // Update local state with the new status
-      setTrade((prev) => ({
-        ...prev,
-        status: "completed",
-      }));
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    try {
+      const success = await releaseFunds(tradeId);
+      if (success) {
+        // Update local state with the new status (use uppercase to match backend)
+        setTrade((prev) => ({
+          ...prev,
+          status: "COMPLETED",
+        }));
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
   const handleCancelTrade = async (): Promise<void> => {
-    const success = await cancelTrade(tradeId, "User cancelled");
-    if (success) {
-      // Update local state with the new status
-      setTrade((prev) => ({
-        ...prev,
-        status: "cancelled",
-      }));
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    try {
+      const success = await cancelTrade(tradeId, "User cancelled");
+      if (success) {
+        // Update local state with the new status (use uppercase to match backend)
+        setTrade((prev) => ({
+          ...prev,
+          status: "CANCELLED",
+        }));
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
   const handleDisputeTrade = async (reason: string, description: string): Promise<void> => {
-    const success = await disputeTrade(
-      tradeId,
-      reason,
-      description
-    );
-    if (success) {
-      // Update local state with the new status
-      setTrade((prev) => ({
-        ...prev,
-        status: "disputed",
-      }));
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    try {
+      const success = await disputeTrade(tradeId, reason, description);
+      if (success) {
+        // Update local state with the new status (use uppercase to match backend)
+        setTrade((prev) => ({
+          ...prev,
+          status: "DISPUTED",
+        }));
+      }
+    } finally {
+      isSubmittingRef.current = false;
     }
   };
 
@@ -137,30 +167,71 @@ export function TradeDetails({
     trade.offer?.tradeSettings?.paymentWindow ||
     240; // Default to 240 minutes (4 hours) if not specified
 
-  // Calculate time remaining if applicable
-  const getTimeRemaining = () => {
-    if (trade.status === "waiting_payment" || trade.status === "pending") {
-      const createdTime = new Date(trade.createdAt).getTime();
-      const currentTime = new Date().getTime();
-      const timeLimit = paymentWindow * 60 * 1000; // Convert minutes to milliseconds
-      const timeElapsed = currentTime - createdTime;
-      const timeRemaining = timeLimit - timeElapsed;
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
 
-      if (timeRemaining > 0) {
-        const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
-        const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
-        const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
-        if (hours > 0) {
-          return `${hours}h ${minutes}m ${seconds}s`;
-        }
-        return `${minutes}m ${seconds}s`;
-      }
-      return "Expired";
+  useEffect(() => {
+    if (!isWaitingPayment(trade.status)) {
+      setTimeRemaining(null);
+      return;
     }
-    return null;
-  };
 
-  const timeRemaining = getTimeRemaining();
+    const createdTime = new Date(trade.createdAt).getTime();
+    const timeLimit = paymentWindow * 60 * 1000;
+
+    const calc = (): string | null => {
+      const timeRemainingMs = timeLimit - (Date.now() - createdTime);
+      if (timeRemainingMs <= 0) return "Expired";
+      const hours = Math.floor(timeRemainingMs / (60 * 60 * 1000));
+      const minutes = Math.floor((timeRemainingMs % (60 * 60 * 1000)) / (60 * 1000));
+      const seconds = Math.floor((timeRemainingMs % (60 * 1000)) / 1000);
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+      }
+      return `${minutes}m ${seconds}s`;
+    };
+
+    setTimeRemaining(calc());
+
+    const interval = setInterval(() => {
+      const next = calc();
+      setTimeRemaining(next);
+      if (next === "Expired") clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [trade.status, trade.createdAt, paymentWindow]);
+
+  // Reactive expiry check - updates every second so the button disables instantly
+  const [isExpiredByTime, setIsExpiredByTime] = useState(() => {
+    if (!isWaitingPayment(trade.status)) return false;
+    const createdTime = new Date(trade.createdAt).getTime();
+    const timeLimit = paymentWindow * 60 * 1000;
+    return (Date.now() - createdTime) >= timeLimit;
+  });
+
+  useEffect(() => {
+    if (!isWaitingPayment(trade.status)) {
+      setIsExpiredByTime(false);
+      return;
+    }
+    const createdTime = new Date(trade.createdAt).getTime();
+    const timeLimit = paymentWindow * 60 * 1000;
+
+    const check = () => {
+      const expired = (Date.now() - createdTime) >= timeLimit;
+      setIsExpiredByTime(expired);
+      return expired;
+    };
+
+    // Check immediately
+    if (check()) return; // Already expired, no need for interval
+
+    const interval = setInterval(() => {
+      if (check()) clearInterval(interval);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [trade.status, trade.createdAt, paymentWindow]);
 
   // Handle chat button click - switch to chat tab and scroll to tabs section
   const handleChatClick = () => {
@@ -187,6 +258,7 @@ export function TradeDetails({
             counterparty={trade.counterparty}
             paymentWindow={paymentWindow}
             onChatClick={handleChatClick}
+            onExpiry={handleTradeExpiry}
           />
 
           {/* Time Remaining Alert */}
@@ -232,6 +304,7 @@ export function TradeDetails({
             status={trade.status}
             type={trade.type}
             loading={loading}
+            isExpiredByTime={isExpiredByTime}
             onConfirmPayment={handleConfirmPayment}
             onReleaseFunds={handleReleaseFunds}
             onCancelTrade={handleCancelTrade}
@@ -286,7 +359,7 @@ export function TradeDetails({
         </TabsContent>
 
         <TabsContent value="payment" className="mt-6 animate-in fade-in-50">
-          <TradePayment trade={trade} onConfirmPayment={handleConfirmPayment} />
+          <TradePayment trade={trade} onConfirmPayment={handleConfirmPayment} isExpiredByTime={isExpiredByTime} />
         </TabsContent>
 
         <TabsContent value="escrow" className="mt-6 animate-in fade-in-50">
@@ -316,7 +389,7 @@ export function TradeDetails({
       )}
 
       {/* Rating Section */}
-      {trade.status === "completed" && (
+      {trade.status?.toUpperCase() === "COMPLETED" && (
         <TradeRating tradeId={tradeId} counterparty={trade.counterparty} />
       )}
     </div>

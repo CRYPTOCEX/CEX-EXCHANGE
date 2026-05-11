@@ -39,6 +39,7 @@ const error_1 = require("@b/utils/error");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
 const affiliate_1 = require("@b/utils/affiliate");
+const fees_1 = require("@b/utils/fees");
 exports.metadata = {
     summary: "Release Funds for Trade",
     description: "Releases funds and updates the trade status to 'COMPLETED' for the authenticated seller.",
@@ -86,7 +87,7 @@ exports.default = async (data) => {
         if (existingResult) {
             return JSON.parse(existingResult);
         }
-        const lockKey = `${idempotencyKey}:lock`;
+        const lockKey = `p2p:trade:${id}:action_lock`;
         const lockAcquired = await redis.set(lockKey, "1", "EX", 30, "NX");
         if (!lockAcquired) {
             throw (0, error_1.createError)({
@@ -96,11 +97,14 @@ exports.default = async (data) => {
         }
     }
     catch (redisError) {
-        console_1.logger.error("P2P", "Redis error in idempotency check", redisError);
+        if (redisError.statusCode === 409)
+            throw redisError;
+        throw (0, error_1.createError)({ statusCode: 503, message: "Service temporarily unavailable. Please retry." });
     }
     const transaction = await sequelize.transaction({
         isolationLevel: sequelize.constructor.Transaction.ISOLATION_LEVELS.SERIALIZABLE,
     });
+    let committed = false;
     try {
         const trade = await db_1.models.p2pTrade.findOne({
             where: { id, sellerId: user.id },
@@ -137,7 +141,15 @@ exports.default = async (data) => {
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing fund transfer from seller to buyer");
         if (trade.status === "PAYMENT_SENT") {
-            const sellerWallet = await getWalletSafe(trade.sellerId, offer.walletType, offer.currency);
+            const sellerWallet = await db_1.models.wallet.findOne({
+                where: {
+                    userId: trade.sellerId,
+                    type: offer.walletType,
+                    currency: offer.currency,
+                },
+                lock: true,
+                transaction,
+            });
             if (!sellerWallet) {
                 await transaction.rollback();
                 throw (0, error_1.createError)({
@@ -152,9 +164,10 @@ exports.default = async (data) => {
                     message: "Insufficient locked funds available to release"
                 });
             }
+            const sellerIsAdmin = await (0, fees_1.isSuperAdmin)(trade.sellerId);
             const escrowFeeAmount = parseFloat(trade.escrowFee || "0");
-            const platformFee = Math.min(escrowFeeAmount, trade.amount);
-            const buyerNetAmount = Math.max(0, trade.amount - platformFee);
+            const platformFee = sellerIsAdmin ? 0 : Math.min(parseFloat(escrowFeeAmount.toFixed(8)), trade.amount);
+            const buyerNetAmount = Math.max(0, parseFloat((trade.amount - platformFee).toFixed(8)));
             const idempotencyKey = `p2p_release_${trade.id}`;
             ctx === null || ctx === void 0 ? void 0 : ctx.step(`Releasing ${trade.amount} ${offer.currency} from seller's escrow`);
             await wallet_1.walletService.executeFromHold({
@@ -206,6 +219,33 @@ exports.default = async (data) => {
                 },
                 transaction,
             });
+            let sellerWalletData = null;
+            if (offer.walletType === "ECO") {
+                sellerWalletData = await db_1.models.walletData.findOne({
+                    where: { walletId: sellerWallet.id, currency: offer.currency },
+                    transaction,
+                });
+                if (sellerWalletData) {
+                    await wallet_1.walletService.ecoChainTransfer({
+                        idempotencyKey: `p2p_eco_chain_${trade.id}`,
+                        currency: offer.currency,
+                        chain: sellerWalletData.chain,
+                        fromWalletId: sellerWallet.id,
+                        fromAmount: trade.amount,
+                        toWalletId: buyerWallet.id,
+                        toAmount: buyerNetAmount,
+                        transaction,
+                        metadata: { tradeId: trade.id, type: "P2P_RELEASE" },
+                    });
+                    console_1.logger.info("P2P", `ECO chain balances updated: chain=${sellerWalletData.chain}, seller ${sellerWallet.id} -${trade.amount}, buyer ${buyerWallet.id} +${buyerNetAmount}`);
+                }
+                else {
+                    throw (0, error_1.createError)({
+                        statusCode: 500,
+                        message: "ECO wallet data not found for seller - cannot complete chain balance sync. Please contact support."
+                    });
+                }
+            }
             await createP2PAuditLog({
                 userId: user.id,
                 eventType: P2PAuditEventType.FUNDS_TRANSFERRED,
@@ -233,6 +273,18 @@ exports.default = async (data) => {
                     order: [["createdAt", "ASC"]],
                     transaction,
                 });
+                await (0, fees_1.collectPlatformFee)({
+                    userId: trade.sellerId,
+                    currency: offer.currency,
+                    walletType: offer.walletType,
+                    chain: offer.walletType === "ECO" ? sellerWalletData === null || sellerWalletData === void 0 ? void 0 : sellerWalletData.chain : undefined,
+                    feeAmount: platformFee,
+                    type: "P2P_TRADE",
+                    description: `P2P escrow fee for trade #${trade.id.slice(0, 8)}`,
+                    referenceId: trade.id,
+                    metadata: { tradeId: trade.id, buyerId: trade.buyerId, sellerId: trade.sellerId },
+                    transaction,
+                });
                 if (systemAdmin) {
                     await db_1.models.p2pCommission.create({
                         adminId: systemAdmin.id,
@@ -243,7 +295,7 @@ exports.default = async (data) => {
                     console_1.logger.debug("P2P", `Platform commission recorded: tradeId=${trade.id}, adminId=${systemAdmin.id}, fee=${platformFee} ${offer.currency}`);
                 }
                 else {
-                    console_1.logger.warn("P2P", "No super admin found to assign commission");
+                    console_1.logger.warn("P2P", "No super admin found to assign commission record");
                 }
             }
             console_1.logger.info("P2P", `Funds transferred: tradeId=${trade.id}, seller=${trade.sellerId}, buyer=${trade.buyerId}, ${offer.walletType} ${offer.currency}, amount=${trade.amount}, fee=${platformFee}, buyerReceives=${buyerNetAmount}`);
@@ -288,6 +340,11 @@ exports.default = async (data) => {
             }),
         }, { transaction });
         await transaction.commit();
+        committed = true;
+        try {
+            await redis.del(`p2p:trade:${id}:action_lock`);
+        }
+        catch (_) { }
         notifyTradeEvent(trade.id, "TRADE_COMPLETED", {
             buyerId: trade.buyerId,
             sellerId: trade.sellerId,
@@ -313,15 +370,17 @@ exports.default = async (data) => {
         };
         ctx === null || ctx === void 0 ? void 0 : ctx.success(`Released funds for trade ${trade.id.slice(0, 8)}... (${trade.amount} ${offer.currency})`);
         try {
-            await (0, affiliate_1.processRewards)(trade.buyerId, trade.amount, "P2P_TRADE", offer.currency);
-            await (0, affiliate_1.processRewards)(trade.sellerId, trade.amount, "P2P_TRADE_COMPLETION", offer.currency);
+            const escrowFeeForRewards = parseFloat(trade.escrowFee || "0");
+            const platformFeeForRewards = Math.min(parseFloat(escrowFeeForRewards.toFixed(8)), trade.amount);
+            const buyerNetAmountForRewards = Math.max(0, parseFloat((trade.amount - platformFeeForRewards).toFixed(8)));
+            await (0, affiliate_1.processRewards)(trade.buyerId, buyerNetAmountForRewards, "P2P_TRADE", offer.currency, `P2P_TRADE:p2p_trade:${trade.id}:buyer`);
+            await (0, affiliate_1.processRewards)(trade.sellerId, trade.amount, "P2P_TRADE_COMPLETION", offer.currency, `P2P_TRADE_COMPLETION:p2p_trade:${trade.id}:seller`);
         }
         catch (affiliateError) {
             console_1.logger.error("P2P", "Failed to process affiliate rewards", affiliateError);
         }
         try {
             await redis.setex(idempotencyKey, 3600, JSON.stringify(result));
-            await redis.del(`${idempotencyKey}:lock`);
         }
         catch (redisError) {
             console_1.logger.error("P2P", "Redis error in caching result", redisError);
@@ -329,13 +388,16 @@ exports.default = async (data) => {
         return result;
     }
     catch (err) {
-        await transaction.rollback();
+        if (!committed) {
+            try {
+                await transaction.rollback();
+            }
+            catch (_) { }
+        }
         try {
-            await redis.del(`${idempotencyKey}:lock`);
+            await redis.del(`p2p:trade:${id}:action_lock`);
         }
-        catch (redisError) {
-            console_1.logger.error("P2P", "Redis error in releasing lock", redisError);
-        }
+        catch (_) { }
         if (err.statusCode) {
             throw err;
         }

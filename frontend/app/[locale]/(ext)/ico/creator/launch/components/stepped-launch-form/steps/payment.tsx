@@ -100,7 +100,7 @@ export default function PaymentStep({
             <>
               <p className="text-sm">
                 <span className="font-medium">{t("wallet_balance")}:</span>{" "}
-                {walletBalance.toFixed(2)} {plan.currency}
+                {walletBalance} {plan.currency}
               </p>
               <p className="text-sm">
                 <span className="font-medium">{t("plan_cost")}:</span> {planCost}{" "}

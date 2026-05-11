@@ -8,8 +8,8 @@ Object.defineProperty(exports, "chainConfigs", { enumerable: true, get: function
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
 const providerCache = new Map();
-const initializeProvider = (chain) => {
-    const provider = (0, exports.getProvider)(chain);
+const initializeProvider = async (chain) => {
+    const provider = await (0, exports.getProvider)(chain);
     if (!provider) {
         throw (0, error_1.createError)({ statusCode: 503, message: `Failed to initialize provider for chain ${chain}` });
     }

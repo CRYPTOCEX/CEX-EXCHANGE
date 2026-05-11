@@ -95,7 +95,7 @@ async function requireTradeParticipation(userId, tradeId, ctx) {
         throw error;
     }
 }
-async function logP2PAdminAction(userId, action, entityType, entityId, metadata, ctx) {
+async function logP2PAdminAction(userId, action, entityType, entityId, metadata, ctx, transaction) {
     var _a, _b, _c;
     try {
         (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Logging admin action: ${action} for ${entityType} ${entityId}`);
@@ -110,7 +110,7 @@ async function logP2PAdminAction(userId, action, entityType, entityId, metadata,
                 timestamp: new Date().toISOString(),
                 isAdminAction: true,
             }),
-        });
+        }, transaction ? { transaction } : undefined);
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _b === void 0 ? void 0 : _b.call(ctx, "Admin action logged successfully");
     }
     catch (error) {

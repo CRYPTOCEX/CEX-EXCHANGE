@@ -247,7 +247,7 @@ exports.default = async (data) => {
         await pool.save({ transaction });
         await transaction.commit();
         try {
-            await (0, affiliate_1.processRewards)(user.id, amount, "STAKING", pool.symbol);
+            await (0, affiliate_1.processRewards)(user.id, amount, "STAKING", pool.symbol, `STAKING:staking:${position.id}`);
         }
         catch (affiliateError) {
             console.error("Failed to process affiliate rewards:", affiliateError);

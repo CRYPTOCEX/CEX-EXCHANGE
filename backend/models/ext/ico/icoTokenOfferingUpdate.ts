@@ -70,6 +70,21 @@ export default class icoTokenOfferingUpdate
         tableName: "ico_token_offering_update",
         timestamps: true,
         paranoid: true,
+        indexes: [
+          {
+            name: "PRIMARY",
+            unique: true,
+            fields: [{ name: "id" }],
+          },
+          {
+            name: "icoTokenOfferingUpdateOfferingIdIdx",
+            fields: [{ name: "offeringId" }],
+          },
+          {
+            name: "icoTokenOfferingUpdateUserIdIdx",
+            fields: [{ name: "userId" }],
+          },
+        ],
       }
     );
   }

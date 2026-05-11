@@ -41,6 +41,9 @@ exports.default = async (data = {}) => {
       FROM p2p_offers o
       LEFT JOIN p2p_trades t ON o.id = t.offerId AND t.status = 'COMPLETED'
       LEFT JOIN p2p_reviews r ON t.id = r.tradeId
+      WHERE o.status = 'ACTIVE'
+        AND CAST(o.tradeSettings AS CHAR) NOT LIKE '%"visibility":"PRIVATE"%'
+        AND CAST(o.tradeSettings AS CHAR) NOT LIKE '%\\\\"visibility\\\\":\\\\"PRIVATE\\\\"%'
       GROUP BY o.id
       ORDER BY popularityScore DESC
       LIMIT :limit

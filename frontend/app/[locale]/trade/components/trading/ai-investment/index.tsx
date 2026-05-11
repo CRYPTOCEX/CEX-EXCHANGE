@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Leaf, AlertCircle } from "lucide-react";
 import { useAiInvestmentStore } from "@/store/ai/investment/use-ai-investment-store";
 import PlanSelector from "./plan-selector";
@@ -29,29 +29,23 @@ export default function AiInvestmentForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(true);
-  const [currency, setCurrency] = useState("BTC");
-  const [pair, setPair] = useState("USDT");
-
-  // Extract currency and pair from symbol
-  useEffect(() => {
-    if (symbol.endsWith("USDT")) {
-      setCurrency(symbol.replace("USDT", ""));
-      setPair("USDT");
-    } else if (symbol.endsWith("BUSD")) {
-      setCurrency(symbol.replace("BUSD", ""));
-      setPair("BUSD");
-    } else if (symbol.endsWith("USD")) {
-      setCurrency(symbol.replace("USD", ""));
-      setPair("USD");
-    } else {
-      // Default fallback
-      setCurrency("BTC");
-      setPair("USDT");
+  // Parse symbol to get currency and pair (supports both "BTCUSDT" and "BTC/USDT")
+  const [currency, pair] = useMemo(() => {
+    if (symbol.includes("/")) {
+      const parts = symbol.split("/");
+      return [parts[0] || "BTC", parts[1] || "USDT"];
     }
+    if (symbol.endsWith("USDT")) {
+      return [symbol.replace("USDT", ""), "USDT"];
+    }
+    if (symbol.endsWith("BUSD")) {
+      return [symbol.replace("BUSD", ""), "BUSD"];
+    }
+    if (symbol.endsWith("USD")) {
+      return [symbol.replace("USD", ""), "USD"];
+    }
+    return ["BTC", "USDT"];
   }, [symbol]);
-
-  // Extract the base currency from the pair (e.g., "BTC" from "BTCUSDT")
-  const baseCurrency = currency;
 
   // Initialize the store if needed
   useEffect(() => {
@@ -59,17 +53,14 @@ export default function AiInvestmentForm({
     if (!Array.isArray(store.plans) || store.plans.length === 0) {
       store.fetchPlans();
     }
+  }, []);
 
-    // Fetch wallet balance
-    fetchWalletBalance();
-  }, [symbol]);
-
-  // Refetch wallet balance when currency changes
+  // Fetch wallet balance when currency or pair changes
   useEffect(() => {
-    if (currency) {
+    if (currency && pair) {
       fetchWalletBalance();
     }
-  }, [currency]);
+  }, [currency, pair]);
 
   // Fetch wallet balance
   const fetchWalletBalance = async () => {
@@ -82,9 +73,9 @@ export default function AiInvestmentForm({
       });
 
       if (!error && data) {
-        // The API returns CURRENCY.balance for the base currency balance
-        const balance = data.CURRENCY?.balance ?? data.CURRENCY ?? 0;
-        setAvailableBalance(Number.parseFloat(balance) || 0);
+        // AI investments use PAIR (e.g., USDT) balance, not CURRENCY (e.g., BTC)
+        const balance = Number.parseFloat(data.PAIR?.balance ?? data.PAIR ?? 0) || 0;
+        setAvailableBalance(balance);
       } else {
         console.error("Failed to fetch wallet balance:", error);
         setAvailableBalance(0);
@@ -136,14 +127,14 @@ export default function AiInvestmentForm({
         investmentAmount > selectedPlan.maxAmount)
     ) {
       setError(
-        `Investment amount must be between ${selectedPlan.minAmount} and ${selectedPlan.maxAmount} ${baseCurrency}`
+        `Investment amount must be between ${selectedPlan.minAmount} and ${selectedPlan.maxAmount} ${pair}`
       );
       return;
     }
 
     if (investmentAmount > availableBalance) {
       setError(
-        `Insufficient balance. You have ${availableBalance} ${baseCurrency} available.`
+        `Insufficient balance. You have ${availableBalance} ${pair} available.`
       );
       return;
     }
@@ -245,7 +236,7 @@ export default function AiInvestmentForm({
         {selectedPlan && (
           <AmountInput
             investmentAmount={investmentAmount}
-            pair={baseCurrency}
+            pair={pair}
             availableBalance={availableBalance}
             selectedPlan={selectedPlan}
           />
@@ -255,8 +246,8 @@ export default function AiInvestmentForm({
         {selectedPlan && investmentAmount > 0 && (
           <ExpectedProfitDisplay
             investmentAmount={investmentAmount}
-            profitPercentage={selectedPlan.profitPercentage}
-            currency={baseCurrency}
+            defaultProfit={selectedPlan.defaultProfit}
+            currency={pair}
           />
         )}
 

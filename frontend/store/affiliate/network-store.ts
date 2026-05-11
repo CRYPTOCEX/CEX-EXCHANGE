@@ -79,7 +79,7 @@ interface NetworkStore {
 // Default network data to use when API fails
 const defaultNetworkData: NetworkData = {
   user: {
-    id: "user123",
+    id: "",
     firstName: "Current",
     lastName: "User",
     avatar: "",
@@ -94,7 +94,7 @@ const defaultNetworkData: NetworkData = {
   upline: null,
   referrals: [],
   treeData: {
-    id: "user123",
+    id: "",
     firstName: "Current",
     lastName: "User",
     avatar: "",
@@ -128,17 +128,10 @@ export const useNetworkStore = create<NetworkStore>((set, get) => ({
     set({ loading: true, error: null });
     
     try {
-      // Add timeout to prevent hanging requests
-      const timeoutId = setTimeout(() => {
-        throw new Error("Request timed out");
-      }, 10000); // 10 second timeout
-      
       const { data, error } = await $fetch({
         url: "/api/affiliate/network",
         silentSuccess: true,
       });
-      
-      clearTimeout(timeoutId);
 
       if (!error && data) {
         // Validate data structure before processing
@@ -177,12 +170,6 @@ export const useNetworkStore = create<NetworkStore>((set, get) => ({
       }
     } catch (err) {
       console.error("Network data fetch exception:", err);
-      
-      // Handle timeout errors gracefully
-      if (err instanceof Error && err.message === 'Request timed out') {
-        set({ loading: false, error: "Request timed out" });
-        return;
-      }
       
       // Use default data when API fails, but preserve existing data if available
       const currentData = get().networkData;

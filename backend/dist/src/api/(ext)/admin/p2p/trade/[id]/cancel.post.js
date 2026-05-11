@@ -39,12 +39,14 @@ const error_1 = require("@b/utils/error");
 const console_1 = require("@b/utils/console");
 const ownership_1 = require("../../../../p2p/utils/ownership");
 const wallet_1 = require("@b/services/wallet");
+const Middleware_1 = require("@b/handler/Middleware");
 exports.metadata = {
     summary: "Cancel Trade (Admin)",
     description: "Cancels a trade with a provided cancellation reason, releases locked funds back to seller.",
     operationId: "cancelAdminP2PTrade",
     tags: ["Admin", "Trades", "P2P"],
     requiresAuth: true,
+    middleware: [Middleware_1.p2pAdminTradeRateLimit],
     logModule: "ADMIN_P2P",
     logTitle: "Cancel P2P trade",
     parameters: [
@@ -157,6 +159,10 @@ exports.default = async (data) => {
                 }
                 catch (walletError) {
                     console_1.logger.error("P2P_ADMIN_CANCEL", `Failed to release wallet funds: ${walletError}`);
+                    throw (0, error_1.createError)({
+                        statusCode: 500,
+                        message: "Failed to release wallet funds. Trade cannot be cancelled safely. Please investigate manually."
+                    });
                 }
             }
             else {
@@ -233,7 +239,7 @@ exports.default = async (data) => {
             previousStatus,
             reason: sanitizedReason,
             amount: trade.amount,
-        });
+        }, undefined, transaction);
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notifications");
         notifyTradeEvent(trade.id, "TRADE_CANCELLED", {

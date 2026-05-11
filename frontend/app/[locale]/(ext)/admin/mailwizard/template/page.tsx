@@ -26,6 +26,7 @@ export default function MailwizardTemplatePage() {
       editLink="/admin/mailwizard/template/[id]"
       canDelete
       canView
+      isParanoid={false}
       title={t("email_template_management")}
       description={t("design_and_manage_reusable_email_templates")}
       itemTitle="Template"

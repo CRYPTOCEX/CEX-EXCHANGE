@@ -572,7 +572,7 @@ export default function LaunchPlanStep({
                     </tr>
                   ))}
                   <tr>
-                    <td className="p-4 sticky left-0 bg-white z-10"></td>
+                    <td className="p-4 sticky left-0 bg-background z-10"></td>
                     {launchPlans.map((plan) => (
                       <td key={plan.id} className="p-4 text-center">
                         <Button

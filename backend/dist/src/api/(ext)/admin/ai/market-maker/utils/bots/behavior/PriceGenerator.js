@@ -1,1 +1,215 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.PriceGenerator=void 0;class PriceGenerator{constructor(){this.psychologicalEndings={"0.00":.25,"0.50":.15,.25:.08,.75:.08,.99:.1,.01:.08,.95:.06,.05:.06,random:.14};this.keyLevels=new Map;this.priceHistory=[]}generateBuyPrice(e,t={}){const{aggressiveness:r=.5,preferPsychological:s=!0,nearSupport:o}=t;let i=e*(1-(.001+.005*(1-r)));o&&Math.abs(i-o)/i<.02&&(i=o*(1+.002*Math.random()));s&&(i=this.applyPsychologicalPricing(i));i=this.addImprecision(i);return i}generateSellPrice(e,t={}){const{aggressiveness:r=.5,preferPsychological:s=!0,nearResistance:o}=t;let i=e*(1+(.001+.005*(1-r)));o&&Math.abs(i-o)/i<.02&&(i=o*(1-.002*Math.random()));s&&(i=this.applyPsychologicalPricing(i));i=this.addImprecision(i);return i}generateStopLossPrice(e,t,r=.02){let s;s="BUY"===t?e*(1-r):e*(1+r);return this.roundToPsychologicalLevel(s)}generateTakeProfitPrice(e,t,r=.04){let s;s="BUY"===t?e*(1+r):e*(1-r);return this.roundToPsychologicalLevel(s)}isPsychologicalLevel(e){const t=e%1,r=[0,.25,.5,.75,.99,.01,.05,.95];for(const e of r)if(Math.abs(t-e)<.01)return!0;const s=Math.round(e);return Math.abs(e-s)/e<.005}findNearestPsychLevel(e,t){const r=Math.floor(e),s=e-r,o=[0,.05,.1,.25,.5,.75,.9,.95,1];let i=o[0],n=Math.abs(s-i);for(const e of o){const r=Math.abs(s-e);if("NEAREST"===t&&r<n){i=e;n=r}else if("UP"===t&&e>s&&r<n){i=e;n=r}else if("DOWN"===t&&e<s&&r<n){i=e;n=r}}return r+i}addKeyLevel(e,t){this.keyLevels.has(e)||this.keyLevels.set(e,[]);const r=this.keyLevels.get(e);if(!r.includes(t)){r.push(t);r.sort((e,t)=>e-t)}r.length>20&&r.shift()}getNearestKeyLevel(e,t,r){const s=this.keyLevels.get(e)||[];if("SUPPORT"===r){const e=s.filter(e=>e<t);return e.length>0?Math.max(...e):null}{const e=s.filter(e=>e>t);return e.length>0?Math.min(...e):null}}recordPrice(e){this.priceHistory.push({price:e,timestamp:Date.now()});this.priceHistory.length>1e3&&this.priceHistory.shift();this.detectKeyLevels()}applyPsychologicalPricing(e){const t=Math.random();let r=0;for(const[s,o]of Object.entries(this.psychologicalEndings)){r+=o;if(t<r)return"random"===s?e:this.applyEnding(e,s)}return e}applyEnding(e,t){const r=Math.floor(e),s=parseFloat(t),o=e-r;return o<s?r+s:"0.00"===t?o<.5?r:r+1:r+s}roundToPsychologicalLevel(e){const t=[0,.25,.5,.75,1],r=Math.floor(e),s=e-r;let o=t[0],i=Math.abs(s-o);for(const e of t){const t=Math.abs(s-e);if(t<i){o=e;i=t}}return r+o}addImprecision(e){return e*(1+.001*(Math.random()-.5))}detectKeyLevels(){if(this.priceHistory.length<100)return;const e=this.priceHistory.slice(-100).map(e=>e.price),t=(Math.max(...e)-Math.min(...e))/20;if(t<=0)return;const r=new Map;for(const s of e){const e=Math.floor(s/t)*t;r.set(e,(r.get(e)||0)+1)}const s=e.length/10;for(const[e,o]of r.entries())o>=s&&this.addKeyLevel("default",e+t/2)}getStats(){const e=this.priceHistory.slice(-100);return{priceCount:this.priceHistory.length,keyLevelCount:Array.from(this.keyLevels.values()).flat().length,recentRange:e.length>0?{high:Math.max(...e.map(e=>e.price)),low:Math.min(...e.map(e=>e.price))}:null}}}exports.PriceGenerator=PriceGenerator;exports.default=PriceGenerator;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PriceGenerator = void 0;
+class PriceGenerator {
+    constructor() {
+        this.psychologicalEndings = {
+            "0.00": 0.25,
+            "0.50": 0.15,
+            "0.25": 0.08,
+            "0.75": 0.08,
+            "0.99": 0.10,
+            "0.01": 0.08,
+            "0.95": 0.06,
+            "0.05": 0.06,
+            random: 0.14,
+        };
+        this.keyLevels = new Map();
+        this.priceHistory = [];
+    }
+    generateBuyPrice(currentPrice, options = {}) {
+        const { aggressiveness = 0.5, preferPsychological = true, nearSupport } = options;
+        const baseDiscount = 0.001 + (1 - aggressiveness) * 0.005;
+        let price = currentPrice * (1 - baseDiscount);
+        if (nearSupport && Math.abs(price - nearSupport) / price < 0.02) {
+            price = nearSupport * (1 + Math.random() * 0.002);
+        }
+        if (preferPsychological) {
+            price = this.applyPsychologicalPricing(price);
+        }
+        price = this.addImprecision(price);
+        return price;
+    }
+    generateSellPrice(currentPrice, options = {}) {
+        const { aggressiveness = 0.5, preferPsychological = true, nearResistance } = options;
+        const basePremium = 0.001 + (1 - aggressiveness) * 0.005;
+        let price = currentPrice * (1 + basePremium);
+        if (nearResistance && Math.abs(price - nearResistance) / price < 0.02) {
+            price = nearResistance * (1 - Math.random() * 0.002);
+        }
+        if (preferPsychological) {
+            price = this.applyPsychologicalPricing(price);
+        }
+        price = this.addImprecision(price);
+        return price;
+    }
+    generateStopLossPrice(entryPrice, side, riskPercent = 0.02) {
+        let stopPrice;
+        if (side === "BUY") {
+            stopPrice = entryPrice * (1 - riskPercent);
+        }
+        else {
+            stopPrice = entryPrice * (1 + riskPercent);
+        }
+        return this.roundToPsychologicalLevel(stopPrice);
+    }
+    generateTakeProfitPrice(entryPrice, side, rewardPercent = 0.04) {
+        let targetPrice;
+        if (side === "BUY") {
+            targetPrice = entryPrice * (1 + rewardPercent);
+        }
+        else {
+            targetPrice = entryPrice * (1 - rewardPercent);
+        }
+        return this.roundToPsychologicalLevel(targetPrice);
+    }
+    isPsychologicalLevel(price) {
+        const decimals = price % 1;
+        const psychLevels = [0, 0.25, 0.5, 0.75, 0.99, 0.01, 0.05, 0.95];
+        for (const level of psychLevels) {
+            if (Math.abs(decimals - level) < 0.01) {
+                return true;
+            }
+        }
+        const nearestRound = Math.round(price);
+        if (Math.abs(price - nearestRound) / price < 0.005) {
+            return true;
+        }
+        return false;
+    }
+    findNearestPsychLevel(price, direction) {
+        const whole = Math.floor(price);
+        const decimal = price - whole;
+        const levels = [0, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 1.0];
+        let nearest = levels[0];
+        let minDiff = Math.abs(decimal - nearest);
+        for (const level of levels) {
+            const diff = Math.abs(decimal - level);
+            if (direction === "NEAREST" && diff < minDiff) {
+                nearest = level;
+                minDiff = diff;
+            }
+            else if (direction === "UP" && level > decimal && diff < minDiff) {
+                nearest = level;
+                minDiff = diff;
+            }
+            else if (direction === "DOWN" && level < decimal && diff < minDiff) {
+                nearest = level;
+                minDiff = diff;
+            }
+        }
+        return whole + nearest;
+    }
+    addKeyLevel(symbol, price) {
+        if (!this.keyLevels.has(symbol)) {
+            this.keyLevels.set(symbol, []);
+        }
+        const levels = this.keyLevels.get(symbol);
+        if (!levels.includes(price)) {
+            levels.push(price);
+            levels.sort((a, b) => a - b);
+        }
+        if (levels.length > 20) {
+            levels.shift();
+        }
+    }
+    getNearestKeyLevel(symbol, currentPrice, direction) {
+        const levels = this.keyLevels.get(symbol) || [];
+        if (direction === "SUPPORT") {
+            const supports = levels.filter((l) => l < currentPrice);
+            return supports.length > 0 ? Math.max(...supports) : null;
+        }
+        else {
+            const resistances = levels.filter((l) => l > currentPrice);
+            return resistances.length > 0 ? Math.min(...resistances) : null;
+        }
+    }
+    recordPrice(price) {
+        this.priceHistory.push({ price, timestamp: Date.now() });
+        if (this.priceHistory.length > 1000) {
+            this.priceHistory.shift();
+        }
+        this.detectKeyLevels();
+    }
+    applyPsychologicalPricing(price) {
+        const random = Math.random();
+        let cumulative = 0;
+        for (const [ending, weight] of Object.entries(this.psychologicalEndings)) {
+            cumulative += weight;
+            if (random < cumulative) {
+                if (ending === "random") {
+                    return price;
+                }
+                return this.applyEnding(price, ending);
+            }
+        }
+        return price;
+    }
+    applyEnding(price, ending) {
+        const whole = Math.floor(price);
+        const targetDecimal = parseFloat(ending);
+        const currentDecimal = price - whole;
+        if (currentDecimal < targetDecimal) {
+            return whole + targetDecimal;
+        }
+        else if (ending === "0.00") {
+            return currentDecimal < 0.5 ? whole : whole + 1;
+        }
+        else {
+            return whole + targetDecimal;
+        }
+    }
+    roundToPsychologicalLevel(price) {
+        const levels = [0, 0.25, 0.5, 0.75, 1.0];
+        const whole = Math.floor(price);
+        const decimal = price - whole;
+        let nearest = levels[0];
+        let minDiff = Math.abs(decimal - nearest);
+        for (const level of levels) {
+            const diff = Math.abs(decimal - level);
+            if (diff < minDiff) {
+                nearest = level;
+                minDiff = diff;
+            }
+        }
+        return whole + nearest;
+    }
+    addImprecision(price) {
+        const imprecision = (Math.random() - 0.5) * 0.001;
+        return price * (1 + imprecision);
+    }
+    detectKeyLevels() {
+        if (this.priceHistory.length < 100)
+            return;
+        const recentPrices = this.priceHistory.slice(-100).map((p) => p.price);
+        const bucketSize = (Math.max(...recentPrices) - Math.min(...recentPrices)) / 20;
+        if (bucketSize <= 0)
+            return;
+        const buckets = new Map();
+        for (const price of recentPrices) {
+            const bucket = Math.floor(price / bucketSize) * bucketSize;
+            buckets.set(bucket, (buckets.get(bucket) || 0) + 1);
+        }
+        const threshold = recentPrices.length / 10;
+        for (const [level, count] of buckets.entries()) {
+            if (count >= threshold) {
+                this.addKeyLevel("default", level + bucketSize / 2);
+            }
+        }
+    }
+    getStats() {
+        const recent = this.priceHistory.slice(-100);
+        return {
+            priceCount: this.priceHistory.length,
+            keyLevelCount: Array.from(this.keyLevels.values()).flat().length,
+            recentRange: recent.length > 0
+                ? {
+                    high: Math.max(...recent.map((p) => p.price)),
+                    low: Math.min(...recent.map((p) => p.price)),
+                }
+                : null,
+        };
+    }
+}
+exports.PriceGenerator = PriceGenerator;
+exports.default = PriceGenerator;

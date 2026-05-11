@@ -45,6 +45,7 @@ import { ordersWs } from "@/services/orders-ws";
 import { marketService } from "@/services/market-service";
 import { useTranslations, useLocale } from "next-intl";
 import { useUserStore } from "@/store/user";
+import { useConfigStore } from "@/store/config";
 
 // Panel component registry is no longer using memo since components are now dynamically imported
 const PanelComponentRegistry = {
@@ -912,8 +913,11 @@ export default function TradingLayout() {
 
     initializeServices();
 
-    // Initialize AI investment store
-    initializeAiInvestmentStore();
+    // Initialize AI investment store (only if extension is enabled)
+    const extensions = useConfigStore.getState().extensions;
+    if (extensions?.includes("ai_investment")) {
+      initializeAiInvestmentStore();
+    }
 
     // NOTE: We intentionally do NOT call marketDataWs.cleanup() here
     // The WebSocket service is a singleton that should persist across component remounts

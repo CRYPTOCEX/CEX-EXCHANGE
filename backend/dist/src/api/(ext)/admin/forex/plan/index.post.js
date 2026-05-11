@@ -1,1 +1,67 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query"),utils_1=require("./utils");exports.metadata={summary:"Creates a new Forex plan",description:"Creates a new Forex trading plan with profit ranges, investment limits, currency, wallet type, and available durations.",operationId:"createForexPlan",tags:["Admin","Forex","Plan"],requestBody:{required:!0,content:{"application/json":{schema:utils_1.forexPlanUpdateSchema}}},responses:(0,query_1.storeRecordResponses)(utils_1.forexPlanStoreSchema,"Forex Plan"),requiresAuth:!0,permission:"create.forex.plan",logModule:"ADMIN_FOREX",logTitle:"Create forex plan"};exports.default=async e=>{const{body:t,ctx:a}=e,{name:r,title:n,description:o,image:i,minProfit:s,maxProfit:l,minAmount:u,maxAmount:d,invested:c,profitPercentage:p,status:m,defaultProfit:f,defaultResult:x,trending:y,durations:P,currency:g,walletType:q}=t;null==a||a.step("Validating forex plan data");const _=P?[{model:"forexPlanDuration",method:"addDurations",data:P.map(e=>"string"==typeof e?e:e.value),fields:{source:"planId",target:"durationId"}}]:[];null==a||a.step("Creating forex plan");const v=await(0,query_1.storeRecord)({model:"forexPlan",data:{name:r,title:n,description:o,image:i,minProfit:s,maxProfit:l,minAmount:u,maxAmount:d,invested:c,profitPercentage:p,status:m,defaultProfit:f,defaultResult:x,trending:y,currency:g,walletType:q},relations:_});null==a||a.success("Forex plan created successfully");return v};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const utils_1 = require("./utils");
+exports.metadata = {
+    summary: "Creates a new Forex plan",
+    description: "Creates a new Forex trading plan with profit ranges, investment limits, currency, wallet type, and available durations.",
+    operationId: "createForexPlan",
+    tags: ["Admin", "Forex", "Plan"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: utils_1.forexPlanUpdateSchema,
+            },
+        },
+    },
+    responses: (0, query_1.storeRecordResponses)(utils_1.forexPlanStoreSchema, "Forex Plan"),
+    requiresAuth: true,
+    permission: "create.forex.plan",
+    logModule: "ADMIN_FOREX",
+    logTitle: "Create forex plan",
+};
+exports.default = async (data) => {
+    const { body, ctx } = data;
+    const { name, title, description, image, minProfit, maxProfit, minAmount, maxAmount, invested, profitPercentage, status, defaultProfit, defaultResult, trending, durations, currency, walletType, } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating forex plan data");
+    const relations = durations
+        ? [
+            {
+                model: "forexPlanDuration",
+                method: "addDurations",
+                data: durations.map((duration) => typeof duration === 'string' ? duration : duration.value),
+                fields: {
+                    source: "planId",
+                    target: "durationId",
+                },
+            },
+        ]
+        : [];
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating forex plan");
+    const result = await (0, query_1.storeRecord)({
+        model: "forexPlan",
+        data: {
+            name,
+            title,
+            description,
+            image,
+            minProfit,
+            maxProfit,
+            minAmount,
+            maxAmount,
+            invested,
+            profitPercentage,
+            status,
+            defaultProfit,
+            defaultResult,
+            trending,
+            currency,
+            walletType,
+        },
+        relations,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("Forex plan created successfully");
+    return result;
+};

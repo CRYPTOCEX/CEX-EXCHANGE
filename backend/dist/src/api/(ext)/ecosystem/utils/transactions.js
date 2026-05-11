@@ -8,6 +8,7 @@ const redis_1 = require("../../../../utils/redis");
 const console_1 = require("@b/utils/console");
 const safe_imports_1 = require("@b/utils/safe-imports");
 const error_1 = require("@b/utils/error");
+const providers_1 = require("./providers");
 const CACHE_EXPIRATION = 30;
 const fetchEcosystemTransactions = async (chain, address) => {
     const config = chains_1.chainConfigs[chain];
@@ -115,7 +116,6 @@ const parseRawTransactions = (rawTransactions) => {
     });
 };
 const fetchGeneralEcosystemTransactions = async (chain, address) => {
-    var _a;
     const chainConfig = chains_1.chainConfigs[chain];
     if (!chainConfig) {
         throw (0, error_1.createError)({ statusCode: 400, message: `Unsupported chain: ${chain}` });
@@ -125,46 +125,24 @@ const fetchGeneralEcosystemTransactions = async (chain, address) => {
     if (!networkName) {
         throw (0, error_1.createError)({ statusCode: 500, message: `Environment variable ${networkEnvVar} is not set` });
     }
-    const hasExplorerApi = (_a = chainConfig.explorerApi) !== null && _a !== void 0 ? _a : true;
-    const apiKey = process.env.ETHERSCAN_API_KEY || process.env[`${chain}_EXPLORER_API_KEY`];
-    if (hasExplorerApi && !apiKey) {
-        throw (0, error_1.createError)({ statusCode: 500, message: `Environment variable ETHERSCAN_API_KEY or ${chain}_EXPLORER_API_KEY is not set` });
-    }
     const network = chainConfig.networks[networkName];
-    if (!network || !network.chainId) {
-        throw (0, error_1.createError)({ statusCode: 500, message: `Unsupported or misconfigured network: ${networkName} for chain: ${chain}. ChainId is required for V2 API.` });
+    if (!network) {
+        throw (0, error_1.createError)({ statusCode: 500, message: `Unsupported or misconfigured network: ${networkName} for chain: ${chain}` });
     }
-    const url = `https://api.etherscan.io/v2/api?chainid=${network.chainId}&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc${hasExplorerApi ? `&apikey=${apiKey}` : ""}`;
+    const apiKey = process.env[`${chain}_EXPLORER_API_KEY`] || process.env.ETHERSCAN_API_KEY;
     try {
-        console_1.logger.info("ETHERSCAN", `${chain} Fetching transactions for address ${address.substring(0, 10)}... using chainId ${network.chainId}`);
-        const response = await fetch(url);
-        if (!response.ok) {
-            const statusText = response.statusText || 'Unknown error';
-            const text = await response.text();
-            throw (0, error_1.createError)({ statusCode: response.status, message: `HTTP ${response.status} ${statusText}: ${text.substring(0, 200)}` });
-        }
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("text/html")) {
-            const text = await response.text();
-            throw (0, error_1.createError)({ statusCode: 502, message: `Received HTML instead of JSON. API might be down or rate limited. Response: ${text.substring(0, 200)}` });
-        }
-        const data = await response.json();
-        if (data.status === "0") {
-            if (data.message === "NOTOK") {
-                console_1.logger.warn("ETHERSCAN", `${chain} API error: ${data.result}`);
-                return { status: "1", message: "OK", result: [] };
-            }
-        }
-        if (!data.result || !Array.isArray(data.result)) {
-            console_1.logger.warn("ETHERSCAN", `${chain} Unexpected response format, returning empty results`);
-            return { status: "1", message: "OK", result: [] };
-        }
-        console_1.logger.info("ETHERSCAN", `${chain} Successfully fetched ${data.result.length} transactions`);
-        return data;
+        return await (0, providers_1.fetchWithProviders)({
+            chain,
+            address,
+            apiKey,
+            network: networkName,
+            chainId: network.chainId,
+            explorerUrl: network.explorer,
+        });
     }
     catch (error) {
-        console_1.logger.error("GENERAL_TRANSACTIONS", "API call failed", error);
-        throw (0, error_1.createError)({ statusCode: 500, message: `API call failed: ${error.message}` });
+        console_1.logger.error("GENERAL_TRANSACTIONS", `All providers failed for ${chain}`, error);
+        throw (0, error_1.createError)({ statusCode: 500, message: `Transaction fetch failed for ${chain}: ${error.message}` });
     }
 };
 exports.fetchGeneralEcosystemTransactions = fetchGeneralEcosystemTransactions;

@@ -67,7 +67,7 @@ export default function PhaseForm({
           </label>
           <Input
             type="number"
-            step="0.0001"
+            step="any"
             min="0"
             placeholder={t("e_g_0_05")}
             value={phase.tokenPrice ?? ""}

@@ -63,7 +63,7 @@ export interface CompletedOrder {
   closePrice: number;
   entryTime: Date;
   expiryTime: Date;
-  status: "WIN" | "LOSS";
+  status: "WIN" | "LOSS" | "DRAW";
   profit: number;
   profitPercentage?: number;
   // Type-specific fields for proper chart rendering
@@ -1465,8 +1465,8 @@ export const useBinaryStore = create<BinaryState>()(
                 closePrice: order.closePrice || order.price,
                 entryTime: new Date(order.createdAt),
                 expiryTime: new Date(order.closedAt),
-                status: order.status === "WIN" ? "WIN" : "LOSS",
-                profit: order.profit || 0,
+                status: order.status as "WIN" | "LOSS" | "DRAW",
+                profit: order.profit ?? 0,
                 profitPercentage: order.profitPercentage,
                 // Include type-specific fields for proper chart rendering
                 type: order.type,

@@ -666,7 +666,7 @@ export function IdentityField({
                 onMouseEnter={() => setHoveredType(type.value)}
                 onMouseLeave={() => setHoveredType(null)}
                 className={cn(
-                  "relative flex flex-col items-center p-5 rounded-xl border-2 transition-all dark:bg-zinc-900",
+                  "relative flex flex-col items-center p-3 sm:p-5 rounded-xl border-2 transition-all dark:bg-zinc-900",
                   "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-zinc-900",
                   isSelected
                     ? `border-${type.color}-500 bg-gradient-to-br ${type.gradient} dark:bg-gradient-to-br dark:from-${type.color}-950/50 dark:to-${type.color}-900/20`

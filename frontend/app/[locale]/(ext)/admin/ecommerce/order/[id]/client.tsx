@@ -96,20 +96,25 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
     }
     setShipments(data.shipments ?? []);
     setOrder(data.order);
-    // Use shipping instead of shippingAddress from the response
-    if (data.order.shipping) {
-      setShippingAddress({
-        name:
-          data.order.user?.firstName + " " + data.order.user?.lastName || "",
-        email: data.order.user?.email || "",
-        phone: "",
-        street: "",
-        city: "",
-        state: "",
-        postalCode: "",
-        country: "",
-      });
-    }
+    // Populate from the real shippingAddress on the order, falling back to
+    // sensible defaults. Previously this was hardcoded to empty strings,
+    // which silently overwrote the stored address on save.
+    const addr = data.order.shippingAddress || {};
+    setShippingAddress({
+      name:
+        addr.name ||
+        [data.order.user?.firstName, data.order.user?.lastName]
+          .filter(Boolean)
+          .join(" ") ||
+        "",
+      email: addr.email || data.order.user?.email || "",
+      phone: addr.phone || "",
+      street: addr.street || "",
+      city: addr.city || "",
+      state: addr.state || "",
+      postalCode: addr.postalCode || "",
+      country: addr.country || "",
+    });
     setOrderStatus(data.order.status);
     setError(null);
     setIsLoading(false);
@@ -184,8 +189,10 @@ export default function OrderDetailClient({ orderId }: OrderClientProps) {
       return;
     }
     setIsUpdating(true);
+    // Route through the dedicated status endpoint so the backend
+    // runs its status-transition logic (e.g. inventory restock on cancel).
     const { error } = await $fetch({
-      url: `${api}/${orderId}`,
+      url: `${api}/${orderId}/status`,
       method: "PUT",
       body: {
         status: value,

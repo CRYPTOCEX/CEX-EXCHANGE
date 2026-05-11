@@ -29,7 +29,7 @@ class icoTokenDetail extends sequelize_1.Model {
                 },
             },
             totalSupply: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "totalSupply: Must be a valid number" },
@@ -37,7 +37,7 @@ class icoTokenDetail extends sequelize_1.Model {
                 },
             },
             tokensForSale: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "tokensForSale: Must be a valid number" },
@@ -45,7 +45,7 @@ class icoTokenDetail extends sequelize_1.Model {
                 },
             },
             salePercentage: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(5, 2),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "salePercentage: Must be a valid number" },

@@ -109,7 +109,7 @@ exports.default = async (data) => {
             days = 365;
             break;
         case "ALL":
-            days = 730;
+            days = 3650;
             break;
         default:
             days = 30;

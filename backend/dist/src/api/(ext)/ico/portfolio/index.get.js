@@ -43,38 +43,8 @@ exports.default = async (data) => {
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching ICO portfolio");
     try {
-        const pendingTransactions = await db_1.models.icoTransaction.findAll({
-            where: { userId: user.id, status: "PENDING" },
-            include: [
-                {
-                    model: db_1.models.icoTokenOffering,
-                    as: "offering",
-                    attributes: ["currentPrice", "tokenPrice"],
-                },
-            ],
-        });
-        const pendingVerificationTransactions = await db_1.models.icoTransaction.findAll({
-            where: { userId: user.id, status: "VERIFICATION" },
-            include: [
-                {
-                    model: db_1.models.icoTokenOffering,
-                    as: "offering",
-                    attributes: ["currentPrice", "tokenPrice"],
-                },
-            ],
-        });
-        const receivedTransactions = await db_1.models.icoTransaction.findAll({
-            where: { userId: user.id, status: "RELEASED" },
-            include: [
-                {
-                    model: db_1.models.icoTokenOffering,
-                    as: "offering",
-                    attributes: ["currentPrice", "tokenPrice"],
-                },
-            ],
-        });
-        const rejectedTransactions = await db_1.models.icoTransaction.findAll({
-            where: { userId: user.id, status: "REJECTED" },
+        const allTransactions = await db_1.models.icoTransaction.findAll({
+            where: { userId: user.id },
             include: [
                 {
                     model: db_1.models.icoTokenOffering,
@@ -89,33 +59,34 @@ exports.default = async (data) => {
         let receivedInvested = 0;
         let rejectedInvested = 0;
         let currentValue = 0;
-        pendingTransactions.forEach((tx) => {
+        for (const tx of allTransactions) {
             const invested = tx.amount * tx.price;
-            totalInvested += invested;
-            pendingInvested += invested;
-        });
-        pendingVerificationTransactions.forEach((tx) => {
-            const invested = tx.amount * tx.price;
-            totalInvested += invested;
-            pendingVerificationInvested += invested;
-        });
-        receivedTransactions.forEach((tx) => {
-            const invested = tx.amount * tx.price;
-            totalInvested += invested;
-            receivedInvested += invested;
-            const offering = tx.offering;
-            const currentTokenPrice = (offering === null || offering === void 0 ? void 0 : offering.currentPrice) != null
-                ? offering.currentPrice
-                : offering === null || offering === void 0 ? void 0 : offering.tokenPrice;
-            const offeringValue = currentTokenPrice
-                ? tx.amount * currentTokenPrice
-                : invested;
-            currentValue += offeringValue;
-        });
-        rejectedTransactions.forEach((tx) => {
-            const invested = tx.amount * tx.price;
-            rejectedInvested += invested;
-        });
+            switch (tx.status) {
+                case "PENDING":
+                    totalInvested += invested;
+                    pendingInvested += invested;
+                    break;
+                case "VERIFICATION":
+                    totalInvested += invested;
+                    pendingVerificationInvested += invested;
+                    break;
+                case "RELEASED": {
+                    totalInvested += invested;
+                    receivedInvested += invested;
+                    const offering = tx.offering;
+                    const currentTokenPrice = (offering === null || offering === void 0 ? void 0 : offering.currentPrice) != null
+                        ? offering.currentPrice
+                        : offering === null || offering === void 0 ? void 0 : offering.tokenPrice;
+                    currentValue += currentTokenPrice
+                        ? tx.amount * currentTokenPrice
+                        : invested;
+                    break;
+                }
+                case "REJECTED":
+                    rejectedInvested += invested;
+                    break;
+            }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.success("ICO portfolio retrieved successfully");
         return {
             totalInvested,

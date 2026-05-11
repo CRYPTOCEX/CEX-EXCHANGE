@@ -51,7 +51,7 @@ export const useLaunchPlanStore = create<LaunchPlanStore>((set, get) => ({
       }));
       set({ plans: parsedData, isLoading: false, hasFetched: true });
     } else {
-      set({ error: error, isLoading: false, hasFetched: true });
+      set({ error: error, isLoading: false });
     }
   },
 

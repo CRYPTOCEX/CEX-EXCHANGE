@@ -24,6 +24,7 @@ export default function AiInvestmentDurationPage() {
       canEdit
       canDelete
       canView
+      isParanoid={false}
       title={t("ai_investment_durations")}
       description={t("manage_ai_powered_investment_duration_settings")}
       itemTitle="Duration"

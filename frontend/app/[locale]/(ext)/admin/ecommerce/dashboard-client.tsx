@@ -412,7 +412,7 @@ export default function DashboardClient() {
               {t("recent_orders")}
             </h2>
             <Link
-              href="/admin/ecommerce/orders"
+              href="/admin/ecommerce/order"
               className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center"
             >
               {tCommon("view_all")}
@@ -465,7 +465,7 @@ export default function DashboardClient() {
                           </span>
                         </div>
                         <Link
-                          href={`/admin/ecommerce/orders/${order.id}`}
+                          href={`/admin/ecommerce/order/${order.id}`}
                           className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300"
                         >
                           <ArrowRight className="h-4 w-4" />
@@ -484,7 +484,7 @@ export default function DashboardClient() {
                   {t("no_orders_found")}
                 </p>
                 <Link
-                  href="/admin/ecommerce/orders"
+                  href="/admin/ecommerce/order"
                   className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
                 >
                   {t("view_all_orders")}

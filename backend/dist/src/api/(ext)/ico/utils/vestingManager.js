@@ -4,12 +4,14 @@ exports.createVestingSchedule = createVestingSchedule;
 exports.calculateVestedAmount = calculateVestedAmount;
 exports.processVestingReleases = processVestingReleases;
 exports.claimVestedTokens = claimVestedTokens;
+exports.assertTransactionAmountMutable = assertTransactionAmountMutable;
 exports.getVestingScheduleForUser = getVestingScheduleForUser;
 const db_1 = require("@b/db");
 const sequelize_1 = require("sequelize");
 const notifications_1 = require("@b/utils/notifications");
 const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+const wallet_1 = require("@b/services/wallet");
 async function createVestingSchedule(transactionId, schedule) {
     const transaction = await db_1.sequelize.transaction();
     try {
@@ -24,6 +26,15 @@ async function createVestingSchedule(transactionId, schedule) {
             throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
         }
         let releaseSchedule = null;
+        if (schedule.type === "MILESTONE" && schedule.milestones) {
+            const totalPercentage = schedule.milestones.reduce((sum, m) => sum + m.percentage, 0);
+            if (Math.abs(totalPercentage - 100) > 0.01) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Milestone percentages must sum to 100%. Current total: ${totalPercentage}%`
+                });
+            }
+        }
         if (schedule.type === "MILESTONE" && schedule.milestones) {
             releaseSchedule = schedule.milestones.map(m => ({
                 date: m.date,
@@ -96,7 +107,7 @@ async function calculateVestedAmount(vestingId) {
                     vestedAmount += milestone.amount;
                 }
             }
-            return vestedAmount;
+            return parseFloat(Number(vestedAmount).toFixed(8));
         default:
             return 0;
     }
@@ -137,6 +148,39 @@ async function processVestingReleases() {
                 const offering = vestingTransaction === null || vestingTransaction === void 0 ? void 0 : vestingTransaction.offering;
                 await release.update({ status: "RELEASED" }, { transaction });
                 await vesting.update({ releasedAmount: vesting.releasedAmount + release.releaseAmount }, { transaction });
+                if (offering) {
+                    try {
+                        const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(vesting.userId, offering.purchaseWalletType, offering.symbol, transaction);
+                        const recipientWallet = walletResult === null || walletResult === void 0 ? void 0 : walletResult.wallet;
+                        if (!recipientWallet) {
+                            throw (0, error_1.createError)({
+                                statusCode: 500,
+                                message: `Failed to get or create ${offering.purchaseWalletType} wallet for ${offering.symbol} vesting`,
+                            });
+                        }
+                        await wallet_1.walletService.credit({
+                            idempotencyKey: `ico_vesting_release_${release.id}`,
+                            userId: vesting.userId,
+                            walletId: recipientWallet.id,
+                            walletType: offering.purchaseWalletType,
+                            currency: offering.symbol,
+                            amount: release.releaseAmount,
+                            operationType: "RELEASE",
+                            referenceId: release.id,
+                            description: `Vesting release: ${offering.name} - ${release.releaseAmount} tokens`,
+                            metadata: {
+                                vestingId: vesting.id,
+                                releaseId: release.id,
+                                offeringId: vesting.offeringId,
+                            },
+                            transaction,
+                        });
+                    }
+                    catch (walletError) {
+                        console_1.logger.error("ICO_VESTING", `Failed to credit wallet for release ${release.id}`, walletError);
+                        throw walletError;
+                    }
+                }
                 await (0, notifications_1.createNotification)({
                     userId: vesting.userId,
                     relatedId: vesting.offeringId,
@@ -219,7 +263,7 @@ async function claimVestedTokens(vestingId, userId, walletAddress, transactionHa
             include: [{
                     model: db_1.models.icoTokenVestingRelease,
                     as: "releases",
-                    where: { status: "PROCESSING" },
+                    where: { status: "RELEASED" },
                 }],
             transaction,
         });
@@ -247,6 +291,19 @@ async function claimVestedTokens(vestingId, userId, walletAddress, transactionHa
     catch (error) {
         await transaction.rollback();
         throw error;
+    }
+}
+async function assertTransactionAmountMutable(transactionId) {
+    if (!transactionId)
+        return;
+    const vestingCount = await db_1.models.icoTokenVesting.count({
+        where: { transactionId },
+    });
+    if (vestingCount > 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "cannot modify amount after vesting scheduled",
+        });
     }
 }
 async function getVestingScheduleForUser(userId) {

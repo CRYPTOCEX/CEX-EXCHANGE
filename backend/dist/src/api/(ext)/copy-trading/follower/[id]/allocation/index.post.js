@@ -1,1 +1,273 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error"),utils_1=require("@b/api/(ext)/copy-trading/utils"),security_1=require("@b/api/(ext)/copy-trading/utils/security"),wallet_1=require("@b/services/wallet");exports.metadata={summary:"Create Market Allocation",description:"Creates a new market allocation for a subscription. The market must be one of the leader's declared markets.",operationId:"createSubscriptionAllocation",tags:["Copy Trading","Followers","Allocations"],requiresAuth:!0,logModule:"COPY",logTitle:"Create allocation",middleware:["copyTradingFunds"],parameters:[{name:"id",in:"path",required:!0,schema:{type:"string",format:"uuid"},description:"Subscription (follower) ID"}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{symbol:{type:"string",description:"Market symbol (e.g., BTC/USDT)"},baseAmount:{type:"number",minimum:0,description:"Initial base currency amount for selling"},quoteAmount:{type:"number",minimum:0,description:"Initial quote currency amount for buying"}},required:["symbol"]}}}},responses:{200:{description:"Allocation created successfully",content:{"application/json":{schema:{type:"object",properties:{message:{type:"string"},allocation:{type:"object"}}}}}},400:{description:"Bad Request"},401:{description:"Unauthorized"},403:{description:"Forbidden"},404:{description:"Subscription not found"},429:{description:"Too Many Requests"},500:{description:"Internal Server Error"}}};exports.default=async e=>{const{user:r,params:t,body:o,ctx:a}=e,{id:s}=t,{symbol:i,baseAmount:n=0,quoteAmount:l=0}=o;if(!(null==r?void 0:r.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});if(!(0,security_1.isValidUUID)(s))throw(0,error_1.createError)({statusCode:400,message:"Invalid subscription ID"});if(!i||"string"!=typeof i)throw(0,error_1.createError)({statusCode:400,message:"Symbol is required"});const c=i.split("/");if(2!==c.length)throw(0,error_1.createError)({statusCode:400,message:"Invalid symbol format. Use BASE/QUOTE (e.g., BTC/USDT)"});const[d,u]=c;null==a||a.step("Fetching subscription");const m=await db_1.models.copyTradingFollower.findByPk(s);if(!m)throw(0,error_1.createError)({statusCode:404,message:"Subscription not found"});if(m.userId!==r.id)throw(0,error_1.createError)({statusCode:403,message:"Access denied"});if("STOPPED"===m.status)throw(0,error_1.createError)({statusCode:400,message:"Cannot add allocations to a stopped subscription"});null==a||a.step("Verifying leader market");const p=await db_1.models.copyTradingLeaderMarket.findOne({where:{leaderId:m.leaderId,symbol:i,isActive:!0}});if(!p)throw(0,error_1.createError)({statusCode:400,message:`Market ${i} is not available for this leader`});const y=p.minBase||0,f=p.minQuote||0,b=Number(n)||0,w=Number(l)||0;if(y>0&&b>0&&b<y)throw(0,error_1.createError)({statusCode:400,message:`${i}: Minimum ${d} allocation is ${y}`});if(f>0&&w>0&&w<f)throw(0,error_1.createError)({statusCode:400,message:`${i}: Minimum ${u} allocation is ${f}`});null==a||a.step("Checking for existing allocation");if(await db_1.models.copyTradingFollowerAllocation.findOne({where:{followerId:s,symbol:i}}))throw(0,error_1.createError)({statusCode:400,message:`You already have an allocation for ${i}. Use add-funds to increase it.`});if(b<0||w<0)throw(0,error_1.createError)({statusCode:400,message:"Amounts cannot be negative"});if(0===b&&0===w)throw(0,error_1.createError)({statusCode:400,message:"At least one of baseAmount or quoteAmount must be greater than 0"});null==a||a.step("Creating allocation");let C;const g=`ct_allocation_${s}_${i}_${Date.now()}`;await db_1.sequelize.transaction(async e=>{if(b>0){null==a||a.step(`Transferring ${b} ${d} from ECO to COPY_TRADING wallet`);const t=await wallet_1.walletService.transfer({idempotencyKey:`${g}_base`,fromUserId:r.id,toUserId:r.id,fromWalletType:"ECO",toWalletType:"COPY_TRADING",fromCurrency:d,toCurrency:d,amount:b,description:`Transfer ${b} ${d} from ECO to CT wallet (allocate to ${i})`,metadata:{symbol:i,currencyType:"BASE",followerId:s,leaderId:m.leaderId},transaction:e});await(0,utils_1.createCopyTradingTransaction)({userId:r.id,leaderId:m.leaderId,followerId:s,type:"ALLOCATION",amount:b,currency:d,balanceBefore:t.fromResult.previousBalance,balanceAfter:t.fromResult.newBalance,description:`Transfer ${b} ${d} from ECO to CT wallet (allocate to ${i})`,metadata:JSON.stringify({symbol:i,currencyType:"BASE"})},e)}if(w>0){null==a||a.step(`Transferring ${w} ${u} from ECO to COPY_TRADING wallet`);const t=await wallet_1.walletService.transfer({idempotencyKey:`${g}_quote`,fromUserId:r.id,toUserId:r.id,fromWalletType:"ECO",toWalletType:"COPY_TRADING",fromCurrency:u,toCurrency:u,amount:w,description:`Transfer ${w} ${u} from ECO to CT wallet (allocate to ${i})`,metadata:{symbol:i,currencyType:"QUOTE",followerId:s,leaderId:m.leaderId},transaction:e});await(0,utils_1.createCopyTradingTransaction)({userId:r.id,leaderId:m.leaderId,followerId:s,type:"ALLOCATION",amount:w,currency:u,balanceBefore:t.fromResult.previousBalance,balanceAfter:t.fromResult.newBalance,description:`Transfer ${w} ${u} from ECO to CT wallet (allocate to ${i})`,metadata:JSON.stringify({symbol:i,currencyType:"QUOTE"})},e)}C=await db_1.models.copyTradingFollowerAllocation.create({followerId:s,symbol:i,baseCurrency:d,quoteCurrency:u,baseAmount:b,quoteAmount:w,baseUsedAmount:0,quoteUsedAmount:0,totalProfit:0,totalTrades:0,winRate:0,isActive:!0},{transaction:e});await(0,utils_1.createAuditLog)({entityType:"ALLOCATION",entityId:C.id,action:"CREATE",newValue:{symbol:i,baseAmount:b,quoteAmount:w},userId:r.id},e)});null==a||a.success(`Created allocation for ${i}`);return{message:`Successfully created allocation for ${i}`,allocation:C.toJSON()}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("@b/api/(ext)/copy-trading/utils");
+const security_1 = require("@b/api/(ext)/copy-trading/utils/security");
+const wallet_1 = require("@b/services/wallet");
+exports.metadata = {
+    summary: "Create Market Allocation",
+    description: "Creates a new market allocation for a subscription. The market must be one of the leader's declared markets.",
+    operationId: "createSubscriptionAllocation",
+    tags: ["Copy Trading", "Followers", "Allocations"],
+    requiresAuth: true,
+    logModule: "COPY",
+    logTitle: "Create allocation",
+    middleware: ["copyTradingFunds"],
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+            description: "Subscription (follower) ID",
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        symbol: {
+                            type: "string",
+                            description: "Market symbol (e.g., BTC/USDT)",
+                        },
+                        baseAmount: {
+                            type: "number",
+                            minimum: 0,
+                            description: "Initial base currency amount for selling",
+                        },
+                        quoteAmount: {
+                            type: "number",
+                            minimum: 0,
+                            description: "Initial quote currency amount for buying",
+                        },
+                    },
+                    required: ["symbol"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Allocation created successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            message: { type: "string" },
+                            allocation: { type: "object" },
+                        },
+                    },
+                },
+            },
+        },
+        400: { description: "Bad Request" },
+        401: { description: "Unauthorized" },
+        403: { description: "Forbidden" },
+        404: { description: "Subscription not found" },
+        429: { description: "Too Many Requests" },
+        500: { description: "Internal Server Error" },
+    },
+};
+exports.default = async (data) => {
+    const { user, params, body, ctx } = data;
+    const { id } = params;
+    const { symbol, baseAmount = 0, quoteAmount = 0 } = body;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    if (!(0, security_1.isValidUUID)(id)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Invalid subscription ID" });
+    }
+    if (!symbol || typeof symbol !== "string") {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Symbol is required" });
+    }
+    const parts = symbol.split("/");
+    if (parts.length !== 2) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Invalid symbol format. Use BASE/QUOTE (e.g., BTC/USDT)",
+        });
+    }
+    const [baseCurrency, quoteCurrency] = parts;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching subscription");
+    const subscription = await db_1.models.copyTradingFollower.findByPk(id);
+    if (!subscription) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Subscription not found" });
+    }
+    if (subscription.userId !== user.id) {
+        throw (0, error_1.createError)({ statusCode: 403, message: "Access denied" });
+    }
+    if (subscription.status === "STOPPED") {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Cannot add allocations to a stopped subscription",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying leader market");
+    const leaderMarket = await db_1.models.copyTradingLeaderMarket.findOne({
+        where: {
+            leaderId: subscription.leaderId,
+            symbol,
+            isActive: true,
+        },
+    });
+    if (!leaderMarket) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Market ${symbol} is not available for this leader`,
+        });
+    }
+    const minBase = leaderMarket.minBase || 0;
+    const minQuote = leaderMarket.minQuote || 0;
+    const baseAmt = Number(baseAmount) || 0;
+    const quoteAmt = Number(quoteAmount) || 0;
+    if (minBase > 0 && baseAmt > 0 && baseAmt < minBase) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `${symbol}: Minimum ${baseCurrency} allocation is ${minBase}`,
+        });
+    }
+    if (minQuote > 0 && quoteAmt > 0 && quoteAmt < minQuote) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `${symbol}: Minimum ${quoteCurrency} allocation is ${minQuote}`,
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking for existing allocation");
+    const existingAllocation = await db_1.models.copyTradingFollowerAllocation.findOne({
+        where: { followerId: id, symbol },
+    });
+    if (existingAllocation) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `You already have an allocation for ${symbol}. Use add-funds to increase it.`,
+        });
+    }
+    if (baseAmt < 0 || quoteAmt < 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Amounts cannot be negative",
+        });
+    }
+    if (baseAmt === 0 && quoteAmt === 0) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "At least one of baseAmount or quoteAmount must be greater than 0",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating allocation");
+    let allocation;
+    await db_1.sequelize.transaction(async (transaction) => {
+        allocation = await db_1.models.copyTradingFollowerAllocation.create({
+            followerId: id,
+            symbol,
+            baseAmount: 0,
+            quoteAmount: 0,
+            isActive: false,
+        }, { transaction });
+        const allocationIdempotencyKey = `follower_allocation_${id}_${allocation.id}`;
+        if (baseAmt > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Transferring ${baseAmt} ${baseCurrency} from ECO to COPY_TRADING wallet`);
+            const transferResult = await wallet_1.walletService.transfer({
+                idempotencyKey: `${allocationIdempotencyKey}_base`,
+                fromUserId: user.id,
+                toUserId: user.id,
+                fromWalletType: "ECO",
+                toWalletType: "COPY_TRADING",
+                fromCurrency: baseCurrency,
+                toCurrency: baseCurrency,
+                amount: baseAmt,
+                description: `Transfer ${baseAmt} ${baseCurrency} from ECO to CT wallet (allocate to ${symbol})`,
+                metadata: {
+                    symbol,
+                    currencyType: "BASE",
+                    followerId: id,
+                    leaderId: subscription.leaderId,
+                    allocationId: allocation.id,
+                },
+                transaction,
+            });
+            await (0, utils_1.createCopyTradingTransaction)({
+                userId: user.id,
+                leaderId: subscription.leaderId,
+                followerId: id,
+                type: "ALLOCATION",
+                amount: baseAmt,
+                currency: baseCurrency,
+                balanceBefore: transferResult.fromResult.previousBalance,
+                balanceAfter: transferResult.fromResult.newBalance,
+                description: `Transfer ${baseAmt} ${baseCurrency} from ECO to CT wallet (allocate to ${symbol})`,
+                metadata: JSON.stringify({
+                    symbol,
+                    currencyType: "BASE",
+                    allocationId: allocation.id,
+                }),
+            }, transaction);
+        }
+        if (quoteAmt > 0) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step(`Transferring ${quoteAmt} ${quoteCurrency} from ECO to COPY_TRADING wallet`);
+            const transferResult = await wallet_1.walletService.transfer({
+                idempotencyKey: `${allocationIdempotencyKey}_quote`,
+                fromUserId: user.id,
+                toUserId: user.id,
+                fromWalletType: "ECO",
+                toWalletType: "COPY_TRADING",
+                fromCurrency: quoteCurrency,
+                toCurrency: quoteCurrency,
+                amount: quoteAmt,
+                description: `Transfer ${quoteAmt} ${quoteCurrency} from ECO to CT wallet (allocate to ${symbol})`,
+                metadata: {
+                    symbol,
+                    currencyType: "QUOTE",
+                    followerId: id,
+                    leaderId: subscription.leaderId,
+                    allocationId: allocation.id,
+                },
+                transaction,
+            });
+            await (0, utils_1.createCopyTradingTransaction)({
+                userId: user.id,
+                leaderId: subscription.leaderId,
+                followerId: id,
+                type: "ALLOCATION",
+                amount: quoteAmt,
+                currency: quoteCurrency,
+                balanceBefore: transferResult.fromResult.previousBalance,
+                balanceAfter: transferResult.fromResult.newBalance,
+                description: `Transfer ${quoteAmt} ${quoteCurrency} from ECO to CT wallet (allocate to ${symbol})`,
+                metadata: JSON.stringify({
+                    symbol,
+                    currencyType: "QUOTE",
+                    allocationId: allocation.id,
+                }),
+            }, transaction);
+        }
+        await allocation.update({
+            baseAmount: baseAmt,
+            quoteAmount: quoteAmt,
+            isActive: true,
+        }, { transaction });
+        await (0, utils_1.createAuditLog)({
+            entityType: "ALLOCATION",
+            entityId: allocation.id,
+            action: "CREATE",
+            newValue: {
+                symbol,
+                baseAmount: baseAmt,
+                quoteAmount: quoteAmt,
+            },
+            userId: user.id,
+        }, transaction);
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Created allocation for ${symbol}`);
+    return {
+        message: `Successfully created allocation for ${symbol}`,
+        allocation: allocation.toJSON(),
+    };
+};

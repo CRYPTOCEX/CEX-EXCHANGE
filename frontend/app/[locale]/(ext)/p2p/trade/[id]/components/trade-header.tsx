@@ -25,6 +25,7 @@ interface TradeHeaderProps {
   counterparty: P2PTradeCounterparty;
   paymentWindow?: number; // in minutes
   onChatClick?: () => void;
+  onExpiry?: () => void;
 }
 
 export function TradeHeader({
@@ -37,6 +38,7 @@ export function TradeHeader({
   counterparty,
   paymentWindow = 30, // default to 30 minutes if not provided
   onChatClick,
+  onExpiry,
 }: TradeHeaderProps) {
   const t = useTranslations("ext_p2p");
   const tCommon = useTranslations("common");
@@ -114,6 +116,7 @@ export function TradeHeader({
             startTime={lastUpdated || createdAt}
             timeLimit={paymentWindow}
             status={status}
+            onExpiry={onExpiry}
           />
         </div>
       </div>

@@ -26,6 +26,7 @@ export default function EcommerceProductPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("store_products")}
       description={t("manage_your_product_catalog")}
       itemTitle="Product"

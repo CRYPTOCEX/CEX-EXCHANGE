@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserById = void 0;
 const db_1 = require("@b/db");
-const console_1 = require("@b/utils/console");
 const error_1 = require("@b/utils/error");
+const kyc_1 = require("@b/utils/kyc");
 const getUserById = async (id) => {
     const user = await db_1.models.user.findOne({
         where: { id },
@@ -28,8 +28,8 @@ const getUserById = async (id) => {
             },
             {
                 model: db_1.models.kycApplication,
-                as: "kyc",
-                attributes: ["status"],
+                as: "kycApplications",
+                attributes: ["id", "status", "levelId", "createdAt", "reviewedAt"],
                 include: [
                     {
                         model: db_1.models.kycLevel,
@@ -38,6 +38,7 @@ const getUserById = async (id) => {
                         paranoid: false,
                     },
                 ],
+                required: false,
             },
             {
                 model: db_1.models.author,
@@ -59,33 +60,15 @@ const getUserById = async (id) => {
         });
     }
     const plainUser = user.get({ plain: true });
-    let featureAccess = [];
-    if (plainUser.kyc &&
-        plainUser.kyc.status === "APPROVED" &&
-        plainUser.kyc.level) {
-        plainUser.kycLevel = plainUser.kyc.level.level;
-        try {
-            if (plainUser.kyc.level.features) {
-                if (typeof plainUser.kyc.level.features === "string") {
-                    featureAccess = JSON.parse(plainUser.kyc.level.features);
-                }
-                else if (Array.isArray(plainUser.kyc.level.features)) {
-                    featureAccess = plainUser.kyc.level.features;
-                }
-                if (!Array.isArray(featureAccess)) {
-                    featureAccess = [];
-                }
-            }
-        }
-        catch (err) {
-            console_1.logger.error("USER", "Error parsing KYC level features", err);
-            featureAccess = [];
-        }
-    }
-    else {
-        plainUser.kycLevel = 0;
-    }
-    plainUser.featureAccess = featureAccess;
+    const kycStatus = (0, kyc_1.getEffectiveKycStatus)(plainUser.kycApplications || []);
+    plainUser.kycLevel = kycStatus.level;
+    plainUser.featureAccess = kycStatus.features;
+    plainUser.kyc = kycStatus.effectiveApplication ? {
+        id: kycStatus.effectiveApplication.id,
+        status: kycStatus.effectiveApplication.status,
+        level: kycStatus.effectiveApplication.level,
+    } : null;
+    delete plainUser.kycApplications;
     return plainUser;
 };
 exports.getUserById = getUserById;

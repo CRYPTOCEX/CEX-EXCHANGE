@@ -16,7 +16,6 @@ export default class faqSearch
   // Timestamps
   createdAt!: Date;
   updatedAt!: Date;
-  deletedAt?: Date;
 
   public static initModel(sequelize: Sequelize.Sequelize): typeof faqSearch {
     return faqSearch.init(
@@ -59,11 +58,12 @@ export default class faqSearch
         sequelize,
         modelName: "faqSearch",
         tableName: "faq_searches",
-        paranoid: true,
+        paranoid: false,
         timestamps: true,
         indexes: [
           { name: "PRIMARY", unique: true, fields: [{ name: "id" }] },
           { name: "faq_searches_query_idx", fields: [{ name: "query", length: 255 }] },
+          { name: "faq_searches_userId_idx", fields: [{ name: "userId" }] },
         ],
       }
     );
@@ -71,7 +71,7 @@ export default class faqSearch
 
   public static associate(models: any) {
     // Associate feedback with user:
-    this.belongsTo(models.user, {
+    faqSearch.belongsTo(models.user, {
       foreignKey: "userId",
       as: "user",
       onDelete: "CASCADE",

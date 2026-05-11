@@ -57,7 +57,7 @@ export default class icoTokenVestingRelease
           comment: "Date when tokens should be released",
         },
         releaseAmount: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             min: 0,
@@ -65,7 +65,7 @@ export default class icoTokenVestingRelease
           comment: "Amount of tokens to release",
         },
         percentage: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(5, 2),
           allowNull: false,
           validate: {
             min: 0,

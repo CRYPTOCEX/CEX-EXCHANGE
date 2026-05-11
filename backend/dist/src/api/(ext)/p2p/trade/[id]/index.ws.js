@@ -45,6 +45,7 @@ exports.metadata = {
 class P2PTradeDataHandler {
     constructor() {
         this.activeSubscriptions = new Map();
+        this.clientToUser = new Map();
     }
     static getInstance() {
         if (!P2PTradeDataHandler.instance) {
@@ -69,7 +70,7 @@ class P2PTradeDataHandler {
         return { completedTrades, completionRate };
     }
     async sendInitialData(tradeId, userId, isAdmin = false) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         try {
             const whereClause = isAdmin
                 ? { id: tradeId }
@@ -109,11 +110,18 @@ class P2PTradeDataHandler {
                 tradeData.seller.completedTrades = sellerStats.completedTrades;
                 tradeData.seller.completionRate = sellerStats.completionRate;
             }
+            if (((_a = tradeData.offer) === null || _a === void 0 ? void 0 : _a.tradeSettings) && typeof tradeData.offer.tradeSettings === "string") {
+                try {
+                    tradeData.offer.tradeSettings = JSON.parse(tradeData.offer.tradeSettings);
+                }
+                catch (_f) {
+                }
+            }
             const { CacheManager } = await Promise.resolve().then(() => __importStar(require("@b/utils/cache")));
             const cacheManager = CacheManager.getInstance();
             const defaultPaymentWindow = await cacheManager.getSetting("p2pDefaultPaymentWindow") || 240;
-            tradeData.paymentWindow = ((_b = (_a = tradeData.offer) === null || _a === void 0 ? void 0 : _a.tradeSettings) === null || _b === void 0 ? void 0 : _b.autoCancel) ||
-                ((_d = (_c = tradeData.offer) === null || _c === void 0 ? void 0 : _c.tradeSettings) === null || _d === void 0 ? void 0 : _d.paymentWindow) ||
+            tradeData.paymentWindow = ((_c = (_b = tradeData.offer) === null || _b === void 0 ? void 0 : _b.tradeSettings) === null || _c === void 0 ? void 0 : _c.autoCancel) ||
+                ((_e = (_d = tradeData.offer) === null || _d === void 0 ? void 0 : _d.tradeSettings) === null || _e === void 0 ? void 0 : _e.paymentWindow) ||
                 defaultPaymentWindow;
             let timeline = tradeData.timeline || [];
             if (typeof timeline === 'string') {
@@ -183,12 +191,12 @@ class P2PTradeDataHandler {
             return false;
         }
     }
-    async addSubscription(tradeId, userId, isAdminSubscription = false) {
+    async addSubscription(tradeId, userId, _isAdminSubscription = false, clientId) {
         if (!tradeId || !userId) {
             console_1.logger.warn("P2P_WS", "No tradeId or userId provided in subscription request");
             return;
         }
-        const isAdmin = isAdminSubscription || await this.isAdmin(userId);
+        const isAdmin = await this.isAdmin(userId);
         let trade;
         if (isAdmin) {
             trade = await db_1.models.p2pTrade.findByPk(tradeId, {
@@ -212,6 +220,9 @@ class P2PTradeDataHandler {
             this.activeSubscriptions.set(tradeId, new Set());
         }
         this.activeSubscriptions.get(tradeId).add(userId);
+        if (clientId) {
+            this.clientToUser.set(clientId, userId);
+        }
         await this.sendInitialData(tradeId, userId, isAdmin);
         console_1.logger.info("P2P_WS", `${isAdmin ? 'Admin' : 'User'} ${userId} subscribed to trade ${tradeId}`);
     }
@@ -245,10 +256,12 @@ class P2PTradeDataHandler {
         return subscriptions ? subscriptions.size > 0 : false;
     }
     removeClientFromAllSubscriptions(clientId) {
+        const userId = this.clientToUser.get(clientId) || clientId;
+        this.clientToUser.delete(clientId);
         const tradesToCleanup = [];
         for (const [tradeId, clients] of this.activeSubscriptions) {
-            if (clients.has(clientId)) {
-                clients.delete(clientId);
+            if (clients.has(userId)) {
+                clients.delete(userId);
                 if (clients.size === 0) {
                     tradesToCleanup.push(tradeId);
                 }
@@ -258,7 +271,7 @@ class P2PTradeDataHandler {
             this.activeSubscriptions.delete(tradeId);
         }
         if (tradesToCleanup.length > 0) {
-            console_1.logger.debug("P2P_WS", `Cleaned up subscriptions for disconnected client ${clientId}`);
+            console_1.logger.debug("P2P_WS", `Cleaned up subscriptions for disconnected client ${clientId} (user ${userId})`);
         }
     }
 }
@@ -269,10 +282,16 @@ function broadcastP2PTradeEvent(tradeId, event) {
 exports.default = async (data, message) => {
     var _a;
     if (typeof message === "string") {
-        message = JSON.parse(message);
+        try {
+            message = JSON.parse(message);
+        }
+        catch (_b) {
+            console_1.logger.warn("P2P_WS", "Invalid JSON received from client");
+            return;
+        }
     }
     const { action, payload } = message;
-    const { tradeId, isAdmin } = payload || {};
+    const { tradeId } = payload || {};
     const userId = (_a = data.user) === null || _a === void 0 ? void 0 : _a.id;
     if (!userId) {
         console_1.logger.error("P2P_WS", "No user ID found - authentication required");
@@ -284,7 +303,7 @@ exports.default = async (data, message) => {
     }
     const handler = P2PTradeDataHandler.getInstance();
     if (action === "SUBSCRIBE") {
-        await handler.addSubscription(tradeId, userId, isAdmin === true);
+        await handler.addSubscription(tradeId, userId, false);
     }
     else if (action === "UNSUBSCRIBE") {
         handler.removeSubscription(tradeId, userId);

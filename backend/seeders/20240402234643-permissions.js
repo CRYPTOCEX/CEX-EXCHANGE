@@ -578,6 +578,7 @@ const permissionsList = [
   "view.staking.position",
   "view.support.ticket",
   "view.trading.bot",
+  "view.trading.bot.log",
   "view.trading.bot.review",
   "view.transaction",
   "view.transfer",

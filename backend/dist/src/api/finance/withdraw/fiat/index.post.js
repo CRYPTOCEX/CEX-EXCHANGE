@@ -5,6 +5,7 @@ const db_1 = require("@b/db");
 const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 exports.metadata = {
     summary: "Performs a custom fiat withdraw transaction",
     description: "Initiates a custom fiat withdraw transaction for the currently authenticated user",
@@ -89,10 +90,12 @@ exports.default = async (data) => {
     const totalWithdrawAmount = Math.abs(parseFloat(amount));
     const fixedFee = method.fixedFee || 0;
     const percentageFee = method.percentageFee || 0;
-    const feeAmount = parseFloat(Math.max((totalWithdrawAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2));
+    const isAdmin = await (0, fees_1.isSuperAdmin)(user.id);
+    const feeAmount = isAdmin ? 0 : parseFloat(Math.max((totalWithdrawAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2));
     const netReceiveAmount = parseFloat((totalWithdrawAmount - feeAmount).toFixed(2));
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing withdrawal transaction");
     const result = await db_1.sequelize.transaction(async (t) => {
+        var _a, _b;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Locking user wallet for update");
         const wallet = await db_1.models.wallet.findOne({
             where: { userId: user.id, currency: currency, type: "FIAT" },
@@ -104,8 +107,9 @@ exports.default = async (data) => {
             throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking wallet balance");
-        if (wallet.balance < totalWithdrawAmount) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: ${wallet.balance} < ${totalWithdrawAmount}`);
+        const availableBalance = wallet.balance - ((_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+        if (availableBalance < totalWithdrawAmount) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: available=${availableBalance} (balance=${wallet.balance}, inOrder=${(_b = wallet.inOrder) !== null && _b !== void 0 ? _b : 0}) < ${totalWithdrawAmount}`);
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting funds from wallet via wallet service");
@@ -130,13 +134,17 @@ exports.default = async (data) => {
         });
         wallet.balance -= totalWithdrawAmount;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording admin profit from fees");
-        await db_1.models.adminProfit.create({
-            amount: feeAmount,
+        await (0, fees_1.collectPlatformFee)({
+            userId: user.id,
             currency: wallet.currency,
+            walletType: "FIAT",
+            feeAmount,
             type: "WITHDRAW",
-            transactionId: walletResult.transactionId,
-            description: `User (${user.id}) withdrawal fee of ${feeAmount} ${wallet.currency} by ${method.title}`,
-        }, { transaction: t });
+            description: `Platform fee from fiat withdrawal of ${feeAmount} ${wallet.currency} via ${method.title}`,
+            referenceId: walletResult.transactionId,
+            metadata: { userId: user.id, method: method.title },
+            transaction: t,
+        });
         const trx = await db_1.models.transaction.findByPk(walletResult.transactionId, { transaction: t });
         return {
             transaction: trx,

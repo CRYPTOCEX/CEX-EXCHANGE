@@ -114,6 +114,10 @@ class icoTeamMember extends sequelize_1.Model {
                     unique: true,
                     fields: [{ name: "id" }],
                 },
+                {
+                    name: "icoTeamMemberOfferingIdIdx",
+                    fields: [{ name: "offeringId" }],
+                },
             ],
         });
     }

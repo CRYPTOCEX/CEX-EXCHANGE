@@ -110,7 +110,7 @@ export default function PositionsManagement() {
         canEdit={false}
         canDelete={true}
         canView={true}
-        isParanoid={true}
+        isParanoid={false}
         title={t("staking_position_management")}
         itemTitle="Staking Position"
         description={t("monitor_user_staking_positions_process_withdrawal")}

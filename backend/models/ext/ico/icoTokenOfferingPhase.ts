@@ -12,10 +12,12 @@ export interface icoTokenOfferingPhaseAttributes {
   sequence: number;
   startDate?: Date;
   endDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface icoTokenOfferingPhaseCreationAttributes
-  extends Partial<icoTokenOfferingPhaseAttributes> {}
+  extends Omit<icoTokenOfferingPhaseAttributes, 'id' | 'startDate' | 'endDate'> {}
 
 export default class icoTokenOfferingPhase
   extends Model<
@@ -34,6 +36,8 @@ export default class icoTokenOfferingPhase
   sequence!: number;
   startDate?: Date;
   endDate?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 
   public static initModel(
     sequelize: Sequelize.Sequelize
@@ -65,7 +69,7 @@ export default class icoTokenOfferingPhase
           },
         },
         tokenPrice: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "tokenPrice: Must be a valid number" },
@@ -73,7 +77,7 @@ export default class icoTokenOfferingPhase
           },
         },
         allocation: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "allocation: Must be a valid number" },
@@ -81,7 +85,7 @@ export default class icoTokenOfferingPhase
           },
         },
         remaining: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "remaining: Must be a valid number" },
@@ -118,7 +122,7 @@ export default class icoTokenOfferingPhase
         sequelize,
         modelName: "icoTokenOfferingPhase",
         tableName: "ico_token_offering_phase",
-        timestamps: false,
+        timestamps: true,
         indexes: [
           {
             name: "PRIMARY",

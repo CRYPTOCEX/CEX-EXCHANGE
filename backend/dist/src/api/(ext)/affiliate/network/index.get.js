@@ -22,7 +22,7 @@ exports.metadata = {
     },
 };
 async function handler(data) {
-    var _a;
+    var _a, _b;
     const { user, ctx } = data;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
@@ -83,7 +83,12 @@ async function handler(data) {
     });
     if (upr === null || upr === void 0 ? void 0 : upr.referrer) {
         const r = upr.referrer;
-        const rRewards = parseFloat((await db_1.models.mlmReferralReward.count({ where: { referrerId: r.id } })).toString());
+        const rRewardsResult = await db_1.models.mlmReferralReward.findOne({
+            attributes: [[(0, sequelize_1.fn)("SUM", (0, sequelize_1.col)("reward")), "total"]],
+            where: { referrerId: r.id },
+            raw: true,
+        });
+        const rRewards = parseFloat((_b = rRewardsResult === null || rRewardsResult === void 0 ? void 0 : rRewardsResult.total) !== null && _b !== void 0 ? _b : "0") || 0;
         const rTeam = await db_1.models.mlmReferral.count({
             where: { referrerId: r.id },
         });

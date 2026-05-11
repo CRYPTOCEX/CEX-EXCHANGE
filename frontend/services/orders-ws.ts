@@ -42,6 +42,7 @@ export class OrdersWebSocketService {
   private subscriptionSent: Map<string, boolean> = new Map();
   private pendingSubscriptions: Map<MarketType, Set<string>> = new Map();
   private connectionStatusMap: Map<MarketType, ConnectionStatus> = new Map();
+  private unsubscribeTimers: Map<string, NodeJS.Timeout> = new Map();
 
   // Cache last received data to provide immediate data to late subscribers
   private lastDataCache: Map<string, OrderData[]> = new Map();
@@ -227,6 +228,13 @@ export class OrdersWebSocketService {
       subscription.marketType
     );
 
+    // Cancel any pending unsubscribe for this key (handles React StrictMode double-mount)
+    const pendingUnsub = this.unsubscribeTimers.get(key);
+    if (pendingUnsub) {
+      clearTimeout(pendingUnsub);
+      this.unsubscribeTimers.delete(key);
+    }
+
     // Ensure connection exists
     this.ensureConnection(subscription.marketType, subscription.userId);
 
@@ -275,26 +283,35 @@ export class OrdersWebSocketService {
     if (callbackSet) {
       callbackSet.delete(callback);
 
-      // If no more callbacks, unsubscribe from server
+      // If no more callbacks, debounce the unsubscribe to handle
+      // React StrictMode double-mount (mount → cleanup → mount)
       if (callbackSet.size === 0) {
         this.callbacks.delete(key);
         this.activeSubscriptions.delete(key);
-        this.subscriptionSent.delete(key);
 
-        // Use unique connection ID for orders
-        const connectionId = `orders-${subscription.marketType}`;
+        // Debounce: wait before sending UNSUBSCRIBE to the server
+        // If a new subscribe comes in within 200ms, the timer is canceled
+        const timer = setTimeout(() => {
+          this.unsubscribeTimers.delete(key);
+          this.subscriptionSent.delete(key);
 
-        // Send unsubscribe message
-        wsManager.sendMessage(
-          {
-            action: "UNSUBSCRIBE",
-            payload: {
-              type: "orders",
-              userId: subscription.userId,
+          // Use unique connection ID for orders
+          const connectionId = `orders-${subscription.marketType}`;
+
+          // Send unsubscribe message
+          wsManager.sendMessage(
+            {
+              action: "UNSUBSCRIBE",
+              payload: {
+                type: "orders",
+                userId: subscription.userId,
+              },
             },
-          },
-          connectionId
-        );
+            connectionId
+          );
+        }, 200);
+
+        this.unsubscribeTimers.set(key, timer);
       }
     }
   }

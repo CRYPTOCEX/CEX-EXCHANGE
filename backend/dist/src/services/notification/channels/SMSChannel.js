@@ -25,9 +25,25 @@ class SMSChannel extends BaseChannel_1.BaseChannel {
                     error: "User phone number not found",
                 };
             }
+            let phoneNumber = user.phone.replace(/[^\d+]/g, "");
+            if (!phoneNumber.startsWith("+")) {
+                phoneNumber = `+${phoneNumber}`;
+            }
+            if (!/^\+[1-9]\d{1,14}$/.test(phoneNumber)) {
+                return {
+                    success: false,
+                    error: `Invalid phone number format: ${user.phone}`,
+                };
+            }
             const message = this.prepareSMSMessage(operation, user);
+            if (!message || message.trim().length === 0) {
+                return {
+                    success: false,
+                    error: "SMS message is empty - nothing to send",
+                };
+            }
             const result = await this.twilioProvider.send({
-                to: user.phone,
+                to: phoneNumber,
                 message,
                 from: process.env.APP_TWILIO_PHONE_NUMBER,
             });

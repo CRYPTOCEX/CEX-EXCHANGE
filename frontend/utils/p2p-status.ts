@@ -21,7 +21,7 @@ export const P2P_STATUS_DISPLAY = {
   COMPLETED: 'Completed',
   CANCELLED: 'Cancelled',
   DISPUTED: 'Disputed',
-  EXPIRED: 'Expired',
+  EXPIRED: 'Cancelled (Timed Out)',
 } as const;
 
 export const P2P_STATUS_COLOR = {

@@ -128,6 +128,12 @@ class ecommerceProduct extends sequelize_1.Model {
                     using: "BTREE",
                     fields: [{ name: "categoryId" }],
                 },
+                {
+                    name: "ecommerceProductSlugUnique",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "slug" }],
+                },
             ],
             hooks: {
                 async beforeValidate(product) {
@@ -168,14 +174,6 @@ class ecommerceProduct extends sequelize_1.Model {
             through: models.ecommerceOrderItem,
             foreignKey: "productId",
             otherKey: "orderId",
-            onDelete: "CASCADE",
-            onUpdate: "CASCADE",
-        });
-        ecommerceProduct.belongsToMany(models.ecommerceShipping, {
-            as: "shippings",
-            through: models.ecommerceOrder,
-            foreignKey: "productId",
-            otherKey: "shippingId",
             onDelete: "CASCADE",
             onUpdate: "CASCADE",
         });

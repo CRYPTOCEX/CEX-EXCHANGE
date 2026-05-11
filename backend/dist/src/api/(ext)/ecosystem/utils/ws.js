@@ -44,7 +44,7 @@ async function handleOrderBookBroadcast(symbol, book) {
             ])
                 .filter(([price, amount]) => price > threshold && amount > threshold),
         };
-        Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, { type: "orderbook", symbol }, {
+        Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, { type: "orderbook", symbol }, {
             stream: "orderbook",
             data: orderbook,
         });
@@ -64,19 +64,19 @@ async function handleOrderBroadcast(order) {
         fee: (0, blockchain_1.fromBigInt)(order.fee),
         average: (0, blockchain_1.fromBigInt)(order.average),
     };
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/order`, { type: "orders", userId: order.userId }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/order`, { type: "orders", userId: order.userId }, {
         stream: "orders",
         data: [filteredOrder],
     });
 }
 async function handleTradesBroadcast(symbol, trades) {
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, { type: "trades", symbol }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, { type: "trades", symbol }, {
         stream: "trades",
         data: trades,
     });
 }
 async function handleTickerBroadcast(symbol, ticker) {
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, { type: "ticker", symbol }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, { type: "ticker", symbol }, {
         stream: "ticker",
         data: ticker,
     });
@@ -90,13 +90,13 @@ async function handleCandleBroadcast(symbol, interval, candle) {
         candle.close,
         candle.volume,
     ];
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, { type: "ohlcv", interval, symbol }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, { type: "ohlcv", interval, symbol }, {
         stream: `ohlcv:${interval}`,
         data: [parsedCandle],
     });
 }
 async function handleTickersBroadcast(tickers) {
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/ticker`, { type: "tickers" }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/ticker`, { type: "tickers" }, {
         stream: "tickers",
         data: tickers,
     });

@@ -29,6 +29,7 @@ import { Link } from "@/i18n/routing";
 import $fetch from "@/lib/api";
 import { useMerchantMode } from "../context/merchant-mode";
 import { useTranslations } from "next-intl";
+import { useAddonDisplayName } from "@/hooks/use-addon-display-name";
 import { PayoutHero } from "./components/payout-hero";
 
 interface Balance {
@@ -68,7 +69,7 @@ const STATUS_CONFIG: Record<string, { color: string; bgColor: string; icon: any;
   CANCELLED: { color: "text-gray-600", bgColor: "bg-gray-500/10 border-gray-500/20", icon: XCircle, label: "Cancelled" },
 };
 
-const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+const DEFAULT_WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
   FIAT: { label: "Fiat", icon: Banknote, color: "text-green-600" },
   SPOT: { label: "Spot", icon: Coins, color: "text-orange-600" },
   ECO: { label: "Ecosystem", icon: CircleDollarSign, color: "text-blue-600" },
@@ -78,6 +79,12 @@ export default function PayoutsClient() {
   const t = useTranslations("ext_gateway");
   const tCommon = useTranslations("common");
   const { mode } = useMerchantMode();
+  const { getWalletTypeLabel } = useAddonDisplayName();
+
+  const WALLET_CONFIG: Record<string, { label: string; icon: any; color: string }> = {
+    ...DEFAULT_WALLET_CONFIG,
+    ECO: { ...DEFAULT_WALLET_CONFIG.ECO, label: getWalletTypeLabel("ECO", "Ecosystem") },
+  };
   const [loading, setLoading] = useState(true);
   const [balances, setBalances] = useState<Balance[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
@@ -105,7 +112,7 @@ export default function PayoutsClient() {
 
     // Fetch balances and payouts in parallel
     const [balancesRes, payoutsRes] = await Promise.all([
-      $fetch({ url: "/api/gateway/merchant/balance", silent: true }),
+      $fetch({ url: "/api/gateway/balance", silent: true }),
       $fetch({ url: "/api/gateway/payout", silent: true }),
     ]);
 

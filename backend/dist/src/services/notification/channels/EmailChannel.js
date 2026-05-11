@@ -59,8 +59,9 @@ class EmailChannel extends BaseChannel_1.BaseChannel {
             else {
                 emailContent = TemplateEngine_1.templateEngine.createSimpleEmail(data.title, data.message, data.templateData);
             }
+            const recipientEmail = data.overrideEmail || user.email;
             const emailData = {
-                to: user.email,
+                to: recipientEmail,
                 subject: emailContent.subject,
                 html: emailContent.html,
                 text: emailContent.text,
@@ -74,7 +75,7 @@ class EmailChannel extends BaseChannel_1.BaseChannel {
                 userId: operation.userId,
                 jobId: job.id,
                 provider,
-                to: user.email,
+                to: recipientEmail,
             });
             return {
                 success: true,
@@ -122,16 +123,29 @@ class EmailChannel extends BaseChannel_1.BaseChannel {
                 return false;
             }
         }
+        else if (emailer === "local") {
+            return true;
+        }
         else {
             if (!process.env.APP_NODEMAILER_SERVICE &&
                 !process.env.APP_NODEMAILER_SMTP_HOST) {
                 this.logError("Nodemailer service/host not configured", {});
                 return false;
             }
-            if (!process.env.APP_NODEMAILER_SMTP_USERNAME ||
-                !process.env.APP_NODEMAILER_SMTP_PASSWORD) {
-                this.logError("Nodemailer credentials not configured", {});
-                return false;
+            if (process.env.APP_NODEMAILER_SERVICE) {
+                if (!process.env.APP_NODEMAILER_SERVICE_SENDER ||
+                    !process.env.APP_NODEMAILER_SERVICE_PASSWORD) {
+                    this.logError("Nodemailer service credentials not configured", {});
+                    return false;
+                }
+            }
+            else {
+                const hasSmtpUser = process.env.APP_NODEMAILER_SMTP_SENDER ||
+                    process.env.APP_NODEMAILER_SMTP_USERNAME;
+                if (!hasSmtpUser || !process.env.APP_NODEMAILER_SMTP_PASSWORD) {
+                    this.logError("Nodemailer SMTP credentials not configured", {});
+                    return false;
+                }
             }
         }
         return true;

@@ -177,6 +177,7 @@ exports.default = async (data) => {
                 message: "Trade is already under dispute"
             });
         }
+        const previousStatus = trade.status;
         ctx === null || ctx === void 0 ? void 0 : ctx.step(`Creating dispute record (reason: ${validatedReason})`);
         const againstId = trade.buyerId === user.id ? trade.sellerId : trade.buyerId;
         const dispute = await db_1.models.p2pDispute.create({
@@ -234,7 +235,7 @@ exports.default = async (data) => {
             currency: trade.offer.currency,
             reason: validatedReason,
             disputeId: dispute.id,
-        }).catch(console.error);
+        }).catch((err) => console_1.logger.error("P2P", "Failed to send trade disputed notification", err));
         broadcastP2PTradeEvent(trade.id, {
             type: "DISPUTE",
             data: {
@@ -245,7 +246,7 @@ exports.default = async (data) => {
                 filedBy: user.id,
             },
         });
-        return {
+        const response = {
             message: "Dispute created successfully.",
             disputeId: dispute.id,
             dispute: {
@@ -257,6 +258,10 @@ exports.default = async (data) => {
                 createdAt: dispute.filedOn,
             }
         };
+        if (previousStatus === "COMPLETED") {
+            response.warning = "This trade was already completed and funds have been released. Since no funds are currently held in escrow, this dispute will be handled manually by admins.";
+        }
+        return response;
     }
     catch (err) {
         if (!transactionCommitted) {

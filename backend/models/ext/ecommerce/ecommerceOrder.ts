@@ -9,10 +9,17 @@ export default class ecommerceOrder
   id!: string;
   userId!: string;
   status!: "PENDING" | "COMPLETED" | "CANCELLED" | "REJECTED";
+  subtotal?: number;
+  discount?: number;
+  shippingCost?: number;
+  tax?: number;
+  total?: number;
+  currency?: string;
+  walletType?: string;
   createdAt?: Date;
   deletedAt?: Date;
   updatedAt?: Date;
-  shippingId?: string; // Added shippingId
+  shippingId?: string;
 
   // ecommerceOrder hasMany ecommerceOrderItem via orderId
   ecommerceOrderItems!: ecommerceOrderItem[];
@@ -81,6 +88,37 @@ export default class ecommerceOrder
         },
         shippingId: {
           type: DataTypes.UUID,
+          allowNull: true,
+        },
+        subtotal: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+        },
+        discount: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+        },
+        shippingCost: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+        },
+        tax: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+          defaultValue: 0,
+        },
+        total: {
+          type: DataTypes.DOUBLE,
+          allowNull: true,
+        },
+        currency: {
+          type: DataTypes.STRING(191),
+          allowNull: true,
+        },
+        walletType: {
+          type: DataTypes.STRING(50),
           allowNull: true,
         },
       },

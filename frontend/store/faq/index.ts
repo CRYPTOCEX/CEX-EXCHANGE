@@ -2,7 +2,6 @@
 
 import { create } from "zustand";
 import { $fetch } from "@/lib/api";
-import { useUserStore } from "../user";
 
 interface FAQ extends faqAttributes {
   helpfulCount?: number;
@@ -74,7 +73,6 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error("Error fetching FAQs:", error);
       set({
         error: error instanceof Error ? error.message : "Failed to fetch FAQs",
         loading: false,
@@ -98,7 +96,7 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
         set({ categories: data });
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      // silently ignore
     }
   },
 
@@ -115,15 +113,13 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
 
       return data || null;
     } catch (error) {
-      console.error(`Error fetching FAQ ${id}:`, error);
+      // silently ignore
       return null;
     }
   },
 
   searchFAQs: async (query: string, category?: string) => {
     try {
-      const user = useUserStore.getState().user;
-      
       // Single API call that both searches and logs
       const { data, error } = await $fetch<faqAttributes[]>({
         url: "/api/faq/search",
@@ -131,7 +127,6 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
         body: {
           query,
           category,
-          ...(user ? { userId: user.id } : {}),
         },
         silentSuccess: true,
       });
@@ -142,7 +137,7 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
 
       return data || [];
     } catch (error) {
-      console.error("Error searching FAQs:", error);
+      // silently ignore
       return [];
     }
   },
@@ -164,7 +159,7 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
       }
       return true;
     } catch (error) {
-      console.error("Error submitting feedback:", error);
+      // silently ignore
       return false;
     }
   },
@@ -182,7 +177,7 @@ export const useFAQStore = create<FAQStore>((set, get) => ({
 
       return !error;
     } catch (error) {
-      console.error("Error submitting question:", error);
+      // silently ignore
       return false;
     }
   },

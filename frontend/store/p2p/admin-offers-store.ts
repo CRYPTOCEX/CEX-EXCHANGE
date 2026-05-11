@@ -87,6 +87,16 @@ export const adminOffersStore = create<AdminOffersState>((set, get) => ({
       return;
     }
 
+    // Parse JSON fields that may come as strings from the API
+    if (data) {
+      if (data.activityLog && typeof data.activityLog === 'string') {
+        try { data.activityLog = JSON.parse(data.activityLog); } catch { data.activityLog = []; }
+      }
+      if (data.activityLog && !Array.isArray(data.activityLog)) {
+        data.activityLog = [];
+      }
+    }
+
     set({ offer: data || null, isLoadingOffer: false });
     console.log("[Store] Offer set in store:", data);
   },

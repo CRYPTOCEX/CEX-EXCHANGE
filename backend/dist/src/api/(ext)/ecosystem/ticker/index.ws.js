@@ -17,7 +17,7 @@ exports.default = async (data, message) => {
     const engine = await matchingEngine_1.MatchingEngine.getInstance();
     const tickers = await engine.getTickers();
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Broadcasting tickers to subscribers");
-    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/ticker`, { type: "tickers" }, {
+    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/ticker`, { type: "tickers" }, {
         stream: "tickers",
         data: tickers,
     });

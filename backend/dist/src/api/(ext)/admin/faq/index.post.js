@@ -84,26 +84,29 @@ exports.default = async (data) => {
     }
     const sanitizedData = validation.sanitized;
     try {
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Determining FAQ order");
-        let finalOrder = sanitizedData.order;
-        if (finalOrder === 0) {
-            const maxOrderFaq = await db_1.models.faq.findOne({
-                where: { pagePath: sanitizedData.pagePath },
-                order: [['order', 'DESC']],
-            });
-            finalOrder = maxOrderFaq ? maxOrderFaq.order + 1 : 0;
-        }
-        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating FAQ entry");
-        const faq = await db_1.models.faq.create({
-            ...sanitizedData,
-            order: finalOrder,
-            relatedFaqIds: body.relatedFaqIds || [],
+        const faq = await db_1.sequelize.transaction(async (t) => {
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Determining FAQ order");
+            let finalOrder = sanitizedData.order;
+            if (finalOrder === 0) {
+                const maxOrderFaq = await db_1.models.faq.findOne({
+                    where: { pagePath: sanitizedData.pagePath },
+                    order: [['order', 'DESC']],
+                    transaction: t,
+                    lock: t.LOCK.UPDATE,
+                });
+                finalOrder = maxOrderFaq ? maxOrderFaq.order + 1 : 0;
+            }
+            ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating FAQ entry");
+            return await db_1.models.faq.create({
+                ...sanitizedData,
+                order: finalOrder,
+                relatedFaqIds: body.relatedFaqIds || [],
+            }, { transaction: t });
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQ entry created successfully");
         return faq;
     }
     catch (error) {
-        console.error("Error creating FAQ:", error);
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to create FAQ");
         throw (0, error_1.createError)({
             statusCode: 500,

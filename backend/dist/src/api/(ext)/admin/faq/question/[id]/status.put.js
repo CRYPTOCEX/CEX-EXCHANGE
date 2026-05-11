@@ -66,11 +66,12 @@ exports.default = async (data) => {
     }
     const { id } = params;
     const { status } = body;
-    if (!id || !status) {
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Question ID and status are required");
+    const validStatuses = ["PENDING", "ANSWERED", "REJECTED"];
+    if (!id || !status || !validStatuses.includes(status)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Question ID and a valid status (PENDING, ANSWERED, REJECTED) are required");
         throw (0, error_1.createError)({
             statusCode: 400,
-            message: "Question ID and status are required",
+            message: "Question ID and a valid status (PENDING, ANSWERED, REJECTED) are required",
         });
     }
     try {
@@ -86,13 +87,12 @@ exports.default = async (data) => {
         return question;
     }
     catch (error) {
-        console.error("Error updating FAQ question status:", error);
+        if (error.statusCode)
+            throw error;
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to update FAQ question status");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: error instanceof Error
-                ? error.message
-                : "Failed to update FAQ question status",
+            message: "Failed to update FAQ question status",
         });
     }
 };

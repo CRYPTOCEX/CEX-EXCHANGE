@@ -31,7 +31,7 @@ export default function PoolsManagement() {
       canDelete={true}
       canView={true}
       viewLink="/admin/staking/pool/[id]"
-      isParanoid={true}
+      isParanoid={false}
       title={t("staking_pool_management")}
       itemTitle="Staking Pool"
       description={t("manage_staking_pools_configure_rewards_and")}

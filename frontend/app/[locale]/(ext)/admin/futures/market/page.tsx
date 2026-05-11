@@ -24,7 +24,7 @@ export default function FuturesMarketPage() {
       canEdit
       editLink="/admin/futures/market/[id]"
       canView
-      isParanoid={true}
+      isParanoid={false}
       title={t("futures_markets")}
       description={t("manage_futures_trading_markets_and_configure")}
       itemTitle="Market"

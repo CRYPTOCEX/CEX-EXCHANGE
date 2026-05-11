@@ -26,7 +26,6 @@ import {
   Settings,
   TrendingUp,
   Loader2,
-  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { $fetch } from "@/lib/api";
@@ -35,17 +34,6 @@ import { adminOffersStore } from "@/store/p2p/admin-offers-store";
 import { CountrySelect } from "@/components/ui/country-select";
 import { StateSelect } from "@/components/ui/state-select";
 import { CitySelect } from "@/components/ui/city-select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 interface OfferEditClientProps {
   id: string;
@@ -72,7 +60,6 @@ export default function OfferEditClient({ id }: OfferEditClientProps) {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const [globalPaymentMethods, setGlobalPaymentMethods] = useState<any[]>([]);
   const [customPaymentMethods, setCustomPaymentMethods] = useState<any[]>([]);
@@ -430,27 +417,6 @@ export default function OfferEditClient({ id }: OfferEditClientProps) {
     }
   };
 
-  const handleDelete = async () => {
-    setDeleting(true);
-    try {
-      const { error } = await $fetch({
-        url: `/api/admin/p2p/offer/${id}`,
-        method: "DELETE",
-      });
-
-      if (error) {
-        throw new Error(error);
-      }
-
-      toast.success("Offer deleted successfully");
-      router.push("/admin/p2p/offer");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to delete offer");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
   const togglePaymentMethod = (methodId: string) => {
     setSelectedPaymentMethods(prev =>
       prev.includes(methodId)
@@ -485,36 +451,6 @@ export default function OfferEditClient({ id }: OfferEditClientProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={deleting}>
-                {deleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : (
-                  <Trash2 className="h-4 w-4 mr-2" />
-                )}
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Offer?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this
-                  offer and all associated data.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
           <Button onClick={handleSubmit} disabled={saving}>
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

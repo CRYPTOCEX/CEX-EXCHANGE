@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { FAQMedia } from "@/store/faq/admin";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 interface MediaRendererProps {
   media: FAQMedia;
@@ -53,8 +54,7 @@ export function MediaRenderer({ media, className = "" }: MediaRendererProps) {
 
       // Default: return the original URL
       return url;
-    } catch (error) {
-      console.error("Error parsing YouTube URL:", error);
+    } catch {
       return url;
     }
   };
@@ -75,12 +75,13 @@ export function MediaRenderer({ media, className = "" }: MediaRendererProps) {
         <CardContent className="p-0 relative group">
           {media.type === "image" && (
             <div className="relative">
-              <img
+              <Image
                 src={media.url || "/img/placeholder.svg"}
                 alt={media.caption || "FAQ image"}
                 className="w-full h-auto"
                 width={media.width || 600}
                 height={media.height || 400}
+                unoptimized
               />
               <Button
                 variant="secondary"
@@ -146,10 +147,13 @@ export function MediaRenderer({ media, className = "" }: MediaRendererProps) {
               <DialogTitle>{media.caption || "Image"}</DialogTitle>
             </DialogHeader>
             <div className="flex items-center justify-center">
-              <img
+              <Image
                 src={media.url || "/img/placeholder.svg"}
                 alt={media.caption || "FAQ image"}
                 className="max-w-full max-h-[70vh]"
+                width={media.width || 800}
+                height={media.height || 600}
+                unoptimized
               />
             </div>
           </DialogContent>

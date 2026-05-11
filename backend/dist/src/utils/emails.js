@@ -49,20 +49,41 @@ const token_1 = require("@b/utils/token");
 const APP_EMAILER = process.env.APP_EMAILER || "nodemailer-service";
 exports.emailQueue = new bull_1.default("emailQueue", {
     redis: {
-        host: "127.0.0.1",
-        port: 6379,
+        host: process.env.REDIS_HOST || "127.0.0.1",
+        port: parseInt(process.env.REDIS_PORT || "6379"),
+        password: process.env.REDIS_PASSWORD || undefined,
+    },
+    defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+            type: "exponential",
+            delay: 3000,
+        },
+        removeOnComplete: 100,
+        removeOnFail: 500,
     },
 });
 exports.emailQueue.process(async (job) => {
+    var _a;
     const { emailData, emailType } = job.data;
     try {
         await sendEmail(emailData, emailType);
-        console_1.logger.debug("EMAIL", `Email sent: ${emailType}`);
+        console_1.logger.info("EMAIL", `Email sent: ${emailType} to ${emailData.TO}`);
     }
     catch (error) {
-        console_1.logger.error("EMAIL", `Failed to send email: ${emailType}`, error);
+        console_1.logger.error("EMAIL", `Failed to send email: ${emailType} to ${emailData.TO} (attempt ${job.attemptsMade + 1}/${((_a = job.opts) === null || _a === void 0 ? void 0 : _a.attempts) || 1})`, error instanceof Error ? error : new Error(String(error)));
         throw error;
     }
+});
+exports.emailQueue.on("failed", (job, error) => {
+    const { emailData, emailType } = job.data;
+    console_1.logger.error("EMAIL", `Email job permanently failed: ${emailType} to ${emailData === null || emailData === void 0 ? void 0 : emailData.TO} after ${job.attemptsMade} attempts`, error instanceof Error ? error : new Error(String(error)));
+});
+exports.emailQueue.on("stalled", (jobId) => {
+    console_1.logger.warn("EMAIL", `Email job stalled: ${jobId}`);
+});
+exports.emailQueue.on("error", (error) => {
+    console_1.logger.error("EMAIL", "Email queue error (possible Redis connection issue)", error instanceof Error ? error : new Error(String(error)));
 });
 async function sendEmail(specificVariables, templateName, ctx) {
     var _a, _b, _c, _d, _e, _f, _g;

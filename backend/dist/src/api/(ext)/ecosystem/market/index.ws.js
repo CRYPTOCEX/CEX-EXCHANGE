@@ -51,7 +51,7 @@ class UnifiedEcosystemMarketDataHandler {
                             if (isInitialFetch || lastOrderbookHash !== orderbookHash) {
                                 this.lastOrderbookData.set(symbol, orderbookHash);
                                 const streamKey = payload.limit ? `orderbook:${payload.limit}` : 'orderbook';
-                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: streamKey, data: orderbook });
+                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, payload, { stream: streamKey, data: orderbook });
                             }
                             break;
                         case "trades":
@@ -59,7 +59,7 @@ class UnifiedEcosystemMarketDataHandler {
                                 const limit = payload.limit || 50;
                                 const trades = await (0, queries_1.getRecentTrades)(symbol, limit);
                                 if (trades && trades.length > 0) {
-                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: "trades", data: trades });
+                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, payload, { stream: "trades", data: trades });
                                 }
                             }
                             catch (tradesError) {
@@ -76,7 +76,7 @@ class UnifiedEcosystemMarketDataHandler {
                                 lastTicker.change !== ticker.change;
                             if (isInitialFetch || tickerChanged) {
                                 this.lastTickerData.set(symbol, ticker);
-                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: "ticker", data: ticker });
+                                Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, payload, { stream: "ticker", data: ticker });
                             }
                             break;
                         case "ohlcv":
@@ -86,7 +86,7 @@ class UnifiedEcosystemMarketDataHandler {
                                 const ohlcv = await (0, queries_1.getOHLCV)(symbol, interval, limit);
                                 const streamKey = `ohlcv:${interval}`;
                                 if (ohlcv && ohlcv.length > 0) {
-                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, payload, { stream: streamKey, data: ohlcv });
+                                    Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, payload, { stream: streamKey, data: ohlcv });
                                 }
                             }
                             catch (ohlcvError) {
@@ -189,7 +189,7 @@ class UnifiedEcosystemMarketDataHandler {
                 const orderbookHash = JSON.stringify(orderbook);
                 this.lastOrderbookData.set(symbol, orderbookHash);
                 const streamKey = orderbookPayload.limit ? `orderbook:${orderbookPayload.limit}` : 'orderbook';
-                Websocket_1.messageBroker.broadcastToSubscribedClients(`/ws/ecosystem/market`, orderbookPayload, { stream: streamKey, data: orderbook });
+                Websocket_1.messageBroker.broadcastToSubscribedClients(`/api/ecosystem/market`, orderbookPayload, { stream: streamKey, data: orderbook });
                 console_1.logger.debug("ECO_WS", `Forced orderbook broadcast for ${symbol}`);
             }
         }

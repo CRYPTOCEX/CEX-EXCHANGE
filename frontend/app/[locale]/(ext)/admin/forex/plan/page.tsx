@@ -25,6 +25,7 @@ export default function ForexPlanPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("forex_investment_plans")}
       description={t("configure_and_manage_forex_investment_plan_1")}
       itemTitle="Forex Plan"

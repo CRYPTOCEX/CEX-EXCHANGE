@@ -54,6 +54,19 @@ interface TradeChatProps {
   onNewMessage?: (message: Message) => void;
 }
 
+// M17: Validate image URLs - only allow data:image/ and http/https URLs from any origin.
+// Rejects javascript: and other dangerous protocols to prevent XSS / tracking pixels.
+function isValidImageUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith("data:image/")) return true;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return ["http:", "https:"].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 // Helper function to render message content with images using Lightbox
 function MessageContent({ content }: { content: string }) {
   // Safety check for undefined/null content
@@ -77,18 +90,25 @@ function MessageContent({ content }: { content: string }) {
       );
     }
 
-    // Add the image with Lightbox for preview
+    // M17: Only render image if URL passes validation
     const [, alt, src] = match;
-    parts.push(
-      <div key={`img-${match.index}`} className="my-2 max-w-xs">
-        <Lightbox
-          src={src}
-          alt={alt || "Shared image"}
-          className="max-w-full max-h-48 rounded-lg border border-border object-cover"
-          wrapperClassName="inline-block"
-        />
-      </div>
-    );
+    if (isValidImageUrl(src)) {
+      parts.push(
+        <div key={`img-${match.index}`} className="my-2 max-w-xs">
+          <Lightbox
+            src={src}
+            alt={alt || "Shared image"}
+            className="max-w-full max-h-48 rounded-lg border border-border object-cover"
+            wrapperClassName="inline-block"
+          />
+        </div>
+      );
+    } else {
+      // Render as plain text if URL is invalid/unsafe
+      parts.push(
+        <span key={`img-${match.index}`} className="text-muted-foreground text-xs">[image removed]</span>
+      );
+    }
 
     lastIndex = match.index + match[0].length;
   }

@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { getCurrencySymbol } from "@/utils/currency";
-import { isTradeActive, isPaymentSent, isCompleted, isDisputed, isExpired } from "@/utils/p2p-status";
+import { isTradeActive, isPaymentSent, isCompleted, isDisputed, isExpired, canDispute } from "@/utils/p2p-status";
 import { DisputeDialog } from "./dispute-dialog";
 
 interface TradeEscrowProps {
@@ -45,6 +45,18 @@ export function TradeEscrow({
   // Backend uses: PENDING, PAYMENT_SENT, COMPLETED, CANCELLED, DISPUTED
   const isEscrowActive = isTradeActive(trade.status);
   const canRelease = isPaymentSent(trade.status) && trade.type === "sell";
+
+  // M16: Calculate escrow progress based on actual trade status
+  const getEscrowProgress = () => {
+    const s = trade.status?.toUpperCase() || "";
+    if (s === "PENDING") return 25;
+    if (s === "PAYMENT_SENT") return 50;
+    if (s === "COMPLETED") return 100;
+    if (s === "DISPUTED") return 50; // dispute typically arises from PAYMENT_SENT
+    if (s === "CANCELLED" || s === "EXPIRED") return 0;
+    return 25;
+  };
+  const escrowProgress = getEscrowProgress();
 
   // Calculate escrow time
   const getEscrowTime = () => {
@@ -90,7 +102,7 @@ export function TradeEscrow({
                   {getEscrowTime()}
                 </span>
               </div>
-              <Progress value={75} className="h-2" />
+              <Progress value={escrowProgress} className="h-2" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,8 +191,8 @@ export function TradeEscrow({
                 <AlertTitle>{t("payment_confirmed")}</AlertTitle>
                 <AlertDescription>
                   {trade.type === "sell"
-                    ? "The buyer has confirmed payment. Please verify you've received the funds before releasing escrow."
-                    : "You've confirmed payment. Waiting for the seller to release the funds from escrow."}
+                    ? t("buyer_confirmed_payment_verify_before_release")
+                    : t("you_confirmed_payment_waiting_seller_release")}
                 </AlertDescription>
               </Alert>
             )}
@@ -192,16 +204,16 @@ export function TradeEscrow({
             </div>
             <h3 className="font-medium">
               {t("escrow")}
-              {isCompleted(trade.status) ? " Released" : " Not Active"}
+              {isCompleted(trade.status) ? ` ${t("released")}` : ` ${t("not_active")}`}
             </h3>
             <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
               {isCompleted(trade.status)
-                ? "The escrow has been released and the funds have been transferred to the buyer."
+                ? t("escrow_released_funds_transferred")
                 : isDisputed(trade.status)
-                  ? "This trade is under dispute. The escrow will be held until the dispute is resolved."
+                  ? t("escrow_held_dispute_resolution")
                   : isExpired(trade.status)
-                    ? "This trade has expired. The escrowed funds have been returned to the seller."
-                    : "The escrow for this trade is not currently active. It will be activated once the trade is funded."}
+                    ? t("escrow_expired_funds_returned")
+                    : t("escrow_not_active_will_activate")}
             </p>
 
             {isCompleted(trade.status) && (
@@ -218,20 +230,23 @@ export function TradeEscrow({
       <CardFooter className="flex justify-between">
         {isEscrowActive && (
           <>
-            <DisputeDialog
-              onSubmit={onDisputeTrade}
-              loading={loading}
-              userRole={trade.type === "buy" ? "buyer" : "seller"}
-            >
-              <Button
-                variant="outline"
-                disabled={isDisputed(trade.status) || loading}
-                className="flex-1 sm:flex-none"
+            {/* M15: Only show dispute button when status allows it (PAYMENT_SENT or COMPLETED) */}
+            {canDispute(trade.status) && (
+              <DisputeDialog
+                onSubmit={onDisputeTrade}
+                loading={loading}
+                userRole={trade.type === "buy" ? "buyer" : "seller"}
               >
-                <AlertCircle className="mr-2 h-4 w-4" />
-                {t("open_dispute")}
-              </Button>
-            </DisputeDialog>
+                <Button
+                  variant="outline"
+                  disabled={isDisputed(trade.status) || loading}
+                  className="flex-1 sm:flex-none"
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  {t("open_dispute")}
+                </Button>
+              </DisputeDialog>
+            )}
             {canRelease && (
               <Button onClick={onReleaseFunds} disabled={loading} className="flex-1 sm:flex-none">
                 <ArrowRight className="mr-2 h-4 w-4" />

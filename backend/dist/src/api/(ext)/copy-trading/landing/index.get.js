@@ -1,1 +1,257 @@
-"use strict";function getTimeAgo(e){const t=Math.floor((Date.now()-new Date(e).getTime())/1e3);return t<60?"just now":t<3600?`${Math.floor(t/60)}m ago`:t<86400?`${Math.floor(t/3600)}h ago`:`${Math.floor(t/86400)}d ago`}Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),sequelize_1=require("sequelize"),stats_calculator_1=require("@b/api/(ext)/copy-trading/utils/stats-calculator");exports.metadata={summary:"Get Copy Trading Landing Page Data",description:"Retrieves optimized data for the copy trading landing page including stats, top leaders, and recent activity.",operationId:"getCopyTradingLandingData",tags:["Copy Trading","Landing"],requiresAuth:!1,responses:{200:{description:"Landing page data retrieved successfully",content:{"application/json":{schema:{type:"object",properties:{stats:{type:"object"},featuredLeader:{type:"object"},topLeaders:{type:"array"},byTradingStyle:{type:"object"},byRiskLevel:{type:"object"},recentTrades:{type:"array"},copyModes:{type:"array"}}}}}}}};exports.default=async()=>{const e=new Date(Date.now()-12096e5),t=new Date(Date.now()-864e5),[o,a,r,i,d,s]=await Promise.all([db_1.models.copyTradingLeader.count({where:{status:"ACTIVE",isPublic:!0}}),db_1.models.copyTradingFollower.count({where:{status:{[sequelize_1.Op.in]:["ACTIVE","PAUSED"]}},distinct:!0,col:"userId"}),db_1.models.copyTradingTrade.sum("cost",{where:{status:"CLOSED"}}),db_1.models.copyTradingTrade.count({where:{status:"CLOSED"}}),db_1.models.copyTradingLeader.findAll({where:{status:"ACTIVE",isPublic:!0},include:[{model:db_1.models.user,as:"user",attributes:["firstName","lastName","avatar"]}]}),db_1.models.copyTradingTrade.findAll({where:{status:"CLOSED",isLeaderTrade:!0,closedAt:{[sequelize_1.Op.gte]:t}},include:[{model:db_1.models.copyTradingLeader,as:"leader",attributes:["displayName"]}],order:[["closedAt","DESC"]],limit:10})]),l=d.map(e=>e.id),n=l.length>0?await(0,stats_calculator_1.calculateBatchLeaderStats)(l):new Map,c=d.map(e=>({leader:e,stats:n.get(e.id)||{totalFollowers:0,totalTrades:0,winRate:0,totalProfit:0,totalVolume:0,roi:0}}));c.sort((e,t)=>t.stats.roi-e.stats.roi);const u=c.slice(0,6);let p=0,m=0,y=0,g=0;c.forEach(({stats:e})=>{p+=e.totalProfit;m+=e.roi;y+=e.winRate;e.roi>g&&(g=e.roi)});const h=c.length>0?m/c.length:0,f=c.length>0?y/c.length:0,b=u.map(({leader:e})=>e.id),T=b.length>0?await db_1.models.copyTradingLeaderStats.findAll({where:{leaderId:{[sequelize_1.Op.in]:b},date:{[sequelize_1.Op.gte]:e}},attributes:["leaderId","date","profit"],order:[["date","ASC"]]}):[],w={};T.forEach(e=>{w[e.leaderId]||(w[e.leaderId]=[]);w[e.leaderId].push(e.profit||0)});const v=u.map(({leader:e,stats:t},o)=>{var a;return{id:e.id,displayName:e.displayName,avatar:e.avatar||(null===(a=e.user)||void 0===a?void 0:a.avatar),bio:e.bio,tradingStyle:e.tradingStyle,riskLevel:e.riskLevel,roi:t.roi,winRate:t.winRate,totalFollowers:t.totalFollowers,totalProfit:t.totalProfit,totalTrades:t.totalTrades,profitSharePercent:e.profitSharePercent||0,maxFollowers:e.maxFollowers,sparkline:w[e.id]||[],rank:o+1}}),L=v[0]||null,R=s.map(e=>{var t;const o=n.get(e.leaderId);return{leaderDisplayName:(null===(t=e.leader)||void 0===t?void 0:t.displayName)||"Unknown",symbol:e.symbol,side:e.side,profit:Math.round(100*(e.profit||0))/100,profitPercent:Math.round(100*(e.profitPercent||0))/100,timeAgo:getTimeAgo(e.closedAt),followersCount:(null==o?void 0:o.totalFollowers)||0}}),S={};["SCALPING","DAY_TRADING","SWING","POSITION"].forEach(e=>{S[e]={count:0,avgRoi:0,topRoi:0}});const _={};c.forEach(({leader:e,stats:t})=>{const o=e.tradingStyle;_[o]||(_[o]={count:0,roiSum:0,topRoi:0});_[o].count++;_[o].roiSum+=t.roi;t.roi>_[o].topRoi&&(_[o].topRoi=t.roi)});Object.entries(_).forEach(([e,t])=>{S[e]={count:t.count,avgRoi:Math.round(t.roiSum/t.count*100)/100,topRoi:Math.round(100*t.topRoi)/100}});const I={};["LOW","MEDIUM","HIGH"].forEach(e=>{I[e]={count:0,avgRoi:0}});const A={};c.forEach(({leader:e,stats:t})=>{const o=e.riskLevel;A[o]||(A[o]={count:0,roiSum:0});A[o].count++;A[o].roiSum+=t.roi});Object.entries(A).forEach(([e,t])=>{I[e]={count:t.count,avgRoi:Math.round(t.roiSum/t.count*100)/100}});return{stats:{totalLeaders:o||0,totalFollowers:a||0,totalVolume:Math.round(100*(r||0))/100,avgRoi:Math.round(100*h)/100,avgWinRate:Math.round(100*f)/100,totalTrades:i||0,topLeaderRoi:Math.round(100*g)/100,totalProfitGenerated:Math.round(100*p)/100},featuredLeader:L,topLeaders:v,byTradingStyle:S,byRiskLevel:I,recentTrades:R,copyModes:[{mode:"PROPORTIONAL",title:"Proportional",description:"Copy trades proportionally based on your allocation",example:"If a leader uses 10% of their balance, you use 10% of your allocated amount",recommended:!0,icon:"percent"},{mode:"FIXED_AMOUNT",title:"Fixed Amount",description:"Copy every trade with a fixed dollar amount",example:"Every trade copies exactly $50 regardless of the leader's position size",recommended:!1,icon:"dollar"},{mode:"FIXED_RATIO",title:"Fixed Ratio",description:"Copy at a fixed ratio of the leader's position",example:"Copy at 0.5x means you copy half of the leader's position size each time",recommended:!1,icon:"ratio"}]}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const sequelize_1 = require("sequelize");
+const stats_calculator_1 = require("@b/api/(ext)/copy-trading/utils/stats-calculator");
+exports.metadata = {
+    summary: "Get Copy Trading Landing Page Data",
+    description: "Retrieves optimized data for the copy trading landing page including stats, top leaders, and recent activity.",
+    operationId: "getCopyTradingLandingData",
+    tags: ["Copy Trading", "Landing"],
+    requiresAuth: false,
+    responses: {
+        200: {
+            description: "Landing page data retrieved successfully",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            stats: { type: "object" },
+                            featuredLeader: { type: "object" },
+                            topLeaders: { type: "array" },
+                            byTradingStyle: { type: "object" },
+                            byRiskLevel: { type: "object" },
+                            recentTrades: { type: "array" },
+                            copyModes: { type: "array" },
+                        },
+                    },
+                },
+            },
+        },
+    },
+};
+exports.default = async (data) => {
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const [totalLeaders, totalFollowers, volumeResult, totalTrades, leaders, recentTrades,] = await Promise.all([
+        db_1.models.copyTradingLeader.count({
+            where: { status: "ACTIVE", isPublic: true },
+        }),
+        db_1.models.copyTradingFollower.count({
+            where: { status: { [sequelize_1.Op.in]: ["ACTIVE", "PAUSED"] } },
+            distinct: true,
+            col: "userId",
+        }),
+        db_1.models.copyTradingTrade.sum("cost", {
+            where: { status: "CLOSED" },
+        }),
+        db_1.models.copyTradingTrade.count({ where: { status: "CLOSED" } }),
+        db_1.models.copyTradingLeader.findAll({
+            where: { status: "ACTIVE", isPublic: true },
+            include: [
+                {
+                    model: db_1.models.user,
+                    as: "user",
+                    attributes: ["firstName", "lastName", "avatar"],
+                },
+            ],
+        }),
+        db_1.models.copyTradingTrade.findAll({
+            where: {
+                status: "CLOSED",
+                isLeaderTrade: true,
+                closedAt: { [sequelize_1.Op.gte]: twentyFourHoursAgo },
+            },
+            include: [
+                {
+                    model: db_1.models.copyTradingLeader,
+                    as: "leader",
+                    attributes: ["displayName"],
+                },
+            ],
+            order: [["closedAt", "DESC"]],
+            limit: 10,
+        }),
+    ]);
+    const leaderIds = leaders.map((l) => l.id);
+    const statsMap = leaderIds.length > 0
+        ? await (0, stats_calculator_1.calculateBatchLeaderStats)(leaderIds)
+        : new Map();
+    const leadersWithStats = leaders.map((leader) => {
+        const stats = statsMap.get(leader.id) || {
+            totalFollowers: 0,
+            totalTrades: 0,
+            winRate: 0,
+            totalProfit: 0,
+            totalVolume: 0,
+            roi: 0,
+        };
+        return { leader, stats };
+    });
+    leadersWithStats.sort((a, b) => b.stats.roi - a.stats.roi);
+    const topLeadersWithStats = leadersWithStats.slice(0, 6);
+    let totalProfitGenerated = 0;
+    let totalRoiSum = 0;
+    let totalWinRateSum = 0;
+    let topRoi = 0;
+    leadersWithStats.forEach(({ stats }) => {
+        totalProfitGenerated += stats.totalProfit;
+        totalRoiSum += stats.roi;
+        totalWinRateSum += stats.winRate;
+        if (stats.roi > topRoi)
+            topRoi = stats.roi;
+    });
+    const avgRoi = leadersWithStats.length > 0 ? totalRoiSum / leadersWithStats.length : 0;
+    const avgWinRate = leadersWithStats.length > 0 ? totalWinRateSum / leadersWithStats.length : 0;
+    const topLeaderIds = topLeadersWithStats.map(({ leader }) => leader.id);
+    const sparklineData = topLeaderIds.length > 0
+        ? await db_1.models.copyTradingLeaderStats.findAll({
+            where: {
+                leaderId: { [sequelize_1.Op.in]: topLeaderIds },
+                date: { [sequelize_1.Op.gte]: fourteenDaysAgo },
+            },
+            attributes: ["leaderId", "date", "profit"],
+            order: [["date", "ASC"]],
+        })
+        : [];
+    const sparklineMap = {};
+    sparklineData.forEach((s) => {
+        if (!sparklineMap[s.leaderId])
+            sparklineMap[s.leaderId] = [];
+        sparklineMap[s.leaderId].push(s.profit || 0);
+    });
+    const formattedLeaders = topLeadersWithStats.map(({ leader, stats }, index) => {
+        var _a;
+        return ({
+            id: leader.id,
+            displayName: leader.displayName,
+            avatar: leader.avatar || ((_a = leader.user) === null || _a === void 0 ? void 0 : _a.avatar),
+            bio: leader.bio,
+            tradingStyle: leader.tradingStyle,
+            riskLevel: leader.riskLevel,
+            roi: stats.roi,
+            winRate: stats.winRate,
+            totalFollowers: stats.totalFollowers,
+            totalProfit: stats.totalProfit,
+            totalTrades: stats.totalTrades,
+            profitSharePercent: leader.profitSharePercent || 0,
+            maxFollowers: leader.maxFollowers,
+            sparkline: sparklineMap[leader.id] || [],
+            rank: index + 1,
+        });
+    });
+    const featuredLeader = formattedLeaders[0] || null;
+    const formattedTrades = recentTrades.map((trade) => {
+        var _a;
+        const leaderStats = statsMap.get(trade.leaderId);
+        return {
+            leaderDisplayName: ((_a = trade.leader) === null || _a === void 0 ? void 0 : _a.displayName) || "Unknown",
+            symbol: trade.symbol,
+            side: trade.side,
+            profit: Math.round((trade.profit || 0) * 100) / 100,
+            profitPercent: Math.round((trade.profitPercent || 0) * 100) / 100,
+            timeAgo: getTimeAgo(trade.closedAt),
+            followersCount: (leaderStats === null || leaderStats === void 0 ? void 0 : leaderStats.totalFollowers) || 0,
+        };
+    });
+    const byTradingStyle = {};
+    const defaultStyles = ["SCALPING", "DAY_TRADING", "SWING", "POSITION"];
+    defaultStyles.forEach((style) => {
+        byTradingStyle[style] = { count: 0, avgRoi: 0, topRoi: 0 };
+    });
+    const styleGroups = {};
+    leadersWithStats.forEach(({ leader, stats }) => {
+        const style = leader.tradingStyle;
+        if (!styleGroups[style]) {
+            styleGroups[style] = { count: 0, roiSum: 0, topRoi: 0 };
+        }
+        styleGroups[style].count++;
+        styleGroups[style].roiSum += stats.roi;
+        if (stats.roi > styleGroups[style].topRoi) {
+            styleGroups[style].topRoi = stats.roi;
+        }
+    });
+    Object.entries(styleGroups).forEach(([style, group]) => {
+        byTradingStyle[style] = {
+            count: group.count,
+            avgRoi: Math.round((group.roiSum / group.count) * 100) / 100,
+            topRoi: Math.round(group.topRoi * 100) / 100,
+        };
+    });
+    const byRiskLevel = {};
+    const defaultRisks = ["LOW", "MEDIUM", "HIGH"];
+    defaultRisks.forEach((risk) => {
+        byRiskLevel[risk] = { count: 0, avgRoi: 0 };
+    });
+    const riskGroups = {};
+    leadersWithStats.forEach(({ leader, stats }) => {
+        const risk = leader.riskLevel;
+        if (!riskGroups[risk]) {
+            riskGroups[risk] = { count: 0, roiSum: 0 };
+        }
+        riskGroups[risk].count++;
+        riskGroups[risk].roiSum += stats.roi;
+    });
+    Object.entries(riskGroups).forEach(([risk, group]) => {
+        byRiskLevel[risk] = {
+            count: group.count,
+            avgRoi: Math.round((group.roiSum / group.count) * 100) / 100,
+        };
+    });
+    const copyModes = [
+        {
+            mode: "PROPORTIONAL",
+            title: "Proportional",
+            description: "Copy trades proportionally based on your allocation",
+            example: "If a leader uses 10% of their balance, you use 10% of your allocated amount",
+            recommended: true,
+            icon: "percent",
+        },
+        {
+            mode: "FIXED_AMOUNT",
+            title: "Fixed Amount",
+            description: "Copy every trade with a fixed dollar amount",
+            example: "Every trade copies exactly $50 regardless of the leader's position size",
+            recommended: false,
+            icon: "dollar",
+        },
+        {
+            mode: "FIXED_RATIO",
+            title: "Fixed Ratio",
+            description: "Copy at a fixed ratio of the leader's position",
+            example: "Copy at 0.5x means you copy half of the leader's position size each time",
+            recommended: false,
+            icon: "ratio",
+        },
+    ];
+    return {
+        stats: {
+            totalLeaders: totalLeaders || 0,
+            totalFollowers: totalFollowers || 0,
+            totalVolume: Math.round((volumeResult || 0) * 100) / 100,
+            avgRoi: Math.round(avgRoi * 100) / 100,
+            avgWinRate: Math.round(avgWinRate * 100) / 100,
+            totalTrades: totalTrades || 0,
+            topLeaderRoi: Math.round(topRoi * 100) / 100,
+            totalProfitGenerated: Math.round(totalProfitGenerated * 100) / 100,
+        },
+        featuredLeader,
+        topLeaders: formattedLeaders,
+        byTradingStyle,
+        byRiskLevel,
+        recentTrades: formattedTrades,
+        copyModes,
+    };
+};
+function getTimeAgo(date) {
+    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (seconds < 60)
+        return "just now";
+    if (seconds < 3600)
+        return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400)
+        return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+}

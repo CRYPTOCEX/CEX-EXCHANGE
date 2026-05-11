@@ -18,7 +18,7 @@ export function StakingError({ error, reset }: StakingErrorProps) {
   const router = useRouter();
 
   return (
-    <div className="min-h-[400px] flex items-center justify-center p-4">
+    <div className="min-h-[400px] flex items-center justify-center p-4 pt-16">
       <div className="max-w-md w-full text-center p-8 rounded-2xl bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm border border-zinc-200 dark:border-zinc-800 shadow-xl">
         <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6">
           <AlertCircle className="h-10 w-10 text-red-500" />

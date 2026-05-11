@@ -76,13 +76,22 @@ export default function OfferingPage() {
   if (error) {
     return (
       <div className="container py-10">
-        <div className="flex flex-col space-y-4 items-center justify-center min-h-[60vh]">
-          <div className="p-4 bg-red-500/10 text-red-500 rounded-lg">
-            {error || "Offering not found"}
+        <div className="flex flex-col items-center justify-center min-h-[60vh]">
+          <div className="bg-card rounded-2xl border border-destructive/20 shadow-xl p-12 text-center max-w-md w-full">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-destructive/10 mb-6">
+              <AlertCircle className="h-10 w-10 text-destructive" />
+            </div>
+            <h3 className="text-2xl font-bold mb-3">
+              {t("offering_not_found")}
+            </h3>
+            <p className="text-muted-foreground mb-8">
+              {error}
+            </p>
+            <Button onClick={() => router.push("/ico/offer")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {tCommon("back_to_offerings")}
+            </Button>
           </div>
-          <Button onClick={() => router.push("/ico/offer")}>
-            {tCommon("back_to_offerings")}
-          </Button>
         </div>
       </div>
     );
@@ -462,10 +471,10 @@ export default function OfferingPage() {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {t("you_can_participate_by_investing_a_minimum_of")}{" "}
-                    {formatCurrency(settings["icoMinInvestmentAmount"], purchaseCurrency)}
+                    {formatCurrency(settings["icoMinInvestmentAmount"], purchaseCurrency)}{" "}
                     {t("using_the_investment_form_on_this_page")}.{" "}
                     {t("the_offering_is_open_until")}{" "}
-                    {formatDate(offering?.endDate ?? new Date())}
+                    {formatDate(offering?.endDate ?? new Date())}.
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -483,8 +492,7 @@ export default function OfferingPage() {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     {t("token_lock_up_periods_vary_by_project")}.{" "}
-                    {t("please_refer_to_periods_for")}
-                    {offering?.name}
+                    {t("please_refer_to_periods_for")} {offering?.name}.
                   </p>
                 </div>
               </CardContent>

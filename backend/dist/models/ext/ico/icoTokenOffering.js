@@ -67,6 +67,7 @@ class icoTokenOffering extends sequelize_1.Model {
             status: {
                 type: sequelize_1.DataTypes.ENUM("ACTIVE", "SUCCESS", "FAILED", "UPCOMING", "PENDING", "REJECTED", "DISABLED", "CANCELLED"),
                 allowNull: false,
+                defaultValue: "PENDING",
                 validate: {
                     isIn: {
                         args: [
@@ -104,7 +105,7 @@ class icoTokenOffering extends sequelize_1.Model {
                 },
             },
             tokenPrice: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "tokenPrice: Must be a valid number" },
@@ -112,7 +113,7 @@ class icoTokenOffering extends sequelize_1.Model {
                 },
             },
             targetAmount: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: false,
                 validate: {
                     isFloat: { msg: "targetAmount: Must be a valid number" },
@@ -136,13 +137,14 @@ class icoTokenOffering extends sequelize_1.Model {
             participants: {
                 type: sequelize_1.DataTypes.INTEGER,
                 allowNull: false,
+                defaultValue: 0,
                 validate: {
                     isInt: { msg: "participants: Must be an integer" },
                     min: { args: [0], msg: "participants: Cannot be negative" },
                 },
             },
             currentPrice: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: true,
                 validate: {
                     isFloat: { msg: "currentPrice: Must be a valid number" },
@@ -150,7 +152,7 @@ class icoTokenOffering extends sequelize_1.Model {
                 },
             },
             priceChange: {
-                type: sequelize_1.DataTypes.DOUBLE,
+                type: sequelize_1.DataTypes.DECIMAL(18, 8),
                 allowNull: true,
                 validate: {
                     isFloat: { msg: "priceChange: Must be a valid number" },
@@ -178,7 +180,7 @@ class icoTokenOffering extends sequelize_1.Model {
                 },
             },
             reviewNotes: {
-                type: sequelize_1.DataTypes.STRING(191),
+                type: sequelize_1.DataTypes.TEXT,
                 allowNull: true,
             },
             isPaused: {
@@ -194,6 +196,7 @@ class icoTokenOffering extends sequelize_1.Model {
             featured: {
                 type: sequelize_1.DataTypes.BOOLEAN,
                 allowNull: true,
+                defaultValue: false,
             },
             website: {
                 type: sequelize_1.DataTypes.STRING(191),
@@ -227,6 +230,22 @@ class icoTokenOffering extends sequelize_1.Model {
                     name: "icoTokenOfferingSymbolKey",
                     unique: true,
                     fields: [{ name: "symbol" }],
+                },
+                {
+                    name: "icoTokenOfferingUserIdIdx",
+                    fields: [{ name: "userId" }],
+                },
+                {
+                    name: "icoTokenOfferingPlanIdIdx",
+                    fields: [{ name: "planId" }],
+                },
+                {
+                    name: "icoTokenOfferingTypeIdIdx",
+                    fields: [{ name: "typeId" }],
+                },
+                {
+                    name: "icoTokenOfferingStatusIdx",
+                    fields: [{ name: "status" }],
                 },
             ],
         });

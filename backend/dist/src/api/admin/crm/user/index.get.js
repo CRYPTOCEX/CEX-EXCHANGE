@@ -79,7 +79,7 @@ exports.default = async (data) => {
             },
             {
                 model: db_1.models.kycApplication,
-                as: "kyc",
+                as: "kycApplications",
                 required: false,
                 attributes: ["id", "status"],
             },

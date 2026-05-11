@@ -60,6 +60,7 @@ export default function LeaderPage() {
       canDelete={false}
       canView
       viewLink="/admin/copy-trading/leader/[id]"
+      isParanoid={true}
       title={t("leaders_management")}
       description={t("view_and_manage_copy_trading_leaders")}
       itemTitle="Leader"

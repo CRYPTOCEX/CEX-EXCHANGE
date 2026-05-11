@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metadata = void 0;
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const wallet_1 = require("@b/services/wallet");
 const error_1 = require("@b/utils/error");
 const emails_1 = require("@b/utils/emails");
@@ -199,13 +200,16 @@ exports.default = async (data) => {
                     const fixedFee = gateway.getFixedFee(paymentDetails.currencyCode);
                     const totalFee = (paymentAmount * percentageFee / 100) + fixedFee;
                     if (totalFee > 0) {
-                        await db_1.models.adminProfit.create({
-                            amount: totalFee,
+                        await (0, fees_1.collectPlatformFee)({
+                            userId: user.id,
                             currency: paymentDetails.currencyCode,
+                            walletType: "FIAT",
+                            feeAmount: totalFee,
                             type: "DEPOSIT",
-                            transactionId: transaction.id,
-                            description: `Admin profit from Paysafe deposit fee of ${totalFee} ${paymentDetails.currencyCode} for user (${user.id})`,
-                        }, { transaction: dbTransaction });
+                            description: `Platform fee from Paysafe deposit of ${totalFee} ${paymentDetails.currencyCode}`,
+                            referenceId: transaction.id,
+                            metadata: { method: "paysafe", userId: user.id },
+                        });
                     }
                 }
                 try {

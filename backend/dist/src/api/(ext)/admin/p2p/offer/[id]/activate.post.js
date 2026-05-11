@@ -38,11 +38,14 @@ const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
 const Middleware_1 = require("@b/handler/Middleware");
 const ownership_1 = require("../../../../p2p/utils/ownership");
+const json_parser_1 = require("../../../../p2p/utils/json-parser");
+const utils_1 = require("@b/api/finance/wallet/utils");
 const console_1 = require("@b/utils/console");
+const wallet_1 = require("@b/services/wallet");
 const errors_1 = require("@b/utils/schema/errors");
 exports.metadata = {
     summary: "Activate P2P offer",
-    description: "Activates a paused, disabled, rejected, or cancelled P2P offer. Changes the offer status to ACTIVE and logs the admin action with activity trail.",
+    description: "Activates a paused, disabled, rejected, or cancelled P2P offer. Changes the offer status to ACTIVE and logs the admin action with activity trail. For SELL offers transitioning from PAUSED, re-locks funds if balance is sufficient.",
     operationId: "activateAdminP2POffer",
     tags: ["Admin", "P2P", "Offer"],
     requiresAuth: true,
@@ -69,6 +72,7 @@ exports.metadata = {
     permission: "edit.p2p.offer",
 };
 exports.default = async (data) => {
+    var _a, _b;
     const { params, user, ctx } = data;
     const { id } = params;
     const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
@@ -110,6 +114,43 @@ exports.default = async (data) => {
             ? `${adminUser.firstName || ''} ${adminUser.lastName || ''}`.trim() || 'Admin'
             : 'Admin';
         const previousStatus = offer.status;
+        let fundsLocked = false;
+        let lockedAmount = 0;
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking if funds need to be re-locked");
+        if (offer.type === "SELL" && previousStatus === "PAUSED") {
+            const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+            const requiredAmount = amountConfig.total;
+            if (requiredAmount > 0) {
+                const wallet = await (0, utils_1.getWalletSafe)(offer.userId, offer.walletType, offer.currency, false, ctx);
+                if (!wallet || ((_a = wallet.balance) !== null && _a !== void 0 ? _a : 0) < requiredAmount) {
+                    await transaction.rollback();
+                    ctx === null || ctx === void 0 ? void 0 : ctx.fail("Insufficient balance to re-lock funds for offer");
+                    throw (0, error_1.createError)({
+                        statusCode: 400,
+                        message: `Insufficient balance to activate offer. Available: ${(_b = wallet === null || wallet === void 0 ? void 0 : wallet.balance) !== null && _b !== void 0 ? _b : 0} ${offer.currency}, Required: ${requiredAmount} ${offer.currency}`,
+                    });
+                }
+                ctx === null || ctx === void 0 ? void 0 : ctx.step("Re-locking funds for SELL offer");
+                const idempotencyKey = `p2p_admin_activate_offer_${offer.id}_${Date.now()}`;
+                await wallet_1.walletService.hold({
+                    idempotencyKey,
+                    userId: offer.userId,
+                    walletId: wallet.id,
+                    walletType: offer.walletType,
+                    currency: offer.currency,
+                    amount: requiredAmount,
+                    operationType: "P2P_OFFER_LOCK",
+                    description: `Lock ${requiredAmount} ${offer.currency} - P2P offer activated by admin`,
+                    metadata: {
+                        offerId: offer.id,
+                        adminId: user.id,
+                    },
+                    transaction,
+                });
+                fundsLocked = true;
+                lockedAmount = requiredAmount;
+            }
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Activating offer");
         await offer.update({
             status: "ACTIVE",
@@ -120,6 +161,8 @@ exports.default = async (data) => {
                     adminId: user.id,
                     adminName: adminName,
                     previousStatus,
+                    fundsLocked,
+                    lockedAmount,
                     createdAt: new Date().toISOString(),
                 },
             ],
@@ -131,11 +174,15 @@ exports.default = async (data) => {
             currency: offer.currency,
             previousStatus,
             activatedBy: adminName,
+            fundsLocked,
+            lockedAmount,
         });
         await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
         notifyOfferEvent(offer.id, "OFFER_ACTIVATED", {
             activatedBy: adminName,
+            fundsLocked,
+            lockedAmount,
         }).catch((error) => console_1.logger.error("P2P", "Failed to send offer activated notification", error));
         ctx === null || ctx === void 0 ? void 0 : ctx.success("Offer activated successfully");
         return {
@@ -143,6 +190,8 @@ exports.default = async (data) => {
             offer: {
                 id: offer.id,
                 status: "ACTIVE",
+                fundsLocked,
+                lockedAmount,
             }
         };
     }

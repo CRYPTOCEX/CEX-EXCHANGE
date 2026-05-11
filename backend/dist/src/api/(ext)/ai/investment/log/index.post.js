@@ -1,1 +1,178 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),emails_1=require("@b/utils/emails"),error_1=require("@b/utils/error"),notifications_1=require("@b/utils/notifications"),passwords_1=require("@b/utils/passwords"),wallet_1=require("@b/services/wallet"),affiliate_1=require("@b/utils/affiliate"),query_1=require("@b/utils/query");exports.metadata={summary:"Creates a new investment",description:"Creates a new AI trading investment for the currently authenticated user based on the provided details.",operationId:"createInvestment",tags:["AI Trading"],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{currency:{type:"string",description:"Currency of the investment"},pair:{type:"string",description:"Trading pair"},planId:{type:"string",description:"Plan ID to be used for the investment"},durationId:{type:"string",description:"Duration ID for the investment"},amount:{type:"number",description:"Amount to be invested"},type:{type:"string",description:"Type of wallet"}},required:["planId","durationId","amount","currency","pair"]}}}},responses:(0,query_1.createRecordResponses)("AI Investment"),logModule:"AI_INVEST",logTitle:"Create AI investment",requiresAuth:!0};exports.default=async e=>{const{user:t,body:r,ctx:n}=e;if(!(null==t?void 0:t.id))throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"});null==n||n.step("Fetching user details");const i=await db_1.models.user.findByPk(t.id);if(!i)throw(0,error_1.createError)({statusCode:404,message:"User not found"});const{planId:a,durationId:s,amount:o,currency:d,pair:l,type:u}=r;null==n||n.step("Validating investment plan");const c=await db_1.models.aiInvestmentPlan.findByPk(a);if(!c)throw(0,error_1.createError)({statusCode:404,message:"Plan not found"});if(!c.status)throw(0,error_1.createError)({statusCode:400,message:"Plan is not active"});null==n||n.step("Validating investment duration");const m=await db_1.models.aiInvestmentDuration.findByPk(s);if(!m)throw(0,error_1.createError)({statusCode:404,message:"Duration not found"});null==n||n.step("Verifying investment amount limits");if(c.minAmount>o||c.maxAmount<o)throw(0,error_1.createError)({statusCode:400,message:`Amount must be between ${c.minAmount} and ${c.maxAmount}`});null==n||n.step("Processing investment transaction");const p=await db_1.sequelize.transaction(async e=>{null==n||n.step("Locating user wallet");const r=await db_1.models.wallet.findOne({where:{userId:t.id,currency:l,type:u},transaction:e});if(!r)throw(0,error_1.createError)({statusCode:404,message:"Wallet not found"});null==n||n.step("Verifying wallet balance");if(r.balance<o)throw(0,error_1.createError)({statusCode:400,message:"Insufficient funds"});null==n||n.step("Creating investment record");const i=(0,passwords_1.makeUuid)(),p=await db_1.models.aiInvestment.create({id:i,userId:t.id,planId:a,durationId:s,symbol:`${d}/${l}`,amount:o,status:"ACTIVE",type:u||"SPOT"},{transaction:e});null==n||n.step("Deducting investment amount from wallet via wallet service");const f=`ai_invest_${i}_${o}`;await wallet_1.walletService.debit({idempotencyKey:f,userId:t.id,walletId:r.id,walletType:u,currency:l,amount:o,operationType:"AI_INVESTMENT",referenceId:i,description:`AI Investment: Plan "${c.title}" | Duration: ${m.duration} ${m.timeframe}`,metadata:{planId:a,durationId:s,symbol:`${d}/${l}`},transaction:e});return p});null==n||n.step("Sending confirmation email");try{await(0,emails_1.sendAiInvestmentEmail)(i,c,m,p,"NewAiInvestmentCreated",n);null==n||n.step("Creating notification");await(0,notifications_1.createNotification)({userId:t.id,relatedId:p.id,title:"AI Investment Created",message:`Your AI investment for ${p.symbol} has been created successfully.`,type:"investment",link:`/ai/investment/${p.id}`,actions:[{label:"View Investment",link:`/ai/investment/${p.id}`,primary:!0}]})}catch(e){console.error("Failed to send email or create notification",e)}try{await(0,affiliate_1.processRewards)(t.id,o,"AI_INVESTMENT",l)}catch(e){console.error("Failed to process affiliate rewards:",e)}null==n||n.success(`Invested ${o} ${l} in plan "${c.title}" for ${m.duration} ${m.timeframe}`);return{message:"Investment created successfully"}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const emails_1 = require("@b/utils/emails");
+const error_1 = require("@b/utils/error");
+const notifications_1 = require("@b/utils/notifications");
+const passwords_1 = require("@b/utils/passwords");
+const wallet_1 = require("@b/services/wallet");
+const affiliate_1 = require("@b/utils/affiliate");
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Creates a new investment",
+    description: "Creates a new AI trading investment for the currently authenticated user based on the provided details.",
+    operationId: "createInvestment",
+    tags: ["AI Trading"],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        currency: {
+                            type: "string",
+                            description: "Currency of the investment",
+                        },
+                        pair: { type: "string", description: "Trading pair" },
+                        planId: {
+                            type: "string",
+                            description: "Plan ID to be used for the investment",
+                        },
+                        durationId: {
+                            type: "string",
+                            description: "Duration ID for the investment",
+                        },
+                        amount: { type: "number", description: "Amount to be invested" },
+                        type: { type: "string", description: "Type of wallet" },
+                    },
+                    required: ["planId", "durationId", "amount", "currency", "pair", "type"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.createRecordResponses)("AI Investment"),
+    logModule: "AI_INVEST",
+    logTitle: "Create AI investment",
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    const { user, body, ctx } = data;
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching user details");
+    const userPk = await db_1.models.user.findByPk(user.id);
+    if (!userPk) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "User not found" });
+    }
+    const { planId, durationId, amount, currency, pair, type } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating investment plan");
+    const plan = await db_1.models.aiInvestmentPlan.findByPk(planId);
+    if (!plan) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Plan not found" });
+    }
+    if (!plan.status) {
+        throw (0, error_1.createError)({ statusCode: 400, message: "Plan is not active" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating investment duration");
+    const duration = await db_1.models.aiInvestmentDuration.findByPk(durationId);
+    if (!duration) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Duration not found" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating plan-duration association");
+    const planDuration = await db_1.models.aiInvestmentPlanDuration.findOne({
+        where: { planId, durationId },
+    });
+    if (!planDuration) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Duration not available for this plan",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying investment amount limits");
+    if (plan.minAmount > amount || plan.maxAmount < amount) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Amount must be between ${plan.minAmount} and ${plan.maxAmount}`,
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing investment transaction");
+    const investment = await db_1.sequelize.transaction(async (t) => {
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Locating user wallet");
+        const wallet = await db_1.models.wallet.findOne({
+            where: {
+                userId: user.id,
+                currency: pair,
+                type,
+            },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+        });
+        if (!wallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying wallet balance");
+        if (wallet.balance < amount) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Insufficient funds",
+            });
+        }
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating investment record");
+        const investmentId = (0, passwords_1.makeUuid)();
+        const investment = await db_1.models.aiInvestment.create({
+            id: investmentId,
+            userId: user.id,
+            planId,
+            durationId,
+            symbol: `${currency}/${pair}`,
+            amount,
+            status: "ACTIVE",
+            type: type || "SPOT",
+        }, { transaction: t });
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting investment amount from wallet via wallet service");
+        const idempotencyKey = `investment_${investmentId}`;
+        await wallet_1.walletService.debit({
+            idempotencyKey,
+            userId: user.id,
+            walletId: wallet.id,
+            walletType: type,
+            currency: pair,
+            amount,
+            operationType: "AI_INVESTMENT",
+            referenceId: investmentId,
+            description: `AI Investment: Plan "${plan.title}" | Duration: ${duration.duration} ${duration.timeframe}`,
+            metadata: {
+                investmentId,
+                planId,
+                durationId,
+                symbol: `${currency}/${pair}`,
+            },
+            transaction: t,
+        });
+        return investment;
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending confirmation email");
+    try {
+        await (0, emails_1.sendAiInvestmentEmail)(userPk, plan, duration, investment, "NewAiInvestmentCreated", ctx);
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating notification");
+        await (0, notifications_1.createNotification)({
+            userId: user.id,
+            relatedId: investment.id,
+            title: "AI Investment Created",
+            message: `Your AI investment for ${investment.symbol} has been created successfully.`,
+            type: "investment",
+            link: `/ai/investment/${investment.id}`,
+            actions: [
+                {
+                    label: "View Investment",
+                    link: `/ai/investment/${investment.id}`,
+                    primary: true,
+                },
+            ],
+        });
+    }
+    catch (error) {
+        console.error("Failed to send email or create notification", error);
+    }
+    try {
+        await (0, affiliate_1.processRewards)(user.id, amount, "AI_INVESTMENT", pair, `AI_INVESTMENT:ai_investment_log:${investment.id}`);
+    }
+    catch (affiliateError) {
+        console.error("Failed to process affiliate rewards:", affiliateError);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Invested ${amount} ${pair} in plan "${plan.title}" for ${duration.duration} ${duration.timeframe}`);
+    return { message: "Investment created successfully" };
+};

@@ -80,6 +80,7 @@ exports.default = async (data) => {
                     as: "tokenDetail",
                 }],
             transaction,
+            lock: transaction.LOCK.UPDATE,
         });
         if (!offering) {
             throw (0, error_1.createError)({ statusCode: 404, message: "Offering not found" });
@@ -106,7 +107,7 @@ exports.default = async (data) => {
         const pendingTransactions = await db_1.models.icoTransaction.findAll({
             where: {
                 offeringId: offering.id,
-                status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION', 'REJECTED'] }
+                status: { [sequelize_1.Op.in]: ['PENDING', 'VERIFICATION'] }
             },
             include: [{
                     model: db_1.models.user,
@@ -165,8 +166,16 @@ exports.default = async (data) => {
                     },
                     transaction,
                 });
+                const phase = await db_1.models.icoTokenOfferingPhase.findOne({
+                    where: { offeringId: offering.id },
+                    order: [['sequence', 'ASC']],
+                    transaction,
+                });
+                if (phase) {
+                    await phase.update({ remaining: db_1.sequelize.literal(`remaining + ${parseFloat(String(icoTransaction.amount))}`) }, { transaction });
+                }
                 await icoTransaction.update({
-                    status: 'REJECTED',
+                    status: 'REFUNDED',
                     notes: JSON.stringify({
                         ...JSON.parse(icoTransaction.notes || '{}'),
                         refund: {

@@ -54,7 +54,7 @@ function getApiBaseUrl(): string {
         // This will likely fail - user needs to set NEXT_PUBLIC_BACKEND_URL
         console.warn(
           "[API] Tunnel detected but NEXT_PUBLIC_BACKEND_URL not set. " +
-          "API calls may fail. Set NEXT_PUBLIC_BACKEND_URL to your backend tunnel URL."
+            "API calls may fail. Set NEXT_PUBLIC_BACKEND_URL to your backend tunnel URL."
         );
         return window.location.origin;
       }
@@ -107,7 +107,7 @@ export async function $fetch<T = any>({
 
   // Check if body is FormData
   const isFormData = body instanceof FormData;
-
+  
   // Don't set Content-Type for FormData, let browser set it with boundary
   const defaultHeaders: HeadersInit = isFormData ? {
     ...headers,
@@ -161,7 +161,7 @@ export async function $fetch<T = any>({
               error: "Resource not found",
             };
           }
-
+          
           console.warn("Failed to parse response as JSON:", parseError);
           if (!silent && toastId !== null) toast.dismiss(toastId);
           if (!silent) toast.error(errorMessage);
@@ -197,12 +197,12 @@ export async function $fetch<T = any>({
       // Check if the response data indicates an error even though status is 2xx
       if (data && typeof data === "object") {
         const d = data as any;
-
+        
         // Debug logging for statusCode detection
         if (process.env.NODE_ENV === "development" && d.statusCode) {
           console.log("Response contains statusCode:", d.statusCode, "Type:", typeof d.statusCode, "Number:", Number(d.statusCode));
         }
-
+        
         // Check for status code in response body (new error format)
         if (d.statusCode && Number(d.statusCode) >= 400) {
           console.log("Detected error statusCode in response body, calling handleBodyIndicatedError");
@@ -295,11 +295,11 @@ function handleBodyIndicatedError<T>(
         licensePagePath += `?${queryParams.join("&")}`;
       }
 
-      // Redirection logic removed by Antigravity to bypass license check
-      // if (!window.location.pathname.includes("/admin/system/license")) {
-      //   window.location.href = licensePagePath;
-      //   return { data: null, error: message };
-      // }
+      // Don't redirect if already on license page
+      if (!window.location.pathname.includes("/admin/system/license")) {
+        window.location.href = licensePagePath;
+        return { data: null, error: message };
+      }
     }
   }
 
@@ -315,7 +315,7 @@ function handleBodyIndicatedError<T>(
       validationErrors: data.validationErrors,
     };
   }
-
+  
   const parsedValidation = attemptParseValidationErrors(message);
   if (parsedValidation) {
     if (!silent) {
@@ -374,11 +374,10 @@ async function handleError<T>(
           licensePagePath += `?${queryParams.join("&")}`;
         }
 
-        // Redirection logic removed by Antigravity to bypass license check
-        // if (!window.location.pathname.includes("/admin/system/license")) {
-        //   window.location.href = licensePagePath;
-        //   return { data: null, error: message };
-        // }
+        if (!window.location.pathname.includes("/admin/system/license")) {
+          window.location.href = licensePagePath;
+          return { data: null, error: message };
+        }
       }
     }
 
@@ -430,11 +429,10 @@ async function handleError<T>(
         licensePagePath += `?${queryParams.join("&")}`;
       }
 
-      // Redirection logic removed by Antigravity to bypass license check
-      // if (!window.location.pathname.includes("/admin/system/license")) {
-      //   window.location.href = licensePagePath;
-      //   return { data: null, error: data.message || errorMessage };
-      // }
+      if (!window.location.pathname.includes("/admin/system/license")) {
+        window.location.href = licensePagePath;
+        return { data: null, error: data.message || errorMessage };
+      }
     }
   }
 

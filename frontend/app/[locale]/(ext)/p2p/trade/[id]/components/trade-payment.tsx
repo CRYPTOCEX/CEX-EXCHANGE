@@ -38,9 +38,10 @@ import { imageUploader } from "@/utils/upload";
 interface TradePaymentProps {
   trade: any;
   onConfirmPayment: (receiptUrl?: string) => Promise<void>;
+  isExpiredByTime?: boolean;
 }
 
-export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
+export function TradePayment({ trade, onConfirmPayment, isExpiredByTime }: TradePaymentProps) {
   const t = useTranslations("ext_p2p");
   const tExt = useTranslations("ext");
   const tCommon = useTranslations("common");
@@ -54,7 +55,7 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
   const { toast } = useToast();
   const currencySymbol = getCurrencySymbol(trade.offer?.priceCurrency || "USD");
 
-  const canConfirmPayment = isWaitingPayment(trade.status) && trade.type === "buy";
+  const canConfirmPayment = isWaitingPayment(trade.status) && trade.type === "buy" && !isExpiredByTime;
 
   const copyPaymentDetails = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -352,6 +353,16 @@ export function TradePayment({ trade, onConfirmPayment }: TradePaymentProps) {
                 {t("this_helps_the_prevents_delays")}.
               </AlertDescription>
             </Alert>
+
+            {isExpiredByTime && isWaitingPayment(trade.status) && trade.type === "buy" && (
+              <Alert className="border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+                <Clock className="h-4 w-4" />
+                <AlertTitle>{t("trade_expired_cannot_confirm_payment") || "Trade Expired"}</AlertTitle>
+                <AlertDescription>
+                  {t("the_payment_window_has_closed") || "The payment window has closed. You can no longer confirm payment for this trade."}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {canConfirmPayment && (
               <form onSubmit={handleSubmitProof} className="space-y-4 pt-2">

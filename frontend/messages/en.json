@@ -10490,6 +10490,7 @@
     "no_additional_trust_requirements": "No additional trust requirements",
     "no_completed_trades": "No Completed Trades",
     "no_custom_payment_methods": "No Custom Payment Methods",
+    "no_cancelled_trades": "No Cancelled Trades",
     "no_disputed_trades": "No Disputed Trades",
     "no_location_settings_specified": "No location settings specified",
     "no_matching_offers_found": "No Matching Offers Found",
@@ -10730,6 +10731,7 @@
     "this_protects_both_the_transaction": "This protects both you and the buyer during the transaction",
     "this_trade_has_been_cancelled_no": "This trade has been cancelled. No further actions can be taken.",
     "this_trade_has_been_successfully_completed": "This trade has been successfully completed",
+    "trade_expired_cannot_confirm_payment": "Trade has expired. Payment confirmation is no longer available.",
     "this_trade_has_expired_no_further": "This trade has expired. No further actions can be taken.",
     "this_trade_is_currently_under_dispute": "This trade is currently under dispute",
     "this_trade_is_escrow_system": "This trade is protected by our secure escrow system",
@@ -10772,6 +10774,7 @@
     "trades_completed": "Trades Completed",
     "trades_that_are_require_action": "Trades that are currently in progress and require action",
     "trades_that_are_waiting_to_be_started_or_accepted": "Trades that are waiting to be started or accepted",
+    "trades_that_have_been_cancelled": "Trades that have been cancelled",
     "trades_that_have_been_disputed_and": "Trades that have been disputed and are awaiting resolution",
     "trading_experience": "Trading Experience",
     "trading_experience_requirements": "Trading Experience Requirements",
@@ -10848,6 +10851,7 @@
     "you_can_select_multiple_methods": "You can select multiple methods",
     "you_dont_have_any_active_trades": "You don't have any active trades",
     "you_dont_have_any_active_trades_at_the_moment": "You don't have any active trades at the moment",
+    "you_dont_have_any_cancelled_trades": "You don't have any cancelled trades",
     "you_dont_have_any_disputed_trades": "You don't have any disputed trades",
     "you_dont_have_any_pending_trades_at_the_moment": "You don't have any pending trades at the moment",
     "you_havent_completed_any_trades_yet": "You haven't completed any trades yet",
@@ -11420,6 +11424,12 @@
         "settings": {
           "title": "Binary Settings",
           "description": "Configure trading durations, payouts, order types, and risk management."
+        },
+        "ai": {
+          "engine": {
+            "title": "Binary AI Engine",
+            "description": "AI-powered binary options trading engine with adaptive win rates, ML optimization, and multi-tier user management."
+          }
         }
       },
       "blockchain": {
@@ -11762,6 +11772,12 @@
         "settings": {
           "title": "Trading Settings",
           "description": "Configure advanced trading interface with layouts, hotkeys, and analytics settings."
+        },
+        "bot": {
+          "platform": {
+            "title": "Trading Bot",
+            "description": "Automated trading bot system with multiple strategies, strategy marketplace, and comprehensive risk management."
+          }
         }
       },
       "transaction": {
@@ -11870,6 +11886,10 @@
         "copy": {
           "title": "Copy Trading",
           "description": "Follow and automatically copy trades from successful traders with customizable risk settings and real-time performance tracking."
+        },
+        "bot": {
+          "title": "Trading Bot",
+          "description": "Automated trading with multiple strategies including DCA, Grid, and Indicator-based bots with paper trading simulation."
         }
       },
       "portfolio": {
@@ -12098,5 +12118,129 @@
     "to_use_your_saved_api_keys": "to use your saved API keys, or enter one manually above.",
     "unable_to_fetch_the_api_specification": "Unable to fetch the API specification",
     "use_the_api_playground_to_test": "Use the API Playground to test endpoints, then copy generated code to your application."
+  },
+  "ext_trading-bot": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Overview of all your trading bots with real-time performance metrics and quick actions."
+      },
+      "my": {
+        "bots": {
+          "title": "My Bots",
+          "description": "View and manage all your trading bots with filtering and quick actions."
+        }
+      },
+      "create": {
+        "bot": {
+          "title": "Create Bot",
+          "description": "Create a new trading bot by selecting a strategy, configuring parameters, and allocating funds."
+        }
+      },
+      "strategy": {
+        "builder": {
+          "title": "Strategy Builder",
+          "description": "Build custom trading strategies visually using conditions, indicators, and actions."
+        }
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Browse and purchase proven trading strategies from other traders or sell your own."
+      },
+      "creator": {
+        "title": "Creator Dashboard",
+        "description": "Manage your marketplace strategies, track sales, and view performance metrics."
+      },
+      "guide": {
+        "title": "Guide",
+        "description": "Learn how to create effective trading bots and manage risk with our comprehensive guide."
+      }
+    }
+  },
+  "ext_admin_trading-bot": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Trading bot platform overview with bot statistics, marketplace metrics, and system health."
+      },
+      "management": {
+        "title": "Management",
+        "description": "Manage trading bots and marketplace."
+      },
+      "bots": {
+        "title": "Bots",
+        "description": "View and manage all user bots, monitor performance, and control bot execution."
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "description": "Review and approve marketplace strategies, manage listings, and track sales."
+      },
+      "reviews": {
+        "title": "Reviews",
+        "description": "Moderate strategy reviews, approve or reject user feedback."
+      },
+      "system": {
+        "title": "System",
+        "description": "System administration and monitoring tools."
+      },
+      "logs": {
+        "title": "Audit Logs",
+        "description": "Comprehensive audit trail of all bot activities and administrative actions."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Platform configuration including bot limits, fees, and risk controls."
+      }
+    }
+  },
+  "ext_admin_ai_binary-engine": {
+    "nav": {
+      "dashboard": {
+        "title": "Dashboard",
+        "description": "Binary AI Engine overview with win rates, profits, and system health."
+      },
+      "engines": {
+        "title": "Engines",
+        "description": "Manage Binary AI Engines with win rate targeting and price optimization."
+      },
+      "optimization": {
+        "title": "Optimization",
+        "description": "Analytics, correlation monitoring, and performance tools."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "ML optimization, cohort analysis, A/B testing, and time-based analytics."
+      },
+      "correlation": {
+        "title": "Price Correlation",
+        "description": "Monitor external price feeds and detect deviations from market prices."
+      },
+      "user": {
+        "management": {
+          "title": "Users",
+          "description": "User tiers and cooldown management."
+        }
+      },
+      "tiers": {
+        "title": "User Tiers",
+        "description": "Configure user tier levels with volume thresholds and win rate bonuses."
+      },
+      "cooldowns": {
+        "title": "Cooldowns",
+        "description": "View and manage active user cooldowns after big wins."
+      },
+      "system": {
+        "title": "System",
+        "description": "Snapshots and global settings."
+      },
+      "snapshots": {
+        "title": "Snapshots",
+        "description": "Configuration snapshots for rollback and version control."
+      },
+      "settings": {
+        "title": "Settings",
+        "description": "Global Binary AI Engine settings and emergency controls."
+      }
+    }
   }
 }

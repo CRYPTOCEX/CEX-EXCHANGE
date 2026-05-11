@@ -9,10 +9,11 @@ export default class icoTransaction
   id!: string;
   userId!: string;
   offeringId!: string;
+  phaseId?: string;
   amount!: number;
   price!: number;
   // Updated status values: now include PENDING, VERIFICATION, RELEASED, REJECTED
-  status!: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED";
+  status!: "PENDING" | "VERIFICATION" | "RELEASED" | "REJECTED" | "REFUNDED";
   // releaseUrl is used to store the transaction URL when tokens are released
   releaseUrl?: string;
   // walletAddress holds the investor wallet address
@@ -52,8 +53,15 @@ export default class icoTransaction
             },
           },
         },
+        phaseId: {
+          type: DataTypes.UUID,
+          allowNull: true,
+          validate: {
+            isUUID: { args: 4, msg: "phaseId: Phase ID must be a valid UUID" },
+          },
+        },
         amount: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "amount: Must be a valid number" },
@@ -61,7 +69,7 @@ export default class icoTransaction
           },
         },
         price: {
-          type: DataTypes.DOUBLE,
+          type: DataTypes.DECIMAL(18, 8),
           allowNull: false,
           validate: {
             isFloat: { msg: "price: Must be a valid number" },
@@ -73,14 +81,15 @@ export default class icoTransaction
             "PENDING",
             "VERIFICATION",
             "RELEASED",
-            "REJECTED"
+            "REJECTED",
+            "REFUNDED"
           ),
           allowNull: false,
           defaultValue: "PENDING",
           validate: {
             isIn: {
-              args: [["PENDING", "VERIFICATION", "RELEASED", "REJECTED"]],
-              msg: "status: Must be 'PENDING', 'VERIFICATION', 'RELEASED' or 'REJECTED'",
+              args: [["PENDING", "VERIFICATION", "RELEASED", "REJECTED", "REFUNDED"]],
+              msg: "status: Must be 'PENDING', 'VERIFICATION', 'RELEASED', 'REJECTED' or 'REFUNDED'",
             },
           },
         },
@@ -113,6 +122,10 @@ export default class icoTransaction
             name: "icoTransactionOfferingIdUserIdKey",
             fields: [{ name: "offeringId" }, { name: "userId" }],
           },
+          {
+            name: "icoTransactionStatusIdx",
+            fields: [{ name: "status" }],
+          },
         ],
       }
     );
@@ -129,6 +142,12 @@ export default class icoTransaction
       as: "user",
       foreignKey: "userId",
       onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+    icoTransaction.belongsTo(models.icoTokenOfferingPhase, {
+      as: "phase",
+      foreignKey: "phaseId",
+      onDelete: "SET NULL",
       onUpdate: "CASCADE",
     });
   }

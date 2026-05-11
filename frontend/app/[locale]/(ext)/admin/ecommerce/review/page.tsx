@@ -25,6 +25,7 @@ export default function EcommerceReviewPage() {
       canEdit
       canDelete
       canView
+      isParanoid={true}
       title={t("product_reviews")}
       description={t("moderate_customer_reviews")}
       itemTitle="Review"

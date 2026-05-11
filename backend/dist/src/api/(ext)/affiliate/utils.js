@@ -15,7 +15,7 @@ async function getMlmSystemAndSettings() {
     const mlmSystem = (settings.get("affiliateMlmSystem") || settings.get("mlmSystem") || "DIRECT");
     const mlmSettings = {};
     if (mlmSystem === "BINARY") {
-        const binaryLevels = parseInt(settings.get("affiliateBinaryLevels") || "2");
+        const binaryLevels = parseInt(settings.get("affiliateBinaryLevels") || "0");
         if (binaryLevels >= 2 && binaryLevels <= 7) {
             const levelsPercentage = [];
             for (let i = 1; i <= binaryLevels; i++) {
@@ -29,7 +29,7 @@ async function getMlmSystemAndSettings() {
         }
     }
     else if (mlmSystem === "UNILEVEL") {
-        const unilevelLevels = parseInt(settings.get("affiliateUnilevelLevels") || "2");
+        const unilevelLevels = parseInt(settings.get("affiliateUnilevelLevels") || "0");
         if (unilevelLevels >= 2 && unilevelLevels <= 7) {
             const levelsPercentage = [];
             for (let i = 1; i <= unilevelLevels; i++) {
@@ -75,6 +75,11 @@ async function listDirectReferrals(user, ctx) {
                             as: "referrerReferrals",
                             attributes: ["id"],
                         },
+                        {
+                            model: db_1.models.mlmReferralReward,
+                            as: "referralRewards",
+                            attributes: ["id"],
+                        },
                     ],
                 },
                 {
@@ -92,7 +97,7 @@ async function listDirectReferrals(user, ctx) {
         }));
         (_b = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _b === void 0 ? void 0 : _b.call(ctx, "Processing referrals data");
         const downlines = referrals.map((referral) => {
-            var _a, _b, _c, _d, _e, _f, _g, _h;
+            var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
             return ({
                 id: (_a = referral.referred) === null || _a === void 0 ? void 0 : _a.id,
                 firstName: (_b = referral.referred) === null || _b === void 0 ? void 0 : _b.firstName,
@@ -101,8 +106,8 @@ async function listDirectReferrals(user, ctx) {
                 createdAt: (_e = referral.referred) === null || _e === void 0 ? void 0 : _e.createdAt,
                 status: (_f = referral.referred) === null || _f === void 0 ? void 0 : _f.status,
                 level: 2,
-                rewardsCount: 0,
-                referredCount: ((_h = (_g = referral.referred) === null || _g === void 0 ? void 0 : _g.referrerReferrals) === null || _h === void 0 ? void 0 : _h.length) || 0,
+                rewardsCount: ((_h = (_g = referral.referred) === null || _g === void 0 ? void 0 : _g.referralRewards) === null || _h === void 0 ? void 0 : _h.length) || 0,
+                referredCount: ((_k = (_j = referral.referred) === null || _j === void 0 ? void 0 : _j.referrerReferrals) === null || _k === void 0 ? void 0 : _k.length) || 0,
                 downlines: [],
             });
         });
@@ -170,8 +175,6 @@ async function listUnilevelReferrals(user, mlmSettings, ctx) {
                     ],
                 },
             ],
-            raw: true,
-            nest: true,
         });
         const rootUser = {
             id: user.id,
@@ -222,8 +225,6 @@ async function listUnilevelReferrals(user, mlmSettings, ctx) {
                             ],
                         },
                     ],
-                    raw: true,
-                    nest: true,
                 });
                 const downline = {
                     id: referredUser.id,
@@ -277,13 +278,23 @@ async function listBinaryReferrals(user, mlmSettings, ctx) {
             raw: true,
         });
         if (!selfReferralData) {
-            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating self-referral for legacy user");
-            const newSelfReferral = await db_1.models.mlmReferral.create({
-                referrerId,
-                referredId: referrerId,
-                status: "ACTIVE",
+            const existingReferral = await db_1.models.mlmReferral.findOne({
+                where: { referredId: referrerId },
+                attributes: ["id"],
+                raw: true,
             });
-            selfReferralData = { id: newSelfReferral.id };
+            if (existingReferral) {
+                selfReferralData = existingReferral;
+            }
+            else {
+                (_d = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _d === void 0 ? void 0 : _d.call(ctx, "Creating self-referral for legacy user");
+                const newSelfReferral = await db_1.models.mlmReferral.create({
+                    referrerId,
+                    referredId: referrerId,
+                    status: "ACTIVE",
+                });
+                selfReferralData = { id: newSelfReferral.id };
+            }
         }
         const selfReferralId = selfReferralData.id;
         let rootNodeData = await db_1.models.mlmBinaryNode.findOne({
@@ -350,12 +361,7 @@ async function listBinaryReferrals(user, mlmSettings, ctx) {
                 if (processedIds.has(referredUser.id))
                     continue;
                 processedIds.add(referredUser.id);
-                const leftDownlines = node.leftChild
-                    ? await fetchBinaryDownlines([node.leftChild.id], level + 1)
-                    : [];
-                const rightDownlines = node.rightChild
-                    ? await fetchBinaryDownlines([node.rightChild.id], level + 1)
-                    : [];
+                const childDownlines = await fetchBinaryDownlines([node.id], level + 1);
                 downlines.push({
                     id: referredUser.id,
                     firstName: referredUser.firstName,
@@ -366,7 +372,7 @@ async function listBinaryReferrals(user, mlmSettings, ctx) {
                     level,
                     rewardsCount: ((_b = referredUser.referralRewards) === null || _b === void 0 ? void 0 : _b.length) || 0,
                     referredCount: ((_c = referredUser.referrerReferrals) === null || _c === void 0 ? void 0 : _c.length) || 0,
-                    downlines: [...leftDownlines, ...rightDownlines],
+                    downlines: childDownlines,
                 });
             }
             return downlines;

@@ -113,6 +113,7 @@ export default function TradePage() {
       canEdit={false}
       canDelete={false}
       canView={false}
+      isParanoid={false}
       title={t("trades_management")}
       description={t("view_all_copy_trading_trades")}
       itemTitle="Trade"

@@ -83,8 +83,10 @@ export default function TransactionDetailsPage() {
     return <TransactionLoading />;
   }
   // Helper functions
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid Date";
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",

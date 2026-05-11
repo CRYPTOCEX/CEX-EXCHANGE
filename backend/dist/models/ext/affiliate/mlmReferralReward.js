@@ -42,6 +42,11 @@ class mlmReferralReward extends sequelize_1.Model {
                 allowNull: false,
                 defaultValue: false,
             },
+            sourceId: {
+                type: sequelize_1.DataTypes.STRING(191),
+                allowNull: true,
+                defaultValue: null,
+            },
         }, {
             sequelize,
             modelName: "mlmReferralReward",
@@ -64,6 +69,12 @@ class mlmReferralReward extends sequelize_1.Model {
                     name: "mlmReferralRewardReferrerIdFkey",
                     using: "BTREE",
                     fields: [{ name: "referrerId" }],
+                },
+                {
+                    name: "mlmReferralRewardSourceIdUnique",
+                    unique: true,
+                    using: "BTREE",
+                    fields: [{ name: "sourceId" }],
                 },
             ],
         });

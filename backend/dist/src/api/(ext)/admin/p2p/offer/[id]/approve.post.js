@@ -88,6 +88,7 @@ exports.default = async (data) => {
     const { notes } = body;
     const { sanitizeInput, validateOfferStatusTransition } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/validation")));
     const { notifyOfferEvent } = await Promise.resolve().then(() => __importStar(require("../../../../p2p/utils/notifications")));
+    const transaction = await db_1.sequelize.transaction();
     try {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching offer");
         const offer = await db_1.models.p2pOffer.findByPk(id, {
@@ -103,14 +104,18 @@ exports.default = async (data) => {
                     through: { attributes: [] },
                 }
             ],
+            lock: true,
+            transaction,
         });
         if (!offer) {
+            await transaction.rollback();
             ctx === null || ctx === void 0 ? void 0 : ctx.fail("Offer not found");
             throw (0, error_1.createError)({ statusCode: 404, message: "Offer not found" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Getting admin information");
         const adminUser = await db_1.models.user.findByPk(user.id, {
             attributes: ["id", "firstName", "lastName", "email"],
+            transaction,
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating offer status transition");
         if (!validateOfferStatusTransition(offer.status, "ACTIVE")) {
@@ -153,7 +158,7 @@ exports.default = async (data) => {
                     createdAt: new Date().toISOString(),
                 },
             ],
-        });
+        }, { transaction });
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Logging admin activity");
         await (0, ownership_1.logP2PAdminAction)(user.id, "OFFER_APPROVED", "OFFER", offer.id, {
             offerUserId: offer.userId,
@@ -164,6 +169,7 @@ exports.default = async (data) => {
             adminNotes: sanitizedNotes,
             approvedBy: adminName,
         });
+        await transaction.commit();
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Sending notification");
         notifyOfferEvent(offer.id, "OFFER_APPROVED", {
             adminNotes: sanitizedNotes,
@@ -179,13 +185,16 @@ exports.default = async (data) => {
         };
     }
     catch (err) {
-        if (err.statusCode) {
-            throw err;
+        try {
+            await transaction.rollback();
         }
+        catch (_) { }
+        if (err.statusCode)
+            throw err;
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to approve offer");
         throw (0, error_1.createError)({
             statusCode: 500,
-            message: "Internal Server Error: " + err.message,
+            message: "Failed to approve offer: " + err.message,
         });
     }
 };

@@ -22,7 +22,7 @@ export default function EcosystemUtxoPage() {
         delete: "delete.ecosystem.utxo"}}
       pageSize={12}
       canView
-      isParanoid={false}
+      isParanoid={true}
       title={t("utxo_management")}
       description={t("manage_unspent_transaction_outputs")}
       itemTitle="UTXO"

@@ -105,17 +105,17 @@ export function FAQForm({
     // Question validation
     if (!faq.question && touched.question) {
       newErrors.question = "Question is required";
-    } else if (faqLength < 5 && touched.question) {
-      newErrors.question = "Question must be at least 5 characters";
-    } else if (faqLength > 255 && touched.question) {
-      newErrors.question = "Question must be less than 255 characters";
+    } else if (faqLength < 10 && touched.question) {
+      newErrors.question = "Question must be at least 10 characters";
+    } else if (faqLength > 500 && touched.question) {
+      newErrors.question = "Question must be less than 500 characters";
     }
 
     // Answer validation
     if (!faq.answer && touched.answer) {
       newErrors.answer = "Answer is required";
-    } else if (faqAnswerLength < 10 && touched.answer) {
-      newErrors.answer = "Answer must be at least 10 characters";
+    } else if (faqAnswerLength < 20 && touched.answer) {
+      newErrors.answer = "Answer must be at least 20 characters";
     }
 
     // Category validation
@@ -135,9 +135,9 @@ export function FAQForm({
 
     // Check if form is valid (regardless of touched state)
     const isFormValid = !!(
-      faqLength >= 5 &&
-      faqLength <= 255 &&
-      faqAnswerLength >= 10 &&
+      faqLength >= 10 &&
+      faqLength <= 500 &&
+      faqAnswerLength >= 20 &&
       faq.category &&
       faq.pagePath
     );

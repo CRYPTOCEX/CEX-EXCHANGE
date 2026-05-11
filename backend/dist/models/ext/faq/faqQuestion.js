@@ -59,7 +59,5 @@ class faqQuestion extends sequelize_1.Model {
             ],
         });
     }
-    static associate(models) {
-    }
 }
 exports.default = faqQuestion;

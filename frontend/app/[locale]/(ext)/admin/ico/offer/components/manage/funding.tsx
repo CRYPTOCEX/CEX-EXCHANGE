@@ -2,36 +2,35 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Area,
   AreaChart,
   Bar,
   BarChart,
-  CartesianGrid,
-  Legend,
   ResponsiveContainer,
-  Tooltip as RechartsTooltip,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Activity, TrendingUp, DollarSign, Target } from "lucide-react";
 import { useAdminOfferStore } from "@/store/ico/admin/admin-offer-store";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function OfferingFundingChart() {
   const t = useTranslations("ext_admin");
   const tCommon = useTranslations("common");
-  const { offering, fundingData, fetchFundingChart, offerMetrics } =
+  const { offering, fundingData, fetchFundingChart, offerMetrics, isLoadingFunding } =
     useAdminOfferStore();
 
   const [chartType, setChartType] = useState<"area" | "bar">("area");
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">(
-    "30d"
-  );
+  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
+  const [activeMetric, setActiveMetric] = useState<"totalCumulative" | "validCumulative" | "totalAmount">("totalCumulative");
 
   const offeringId = offering?.id;
+  const currency = offering?.purchaseWalletCurrency || "USD";
 
   useEffect(() => {
     if (offeringId) {
@@ -39,255 +38,292 @@ export function OfferingFundingChart() {
     }
   }, [offeringId, timeRange, fetchFundingChart]);
 
-  if (!offering || !fundingData) {
+  const targetAmount = offering?.targetAmount || 0;
+  const currentRaised = offerMetrics?.currentRaised || 0;
+  const progressPercentage = targetAmount > 0
+    ? Math.min(Math.round((currentRaised / targetAmount) * 100), 100)
+    : 0;
+
+  const formatCurrency = (value: number) =>
+    `${value.toLocaleString()} ${currency}`;
+
+  const formatAxisValue = (value: number) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+    return value.toString();
+  };
+
+  const metrics = [
+    { key: "totalCumulative", label: "Total Raised", color: "#3b82f6" },
+    { key: "validCumulative", label: "Valid Raised", color: "#10b981" },
+    { key: "totalAmount", label: "Daily", color: "#f59e0b" },
+  ];
+
+  const timeRanges = [
+    { key: "7d", label: `7 ${tCommon("days")}` },
+    { key: "30d", label: `30 ${tCommon("days")}` },
+    { key: "90d", label: `90 ${tCommon("days")}` },
+    { key: "all", label: tCommon("all_time") },
+  ];
+
+  // Loading state
+  if (isLoadingFunding && !fundingData) {
     return (
-      <div className="min-h-[300px] flex items-center justify-center">
-        <p>{tCommon("loading_chart_data")}.</p>
+      <div className="h-full flex flex-col">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+          <Skeleton className="h-9 w-64" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+        <Skeleton className="flex-1 min-h-[280px] rounded-xl" />
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+        </div>
       </div>
     );
   }
 
-  const targetAmount = offering.targetAmount;
-  const currentRaised = offerMetrics?.currentRaised || 0;
-  const filteredData = fundingData; // Already filtered from backend
+  // No data state
+  if (!offering || !fundingData || fundingData.length === 0) {
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex-1 min-h-[280px] flex items-center justify-center">
+          <div className="text-center">
+            <Activity className="h-10 w-10 mx-auto mb-2 opacity-40 text-muted-foreground" />
+            <p className="text-muted-foreground">{tCommon("no_data_available")}</p>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <Card className="bg-blue-500/10 border-blue-500/20">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-blue-500 font-medium">{t("current_raised")}</p>
+                <p className="text-2xl font-bold">{formatCurrency(currentRaised)}</p>
+              </div>
+              <div className="h-12 w-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-green-500/10 border-green-500/20">
+            <CardContent className="p-4 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-green-500 font-medium">{tCommon("progress")}</p>
+                <p className="text-2xl font-bold">{progressPercentage}%</p>
+              </div>
+              <div className="h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                <Target className="h-6 w-6 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-  const progressPercentage = Math.min(
-    Math.round((currentRaised / targetAmount) * 100),
-    100
-  );
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+  const activeColor = metrics.find(m => m.key === activeMetric)?.color || "#3b82f6";
 
   return (
     <div className="h-full flex flex-col">
+      {/* Controls Row */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-        <Tabs
-          defaultValue="30d"
-          value={timeRange}
-          onValueChange={(v) => setTimeRange(v as any)}
-        >
-          <TabsList>
-            <TabsTrigger value="7d">{`7 ${tCommon('days')}`}</TabsTrigger>
-            <TabsTrigger value="30d">{`30 ${tCommon('days')}`}</TabsTrigger>
-            <TabsTrigger value="90d">{`90 ${tCommon('days')}`}</TabsTrigger>
-            <TabsTrigger value="all">{tCommon("all_time")}</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={chartType === "area" ? "default" : "outline"}
-            size="sm"
+        {/* Time Range Selector */}
+        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+          {timeRanges.map((range) => (
+            <button
+              key={range.key}
+              onClick={() => setTimeRange(range.key as any)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                timeRange === range.key
+                  ? "bg-white/10 text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+              )}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Chart Type Toggle */}
+        <div className="flex items-center gap-1 bg-white/5 rounded-lg p-1">
+          <button
             onClick={() => setChartType("area")}
-            className="h-8"
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+              chartType === "area"
+                ? "bg-white/10 text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
           >
             {tCommon("area")}
-          </Button>
-          <Button
-            variant={chartType === "bar" ? "default" : "outline"}
-            size="sm"
+          </button>
+          <button
             onClick={() => setChartType("bar")}
-            className="h-8"
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+              chartType === "bar"
+                ? "bg-white/10 text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
           >
             {t("bar")}
-          </Button>
+          </button>
         </div>
       </div>
-      <div className="flex-1 min-h-[300px]">
+
+      {/* Metric Toggle */}
+      <div className="flex items-center gap-2 mb-4">
+        {metrics.map((metric) => (
+          <button
+            key={metric.key}
+            onClick={() => setActiveMetric(metric.key as any)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+              activeMetric === metric.key
+                ? "bg-white/10 text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+            )}
+          >
+            <span className="flex items-center gap-2">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: metric.color }}
+              />
+              {metric.label}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <div className="flex-1 min-h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
           {chartType === "area" ? (
-            <AreaChart
-              data={filteredData}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
+            <AreaChart data={fundingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
-                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="colorValid" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="colorRejected" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="colorDaily" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1} />
+                <linearGradient id="fundingGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={activeColor} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={activeColor} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 12 }}
+                axisLine={false}
                 tickLine={false}
-                axisLine={{ stroke: "#e5e7eb" }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                dy={10}
               />
               <YAxis
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
-                tick={{ fontSize: 12 }}
+                axisLine={false}
                 tickLine={false}
-                axisLine={{ stroke: "#e5e7eb" }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                tickFormatter={formatAxisValue}
               />
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="#e5e7eb"
-              />
-              <RechartsTooltip
-                formatter={(value: number) => formatCurrency(value)}
-                labelFormatter={(label) => `Date: ${label}`}
+              <Tooltip
                 contentStyle={{
-                  borderRadius: "6px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow:
-                    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
                 }}
-              />
-              <Legend />
-              {/* Cumulative Series */}
-              <Area
-                type="monotone"
-                dataKey="totalCumulative"
-                name="Total Raised"
-                stroke="#3b82f6"
-                fillOpacity={1}
-                fill="url(#colorTotal)"
-                strokeWidth={2}
-                activeDot={{ r: 6 }}
+                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
+                formatter={(value: number) => [
+                  formatCurrency(value),
+                  metrics.find(m => m.key === activeMetric)?.label
+                ]}
               />
               <Area
                 type="monotone"
-                dataKey="validCumulative"
-                name="Valid Raised"
-                stroke="#14b8a6"
-                fillOpacity={1}
-                fill="url(#colorValid)"
-                strokeWidth={2}
+                dataKey={activeMetric}
+                stroke={activeColor}
+                strokeWidth={2.5}
+                fill="url(#fundingGradient)"
+                dot={false}
+                activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--background))" }}
               />
-              <Area
-                type="monotone"
-                dataKey="rejectedCumulative"
-                name="Rejected Raised"
-                stroke="#ef4444"
-                fillOpacity={1}
-                fill="url(#colorRejected)"
-                strokeWidth={2}
-              />
-              {/* Daily Series */}
-              <Area
-                type="monotone"
-                dataKey="totalAmount"
-                name="Daily Total"
-                stroke="#f59e0b"
-                fillOpacity={1}
-                fill="url(#colorDaily)"
-                strokeWidth={2}
-              />
-              {/* Optionally, you can add areas for daily valid and rejected amounts */}
-              {/* 
-              <Area
-                type="monotone"
-                dataKey="validAmount"
-                name="Daily Valid"
-                stroke="#34d399"
-                fillOpacity={1}
-                fill="url(#colorValid)"
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="rejectedAmount"
-                name="Daily Rejected"
-                stroke="#f87171"
-                fillOpacity={1}
-                fill="url(#colorRejected)"
-                strokeWidth={2}
-              /> 
-              */}
             </AreaChart>
           ) : (
-            <BarChart
-              data={filteredData}
-              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-            >
+            <BarChart data={fundingData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 12 }}
+                axisLine={false}
                 tickLine={false}
-                axisLine={{ stroke: "#e5e7eb" }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                dy={10}
               />
               <YAxis
-                tickFormatter={(value) => `$${value.toLocaleString()}`}
-                tick={{ fontSize: 12 }}
+                axisLine={false}
                 tickLine={false}
-                axisLine={{ stroke: "#e5e7eb" }}
+                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                tickFormatter={formatAxisValue}
               />
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="#e5e7eb"
-              />
-              <RechartsTooltip
-                formatter={(value: number) => formatCurrency(value)}
-                labelFormatter={(label) => `Date: ${label}`}
+              <Tooltip
                 contentStyle={{
-                  borderRadius: "6px",
-                  border: "1px solid #e5e7eb",
-                  boxShadow:
-                    "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
                 }}
+                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
+                formatter={(value: number) => [
+                  formatCurrency(value),
+                  metrics.find(m => m.key === activeMetric)?.label
+                ]}
               />
-              <Legend />
               <Bar
-                dataKey="totalAmount"
-                name="Daily Total"
-                fill="#f59e0b"
+                dataKey={activeMetric}
+                fill={activeColor}
                 radius={[4, 4, 0, 0]}
               />
-              {/* Similarly, you can add bars for validAmount and rejectedAmount */}
             </BarChart>
           )}
         </ResponsiveContainer>
       </div>
+
+      {/* Stats Cards */}
       <div className="mt-4 grid grid-cols-2 gap-4">
-        <Card className="bg-blue-50 border-blue-100">
+        <Card className="bg-blue-500/10 border-blue-500/20">
           <CardContent className="p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-blue-600 font-medium">
-                {t("current_raised")}
-              </p>
-              <p className="text-2xl font-bold">
-                {formatCurrency(currentRaised)}
-              </p>
+              <p className="text-sm text-blue-500 font-medium">{t("current_raised")}</p>
+              <p className="text-2xl font-bold">{formatCurrency(currentRaised)}</p>
             </div>
-            <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <ArrowUpRight className="h-6 w-6 text-blue-600" />
+            <div className="h-12 w-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+              <ArrowUpRight className="h-6 w-6 text-blue-500" />
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-green-50 border-green-100">
+        <Card className="bg-green-500/10 border-green-500/20">
           <CardContent className="p-4 flex justify-between items-center">
             <div>
-              <p className="text-sm text-green-600 font-medium">
-                {tCommon("progress")}
-              </p>
+              <p className="text-sm text-green-500 font-medium">{tCommon("progress")}</p>
               <p className="text-2xl font-bold">{progressPercentage}%</p>
             </div>
-            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-              <div className="h-8 w-8 rounded-full border-4 border-green-600 flex items-center justify-center">
-                <div
-                  className="h-6 w-6 bg-green-600 rounded-full"
-                  style={{
-                    clipPath: `polygon(0 0, 100% 0, 100% ${progressPercentage}%, 0 ${progressPercentage}%)`,
-                  }}
-                ></div>
+            <div className="h-12 w-12 bg-green-500/20 rounded-full flex items-center justify-center">
+              <div className="relative">
+                <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    className="text-green-500/20"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="14"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeDasharray={`${progressPercentage * 0.88} 88`}
+                    strokeLinecap="round"
+                    className="text-green-500"
+                  />
+                </svg>
               </div>
             </div>
           </CardContent>

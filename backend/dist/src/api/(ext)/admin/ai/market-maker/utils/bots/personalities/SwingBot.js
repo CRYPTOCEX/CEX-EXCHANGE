@@ -1,1 +1,129 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.SwingBot=void 0;const BaseBot_1=require("../BaseBot");class SwingBot extends BaseBot_1.BaseBot{constructor(e){super({...e,personality:"SWING",tradeFrequency:"MEDIUM"});this.minSwingPercent=.5;this.maxSwingPercent=3;this.holdTimeMs=3e5;this.currentPosition="NEUTRAL";this.entryPrice=0;this.positionOpenTime=null}decideTrade(e){if(!this.canTrade())return{shouldTrade:!1,reason:"Cannot trade"};const t=Number(e.currentPrice)/1e18,i=(Number(e.targetPrice)/1e18-t)/t*100;return"NEUTRAL"!==this.currentPosition?this.managePosition(e,t,i):this.findEntry(e,t,i)}managePosition(e,t,i){if(!this.positionOpenTime){this.currentPosition="NEUTRAL";return{shouldTrade:!1}}const r=Date.now()-this.positionOpenTime.getTime(),n=(t-this.entryPrice)/this.entryPrice*100,o=this.minSwingPercent+Math.random()*(this.maxSwingPercent-this.minSwingPercent);if("LONG"===this.currentPosition&&n>=o||"SHORT"===this.currentPosition&&n<=-o||r>2*this.holdTimeMs||Math.abs(i)>this.maxSwingPercent){const t="LONG"===this.currentPosition?"SELL":"BUY",i=this.calculatePrice(e,t),r=this.calculateOrderSize(e);this.currentPosition="NEUTRAL";this.entryPrice=0;this.positionOpenTime=null;return{shouldTrade:!0,side:t,price:i,amount:r,purpose:"PRICE_PUSH",confidence:.8,reason:`Closing ${this.currentPosition} position (${n.toFixed(2)}% P&L)`}}return{shouldTrade:!1,reason:"Holding position"}}findEntry(e,t,i){if(Math.abs(i)<this.minSwingPercent)return{shouldTrade:!1,reason:"Price too close to target"};if(e.volatility>5)return{shouldTrade:!1,reason:"Volatility too high for swing entry"};const r=t<=1.02*e.priceRangeLow,n=t>=.98*e.priceRangeHigh;let o,s;if(r&&i>0){o="BUY";s="Long entry near support"}else if(n&&i<0){o="SELL";s="Short entry near resistance"}else if(i>this.minSwingPercent){o="BUY";s="Long entry to push price up"}else{o="SELL";s="Short entry to push price down"}if(Math.random()>.4)return{shouldTrade:!1,reason:"Waiting for better entry"};const a=this.calculatePrice(e,o),c=this.calculateOrderSize(e);this.currentPosition="BUY"===o?"LONG":"SHORT";this.entryPrice=t;this.positionOpenTime=new Date;return{shouldTrade:!0,side:o,price:a,amount:c,purpose:"PRICE_PUSH",confidence:.6+.1*Math.abs(i),reason:s}}calculateOrderSize(e){const t=this.config.avgOrderSize,i=this.addVariance(t,.3);return BigInt(Math.floor(1e18*i))}calculatePrice(e,t){const i=Number(e.currentPrice)/1e18,r=.001+.003*Math.random();let n;n="BUY"===t?i*(1-r):i*(1+r);return BigInt(Math.floor(1e18*n))}getCooldownTime(){return 6e4}}exports.SwingBot=SwingBot;exports.default=SwingBot;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SwingBot = void 0;
+const BaseBot_1 = require("../BaseBot");
+class SwingBot extends BaseBot_1.BaseBot {
+    constructor(config) {
+        super({
+            ...config,
+            personality: "SWING",
+            tradeFrequency: "MEDIUM",
+        });
+        this.minSwingPercent = 0.5;
+        this.maxSwingPercent = 3;
+        this.holdTimeMs = 300000;
+        this.currentPosition = "NEUTRAL";
+        this.entryPrice = 0;
+        this.positionOpenTime = null;
+    }
+    decideTrade(context) {
+        if (!this.canTrade()) {
+            return { shouldTrade: false, reason: "Cannot trade" };
+        }
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const targetPriceNum = Number(context.targetPrice) / 1e18;
+        const priceDiff = ((targetPriceNum - currentPriceNum) / currentPriceNum) * 100;
+        if (this.currentPosition !== "NEUTRAL") {
+            return this.managePosition(context, currentPriceNum, priceDiff);
+        }
+        return this.findEntry(context, currentPriceNum, priceDiff);
+    }
+    managePosition(context, currentPriceNum, priceDiff) {
+        if (!this.positionOpenTime) {
+            this.currentPosition = "NEUTRAL";
+            return { shouldTrade: false };
+        }
+        const holdTime = Date.now() - this.positionOpenTime.getTime();
+        const priceChange = ((currentPriceNum - this.entryPrice) / this.entryPrice) * 100;
+        const profitTarget = this.minSwingPercent + Math.random() * (this.maxSwingPercent - this.minSwingPercent);
+        const shouldClose = (this.currentPosition === "LONG" && priceChange >= profitTarget) ||
+            (this.currentPosition === "SHORT" && priceChange <= -profitTarget) ||
+            holdTime > this.holdTimeMs * 2 ||
+            Math.abs(priceDiff) > this.maxSwingPercent;
+        if (shouldClose) {
+            const closeSide = this.currentPosition === "LONG" ? "SELL" : "BUY";
+            const price = this.calculatePrice(context, closeSide);
+            const amount = this.calculateOrderSize(context);
+            this.currentPosition = "NEUTRAL";
+            this.entryPrice = 0;
+            this.positionOpenTime = null;
+            return {
+                shouldTrade: true,
+                side: closeSide,
+                price,
+                amount,
+                purpose: "PRICE_PUSH",
+                confidence: 0.8,
+                reason: `Closing ${this.currentPosition} position (${priceChange.toFixed(2)}% P&L)`,
+            };
+        }
+        return { shouldTrade: false, reason: "Holding position" };
+    }
+    findEntry(context, currentPriceNum, priceDiff) {
+        if (Math.abs(priceDiff) < this.minSwingPercent) {
+            return { shouldTrade: false, reason: "Price too close to target" };
+        }
+        if (context.volatility > 5) {
+            return { shouldTrade: false, reason: "Volatility too high for swing entry" };
+        }
+        const nearSupport = currentPriceNum <= context.priceRangeLow * 1.02;
+        const nearResistance = currentPriceNum >= context.priceRangeHigh * 0.98;
+        let side;
+        let reason;
+        if (nearSupport && priceDiff > 0) {
+            side = "BUY";
+            reason = "Long entry near support";
+        }
+        else if (nearResistance && priceDiff < 0) {
+            side = "SELL";
+            reason = "Short entry near resistance";
+        }
+        else if (priceDiff > this.minSwingPercent) {
+            side = "BUY";
+            reason = "Long entry to push price up";
+        }
+        else {
+            side = "SELL";
+            reason = "Short entry to push price down";
+        }
+        if (Math.random() > 0.4) {
+            return { shouldTrade: false, reason: "Waiting for better entry" };
+        }
+        const price = this.calculatePrice(context, side);
+        const amount = this.calculateOrderSize(context);
+        this.currentPosition = side === "BUY" ? "LONG" : "SHORT";
+        this.entryPrice = currentPriceNum;
+        this.positionOpenTime = new Date();
+        return {
+            shouldTrade: true,
+            side,
+            price,
+            amount,
+            purpose: "PRICE_PUSH",
+            confidence: 0.6 + Math.abs(priceDiff) * 0.1,
+            reason,
+        };
+    }
+    calculateOrderSize(context) {
+        const baseSize = this.config.avgOrderSize;
+        const variedSize = this.addVariance(baseSize, 0.3);
+        return BigInt(Math.floor(variedSize * 1e18));
+    }
+    calculatePrice(context, side) {
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const offsetPercent = 0.001 + Math.random() * 0.003;
+        let price;
+        if (side === "BUY") {
+            price = currentPriceNum * (1 - offsetPercent);
+        }
+        else {
+            price = currentPriceNum * (1 + offsetPercent);
+        }
+        return BigInt(Math.floor(price * 1e18));
+    }
+    getCooldownTime() {
+        return 60000;
+    }
+}
+exports.SwingBot = SwingBot;
+exports.default = SwingBot;

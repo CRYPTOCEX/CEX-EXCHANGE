@@ -62,6 +62,23 @@ import AffiliateRewardsErrorState from "./error-state";
 import { RewardHero } from "./components/reward-hero";
 import { useTranslations } from "next-intl";
 
+// Format reward amount based on currency type
+function formatRewardAmount(amount: number | undefined, currency: string | undefined): string {
+  if (amount === undefined || amount === null) return "0";
+
+  // Use appropriate decimal places based on currency
+  if (currency === "BTC") {
+    return amount.toFixed(8);
+  } else if (currency === "ETH") {
+    return amount.toFixed(6);
+  } else if (["USDT", "USD", "BUSD", "USDC"].includes(currency || "")) {
+    return amount.toFixed(2);
+  } else {
+    // For other currencies, show up to 8 decimal places but trim trailing zeros
+    return parseFloat(amount.toFixed(8)).toString();
+  }
+}
+
 export default function AffiliateRewardsClient() {
   const t = useTranslations("ext_affiliate");
   const tExt = useTranslations("ext");
@@ -455,7 +472,7 @@ export default function AffiliateRewardsClient() {
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">
-                            {reward.reward.toFixed(2)}
+                            {formatRewardAmount(reward.reward, reward.condition?.rewardCurrency)}
                           </div>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
@@ -669,12 +686,11 @@ export default function AffiliateRewardsClient() {
             <div className="flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/50">
               <DollarSign className="h-10 w-10 md:h-12 md:w-12 text-primary mb-2" />
               <p className="text-xl md:text-2xl font-bold">
-                ${selectedReward?.reward.toFixed(2)}
+                {formatRewardAmount(selectedReward?.reward, selectedReward?.condition?.rewardCurrency)} {selectedReward?.condition?.rewardCurrency}
               </p>
               <p className="text-sm text-muted-foreground">
-                {selectedReward?.condition?.rewardCurrency}
                 {selectedReward?.condition?.rewardChain &&
-                  ` (${selectedReward.condition.rewardChain})`}
+                  `(${selectedReward.condition.rewardChain})`}
               </p>
             </div>
 

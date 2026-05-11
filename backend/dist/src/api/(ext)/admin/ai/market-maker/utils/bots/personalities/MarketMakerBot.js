@@ -1,1 +1,152 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.MarketMakerBot=void 0;const BaseBot_1=require("../BaseBot");class MarketMakerBot extends BaseBot_1.BaseBot{constructor(e){super({...e,personality:"MARKET_MAKER",tradeFrequency:"HIGH"});this.targetSpreadBps=15;this.minSpreadBps=5;this.maxInventoryImbalance=.3;this.baseInventory=BigInt(0);this.quoteInventory=BigInt(0);this.lastQuotedBid=BigInt(0);this.lastQuotedAsk=BigInt(0)}decideTrade(e){if(!this.canTrade())return{shouldTrade:!1,reason:"Cannot trade"};const t=Number(e.currentPrice)/1e18,r=this.calculateInventoryImbalance();if(Math.abs(r)>this.maxInventoryImbalance)return this.rebalanceInventory(e,r);return Math.random()<.5?this.placeBidOrder(e,t):this.placeAskOrder(e,t)}placeBidOrder(e,t){const r=this.targetSpreadBps/1e4,a=t*(1-r/2)*(1+(Math.random()-.5)*r*.2),n=BigInt(Math.floor(1e18*a)),s=this.calculateOrderSize(e);this.lastQuotedBid=n;return{shouldTrade:!0,side:"BUY",price:n,amount:s,purpose:"SPREAD_MAINTENANCE",confidence:.8,reason:`Market making: bid at ${a.toFixed(8)}`}}placeAskOrder(e,t){const r=this.targetSpreadBps/1e4,a=t*(1+r/2)*(1+(Math.random()-.5)*r*.2),n=BigInt(Math.floor(1e18*a)),s=this.calculateOrderSize(e);this.lastQuotedAsk=n;return{shouldTrade:!0,side:"SELL",price:n,amount:s,purpose:"SPREAD_MAINTENANCE",confidence:.8,reason:`Market making: ask at ${a.toFixed(8)}`}}rebalanceInventory(e,t){const r=Number(e.currentPrice)/1e18,a=t>0?"SELL":"BUY",n=.001*Math.abs(t);let s;s="BUY"===a?r*(1+n):r*(1-n);const o=this.calculateOrderSize(e),i=BigInt(Math.floor(Number(o)*Math.abs(t)));return{shouldTrade:!0,side:a,price:BigInt(Math.floor(1e18*s)),amount:i,purpose:"LIQUIDITY",confidence:.9,reason:`Rebalancing inventory (${(100*t).toFixed(1)}% imbalance)`}}calculateInventoryImbalance(){const e=Number(this.baseInventory),t=Number(this.quoteInventory);if(0===e&&0===t)return 0;const r=e+t;return 0===r?0:(e-t)/r}calculateOrderSize(e){const t=.6*this.config.avgOrderSize,r=this.addVariance(t,.2);return BigInt(Math.floor(1e18*r))}calculatePrice(e,t){const r=Number(e.currentPrice)/1e18,a=this.targetSpreadBps/1e4;let n;n="BUY"===t?r*(1-a/2):r*(1+a/2);return BigInt(Math.floor(1e18*n))}updateInventory(e,t,r){if("BUY"===e){this.baseInventory+=t;this.quoteInventory-=r}else{this.baseInventory-=t;this.quoteInventory+=r}}getCooldownTime(){return 5e3}getMarketMakingStats(){const e=Number(this.lastQuotedBid)/1e18,t=Number(this.lastQuotedAsk)/1e18,r=e>0?(t-e)/e*1e4:0;return{baseInventory:(Number(this.baseInventory)/1e18).toFixed(8),quoteInventory:(Number(this.quoteInventory)/1e18).toFixed(8),imbalance:this.calculateInventoryImbalance(),lastBid:e.toFixed(8),lastAsk:t.toFixed(8),spread:r}}}exports.MarketMakerBot=MarketMakerBot;exports.default=MarketMakerBot;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.MarketMakerBot = void 0;
+const BaseBot_1 = require("../BaseBot");
+class MarketMakerBot extends BaseBot_1.BaseBot {
+    constructor(config) {
+        super({
+            ...config,
+            personality: "MARKET_MAKER",
+            tradeFrequency: "HIGH",
+        });
+        this.targetSpreadBps = 15;
+        this.minSpreadBps = 5;
+        this.maxInventoryImbalance = 0.3;
+        this.baseInventory = BigInt(0);
+        this.quoteInventory = BigInt(0);
+        this.lastQuotedBid = BigInt(0);
+        this.lastQuotedAsk = BigInt(0);
+    }
+    decideTrade(context) {
+        if (!this.canTrade()) {
+            return { shouldTrade: false, reason: "Cannot trade" };
+        }
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const imbalance = this.calculateInventoryImbalance();
+        if (Math.abs(imbalance) > this.maxInventoryImbalance) {
+            return this.rebalanceInventory(context, imbalance);
+        }
+        const placeBid = Math.random() < 0.5;
+        if (placeBid) {
+            return this.placeBidOrder(context, currentPriceNum);
+        }
+        else {
+            return this.placeAskOrder(context, currentPriceNum);
+        }
+    }
+    placeBidOrder(context, currentPrice) {
+        const spreadPercent = this.targetSpreadBps / 10000;
+        const bidPrice = currentPrice * (1 - spreadPercent / 2);
+        const randomOffset = (Math.random() - 0.5) * spreadPercent * 0.2;
+        const finalBidPrice = bidPrice * (1 + randomOffset);
+        const price = BigInt(Math.floor(finalBidPrice * 1e18));
+        const amount = this.calculateOrderSize(context);
+        this.lastQuotedBid = price;
+        return {
+            shouldTrade: true,
+            side: "BUY",
+            price,
+            amount,
+            purpose: "SPREAD_MAINTENANCE",
+            confidence: 0.8,
+            reason: `Market making: bid at ${finalBidPrice.toFixed(8)}`,
+        };
+    }
+    placeAskOrder(context, currentPrice) {
+        const spreadPercent = this.targetSpreadBps / 10000;
+        const askPrice = currentPrice * (1 + spreadPercent / 2);
+        const randomOffset = (Math.random() - 0.5) * spreadPercent * 0.2;
+        const finalAskPrice = askPrice * (1 + randomOffset);
+        const price = BigInt(Math.floor(finalAskPrice * 1e18));
+        const amount = this.calculateOrderSize(context);
+        this.lastQuotedAsk = price;
+        return {
+            shouldTrade: true,
+            side: "SELL",
+            price,
+            amount,
+            purpose: "SPREAD_MAINTENANCE",
+            confidence: 0.8,
+            reason: `Market making: ask at ${finalAskPrice.toFixed(8)}`,
+        };
+    }
+    rebalanceInventory(context, imbalance) {
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const side = imbalance > 0 ? "SELL" : "BUY";
+        const urgencyOffset = Math.abs(imbalance) * 0.001;
+        let price;
+        if (side === "BUY") {
+            price = currentPriceNum * (1 + urgencyOffset);
+        }
+        else {
+            price = currentPriceNum * (1 - urgencyOffset);
+        }
+        const amount = this.calculateOrderSize(context);
+        const rebalanceAmount = BigInt(Math.floor(Number(amount) * Math.abs(imbalance)));
+        return {
+            shouldTrade: true,
+            side,
+            price: BigInt(Math.floor(price * 1e18)),
+            amount: rebalanceAmount,
+            purpose: "LIQUIDITY",
+            confidence: 0.9,
+            reason: `Rebalancing inventory (${(imbalance * 100).toFixed(1)}% imbalance)`,
+        };
+    }
+    calculateInventoryImbalance() {
+        const totalBase = Number(this.baseInventory);
+        const totalQuote = Number(this.quoteInventory);
+        if (totalBase === 0 && totalQuote === 0) {
+            return 0;
+        }
+        const total = totalBase + totalQuote;
+        if (total === 0)
+            return 0;
+        return (totalBase - totalQuote) / total;
+    }
+    calculateOrderSize(context) {
+        const baseSize = this.config.avgOrderSize * 0.6;
+        const variedSize = this.addVariance(baseSize, 0.2);
+        return BigInt(Math.floor(variedSize * 1e18));
+    }
+    calculatePrice(context, side) {
+        const currentPriceNum = Number(context.currentPrice) / 1e18;
+        const spreadPercent = this.targetSpreadBps / 10000;
+        let price;
+        if (side === "BUY") {
+            price = currentPriceNum * (1 - spreadPercent / 2);
+        }
+        else {
+            price = currentPriceNum * (1 + spreadPercent / 2);
+        }
+        return BigInt(Math.floor(price * 1e18));
+    }
+    updateInventory(side, amount, cost) {
+        if (side === "BUY") {
+            this.baseInventory += amount;
+            this.quoteInventory -= cost;
+        }
+        else {
+            this.baseInventory -= amount;
+            this.quoteInventory += cost;
+        }
+    }
+    getCooldownTime() {
+        return 5000;
+    }
+    getMarketMakingStats() {
+        const bidNum = Number(this.lastQuotedBid) / 1e18;
+        const askNum = Number(this.lastQuotedAsk) / 1e18;
+        const spread = bidNum > 0 ? ((askNum - bidNum) / bidNum) * 10000 : 0;
+        return {
+            baseInventory: (Number(this.baseInventory) / 1e18).toFixed(8),
+            quoteInventory: (Number(this.quoteInventory) / 1e18).toFixed(8),
+            imbalance: this.calculateInventoryImbalance(),
+            lastBid: bidNum.toFixed(8),
+            lastAsk: askNum.toFixed(8),
+            spread,
+        };
+    }
+}
+exports.MarketMakerBot = MarketMakerBot;
+exports.default = MarketMakerBot;

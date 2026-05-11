@@ -23,16 +23,17 @@ interface TopPlan {
   description?: string;
   image?: string;
   currency: string;
-  minProfit: number;
-  maxProfit: number;
-  minAmount: number;
-  maxAmount: number;
-  profitPercentage: number;
-  totalInvested: number;
-  investorCount: number;
-  winRate: number;
+  minProfit: number | string;
+  maxProfit: number | string;
+  minAmount: number | string;
+  maxAmount: number | string;
+  profitPercentage: number | string;
+  invested?: number | string;
+  totalInvested?: number | string;
+  investorCount?: number;
+  winRate?: number | string;
   durations?: { duration: number; timeframe: string }[];
-  badge: string;
+  badge?: string;
 }
 
 interface TopPlanSpotlightSectionProps {
@@ -40,10 +41,26 @@ interface TopPlanSpotlightSectionProps {
   isLoading?: boolean;
 }
 
-function formatCurrency(num: number): string {
-  if (num >= 1000000) return `$${(num / 1000000).toFixed(1)}M`;
-  if (num >= 1000) return `$${(num / 1000).toFixed(0)}K`;
-  return `$${num.toFixed(0)}`;
+function formatCurrency(num: number | string): string {
+  const value = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(value)) return '$0';
+  if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value.toFixed(0)}`;
+}
+
+function formatAmount(num: number | string): string {
+  const value = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(value)) return '0';
+  // Format with up to 2 decimal places, removing trailing zeros
+  return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+function formatPercent(num: number | string): string {
+  const value = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(value)) return '0';
+  // Format with up to 2 decimal places
+  return value.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
 function LoadingSpotlight() {
@@ -155,45 +172,51 @@ export default function TopPlanSpotlightSection({
                           </span>
                         </div>
                         <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                          {plan.profitPercentage}%
+                          {formatPercent(plan.profitPercentage)}%
                         </p>
                       </div>
 
-                      <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
-                        <div className="flex items-center gap-2 mb-1">
-                          <TrendingUp className="w-4 h-4 text-teal-500" />
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {tCommon("win_rate")}
-                          </span>
+                      {plan.winRate !== undefined && (
+                        <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20">
+                          <div className="flex items-center gap-2 mb-1">
+                            <TrendingUp className="w-4 h-4 text-teal-500" />
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {tCommon("win_rate")}
+                            </span>
+                          </div>
+                          <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                            {formatPercent(plan.winRate)}%
+                          </p>
                         </div>
-                        <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-                          {plan.winRate}%
-                        </p>
-                      </div>
+                      )}
 
-                      <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Users className="w-4 h-4 text-sky-500" />
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            Investors
-                          </span>
+                      {plan.investorCount !== undefined && (
+                        <div className="p-4 rounded-xl bg-sky-500/10 border border-sky-500/20">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Users className="w-4 h-4 text-sky-500" />
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Investors
+                            </span>
+                          </div>
+                          <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+                            {plan.investorCount}
+                          </p>
                         </div>
-                        <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
-                          {plan.investorCount}
-                        </p>
-                      </div>
+                      )}
 
-                      <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
-                        <div className="flex items-center gap-2 mb-1">
-                          <DollarSign className="w-4 h-4 text-violet-500" />
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                            Invested
-                          </span>
+                      {(plan.totalInvested !== undefined || plan.invested !== undefined) && (
+                        <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                          <div className="flex items-center gap-2 mb-1">
+                            <DollarSign className="w-4 h-4 text-violet-500" />
+                            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                              Invested
+                            </span>
+                          </div>
+                          <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">
+                            {formatCurrency(plan.totalInvested ?? plan.invested ?? 0)}
+                          </p>
                         </div>
-                        <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">
-                          {formatCurrency(plan.totalInvested)}
-                        </p>
-                      </div>
+                      )}
                     </div>
 
                     {/* Investment Range & Durations */}
@@ -201,13 +224,13 @@ export default function TopPlanSpotlightSection({
                       <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                         <DollarSign className="w-4 h-4" />
                         <span>
-                          {tCommon("min")} <strong>${plan.minAmount}</strong>
+                          {tCommon("min")} <strong>${formatAmount(plan.minAmount)}</strong>
                         </span>
                         {plan.maxAmount && (
                           <>
                             <span>-</span>
                             <span>
-                              {tCommon("max")} <strong>${plan.maxAmount}</strong>
+                              {tCommon("max")} <strong>${formatAmount(plan.maxAmount)}</strong>
                             </span>
                           </>
                         )}
@@ -258,7 +281,7 @@ export default function TopPlanSpotlightSection({
                       {/* Center content */}
                       <div className="absolute inset-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex flex-col items-center justify-center text-white shadow-2xl shadow-emerald-500/30">
                         <span className="text-sm font-medium opacity-80">{tExt("up_to")}</span>
-                        <span className="text-4xl font-bold">{plan.maxProfit}%</span>
+                        <span className="text-4xl font-bold">{formatPercent(plan.maxProfit)}%</span>
                         <span className="text-sm font-medium opacity-80">Returns</span>
                       </div>
                     </div>

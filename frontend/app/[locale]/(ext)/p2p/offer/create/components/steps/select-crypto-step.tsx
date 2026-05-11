@@ -58,7 +58,8 @@ export function SelectCryptoStep() {
         setIsLoading(true);
         setError(null);
 
-        const response = await fetch("/api/finance/currency/valid");
+        const sellableParam = tradeData.tradeType === "sell" ? "?sellable=true" : "";
+        const response = await fetch(`/api/finance/currency/valid${sellableParam}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch currencies");
@@ -128,7 +129,8 @@ export function SelectCryptoStep() {
         if (response.ok) {
           const walletData = await response.json();
           if (walletData && walletData.balance !== undefined) {
-            availableBalance = walletData.balance - (walletData.inOrder || 0);
+            // HOLD model: wallet.balance is the available/free amount directly.
+            availableBalance = walletData.balance;
           }
         }
       } catch (error) {

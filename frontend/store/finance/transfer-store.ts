@@ -51,6 +51,9 @@ interface TransferState {
   estimatedReceiveAmount: number;
   transferFee: number;
   exchangeRate: number | null;
+  exchangeRateLoading: boolean;
+  fromPriceUSD: number | null;
+  toPriceUSD: number | null;
 
   // UI state
   loading: boolean;
@@ -94,6 +97,9 @@ export const useTransferStore = create<TransferState>((set, get) => ({
   estimatedReceiveAmount: 0,
   transferFee: 0,
   exchangeRate: null,
+  exchangeRateLoading: false,
+  fromPriceUSD: null,
+  toPriceUSD: null,
   loading: false,
   error: null,
   transferSuccess: null,
@@ -123,6 +129,9 @@ export const useTransferStore = create<TransferState>((set, get) => ({
         estimatedReceiveAmount: 0,
         transferFee: 0,
         exchangeRate: null,
+        exchangeRateLoading: false,
+        fromPriceUSD: null,
+        toPriceUSD: null,
         error: null,
         transferSuccess: null,
       });
@@ -324,6 +333,9 @@ export const useTransferStore = create<TransferState>((set, get) => ({
       return;
     }
 
+    // Show loading state while fetching exchange rate
+    set({ exchangeRateLoading: true });
+
     try {
       const { data, error } = await $fetch({
         url: `/api/finance/exchange-rate?fromCurrency=${fromCurrency}&fromType=${fromWalletType}&toCurrency=${toCurrency}&toType=${toWalletType}`,
@@ -332,34 +344,53 @@ export const useTransferStore = create<TransferState>((set, get) => ({
 
       if (error || !data?.rate) {
         console.error("Error fetching exchange rate:", error);
-        // Fallback to 1:1 on error (no fee for wallet transfers)
+        // Do NOT fallback to 1:1 - show 0 so user knows rate is unavailable
         set({
-          estimatedReceiveAmount: Math.round(amount * 100) / 100,
+          estimatedReceiveAmount: 0,
           transferFee: 0,
           exchangeRate: null,
+          exchangeRateLoading: false,
+          fromPriceUSD: null,
+          toPriceUSD: null,
+          error: `Unable to fetch exchange rate for ${fromCurrency} to ${toCurrency}. Please try again.`,
         });
         return;
       }
 
-      // Calculate with real exchange rate (no fee for wallet transfers)
-      const amountAfterFee = amount;
+      // Calculate fee (1% for client transfers, 0% for wallet transfers)
+      const feeRate = transferType === "client" ? 0.01 : 0;
+      const fee = Math.round(amount * feeRate * 100) / 100;
+      const amountAfterFee = amount - fee;
       const exchangeRate = data.rate;
 
-      // Calculate estimated receive amount using exchange rate
+      // Calculate estimated receive amount using real exchange rate
+      // Example: 20 LTC * (LTC_USD_price / ZAR_USD_price) = 20 * (95 / 0.055) = 20 * 1727.27 = 34545.45 ZAR
       const estimatedReceive = amountAfterFee * exchangeRate;
 
+      // Use 2 decimal places for FIAT target, 8 for crypto
+      const isFiatTarget = toWalletType === "FIAT";
+      const precision = isFiatTarget ? 100 : 100000000;
+      const roundedReceive = Math.round(estimatedReceive * precision) / precision;
+
       set({
-        estimatedReceiveAmount: Math.round(estimatedReceive * 100000000) / 100000000, // 8 decimal places for crypto
-        transferFee: 0,
+        estimatedReceiveAmount: roundedReceive,
+        transferFee: fee,
         exchangeRate: exchangeRate,
+        exchangeRateLoading: false,
+        fromPriceUSD: data.fromPriceUSD || null,
+        toPriceUSD: data.toPriceUSD || null,
       });
     } catch (err) {
       console.error("Error fetching exchange rate:", err);
-      // Fallback to 1:1 on error (no fee for wallet transfers)
+      // Do NOT fallback to 1:1 - show error
       set({
-        estimatedReceiveAmount: Math.round(amount * 100) / 100,
+        estimatedReceiveAmount: 0,
         transferFee: 0,
         exchangeRate: null,
+        exchangeRateLoading: false,
+        fromPriceUSD: null,
+        toPriceUSD: null,
+        error: `Unable to fetch exchange rate for ${fromCurrency} to ${toCurrency}. Please try again.`,
       });
     }
   },
@@ -368,13 +399,13 @@ export const useTransferStore = create<TransferState>((set, get) => ({
     const { amount, transferType, fromCurrency, toCurrency, fromWalletType, toWalletType } = get();
 
     if (!amount || amount <= 0) {
-      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null });
+      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null, exchangeRateLoading: false, fromPriceUSD: null, toPriceUSD: null });
       return;
     }
 
     // Validate required fields before calculation
     if (!transferType || !fromCurrency) {
-      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null });
+      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null, exchangeRateLoading: false, fromPriceUSD: null, toPriceUSD: null });
       return;
     }
 
@@ -385,7 +416,7 @@ export const useTransferStore = create<TransferState>((set, get) => ({
 
     // Validate fee calculation
     if (fee < 0 || amountAfterFee < 0) {
-      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null });
+      set({ estimatedReceiveAmount: 0, transferFee: 0, exchangeRate: null, exchangeRateLoading: false, fromPriceUSD: null, toPriceUSD: null });
       return;
     }
 
@@ -395,20 +426,35 @@ export const useTransferStore = create<TransferState>((set, get) => ({
         estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
         transferFee: fee,
         exchangeRate: 1,
+        exchangeRateLoading: false,
+        fromPriceUSD: null,
+        toPriceUSD: null,
       });
       return;
     }
 
     // For cross-currency transfers, fetch real exchange rates from backend
     if (fromWalletType && toWalletType) {
-      // Fetch exchange rate asynchronously
-      get().fetchExchangeRateAndCalculate();
-    } else {
-      // If wallet types not selected yet, use placeholder
+      // Set loading state and clear previous rate while fetching
       set({
-        estimatedReceiveAmount: Math.round(amountAfterFee * 100) / 100,
+        exchangeRateLoading: true,
+        estimatedReceiveAmount: 0,
         transferFee: fee,
         exchangeRate: null,
+        fromPriceUSD: null,
+        toPriceUSD: null,
+      });
+      // Fetch exchange rate asynchronously - it will update state when done
+      get().fetchExchangeRateAndCalculate();
+    } else {
+      // If wallet types not selected yet, show nothing
+      set({
+        estimatedReceiveAmount: 0,
+        transferFee: fee,
+        exchangeRate: null,
+        exchangeRateLoading: false,
+        fromPriceUSD: null,
+        toPriceUSD: null,
       });
     }
   },
@@ -487,6 +533,9 @@ export const useTransferStore = create<TransferState>((set, get) => ({
       estimatedReceiveAmount: 0,
       transferFee: 0,
       exchangeRate: null,
+      exchangeRateLoading: false,
+      fromPriceUSD: null,
+      toPriceUSD: null,
       loading: false,
       error: null,
       transferSuccess: null,

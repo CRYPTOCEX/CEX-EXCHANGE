@@ -59,6 +59,10 @@ export interface TradeActions {
   clearTradeErrors: () => void;
 }
 
+// M18: Module-level request counters to discard stale responses
+let fetchDashboardRequestCounter = 0;
+let fetchTradeByIdRequestCounter = 0;
+
 export const createTradeSlice = (
   set: any,
   get: any
@@ -98,6 +102,7 @@ export const createTradeSlice = (
 
   // Actions
   fetchTradeDashboardData: async () => {
+    const currentRequest = ++fetchDashboardRequestCounter;
     try {
       set({ isLoadingTradeDashboardData: true, tradeDashboardDataError: null });
 
@@ -106,6 +111,9 @@ export const createTradeSlice = (
         $fetch({ url: "/api/p2p/trade", silentSuccess: true }),
         $fetch({ url: "/api/p2p/dashboard", silentSuccess: true }),
       ]);
+
+      // M18: discard stale responses
+      if (currentRequest !== fetchDashboardRequestCounter) return;
 
       if (tradesResponse.error && dashboardResponse.error) {
         set({
@@ -129,26 +137,25 @@ export const createTradeSlice = (
         }));
       };
 
-      // Get trades from /api/p2p/trade response (returns { trades: [...] })
-      const tradesData = tradesResponse.data;
-      const allTrades = Array.isArray(tradesData?.trades) ? tradesData.trades : [];
+      // Get trades from /api/p2p/trade response
+      // Backend returns pre-separated arrays: activeTrades, pendingTrades, completedTrades, etc.
+      const tradesData = tradesResponse.data || {};
 
-      // Separate trades by status
-      const activeTrades = allTrades.filter((t: any) =>
-        ['PENDING', 'PAYMENT_SENT', 'DISPUTED'].includes(t.status)
-      );
-      const completedTrades = allTrades.filter((t: any) => t.status === 'COMPLETED');
-      const disputedTrades = allTrades.filter((t: any) => t.status === 'DISPUTED');
-      const pendingTrades = allTrades.filter((t: any) => t.status === 'PENDING');
+      // Use pre-separated arrays from the backend response
+      const activeTrades = Array.isArray(tradesData.activeTrades) ? tradesData.activeTrades : [];
+      const completedTrades = Array.isArray(tradesData.completedTrades) ? tradesData.completedTrades : [];
+      const disputedTrades = Array.isArray(tradesData.disputedTrades) ? tradesData.disputedTrades : [];
+      const cancelledTrades = Array.isArray(tradesData.cancelledTrades) ? tradesData.cancelledTrades : [];
+      const pendingTrades = Array.isArray(tradesData.pendingTrades) ? tradesData.pendingTrades : [];
 
       // Get dashboard stats from /api/p2p/dashboard response
       const dashboardData = dashboardResponse.data || {};
 
       // Map API response to frontend expected structure
       const processedData = {
-        // Map stats from dashboard API response
-        tradeStats: dashboardData.stats || {
-          totalTrades: allTrades.length,
+        // Use tradeStats from the trades endpoint, fall back to dashboard stats
+        tradeStats: tradesData.tradeStats || dashboardData.stats || {
+          totalTrades: 0,
           completedTrades: completedTrades.length,
           activeTrades: activeTrades.length,
           totalVolume: 0,
@@ -157,19 +164,25 @@ export const createTradeSlice = (
           totalOffers: 0,
           activeOffers: 0,
         },
-        // Map recent activity from dashboard
-        recentActivity: Array.isArray(dashboardData.recentActivity)
-          ? dashboardData.recentActivity.map((activity: any) => ({
+        // Use recentActivity from trades endpoint, fall back to dashboard
+        recentActivity: Array.isArray(tradesData.recentActivity)
+          ? tradesData.recentActivity.map((activity: any) => ({
               ...activity,
               createdAt: new Date(activity.time || activity.createdAt),
             }))
-          : [],
-        // Map trades
+          : Array.isArray(dashboardData.recentActivity)
+            ? dashboardData.recentActivity.map((activity: any) => ({
+                ...activity,
+                createdAt: new Date(activity.time || activity.createdAt),
+              }))
+            : [],
+        // Map trades from pre-separated arrays
         activeTrades: processTradesWithTimeline(activeTrades),
         completedTrades: processTradesWithTimeline(completedTrades),
         disputedTrades: processTradesWithTimeline(disputedTrades),
+        cancelledTrades: processTradesWithTimeline(cancelledTrades),
         pendingTrades: processTradesWithTimeline(pendingTrades),
-        availableCurrencies: dashboardData.availableCurrencies || [],
+        availableCurrencies: tradesData.availableCurrencies || dashboardData.availableCurrencies || [],
       };
 
       set({
@@ -185,6 +198,7 @@ export const createTradeSlice = (
   },
 
   fetchTradeById: async (id: string) => {
+    const currentRequest = ++fetchTradeByIdRequestCounter;
     try {
       set({ isLoadingTradeById: true, tradeByIdError: null });
       const { data, error } = await $fetch({
@@ -192,6 +206,9 @@ export const createTradeSlice = (
         silentSuccess: true,
         silent: true, // Don't show toast on error
       });
+
+      // M18: discard stale responses
+      if (currentRequest !== fetchTradeByIdRequestCounter) return;
 
       if (error) {
         set({

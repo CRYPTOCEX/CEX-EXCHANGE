@@ -148,7 +148,7 @@ export function FeedbackDetailsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {tCommon("close")}
           </Button>
-          <Link href={`/admin/faq/${feedback.faqId}`}>
+          <Link href={`/admin/faq/manage/${feedback.faqId}`}>
             <Button variant={feedback.isHelpful ? "default" : "destructive"}>
               <ExternalLink className="h-4 w-4 mr-1" />
               {t("view_faq")}

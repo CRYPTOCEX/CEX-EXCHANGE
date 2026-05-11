@@ -15,6 +15,7 @@ const db_1 = require("@b/db");
 const emails_1 = require("@b/utils/emails");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 async function updatePrivateLedger(walletId, index, currency, chain, amount, transaction) {
     await wallet_1.ledgerService.updateLedger({
         walletId,
@@ -112,13 +113,18 @@ function getSortedChainBalances(fromAddresses) {
         .sort(([, a], [, b]) => b.balance - a.balance);
 }
 async function recordAdminProfit({ userId, transferFeeAmount, fromCurrency, fromType, toType, transactionId, t, }) {
-    await db_1.models.adminProfit.create({
-        amount: transferFeeAmount,
+    const walletType = fromType === "FIAT" ? "FIAT" : fromType === "ECO" ? "ECO" : "SPOT";
+    await (0, fees_1.collectPlatformFee)({
+        userId,
         currency: fromCurrency,
+        walletType,
+        feeAmount: transferFeeAmount,
         type: "TRANSFER",
-        transactionId,
-        description: `Transfer fee for user (${userId}) of ${transferFeeAmount} ${fromCurrency} from ${fromType} to ${toType}`,
-    }, { transaction: t });
+        description: `Platform fee from transfer of ${transferFeeAmount} ${fromCurrency} from ${fromType} to ${toType}`,
+        referenceId: transactionId,
+        metadata: { userId, fromType, toType },
+        transaction: t,
+    });
 }
 async function createTransferTransaction(userId, walletId, type, amount, fee, fromCurrency, toCurrency, fromWalletId, toWalletId, description, status, transaction) {
     return await db_1.models.transaction.create({

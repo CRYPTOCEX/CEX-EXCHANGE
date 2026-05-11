@@ -1,1 +1,171 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.SizeGenerator=void 0;class SizeGenerator{constructor(e,t=.01,i=1e3){this.roundNumberWeights={1:.15,5:.25,10:.3,25:.1,50:.1,100:.08,1e3:.02};this.positionHistory=[];this.baseSize=e;this.minSize=t;this.maxSize=i}generateSize(e={}){const{confidence:t=.5,urgency:i=.5,preferRound:s=!0}=e;let a=this.baseSize;a*=.5+t;i>.7&&(a*=1+2*(i-.7));a*=.7+.6*Math.random();s&&(a=this.roundToHumanNumber(a));a=Math.max(this.minSize,Math.min(this.maxSize,a));return a}generateScalingSize(e,t,i){const s=Math.abs(e-t);if(s<=0)return 0;let a;if("IN"===i){a=.1+.2*(t/e)+.1*Math.random()}else{a=.3-.15*(1-t/e)+.1*Math.random()}let r=s*a;r=this.roundToHumanNumber(r);return Math.max(this.minSize,r)}generateMarketAwareSize(e,t,i){let s=this.baseSize;e>.5&&(s*=1-.5*(e-.5));const a=t/(100*this.baseSize);a<1&&(s*=Math.max(.5,a));i>.001&&(s*=Math.max(.6,1-50*i));s*=.8+.4*Math.random();return this.roundToHumanNumber(Math.max(this.minSize,s))}generateIcebergSizes(e,t=.1){const i=e*t,s=e-i,a=[];let r=s;for(;r>this.minSize;){let e=r*(.1+.2*Math.random());e=this.roundToHumanNumber(e);e=Math.min(e,r);if(!(e>=this.minSize))break;a.push(e);r-=e}r>0&&a.length>0&&(a[a.length-1]+=r);return{visible:this.roundToHumanNumber(i),hidden:s,chunks:a}}getSizeForBalance(e,t=.02){let i=e*t*(.3+.4*Math.random());return this.roundToHumanNumber(Math.min(i,this.maxSize))}recordTrade(e,t){this.positionHistory.push({size:e,side:t,timestamp:Date.now()});this.positionHistory.length>100&&this.positionHistory.shift()}getAverageRecentSize(e=36e5){const t=Date.now()-e,i=this.positionHistory.filter(e=>e.timestamp>t);return 0===i.length?this.baseSize:i.reduce((e,t)=>e+t.size,0)/i.length}roundToHumanNumber(e){const t=Math.floor(Math.log10(e)),i=Math.pow(10,t),s=e/i,a=[1,1.5,2,2.5,3,4,5,6,7,7.5,8,9,10];let r=a[0],n=Math.abs(s-r);for(const e of a){const t=Math.abs(s-e);if(t<n){n=t;r=e}}return Math.random()<.2?e:r*i}generateWithDistribution(e){let t;switch(e){case"UNIFORM":t=this.minSize+Math.random()*(this.maxSize-this.minSize);break;case"NORMAL":const e=Math.random(),i=Math.random(),s=Math.sqrt(-2*Math.log(e))*Math.cos(2*Math.PI*i);t=this.baseSize+s*(.3*this.baseSize);break;case"SKEWED_SMALL":t=this.minSize+Math.pow(Math.random(),2)*(this.maxSize-this.minSize);break;case"SKEWED_LARGE":t=this.minSize+Math.pow(Math.random(),.5)*(this.maxSize-this.minSize);break;default:t=this.baseSize}return this.roundToHumanNumber(Math.max(this.minSize,Math.min(this.maxSize,t)))}getStats(){const e=this.positionHistory.filter(e=>"BUY"===e.side),t=this.positionHistory.filter(e=>"SELL"===e.side);return{baseSize:this.baseSize,averageRecent:this.getAverageRecentSize(),tradeCount:this.positionHistory.length,buyVolume:e.reduce((e,t)=>e+t.size,0),sellVolume:t.reduce((e,t)=>e+t.size,0)}}}exports.SizeGenerator=SizeGenerator;exports.default=SizeGenerator;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SizeGenerator = void 0;
+class SizeGenerator {
+    constructor(baseSize, minSize = 0.01, maxSize = 1000) {
+        this.roundNumberWeights = {
+            1: 0.15,
+            5: 0.25,
+            10: 0.30,
+            25: 0.10,
+            50: 0.10,
+            100: 0.08,
+            1000: 0.02,
+        };
+        this.positionHistory = [];
+        this.baseSize = baseSize;
+        this.minSize = minSize;
+        this.maxSize = maxSize;
+    }
+    generateSize(options = {}) {
+        const { confidence = 0.5, urgency = 0.5, preferRound = true } = options;
+        let size = this.baseSize;
+        size *= 0.5 + confidence;
+        if (urgency > 0.7) {
+            size *= 1 + (urgency - 0.7) * 2;
+        }
+        size *= 0.7 + Math.random() * 0.6;
+        if (preferRound) {
+            size = this.roundToHumanNumber(size);
+        }
+        size = Math.max(this.minSize, Math.min(this.maxSize, size));
+        return size;
+    }
+    generateScalingSize(targetTotalSize, currentPosition, direction) {
+        const remaining = Math.abs(targetTotalSize - currentPosition);
+        if (remaining <= 0) {
+            return 0;
+        }
+        let sizeFraction;
+        if (direction === "IN") {
+            const progress = currentPosition / targetTotalSize;
+            sizeFraction = 0.1 + progress * 0.2 + Math.random() * 0.1;
+        }
+        else {
+            const progress = 1 - currentPosition / targetTotalSize;
+            sizeFraction = 0.3 - progress * 0.15 + Math.random() * 0.1;
+        }
+        let size = remaining * sizeFraction;
+        size = this.roundToHumanNumber(size);
+        return Math.max(this.minSize, size);
+    }
+    generateMarketAwareSize(volatility, volume, spread) {
+        let size = this.baseSize;
+        if (volatility > 0.5) {
+            size *= 1 - (volatility - 0.5) * 0.5;
+        }
+        const volumeRatio = volume / (this.baseSize * 100);
+        if (volumeRatio < 1) {
+            size *= Math.max(0.5, volumeRatio);
+        }
+        if (spread > 0.001) {
+            size *= Math.max(0.6, 1 - spread * 50);
+        }
+        size *= 0.8 + Math.random() * 0.4;
+        return this.roundToHumanNumber(Math.max(this.minSize, size));
+    }
+    generateIcebergSizes(totalSize, visiblePercentage = 0.1) {
+        const visible = totalSize * visiblePercentage;
+        const hidden = totalSize - visible;
+        const chunks = [];
+        let remaining = hidden;
+        while (remaining > this.minSize) {
+            let chunk = remaining * (0.1 + Math.random() * 0.2);
+            chunk = this.roundToHumanNumber(chunk);
+            chunk = Math.min(chunk, remaining);
+            if (chunk >= this.minSize) {
+                chunks.push(chunk);
+                remaining -= chunk;
+            }
+            else {
+                break;
+            }
+        }
+        if (remaining > 0 && chunks.length > 0) {
+            chunks[chunks.length - 1] += remaining;
+        }
+        return {
+            visible: this.roundToHumanNumber(visible),
+            hidden,
+            chunks,
+        };
+    }
+    getSizeForBalance(balance, riskPercent = 0.02) {
+        const maxRiskSize = balance * riskPercent;
+        let size = maxRiskSize * (0.3 + Math.random() * 0.4);
+        return this.roundToHumanNumber(Math.min(size, this.maxSize));
+    }
+    recordTrade(size, side) {
+        this.positionHistory.push({
+            size,
+            side,
+            timestamp: Date.now(),
+        });
+        if (this.positionHistory.length > 100) {
+            this.positionHistory.shift();
+        }
+    }
+    getAverageRecentSize(windowMs = 3600000) {
+        const cutoff = Date.now() - windowMs;
+        const recent = this.positionHistory.filter((t) => t.timestamp > cutoff);
+        if (recent.length === 0) {
+            return this.baseSize;
+        }
+        return recent.reduce((sum, t) => sum + t.size, 0) / recent.length;
+    }
+    roundToHumanNumber(size) {
+        const magnitude = Math.floor(Math.log10(size));
+        const base = Math.pow(10, magnitude);
+        const normalized = size / base;
+        const roundTargets = [1, 1.5, 2, 2.5, 3, 4, 5, 6, 7, 7.5, 8, 9, 10];
+        let closest = roundTargets[0];
+        let minDiff = Math.abs(normalized - closest);
+        for (const target of roundTargets) {
+            const diff = Math.abs(normalized - target);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = target;
+            }
+        }
+        if (Math.random() < 0.2) {
+            return size;
+        }
+        return closest * base;
+    }
+    generateWithDistribution(distribution) {
+        let size;
+        switch (distribution) {
+            case "UNIFORM":
+                size = this.minSize + Math.random() * (this.maxSize - this.minSize);
+                break;
+            case "NORMAL":
+                const u1 = Math.random();
+                const u2 = Math.random();
+                const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                size = this.baseSize + z * (this.baseSize * 0.3);
+                break;
+            case "SKEWED_SMALL":
+                size = this.minSize + Math.pow(Math.random(), 2) * (this.maxSize - this.minSize);
+                break;
+            case "SKEWED_LARGE":
+                size = this.minSize + Math.pow(Math.random(), 0.5) * (this.maxSize - this.minSize);
+                break;
+            default:
+                size = this.baseSize;
+        }
+        return this.roundToHumanNumber(Math.max(this.minSize, Math.min(this.maxSize, size)));
+    }
+    getStats() {
+        const buyTrades = this.positionHistory.filter((t) => t.side === "BUY");
+        const sellTrades = this.positionHistory.filter((t) => t.side === "SELL");
+        return {
+            baseSize: this.baseSize,
+            averageRecent: this.getAverageRecentSize(),
+            tradeCount: this.positionHistory.length,
+            buyVolume: buyTrades.reduce((sum, t) => sum + t.size, 0),
+            sellVolume: sellTrades.reduce((sum, t) => sum + t.size, 0),
+        };
+    }
+}
+exports.SizeGenerator = SizeGenerator;
+exports.default = SizeGenerator;

@@ -95,6 +95,12 @@ const offeringActions = {
         };
     },
     flag: async (offering, now, body) => {
+        if (offering.isFlagged) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Offering is already flagged.",
+            });
+        }
         await offering.update({ isFlagged: true });
         return {
             emailTemplate: "IcoOfferingFlagged",
@@ -157,6 +163,12 @@ const offeringActions = {
         };
     },
     unflag: async (offering, now, body) => {
+        if (!offering.isFlagged) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Offering is not flagged.",
+            });
+        }
         await offering.update({ isFlagged: false });
         return {
             emailTemplate: "IcoOfferingUnflagged",

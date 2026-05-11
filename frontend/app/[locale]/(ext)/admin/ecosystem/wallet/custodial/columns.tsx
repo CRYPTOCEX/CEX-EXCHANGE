@@ -158,46 +158,6 @@ export function useFormConfig(): FormConfig {
             },
           ],
         },
-        {
-          id: "blockchain-info",
-          title: tExtAdmin("blockchain_information"),
-          icon: Network,
-          priority: 2,
-          fields: [
-            {
-              key: "chain",
-              required: true,
-              maxLength: 255,
-            },
-            {
-              key: "network",
-              required: true,
-              maxLength: 255,
-            },
-            {
-              key: "address",
-              required: true,
-              maxLength: 255,
-            },
-          ],
-        },
-        {
-          id: "status",
-          title: tCommon("wallet_status"),
-          icon: Settings,
-          priority: 3,
-          fields: [
-            {
-              key: "status",
-              required: true,
-              options: [
-                { value: "ACTIVE", label: tCommon("active") },
-                { value: "INACTIVE", label: tCommon("inactive") },
-                { value: "SUSPENDED", label: tCommon("suspended") },
-              ],
-            },
-          ],
-        },
       ],
     },
     edit: {

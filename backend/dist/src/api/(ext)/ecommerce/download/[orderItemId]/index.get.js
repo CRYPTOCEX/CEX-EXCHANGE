@@ -70,7 +70,7 @@ exports.default = async (data) => {
             {
                 model: db_1.models.ecommerceProduct,
                 as: "product",
-                attributes: ["id", "name", "type", "status"],
+                attributes: ["id", "name", "type"],
             },
         ],
     });
@@ -93,12 +93,6 @@ exports.default = async (data) => {
             message: "This product is not downloadable"
         });
     }
-    if (!orderItemData.product.status) {
-        throw (0, error_1.createError)({
-            statusCode: 410,
-            message: "This product is no longer available for download"
-        });
-    }
     if (!orderItemData.filePath) {
         throw (0, error_1.createError)({
             statusCode: 404,
@@ -109,7 +103,7 @@ exports.default = async (data) => {
         const uploadsBaseDir = path_1.default.resolve(process.env.UPLOAD_DIR || './uploads/ecommerce/products');
         const normalizedPath = path_1.default.normalize(orderItemData.filePath);
         const resolvedPath = path_1.default.resolve(uploadsBaseDir, normalizedPath);
-        if (!resolvedPath.startsWith(uploadsBaseDir)) {
+        if (!resolvedPath.startsWith(uploadsBaseDir + path_1.default.sep)) {
             throw (0, error_1.createError)({
                 statusCode: 403,
                 message: "Access denied"

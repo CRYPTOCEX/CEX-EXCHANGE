@@ -307,8 +307,8 @@ export default class user
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
-    user.hasOne(models.kycApplication, {
-      as: "kyc",
+    user.hasMany(models.kycApplication, {
+      as: "kycApplications",
       foreignKey: "userId",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",

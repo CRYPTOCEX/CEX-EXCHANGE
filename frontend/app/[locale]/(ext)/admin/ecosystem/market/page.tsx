@@ -27,7 +27,7 @@ export default function EcosystemMarketPage() {
       editLink="/admin/ecosystem/market/[id]"
       canDelete
       canView
-      isParanoid={false}
+      isParanoid={true}
       title="Markets"
       description={t("configure_trading_market_pairs")}
       itemTitle="Market"

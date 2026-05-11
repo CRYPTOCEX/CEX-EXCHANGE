@@ -10,6 +10,8 @@ const NodemailerProvider_1 = require("../providers/email/NodemailerProvider");
 const console_1 = require("@b/utils/console");
 class NotificationQueue {
     constructor() {
+        this.sendGridProvider = null;
+        this.nodemailerProvider = null;
         this.queue = new bull_1.default("notification-emails", {
             redis: {
                 host: process.env.REDIS_HOST || "127.0.0.1",
@@ -26,10 +28,20 @@ class NotificationQueue {
                 removeOnFail: 500,
             },
         });
-        this.sendGridProvider = new SendGridProvider_1.SendGridProvider();
-        this.nodemailerProvider = new NodemailerProvider_1.NodemailerProvider();
         this.queue.process(this.processEmailJob.bind(this));
         this.registerEventHandlers();
+    }
+    getSendGridProvider() {
+        if (!this.sendGridProvider) {
+            this.sendGridProvider = new SendGridProvider_1.SendGridProvider();
+        }
+        return this.sendGridProvider;
+    }
+    getNodemailerProvider() {
+        if (!this.nodemailerProvider) {
+            this.nodemailerProvider = new NodemailerProvider_1.NodemailerProvider();
+        }
+        return this.nodemailerProvider;
     }
     static getInstance() {
         if (!NotificationQueue.instance) {
@@ -71,10 +83,10 @@ class NotificationQueue {
         try {
             let result;
             if (provider === "sendgrid") {
-                result = await this.sendGridProvider.send(emailData);
+                result = await this.getSendGridProvider().send(emailData);
             }
             else if (provider === "nodemailer") {
-                result = await this.nodemailerProvider.send(emailData);
+                result = await this.getNodemailerProvider().send(emailData);
             }
             else {
                 throw new Error(`Unknown email provider: ${provider}`);
@@ -106,8 +118,8 @@ class NotificationQueue {
         this.queue.on("failed", (job, error) => {
             console_1.logger.error("Queue", `Email job failed permanently: jobId=${job.id}, notificationId=${job.data.notificationId}, attempts=${job.attemptsMade}`, error instanceof Error ? error : new Error(String(error)));
         });
-        this.queue.on("stalled", (job) => {
-            console_1.logger.warn("Queue", `Email job stalled: jobId=${job.id}, notificationId=${job.data.notificationId}`);
+        this.queue.on("stalled", (jobId) => {
+            console_1.logger.warn("Queue", `Email job stalled: jobId=${jobId}`);
         });
         this.queue.on("error", (error) => {
             console_1.logger.error("Queue", "Queue error occurred", error instanceof Error ? error : new Error(String(error)));

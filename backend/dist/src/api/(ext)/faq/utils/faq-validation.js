@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.sanitizeHTML = sanitizeHTML;
 exports.validateEmail = validateEmail;
 exports.validateFAQQuestion = validateFAQQuestion;
 exports.validateFAQAnswer = validateFAQAnswer;
@@ -13,6 +14,16 @@ exports.validatePagePath = validatePagePath;
 exports.sanitizeInput = sanitizeInput;
 exports.validateAndSanitizeFAQ = validateAndSanitizeFAQ;
 const validator_1 = __importDefault(require("validator"));
+function sanitizeHTML(html) {
+    if (!html || typeof html !== 'string')
+        return '';
+    let sanitized = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+    sanitized = sanitized.replace(/\s*on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+    sanitized = sanitized.replace(/(href|src)\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi, '$1=""');
+    sanitized = sanitized.replace(/(href|src)\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi, '$1=""');
+    sanitized = sanitized.replace(/<\/?(?:iframe|embed|object|form|input|button)\b[^>]*>/gi, '');
+    return sanitized;
+}
 function validateEmail(email, ctx) {
     var _a, _b, _c, _d;
     (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, 'Validating email address');
@@ -207,7 +218,7 @@ function validatePagePath(pagePath, ctx) {
     if (trimmedPath.length > 200) {
         errors.push('Page path must not exceed 200 characters');
     }
-    if (!/^[a-zA-Z0-9\-_/]+$/.test(trimmedPath)) {
+    if (!/^[a-zA-Z0-9\-_/.()\[\]]+$/.test(trimmedPath)) {
         errors.push('Page path contains invalid characters');
     }
     if (errors.length > 0) {
@@ -265,10 +276,10 @@ function validateAndSanitizeFAQ(data, ctx) {
     (_c = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _c === void 0 ? void 0 : _c.call(ctx, 'Sanitizing FAQ data');
     const sanitized = {
         question: sanitizeInput(data.question, ctx),
-        answer: data.answer,
+        answer: sanitizeHTML(data.answer),
         category: sanitizeInput(data.category, ctx),
         tags: data.tags ? data.tags.map((tag) => sanitizeInput(tag, ctx)) : [],
-        pagePath: sanitizeInput(data.pagePath, ctx),
+        pagePath: data.pagePath ? data.pagePath.trim() : data.pagePath,
         status: typeof data.status === 'boolean' ? data.status : true,
         order: typeof data.order === 'number' ? data.order : 0,
         image: data.image ? sanitizeInput(data.image, ctx) : undefined

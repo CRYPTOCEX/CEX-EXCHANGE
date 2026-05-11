@@ -53,12 +53,12 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching faq questions");
         const questions = await db_1.models.faqQuestion.findAll({
             order: [["createdAt", "DESC"]],
+            limit: 100,
         });
         ctx === null || ctx === void 0 ? void 0 : ctx.success("FAQ questions retrieved successfully");
         return questions;
     }
     catch (error) {
-        console.error("Error fetching FAQ questions:", error);
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Failed to fetch faq questions");
         throw (0, error_1.createError)({
             statusCode: 500,

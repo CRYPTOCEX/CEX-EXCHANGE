@@ -12,6 +12,7 @@ const emails_1 = require("@b/utils/emails");
 const cache_1 = require("@b/utils/cache");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
+const fees_1 = require("@b/utils/fees");
 function countDecimals(value) {
     var _a;
     if (Number.isInteger(value))
@@ -177,12 +178,14 @@ exports.default = async (data) => {
     const spotWithdrawFee = parseFloat(settings.get("spotWithdrawFee") || "0");
     const combinedPercentageFee = percentageFee + spotWithdrawFee;
     const percentageFeeAmount = parseFloat(Math.max((totalWithdrawAmount * combinedPercentageFee) / 100, 0).toFixed(precision));
-    const internalFeeAmount = percentageFeeAmount;
+    const isAdmin = await (0, fees_1.isSuperAdmin)(user.id);
+    const internalFeeAmount = isAdmin ? 0 : percentageFeeAmount;
     const externalFeeAmount = withdrawChainFeeEnabled ? 0 : fixedFee;
     const totalDeductionAmount = parseFloat((totalWithdrawAmount + internalFeeAmount).toFixed(precision));
     const netWithdrawAmount = parseFloat((totalWithdrawAmount - externalFeeAmount).toFixed(precision));
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing withdrawal transaction");
     const result = await db_1.sequelize.transaction(async (t) => {
+        var _a, _b;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Locking user wallet for update");
         const wallet = await db_1.models.wallet.findOne({
             where: { userId: user.id, currency: currency, type: "SPOT" },
@@ -194,8 +197,9 @@ exports.default = async (data) => {
             throw (0, error_1.createError)({ statusCode: 404, message: `${currency} wallet not found in your spot wallets. Please ensure you have a ${currency} spot wallet before attempting withdrawal.` });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking wallet balance");
-        if (wallet.balance < totalDeductionAmount) {
-            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: ${wallet.balance} < ${totalDeductionAmount}`);
+        const availableBalance = wallet.balance - ((_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0);
+        if (availableBalance < totalDeductionAmount) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: available=${availableBalance} (balance=${wallet.balance}, inOrder=${(_b = wallet.inOrder) !== null && _b !== void 0 ? _b : 0}) < ${totalDeductionAmount}`);
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
         const newBalance = parseFloat((wallet.balance - totalDeductionAmount).toFixed(precision));
@@ -226,15 +230,19 @@ exports.default = async (data) => {
         });
         wallet.balance = newBalance;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Recording admin profit from fees");
-        const adminProfit = await db_1.models.adminProfit.create({
-            amount: internalFeeAmount,
+        await (0, fees_1.collectPlatformFee)({
+            userId: user.id,
             currency: wallet.currency,
+            walletType: "SPOT",
+            chain,
+            feeAmount: internalFeeAmount,
             type: "WITHDRAW",
-            transactionId: walletResult.transactionId,
-            chain: chain,
-            description: `Admin profit from user (${user.id}) withdrawal fee of ${internalFeeAmount} ${wallet.currency} on ${chain}`,
-        }, { transaction: t });
-        return { transactionId: walletResult.transactionId, adminProfit, wallet };
+            description: `Platform fee from spot withdrawal of ${internalFeeAmount} ${wallet.currency} on ${chain}`,
+            referenceId: walletResult.transactionId,
+            metadata: { userId: user.id, chain, toAddress },
+            transaction: t,
+        });
+        return { transactionId: walletResult.transactionId, wallet };
     });
     const dbTransaction = await db_1.models.transaction.findByPk(result.transactionId);
     if (!dbTransaction) {
@@ -466,11 +474,6 @@ exports.default = async (data) => {
                         originalTransactionId: resultWithTx.dbTransaction.id,
                         reason: error.message,
                     },
-                    transaction: t,
-                });
-                ctx === null || ctx === void 0 ? void 0 : ctx.step("Removing admin profit record");
-                await db_1.models.adminProfit.destroy({
-                    where: { id: result.adminProfit.id },
                     transaction: t,
                 });
             });

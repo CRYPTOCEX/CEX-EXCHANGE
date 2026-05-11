@@ -52,49 +52,44 @@ interface OverviewData {
 }
 
 interface MarketPerformance {
-  marketId: string;
-  period: string;
-  market: any;
+  marketMakerId: string;
   currentPrice: string;
-  priceHistory: any[];
-  volumeHistory: any[];
-  targetAchievementRate: number;
-  metrics: {
-    totalTrades: number;
-    avgTradeSize: number;
-    totalVolume: number;
-    tvl: number;
-    unrealizedPnL: number;
-    realizedPnL: number;
-  };
-  status: string;
+  targetPrice: string;
+  priceDeviationPercent: string;
+  priceRangeUtilization: string;
+  dailyVolume: string;
+  dailyVolumeTarget: string;
+  volumeTargetPercent: string;
+  totalVolume: string;
+  totalTrades: number;
+  realTrades: number;
+  realTradePercent: string;
+  tradesToday: number;
+  activeBots: number;
+  totalBots: number;
+  botTotalPnl: string;
+  botAvgWinRate: string;
+  effectiveVolatility: string;
+  currentMomentum: string;
+  uptimePercent: string;
+  timeInCurrentPhaseMinutes: number;
+  // Additional fields for UI (may come from market maker data)
+  market?: any;
+  status?: string;
+  priceHistory?: any[];
 }
 
 interface PnLReport {
-  marketId: string;
-  market: any;
-  summary: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    allTime: number;
-    unrealized: number;
-    realized: number;
-    total: number;
-  };
-  roi: {
-    percent: string;
-    initialInvestment: number;
-    currentValue: number;
-  };
-  history: any[];
-  breakdown: {
-    tradeCount: number;
-    winningTrades: number;
-    losingTrades: number;
-    avgWin: number;
-    avgLoss: number;
-  };
+  marketMakerId: string;
+  poolRealizedPnl: string;
+  poolUnrealizedPnl: string;
+  poolNetPnl: string;
+  poolTvl: string;
+  botRealizedPnl: string;
+  botUnrealizedPnl: string;
+  totalPnl: string;
+  roiPercent: string;
+  initialInvestment: string;
 }
 
 // Price Chart Component
@@ -298,7 +293,19 @@ export default function AnalyticsPage() {
         }),
       ]);
 
-      if (perfResponse.data) setPerformance(perfResponse.data);
+      if (perfResponse.data) {
+        // Enrich performance data with market info from overview
+        const marketInfo = markets.find((m) => m.id === selectedMarket);
+        setPerformance({
+          ...perfResponse.data,
+          market: marketInfo?.market ? {
+            symbol: marketInfo.symbol || `${marketInfo.market.currency}/${marketInfo.market.pair}`,
+            currency: marketInfo.market.currency,
+            pair: marketInfo.market.pair,
+          } : null,
+          status: marketInfo?.status || "unknown",
+        });
+      }
       if (pnlResponse.data) setPnlReport(pnlResponse.data);
     } catch (err) {
       console.error("Failed to load market analytics", err);
@@ -311,20 +318,13 @@ export default function AnalyticsPage() {
     fetchOverview();
   }, []);
 
+  const markets = overview?.markets || [];
+
   useEffect(() => {
-    if (selectedMarket) {
+    if (selectedMarket && markets.length > 0) {
       fetchMarketAnalytics();
     }
-  }, [selectedMarket, period]);
-
-  const markets = overview?.markets || [];
-  const winRate =
-    pnlReport?.breakdown?.tradeCount && pnlReport?.breakdown?.tradeCount > 0
-      ? (
-          (pnlReport.breakdown.winningTrades / pnlReport.breakdown.tradeCount) *
-          100
-        ).toFixed(1)
-      : "0";
+  }, [selectedMarket, period, markets]);
 
   return (
     <div className="min-h-screen bg-linear-to-b from-background via-muted/20 to-background dark:from-zinc-950 dark:via-zinc-900/30 dark:to-zinc-950">
@@ -438,7 +438,7 @@ export default function AnalyticsPage() {
                       <SelectItem key={m.id} value={m.id}>
                         <div className="flex items-center gap-2">
                           <Icon icon="mdi:chart-line" className="w-4 h-4" />
-                          <span>{m.market?.symbol || "Unknown"}</span>
+                          <span>{m.symbol || m.market?.currency + "/" + m.market?.pair || "Unknown"}</span>
                           <span className="text-muted-foreground">
                             - {m.status}
                           </span>
@@ -572,7 +572,7 @@ export default function AnalyticsPage() {
                         <CardTitle className="text-xl">
                           {performance.market?.symbol || "Market"} Performance
                         </CardTitle>
-                        <StatusBadge status={performance.status} />
+                        {performance.status && <StatusBadge status={performance.status} />}
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
                         {performance.market?.currency}/
@@ -610,29 +610,29 @@ export default function AnalyticsPage() {
                       {tCommon("total_trades")}
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {performance.metrics.totalTrades.toLocaleString()}
+                      {(performance.totalTrades || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("avg_trade_size")}
+                      {t("daily_volume")}
                     </p>
                     <p className="text-2xl font-bold text-foreground">
-                      {performance.metrics.avgTradeSize.toFixed(2)}{" "}
+                      {Number(performance.dailyVolume || 0).toFixed(2)}{" "}
                       {performance.market?.currency || ""}
                     </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">
-                      {t("target_achievement")}
+                      {t("volume_target")}
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold text-foreground">
-                        {performance.targetAchievementRate}%
+                        {Number(performance.volumeTargetPercent || 0).toFixed(1)}%
                       </p>
                       <div className="flex-1 max-w-[60px]">
                         <Progress
-                          value={performance.targetAchievementRate}
+                          value={Number(performance.volumeTargetPercent || 0)}
                           className="h-2"
                         />
                       </div>
@@ -642,7 +642,7 @@ export default function AnalyticsPage() {
 
                 {/* Price Chart */}
                 <div className="mt-8 h-72">
-                  {performance.priceHistory.length > 0 ? (
+                  {performance.priceHistory && performance.priceHistory.length > 0 ? (
                     <PriceChart
                       data={performance.priceHistory}
                       period={period}
@@ -676,28 +676,28 @@ export default function AnalyticsPage() {
                 {/* P&L Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <PnLCard
-                    title={t("daily_p_l")}
-                    value={pnlReport.summary.daily}
+                    title={t("pool_realized_p_l")}
+                    value={Number(pnlReport.poolRealizedPnl || 0)}
                     currency={performance?.market?.pair}
                   />
                   <PnLCard
-                    title={t("weekly_p_l")}
-                    value={pnlReport.summary.weekly}
+                    title={t("pool_unrealized_p_l")}
+                    value={Number(pnlReport.poolUnrealizedPnl || 0)}
                     currency={performance?.market?.pair}
                   />
                   <PnLCard
-                    title={t("monthly_p_l")}
-                    value={pnlReport.summary.monthly}
+                    title={t("bot_realized_p_l")}
+                    value={Number(pnlReport.botRealizedPnl || 0)}
                     currency={performance?.market?.pair}
                   />
                   <PnLCard
-                    title={t("all_time_p_l")}
-                    value={pnlReport.summary.allTime}
+                    title={tCommon("total_p_l")}
+                    value={Number(pnlReport.totalPnl || 0)}
                     currency={performance?.market?.pair}
                   />
                 </div>
 
-                {/* ROI and Trade Breakdown */}
+                {/* ROI and Pool Info */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* ROI Card */}
                   <Card className="border-cyan-500/20">
@@ -715,20 +715,20 @@ export default function AnalyticsPage() {
                         <div className="relative">
                           <div
                             className={`w-32 h-32 rounded-full flex items-center justify-center ${
-                              Number(pnlReport.roi.percent) >= 0
+                              Number(pnlReport.roiPercent) >= 0
                                 ? "bg-linear-to-br from-green-500/20 to-green-500/5"
                                 : "bg-linear-to-br from-red-500/20 to-red-500/5"
                             }`}
                           >
                             <span
                               className={`text-3xl font-bold ${
-                                Number(pnlReport.roi.percent) >= 0
+                                Number(pnlReport.roiPercent) >= 0
                                   ? "text-green-500"
                                   : "text-red-500"
                               }`}
                             >
-                              {Number(pnlReport.roi.percent) >= 0 ? "+" : ""}
-                              {pnlReport.roi.percent}%
+                              {Number(pnlReport.roiPercent) >= 0 ? "+" : ""}
+                              {Number(pnlReport.roiPercent).toFixed(2)}%
                             </span>
                           </div>
                         </div>
@@ -739,16 +739,16 @@ export default function AnalyticsPage() {
                             {t("initial_investment")}
                           </p>
                           <p className="text-lg font-semibold text-foreground">
-                            {pnlReport.roi.initialInvestment.toLocaleString()}{" "}
+                            {Number(pnlReport.initialInvestment || 0).toLocaleString()}{" "}
                             {performance?.market?.pair || ""}
                           </p>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-muted-foreground">
-                            {tExt("current_value")}
+                            {tCommon("pool_tvl")}
                           </p>
                           <p className="text-lg font-semibold text-foreground">
-                            {pnlReport.roi.currentValue.toLocaleString()}{" "}
+                            {Number(pnlReport.poolTvl || 0).toLocaleString()}{" "}
                             {performance?.market?.pair || ""}
                           </p>
                         </div>
@@ -756,7 +756,7 @@ export default function AnalyticsPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Trade Breakdown Card */}
+                  {/* Pool P&L Breakdown Card */}
                   <Card className="border-purple-500/20">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -764,86 +764,65 @@ export default function AnalyticsPage() {
                           icon="mdi:swap-horizontal"
                           className="w-5 h-5 text-purple-500"
                         />
-                        {t("trade_breakdown")}
+                        {t("p_l_breakdown")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-6">
-                        {/* Win Rate Circle */}
-                        <div className="flex items-center justify-center">
-                          <div className="relative w-28 h-28">
-                            <svg className="w-full h-full transform -rotate-90">
-                              <circle
-                                cx="56"
-                                cy="56"
-                                r="48"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="none"
-                                className="text-secondary"
-                              />
-                              <circle
-                                cx="56"
-                                cy="56"
-                                r="48"
-                                stroke="currentColor"
-                                strokeWidth="8"
-                                fill="none"
-                                strokeDasharray={`${Number(winRate) * 3.01} 301`}
-                                className="text-green-500"
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className="text-xl font-bold text-foreground">
-                                {winRate}%
-                              </span>
-                            </div>
-                          </div>
+                      <div className="space-y-4">
+                        {/* Pool Net P&L */}
+                        <div className="p-4 rounded-xl bg-secondary/50">
+                          <p className="text-sm text-muted-foreground mb-1">
+                            {t("pool_net_p_l")}
+                          </p>
+                          <p
+                            className={`text-2xl font-bold ${
+                              Number(pnlReport.poolNetPnl) >= 0
+                                ? "text-green-500"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {Number(pnlReport.poolNetPnl) >= 0 ? "+" : ""}
+                            {Number(pnlReport.poolNetPnl || 0).toFixed(2)}{" "}
+                            {performance?.market?.pair || ""}
+                          </p>
                         </div>
 
                         {/* Stats Grid */}
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="p-3 bg-secondary/50 rounded-xl text-center">
-                            <p className="text-xs text-muted-foreground">
-                              {tCommon("total_trades")}
-                            </p>
-                            <p className="text-lg font-bold text-foreground">
-                              {pnlReport.breakdown.tradeCount}
-                            </p>
-                          </div>
                           <div className="p-3 bg-green-500/10 rounded-xl text-center">
                             <p className="text-xs text-green-600 dark:text-green-400">
-                              Winning
+                              {t("realized")}
                             </p>
                             <p className="text-lg font-bold text-green-500">
-                              {pnlReport.breakdown.winningTrades}
+                              {Number(pnlReport.poolRealizedPnl) >= 0 ? "+" : ""}
+                              {Number(pnlReport.poolRealizedPnl || 0).toFixed(2)}
                             </p>
                           </div>
-                          <div className="p-3 bg-red-500/10 rounded-xl text-center">
-                            <p className="text-xs text-red-600 dark:text-red-400">
-                              Losing
+                          <div className="p-3 bg-blue-500/10 rounded-xl text-center">
+                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                              {t("unrealized")}
                             </p>
-                            <p className="text-lg font-bold text-red-500">
-                              {pnlReport.breakdown.losingTrades}
+                            <p className="text-lg font-bold text-blue-500">
+                              {Number(pnlReport.poolUnrealizedPnl) >= 0 ? "+" : ""}
+                              {Number(pnlReport.poolUnrealizedPnl || 0).toFixed(2)}
                             </p>
                           </div>
-                          <div className="p-3 bg-secondary/50 rounded-xl text-center">
-                            <p className="text-xs text-muted-foreground">
-                              {t("avg_win_loss")}
+                          <div className="p-3 bg-purple-500/10 rounded-xl text-center">
+                            <p className="text-xs text-purple-600 dark:text-purple-400">
+                              {t("bot_realized")}
                             </p>
-                            <p className="text-sm font-bold">
-                              <span className="text-green-500">
-                                +{pnlReport.breakdown.avgWin.toFixed(2)}
-                              </span>
-                              <span className="text-muted-foreground mx-1">
-                                /
-                              </span>
-                              <span className="text-red-500">
-                                {pnlReport.breakdown.avgLoss.toFixed(2)}
-                              </span>
-                              <span className="text-muted-foreground ml-1 text-xs">
-                                {performance?.market?.pair || ""}
-                              </span>
+                            <p className="text-lg font-bold text-purple-500">
+                              {Number(pnlReport.botRealizedPnl) >= 0 ? "+" : ""}
+                              {Number(pnlReport.botRealizedPnl || 0).toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="p-3 bg-cyan-500/10 rounded-xl text-center">
+                            <p className="text-xs text-cyan-600 dark:text-cyan-400">
+                              {t("bot_unrealized")}
+                            </p>
+                            <p className="text-lg font-bold text-cyan-500">
+                              {Number(pnlReport.botUnrealizedPnl) >= 0 ? "+" : ""}
+                              {Number(pnlReport.botUnrealizedPnl || 0).toFixed(2)}
                             </p>
                           </div>
                         </div>
@@ -851,87 +830,6 @@ export default function AnalyticsPage() {
                     </CardContent>
                   </Card>
                 </div>
-
-                {/* P&L History Table */}
-                {pnlReport.history.length > 0 && (
-                  <Card className="border-cyan-500/20">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon
-                          icon="mdi:history"
-                          className="w-5 h-5 text-amber-500"
-                        />
-                        {t("p_l_history")}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-4 px-4 text-sm font-semibold text-muted-foreground">
-                                Date
-                              </th>
-                              <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                                {t("daily_p_l")}
-                              </th>
-                              <th className="text-right py-4 px-4 text-sm font-semibold text-muted-foreground">
-                                Cumulative
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {pnlReport.history
-                              .slice(-10)
-                              .reverse()
-                              .map((entry, index) => (
-                                <tr
-                                  key={index}
-                                  className="border-b last:border-0 hover:bg-secondary/50 transition-colors"
-                                >
-                                  <td className="py-4 px-4 text-sm text-foreground">
-                                    {entry.date}
-                                  </td>
-                                  <td className="py-4 px-4 text-right">
-                                    <span
-                                      className={`inline-flex items-center gap-1 text-sm font-semibold ${
-                                        entry.pnl >= 0
-                                          ? "text-green-500"
-                                          : "text-red-500"
-                                      }`}
-                                    >
-                                      <Icon
-                                        icon={
-                                          entry.pnl >= 0
-                                            ? "mdi:trending-up"
-                                            : "mdi:trending-down"
-                                        }
-                                        className="w-4 h-4"
-                                      />
-                                      {entry.pnl >= 0 ? "+" : ""}
-                                      {entry.pnl.toFixed(2)}{" "}
-                                      {performance?.market?.pair || ""}
-                                    </span>
-                                  </td>
-                                  <td
-                                    className={`py-4 px-4 text-right text-sm font-semibold ${
-                                      entry.cumulativePnl >= 0
-                                        ? "text-green-500"
-                                        : "text-red-500"
-                                    }`}
-                                  >
-                                    {entry.cumulativePnl >= 0 ? "+" : ""}
-                                    {entry.cumulativePnl.toFixed(2)}{" "}
-                                    {performance?.market?.pair || ""}
-                                  </td>
-                                </tr>
-                              ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </>
             )}
           </>

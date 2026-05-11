@@ -18,9 +18,21 @@ class ecommerceDiscount extends sequelize_1.Model {
                     notEmpty: { msg: "code: Code must not be empty" },
                 },
             },
+            type: {
+                type: sequelize_1.DataTypes.ENUM("PERCENTAGE", "FIXED", "FREE_SHIPPING"),
+                allowNull: false,
+                defaultValue: "PERCENTAGE",
+                validate: {
+                    isIn: {
+                        args: [["PERCENTAGE", "FIXED", "FREE_SHIPPING"]],
+                        msg: "type: Must be 'PERCENTAGE', 'FIXED', or 'FREE_SHIPPING'",
+                    },
+                },
+            },
             percentage: {
                 type: sequelize_1.DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
+                defaultValue: 0,
                 validate: {
                     isInt: { msg: "percentage: Percentage must be an integer" },
                     min: {
@@ -33,6 +45,39 @@ class ecommerceDiscount extends sequelize_1.Model {
                     },
                 },
             },
+            amount: {
+                type: sequelize_1.DataTypes.DOUBLE,
+                allowNull: true,
+                defaultValue: 0,
+                validate: {
+                    isFloat: { msg: "amount: Amount must be a valid number" },
+                    min: {
+                        args: [0],
+                        msg: "amount: Amount cannot be negative",
+                    },
+                },
+            },
+            maxUses: {
+                type: sequelize_1.DataTypes.INTEGER,
+                allowNull: true,
+                validate: {
+                    isInt: { msg: "maxUses: Max uses must be an integer" },
+                    min: {
+                        args: [1],
+                        msg: "maxUses: Max uses must be at least 1",
+                    },
+                },
+            },
+            validFrom: {
+                type: sequelize_1.DataTypes.DATE(3),
+                allowNull: true,
+                validate: {
+                    isDate: {
+                        msg: "validFrom: Must be a valid date",
+                        args: true,
+                    },
+                },
+            },
             validUntil: {
                 type: sequelize_1.DataTypes.DATE(3),
                 allowNull: false,
@@ -41,9 +86,10 @@ class ecommerceDiscount extends sequelize_1.Model {
                         msg: "validUntil: Must be a valid date",
                         args: true,
                     },
-                    isAfter: {
-                        args: new Date().toISOString(),
-                        msg: "validUntil: Date must be in the future",
+                    isFutureDate(value) {
+                        if (new Date(value) <= new Date()) {
+                            throw new Error("validUntil: Date must be in the future");
+                        }
                     },
                 },
             },

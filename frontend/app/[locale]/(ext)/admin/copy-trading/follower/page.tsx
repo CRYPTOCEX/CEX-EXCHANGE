@@ -2,7 +2,6 @@
 import DataTable from "@/components/blocks/data-table";
 import {
   Users,
-  Pause,
   Play,
   XCircle,
   ExternalLink,
@@ -63,6 +62,7 @@ export default function FollowerPage() {
       canDelete={false}
       canView
       viewLink="/admin/copy-trading/follower/[id]"
+      isParanoid={false}
       title={t("subscriptions_management")}
       description={t("view_and_manage_copy_trading_subscriptions")}
       itemTitle="Subscription"
@@ -88,20 +88,6 @@ export default function FollowerPage() {
             >
               <ExternalLink className="h-4 w-4" />
               {tExt("view_leader")}
-            </Button>
-          )}
-          {row.status === "ACTIVE" && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 text-yellow-600 border-yellow-600/50 hover:bg-yellow-600/10"
-              onClick={() => {
-                const reason = prompt(t("enter_pause_reason"));
-                if (reason) handleAction(row.id, "pause", reason, refresh);
-              }}
-            >
-              <Pause className="h-4 w-4" />
-              {tCommon("pause")}
             </Button>
           )}
           {row.status === "PAUSED" && (
@@ -145,17 +131,6 @@ export default function FollowerPage() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
-          )}
-          {row.status === "ACTIVE" && (
-            <DropdownMenuItem
-              onClick={() => {
-                const reason = prompt(t("enter_pause_reason"));
-                if (reason) handleAction(row.id, "pause", reason, refresh);
-              }}
-            >
-              <Pause className="mr-2 h-4 w-4 text-yellow-500" />
-              {tCommon("pause")}
-            </DropdownMenuItem>
           )}
           {row.status === "PAUSED" && (
             <DropdownMenuItem

@@ -428,8 +428,8 @@ exports.default = async (data) => {
         const errMsg = err instanceof Error ? err.message : "Failed to create ICO offering";
         ctx === null || ctx === void 0 ? void 0 : ctx.fail(errMsg);
         throw (0, error_1.createError)({
-            statusCode: 500,
-            message: "Internal Server Error: " + errMsg,
+            statusCode: err.statusCode || 500,
+            message: err.statusCode ? err.message : "Internal Server Error: " + errMsg,
         });
     }
 };

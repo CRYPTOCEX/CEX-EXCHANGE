@@ -234,7 +234,7 @@ async function processGeneralInvestment(investment) {
         }
         try {
             (0, broadcast_1.broadcastLog)(cronName, `Processing rewards for investment ${id}`);
-            await (0, affiliate_1.processRewards)(user.id, amount, "GENERAL_INVESTMENT", plan.currency);
+            await (0, affiliate_1.processRewards)(user.id, amount, "GENERAL_INVESTMENT", plan.currency, `GENERAL_INVESTMENT:investment:${id}`);
             (0, broadcast_1.broadcastLog)(cronName, `Rewards processed for investment ${id}`, "success");
         }
         catch (error) {

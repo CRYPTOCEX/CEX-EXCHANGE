@@ -110,7 +110,7 @@ exports.default = async (data) => {
         where.pagePath = query.pagePath;
     }
     const page = parseInt(query.page, 10) || 1;
-    const perPage = parseInt(query.limit, 10) || 10;
+    const perPage = Math.min(parseInt(query.limit, 10) || 10, 100);
     const offset = (page - 1) * perPage;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching FAQs with filters");
     const { count, rows } = await db_1.models.faq.findAndCountAll({

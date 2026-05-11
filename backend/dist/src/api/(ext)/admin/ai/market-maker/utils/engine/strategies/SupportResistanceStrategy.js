@@ -1,1 +1,103 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.SupportResistanceStrategy=void 0;class SupportResistanceStrategy{constructor(){this.name="support_resistance";this.supportLevels=new Map;this.resistanceLevels=new Map}calculate(e,t,r){const s=Number(e)/1e18,n=Number(t)/1e18,i=this.calculateLevels(n,r),a=this.findNearestBelow(s,i.support),o=this.findNearestAbove(s,i.resistance),u=o?(o-s)/s*100:100;if((a?(s-a)/s*100:100)<.5)return{shouldTrade:!0,direction:"BUY",priceAdjustment:.05,sizeMultiplier:1.5,confidence:.9,reason:`Defending support at ${null==a?void 0:a.toFixed(8)}`};if(u<.5)return{shouldTrade:!0,direction:"SELL",priceAdjustment:.05,sizeMultiplier:1.5,confidence:.9,reason:`Defending resistance at ${null==o?void 0:o.toFixed(8)}`};const c=(n-s)/s*100;if(Math.abs(c)<.5)return{shouldTrade:Math.random()>.7,direction:Math.random()>.5?"BUY":"SELL",priceAdjustment:.02,sizeMultiplier:.5,confidence:.3,reason:"Maintaining around target"};return{shouldTrade:!0,direction:c>0?"BUY":"SELL",priceAdjustment:Math.min(.1,.1*Math.abs(c)),sizeMultiplier:1,confidence:.6,reason:`Moving toward target (${c.toFixed(2)}% away)`}}calculateLevels(e,t){const r=[],s=[],n=this.getLevelSpacing(t.aggressionLevel);for(let t=1;t<=5;t++){r.push(e*(1-n*t));s.push(e*(1+n*t))}r.push(t.priceRangeLow);s.push(t.priceRangeHigh);return{support:r.sort((e,t)=>t-e),resistance:s.sort((e,t)=>e-t)}}findNearestBelow(e,t){for(const r of t)if(r<e)return r;return null}findNearestAbove(e,t){for(const r of t)if(r>e)return r;return null}getLevelSpacing(e){switch(e){case"AGGRESSIVE":return.01;case"MODERATE":return.02;default:return.03}}}exports.SupportResistanceStrategy=SupportResistanceStrategy;exports.default=SupportResistanceStrategy;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SupportResistanceStrategy = void 0;
+class SupportResistanceStrategy {
+    constructor() {
+        this.name = "support_resistance";
+        this.supportLevels = new Map();
+        this.resistanceLevels = new Map();
+    }
+    calculate(currentPrice, targetPrice, config) {
+        const current = Number(currentPrice) / 1e18;
+        const target = Number(targetPrice) / 1e18;
+        const levels = this.calculateLevels(target, config);
+        const nearestSupport = this.findNearestBelow(current, levels.support);
+        const nearestResistance = this.findNearestAbove(current, levels.resistance);
+        const distToSupport = nearestSupport ? (current - nearestSupport) / current * 100 : 100;
+        const distToResistance = nearestResistance ? (nearestResistance - current) / current * 100 : 100;
+        if (distToSupport < 0.5) {
+            return {
+                shouldTrade: true,
+                direction: "BUY",
+                priceAdjustment: 0.05,
+                sizeMultiplier: 1.5,
+                confidence: 0.9,
+                reason: `Defending support at ${nearestSupport === null || nearestSupport === void 0 ? void 0 : nearestSupport.toFixed(8)}`,
+            };
+        }
+        if (distToResistance < 0.5) {
+            return {
+                shouldTrade: true,
+                direction: "SELL",
+                priceAdjustment: 0.05,
+                sizeMultiplier: 1.5,
+                confidence: 0.9,
+                reason: `Defending resistance at ${nearestResistance === null || nearestResistance === void 0 ? void 0 : nearestResistance.toFixed(8)}`,
+            };
+        }
+        const distToTarget = (target - current) / current * 100;
+        if (Math.abs(distToTarget) < 0.5) {
+            return {
+                shouldTrade: Math.random() > 0.7,
+                direction: Math.random() > 0.5 ? "BUY" : "SELL",
+                priceAdjustment: 0.02,
+                sizeMultiplier: 0.5,
+                confidence: 0.3,
+                reason: "Maintaining around target",
+            };
+        }
+        const direction = distToTarget > 0 ? "BUY" : "SELL";
+        return {
+            shouldTrade: true,
+            direction,
+            priceAdjustment: Math.min(0.1, Math.abs(distToTarget) * 0.1),
+            sizeMultiplier: 1,
+            confidence: 0.6,
+            reason: `Moving toward target (${distToTarget.toFixed(2)}% away)`,
+        };
+    }
+    calculateLevels(target, config) {
+        const support = [];
+        const resistance = [];
+        const spacing = this.getLevelSpacing(config.aggressionLevel);
+        for (let i = 1; i <= 5; i++) {
+            support.push(target * (1 - spacing * i));
+            resistance.push(target * (1 + spacing * i));
+        }
+        support.push(config.priceRangeLow);
+        resistance.push(config.priceRangeHigh);
+        return {
+            support: support.sort((a, b) => b - a),
+            resistance: resistance.sort((a, b) => a - b),
+        };
+    }
+    findNearestBelow(price, levels) {
+        for (const level of levels) {
+            if (level < price) {
+                return level;
+            }
+        }
+        return null;
+    }
+    findNearestAbove(price, levels) {
+        for (const level of levels) {
+            if (level > price) {
+                return level;
+            }
+        }
+        return null;
+    }
+    getLevelSpacing(aggression) {
+        switch (aggression) {
+            case "AGGRESSIVE":
+                return 0.01;
+            case "MODERATE":
+                return 0.02;
+            case "CONSERVATIVE":
+            default:
+                return 0.03;
+        }
+    }
+}
+exports.SupportResistanceStrategy = SupportResistanceStrategy;
+exports.default = SupportResistanceStrategy;

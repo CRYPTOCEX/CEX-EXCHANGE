@@ -34,16 +34,15 @@ const getContractAbi = async (chain, network, contractAddress) => {
     if (!chainConfig) {
         throw (0, error_1.createError)({ statusCode: 400, message: `Unsupported chain: ${chain}` });
     }
-    const apiKey = process.env[`${chain}_EXPLORER_API_KEY`];
+    const apiKey = process.env[`${chain}_EXPLORER_API_KEY`] || process.env.ETHERSCAN_API_KEY;
     if (!apiKey) {
-        throw (0, error_1.createError)({ statusCode: 500, message: `API Key for ${chain} is not set` });
+        throw (0, error_1.createError)({ statusCode: 500, message: `${chain}_EXPLORER_API_KEY or ETHERSCAN_API_KEY is not set` });
     }
     const networkConfig = chainConfig.networks[network];
     if (!networkConfig || !networkConfig.explorer) {
         throw (0, error_1.createError)({ statusCode: 400, message: `Unsupported network: ${network} for chain: ${chain}` });
     }
-    const chainIdParam = networkConfig.chainId ? `&chainid=${networkConfig.chainId}` : "";
-    const apiUrl = `https://${networkConfig.explorer}/v2/api?module=contract&action=getabi&address=${contractAddress}${chainIdParam}&apikey=${apiKey}`;
+    const apiUrl = `https://${networkConfig.explorer}/api?module=contract&action=getabi&address=${contractAddress}&apikey=${apiKey}`;
     try {
         const response = await fetch(apiUrl);
         const data = await response.json();

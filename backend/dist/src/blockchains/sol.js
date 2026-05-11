@@ -61,6 +61,37 @@ try {
 catch (e) {
 }
 class SolanaService {
+    async getTransactionDeduped(signature, commitment = "finalized") {
+        const key = `${commitment}:${signature}`;
+        const now = Date.now();
+        const cached = SolanaService.txResultCache.get(key);
+        if (cached && cached.expiresAt > now && cached.value) {
+            return cached.value;
+        }
+        const existing = SolanaService.inflightGetTx.get(key);
+        if (existing) {
+            return existing;
+        }
+        const p = this.connection
+            .getTransaction(signature, {
+            commitment,
+            maxSupportedTransactionVersion: 0,
+        })
+            .then((tx) => {
+            if (tx) {
+                SolanaService.txResultCache.set(key, {
+                    value: tx,
+                    expiresAt: Date.now() + SolanaService.TX_CACHE_TTL_MS,
+                });
+            }
+            return tx;
+        })
+            .finally(() => {
+            SolanaService.inflightGetTx.delete(key);
+        });
+        SolanaService.inflightGetTx.set(key, p);
+        return p;
+    }
     constructor(cacheExpirationMinutes = 30) {
         this.chainActive = false;
         this.connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(process.env.SOL_NETWORK === "mainnet"
@@ -73,6 +104,9 @@ class SolanaService {
     static async getInstance() {
         if (!SolanaService.instance) {
             SolanaService.instance = new SolanaService();
+            await SolanaService.instance.checkChainStatus();
+        }
+        else if (!SolanaService.instance.chainActive) {
             await SolanaService.instance.checkChainStatus();
         }
         return SolanaService.instance;
@@ -139,11 +173,7 @@ class SolanaService {
             const publicKey = new web3_js_1.PublicKey(address);
             const signatures = await this.connection.getSignaturesForAddress(publicKey, { limit: 50 });
             const transactions = await Promise.all(signatures.map(async (signatureInfo) => {
-                const transaction = await this.connection.getTransaction(signatureInfo.signature, {
-                    maxSupportedTransactionVersion: 0,
-                    commitment: "confirmed",
-                });
-                return transaction;
+                return this.getTransactionDeduped(signatureInfo.signature, "confirmed");
             }));
             return transactions;
         }
@@ -280,10 +310,7 @@ class SolanaService {
             let transaction = null;
             while (retries < maxRetries) {
                 try {
-                    transaction = await this.connection.getTransaction(signature, {
-                        commitment: "finalized",
-                        maxSupportedTransactionVersion: 0,
-                    });
+                    transaction = await this.getTransactionDeduped(signature, "finalized");
                     if (transaction) {
                         console_1.logger.debug("SOL", `Transaction ${signature} found`);
                         break;
@@ -296,7 +323,8 @@ class SolanaService {
                     console_1.logger.error("SOL", `Error fetching transaction ${signature}`, error);
                 }
                 retries++;
-                await new Promise((resolve) => setTimeout(resolve, 5000));
+                const jitter = Math.floor(Math.random() * 2000);
+                await new Promise((resolve) => setTimeout(resolve, 5000 + jitter));
             }
             if (!transaction) {
                 console_1.logger.error("SOL", `Transaction ${signature} not found after ${maxRetries} retries`);
@@ -583,7 +611,7 @@ class SolanaService {
         }
     }
     async handleSolanaWithdrawal(transactionId, walletId, amount, toAddress, ctx) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         try {
             (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Processing Solana withdrawal for transaction ${transactionId}`);
             const recipient = new web3_js_1.PublicKey(toAddress);
@@ -606,8 +634,9 @@ class SolanaService {
         catch (error) {
             console_1.logger.error("SOL", "Failed to execute withdrawal", error);
             (_d = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _d === void 0 ? void 0 : _d.call(ctx, error.message || "Failed to execute withdrawal");
+            const isUnknownStatus = (_e = error.message) === null || _e === void 0 ? void 0 : _e.includes("WITHDRAWAL_STATUS_UNKNOWN");
             await db_1.models.transaction.update({
-                status: "FAILED",
+                status: isUnknownStatus ? "TIMEOUT" : "FAILED",
                 description: `Withdrawal failed: ${error.message}`,
             }, {
                 where: { id: transactionId },
@@ -616,6 +645,7 @@ class SolanaService {
         }
     }
     async transferSol(walletId, recipient, amount) {
+        var _a;
         try {
             const walletData = await db_1.models.walletData.findOne({
                 where: { walletId, currency: "SOL", chain: "SOL" },
@@ -626,42 +656,91 @@ class SolanaService {
             const decryptedWalletData = JSON.parse((0, encrypt_1.decrypt)(walletData.data));
             const privateKey = Buffer.from(decryptedWalletData.privateKey, "hex");
             const custodialWallet = web3_js_1.Keypair.fromSecretKey(privateKey);
-            const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
+            const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+            const probeTx = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
                 fromPubkey: custodialWallet.publicKey,
                 toPubkey: recipient,
                 lamports: amount,
             }));
-            const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+            probeTx.recentBlockhash = blockhash;
+            probeTx.feePayer = custodialWallet.publicKey;
+            let networkFee = 5000;
+            try {
+                const feeCalc = await this.connection.getFeeForMessage(probeTx.compileMessage(), "confirmed");
+                if (typeof (feeCalc === null || feeCalc === void 0 ? void 0 : feeCalc.value) === "number" && feeCalc.value > 0) {
+                    networkFee = feeCalc.value;
+                }
+            }
+            catch (feeErr) {
+                console_1.logger.warn("SOL", `getFeeForMessage failed, using default ${networkFee} lamports: ${feeErr.message}`);
+            }
+            const onChainBalance = await this.connection.getBalance(custodialWallet.publicKey, "processed");
+            const maxSendable = onChainBalance - networkFee;
+            if (maxSendable <= 0) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: `Insufficient on-chain balance: have ${onChainBalance} lamports, need at least ${networkFee} for fee`,
+                });
+            }
+            let lamportsToSend = amount;
+            if (lamportsToSend > maxSendable) {
+                console_1.logger.warn("SOL", `Adjusting withdrawal lamports from ${amount} to ${maxSendable} to reserve network fee ${networkFee} (on-chain balance ${onChainBalance})`);
+                lamportsToSend = maxSendable;
+            }
+            const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
+                fromPubkey: custodialWallet.publicKey,
+                toPubkey: recipient,
+                lamports: lamportsToSend,
+            }));
             transaction.recentBlockhash = blockhash;
             transaction.feePayer = custodialWallet.publicKey;
             transaction.sign(custodialWallet);
             const serializedTransaction = transaction.serialize();
             const signature = await this.connection.sendRawTransaction(serializedTransaction);
             console_1.logger.debug("SOL", `Transaction signature: ${signature}`);
+            let confirmed = false;
             try {
                 await this.connection.confirmTransaction({
                     signature,
                     blockhash,
                     lastValidBlockHeight,
                 }, "confirmed");
+                confirmed = true;
             }
             catch (confirmError) {
-                console_1.logger.warn("SOL", `Transaction confirmation failed: ${confirmError.message}`);
+                console_1.logger.warn("SOL", `Transaction confirmation attempt failed: ${confirmError.message}`);
             }
-            const txResult = await this.connection.getTransaction(signature, {
-                commitment: "confirmed",
-                maxSupportedTransactionVersion: 0,
-            });
-            if (txResult && txResult.meta && txResult.meta.err === null) {
-                console_1.logger.success("SOL", `Transfer successful: ${signature}`);
+            const maxVerifyRetries = 10;
+            for (let attempt = 1; attempt <= maxVerifyRetries; attempt++) {
+                try {
+                    const txResult = await this.getTransactionDeduped(signature, "confirmed");
+                    if (txResult && txResult.meta && txResult.meta.err === null) {
+                        console_1.logger.success("SOL", `Transfer successful: ${signature}`);
+                        return signature;
+                    }
+                    else if (txResult && txResult.meta && txResult.meta.err) {
+                        throw (0, error_1.createError)({ statusCode: 500, message: `Transaction failed on-chain: ${JSON.stringify(txResult.meta.err)}` });
+                    }
+                }
+                catch (verifyError) {
+                    if ((_a = verifyError.message) === null || _a === void 0 ? void 0 : _a.includes("Transaction failed on-chain")) {
+                        throw verifyError;
+                    }
+                    console_1.logger.warn("SOL", `Verification attempt ${attempt}/${maxVerifyRetries} failed: ${verifyError.message}`);
+                }
+                if (attempt < maxVerifyRetries) {
+                    const delay = Math.min(2000 * attempt, 10000);
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                }
+            }
+            if (confirmed) {
+                console_1.logger.warn("SOL", `Transaction ${signature} was confirmed but verification timed out, treating as successful`);
                 return signature;
             }
-            else if (txResult && txResult.meta && txResult.meta.err) {
-                throw (0, error_1.createError)({ statusCode: 500, message: `Transaction failed with error: ${JSON.stringify(txResult.meta.err)}` });
-            }
-            else {
-                throw (0, error_1.createError)({ statusCode: 500, message: "Transaction not found or not confirmed" });
-            }
+            throw (0, error_1.createError)({
+                statusCode: 500,
+                message: `WITHDRAWAL_STATUS_UNKNOWN: Transaction ${signature} was broadcast but confirmation/verification failed after ${maxVerifyRetries} retries. Manual review required.`,
+            });
         }
         catch (error) {
             console_1.logger.error("SOL", "Failed to transfer SOL", error);
@@ -669,7 +748,7 @@ class SolanaService {
         }
     }
     async handleSplTokenWithdrawal(transactionId, walletId, tokenMintAddress, amount, toAddress, decimals, ctx) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         try {
             (_a = ctx === null || ctx === void 0 ? void 0 : ctx.step) === null || _a === void 0 ? void 0 : _a.call(ctx, `Starting SPL token withdrawal for ${transactionId}`);
             console_1.logger.info("SOL", `Starting SPL token withdrawal for ${transactionId}`);
@@ -713,23 +792,66 @@ class SolanaService {
             const serializedTransaction = transaction.serialize();
             const signature = await this.connection.sendRawTransaction(serializedTransaction);
             console_1.logger.info("SOL", `Transaction sent: ${signature}`);
-            const confirmationStrategy = {
-                signature,
-                blockhash: freshBlockhash,
-                lastValidBlockHeight: freshLastValidBlockHeight,
-            };
-            await this.connection.confirmTransaction(confirmationStrategy, "confirmed");
-            console_1.logger.success("SOL", `Transaction ${signature} confirmed`);
-            await db_1.models.transaction.update({ status: "COMPLETED", trxId: signature }, { where: { id: transactionId } });
-            (_d = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _d === void 0 ? void 0 : _d.call(ctx, `SPL token withdrawal completed: ${signature}`);
-            console_1.logger.success("SOL", `Transaction ${transactionId} completed`);
+            let confirmed = false;
+            try {
+                const confirmationStrategy = {
+                    signature,
+                    blockhash: freshBlockhash,
+                    lastValidBlockHeight: freshLastValidBlockHeight,
+                };
+                await this.connection.confirmTransaction(confirmationStrategy, "confirmed");
+                confirmed = true;
+                console_1.logger.success("SOL", `Transaction ${signature} confirmed`);
+            }
+            catch (confirmError) {
+                console_1.logger.warn("SOL", `SPL confirmation attempt failed: ${confirmError.message}`);
+            }
+            const maxVerifyRetries = 10;
+            let verified = false;
+            for (let attempt = 1; attempt <= maxVerifyRetries; attempt++) {
+                try {
+                    const txResult = await this.getTransactionDeduped(signature, "confirmed");
+                    if (txResult && txResult.meta && txResult.meta.err === null) {
+                        verified = true;
+                        break;
+                    }
+                    else if (txResult && txResult.meta && txResult.meta.err) {
+                        throw (0, error_1.createError)({ statusCode: 500, message: `SPL transaction failed on-chain: ${JSON.stringify(txResult.meta.err)}` });
+                    }
+                }
+                catch (verifyError) {
+                    if ((_d = verifyError.message) === null || _d === void 0 ? void 0 : _d.includes("failed on-chain")) {
+                        throw verifyError;
+                    }
+                    console_1.logger.warn("SOL", `SPL verification attempt ${attempt}/${maxVerifyRetries} failed: ${verifyError.message}`);
+                }
+                if (attempt < maxVerifyRetries) {
+                    const delay = Math.min(2000 * attempt, 10000);
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                }
+            }
+            if (verified || confirmed) {
+                if (!verified) {
+                    console_1.logger.warn("SOL", `SPL transaction ${signature} was confirmed but verification timed out, treating as successful`);
+                }
+                await db_1.models.transaction.update({ status: "COMPLETED", trxId: signature }, { where: { id: transactionId } });
+                (_e = ctx === null || ctx === void 0 ? void 0 : ctx.success) === null || _e === void 0 ? void 0 : _e.call(ctx, `SPL token withdrawal completed: ${signature}`);
+                console_1.logger.success("SOL", `Transaction ${transactionId} completed`);
+            }
+            else {
+                throw (0, error_1.createError)({
+                    statusCode: 500,
+                    message: `WITHDRAWAL_STATUS_UNKNOWN: SPL transaction ${signature} was broadcast but confirmation/verification failed after ${maxVerifyRetries} retries. Manual review required.`,
+                });
+            }
         }
         catch (error) {
             console_1.logger.error("SOL", "Failed to process SPL token withdrawal", error);
-            (_e = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _e === void 0 ? void 0 : _e.call(ctx, error.message || "Failed to process SPL token withdrawal");
+            (_f = ctx === null || ctx === void 0 ? void 0 : ctx.fail) === null || _f === void 0 ? void 0 : _f.call(ctx, error.message || "Failed to process SPL token withdrawal");
             await db_1.models.transaction.update({
-                status: "FAILED",
+                status: ((_g = error.message) === null || _g === void 0 ? void 0 : _g.includes("WITHDRAWAL_STATUS_UNKNOWN")) ? "TIMEOUT" : "FAILED",
                 description: `SPL token withdrawal failed: ${error.message}`,
+                ...(((_h = error.message) === null || _h === void 0 ? void 0 : _h.includes("WITHDRAWAL_STATUS_UNKNOWN")) ? {} : {}),
             }, { where: { id: transactionId } });
             throw error;
         }
@@ -848,4 +970,7 @@ class SolanaService {
         }
     }
 }
+SolanaService.inflightGetTx = new Map();
+SolanaService.txResultCache = new Map();
+SolanaService.TX_CACHE_TTL_MS = 60000;
 exports.default = SolanaService;

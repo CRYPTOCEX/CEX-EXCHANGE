@@ -84,12 +84,12 @@ export function TradeStatusBadge({ status }: TradeStatusBadgeProps) {
         };
       case P2P_STATUS.EXPIRED:
         return {
-          label: "Expired",
+          label: "Cancelled",
           variant: "outline" as const,
           icon: TimerOff,
           color: "text-zinc-600 dark:text-zinc-400",
           bg: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
-          tooltip: "Trade has expired due to timeout",
+          tooltip: "Trade was automatically cancelled due to timeout",
         };
       default:
         return {

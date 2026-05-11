@@ -1,1 +1,46 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const query_1=require("@b/utils/query");exports.metadata={summary:"Bulk deletes AI Investment Plans",operationId:"bulkDeleteAiInvestmentPlans",tags:["Admin","AI Investment","Plan"],description:"Deletes multiple AI Investment Plans by their IDs. This operation cannot be undone. Any related data may also be affected.",parameters:(0,query_1.commonBulkDeleteParams)("AI Investment Plans"),requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{ids:{type:"array",items:{type:"string"},description:"Array of AI Investment Plan IDs to delete"}},required:["ids"]}}}},responses:(0,query_1.commonBulkDeleteResponses)("AI Investment Plans"),requiresAuth:!0,permission:"delete.ai.investment.plan",logModule:"ADMIN_AI",logTitle:"Bulk delete investment plans"};exports.default=async e=>{const{body:t,query:s,ctx:n}=e,{ids:l}=t;null==n||n.step(`Deleting ${l.length} plan(s)`);const a=await(0,query_1.handleBulkDelete)({model:"aiInvestmentPlan",ids:l,query:s});null==n||n.success(`Deleted ${l.length} plan(s)`);return a};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+exports.metadata = {
+    summary: "Bulk deletes AI Investment Plans",
+    operationId: "bulkDeleteAiInvestmentPlans",
+    tags: ["Admin", "AI Investment", "Plan"],
+    description: "Deletes multiple AI Investment Plans by their IDs. This operation cannot be undone. Any related data may also be affected.",
+    parameters: (0, query_1.commonBulkDeleteParams)("AI Investment Plans"),
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        ids: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "Array of AI Investment Plan IDs to delete",
+                        },
+                    },
+                    required: ["ids"],
+                },
+            },
+        },
+    },
+    responses: (0, query_1.commonBulkDeleteResponses)("AI Investment Plans"),
+    requiresAuth: true,
+    permission: "delete.ai.investment.plan",
+    logModule: "ADMIN_AI",
+    logTitle: "Bulk delete investment plans",
+};
+exports.default = async (data) => {
+    const { body, query, ctx } = data;
+    const { ids } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Deleting ${ids.length} plan(s)`);
+    const result = await (0, query_1.handleBulkDelete)({
+        model: "aiInvestmentPlan",
+        ids,
+        query,
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Deleted ${ids.length} plan(s)`);
+    return result;
+};

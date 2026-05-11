@@ -275,11 +275,9 @@ exports.default = async (data) => {
         const currentMonthStr = `${currentYear}-${currentMonthNumber.toString().padStart(2, "0")}-01`;
         const previousMonthStr = currentMonthNumber > 1
             ? `${currentYear}-${(currentMonthNumber - 1).toString().padStart(2, "0")}-01`
-            : null;
+            : `${currentYear - 1}-12-01`;
         const currentViewsMonth = ((_c = viewsOverTime.find((v) => v.month === currentMonthStr)) === null || _c === void 0 ? void 0 : _c.views) || 0;
-        const previousViewsMonth = previousMonthStr
-            ? ((_d = viewsOverTime.find((v) => v.month === previousMonthStr)) === null || _d === void 0 ? void 0 : _d.views) || 0
-            : 0;
+        const previousViewsMonth = ((_d = viewsOverTime.find((v) => v.month === previousMonthStr)) === null || _d === void 0 ? void 0 : _d.views) || 0;
         const viewsDelta = currentViewsMonth - previousViewsMonth;
         const viewsPercentageChange = previousViewsMonth
             ? (viewsDelta / previousViewsMonth) * 100
@@ -287,12 +285,10 @@ exports.default = async (data) => {
                 ? 100
                 : 0;
         const currentFeedback = feedbackMonthly.find((row) => row.month === currentMonthStr) || { positive: 0, negative: 0 };
-        const previousFeedback = previousMonthStr
-            ? feedbackMonthly.find((row) => row.month === previousMonthStr) || {
-                positive: 0,
-                negative: 0,
-            }
-            : { positive: 0, negative: 0 };
+        const previousFeedback = feedbackMonthly.find((row) => row.month === previousMonthStr) || {
+            positive: 0,
+            negative: 0,
+        };
         const positiveDelta = currentFeedback.positive - previousFeedback.positive;
         const positivePercentageChange = previousFeedback.positive
             ? (positiveDelta / previousFeedback.positive) * 100
@@ -341,7 +337,6 @@ exports.default = async (data) => {
         };
     }
     catch (error) {
-        console.error("Error fetching FAQ analytics:", error);
         throw (0, error_1.createError)({
             statusCode: 500,
             message: error instanceof Error

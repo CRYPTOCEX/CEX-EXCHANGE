@@ -33,8 +33,8 @@ export function DeleteFAQDialog({
     try {
       await deleteFAQ(faq.id);
       onOpenChange(false);
+      onConfirm?.();
     } catch (error) {
-      console.error("Error deleting FAQ:", error);
       toast({
         title: "Error",
         description: "Failed to delete FAQ. Please try again.",

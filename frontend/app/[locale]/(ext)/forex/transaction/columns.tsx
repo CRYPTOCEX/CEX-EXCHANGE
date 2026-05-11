@@ -131,9 +131,9 @@ export function useColumns() {
     },
   },
   {
-    key: "wallet",
+    key: "wallet.currency",
     title: tCommon("wallet"),
-    type: "custom",
+    type: "text",
     icon: Wallet,
     sortable: true,
     searchable: true,
@@ -141,14 +141,12 @@ export function useColumns() {
     description: t("wallet_used_for_this_forex_transaction"),
     priority: 1,
     render: (value: any, row: any) => {
-      const wallet = row?.wallet || value;
-      if (!wallet) return "N/A";
-      // If wallet has 'currency' and 'type', show them in a formatted string.
+      const wallet = row?.wallet;
+      if (!wallet) return value || "N/A";
       if (wallet.currency && wallet.type) {
         return `${wallet.currency} (${wallet.type})`;
       }
-      // Otherwise fallback to wallet.name or wallet.id
-      return wallet.name || wallet.id || "N/A";
+      return wallet.currency || value || "N/A";
     },
   },
   {

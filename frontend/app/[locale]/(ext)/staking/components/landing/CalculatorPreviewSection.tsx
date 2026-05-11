@@ -32,6 +32,17 @@ interface CalculatorPreviewSectionProps {
   isLoading?: boolean;
 }
 
+// Helper to safely convert value to number and format it
+function formatNumber(value: number | string, decimals: number): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? '0' : num.toFixed(decimals);
+}
+
+function formatLocaleNumber(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(num) ? '0' : num.toLocaleString();
+}
+
 function RewardCard({
   example,
   symbol,
@@ -55,7 +66,7 @@ function RewardCard({
         <div className="text-center mb-6">
           <p className="text-sm text-zinc-500 mb-1">{t("if_you_stake")}</p>
           <div className="text-3xl font-bold text-zinc-900 dark:text-white">
-            {example.amount.toLocaleString()} {symbol}
+            {formatLocaleNumber(example.amount)} {symbol}
           </div>
         </div>
 
@@ -68,7 +79,7 @@ function RewardCard({
               <span>Daily</span>
             </div>
             <div className="font-bold text-violet-600 dark:text-violet-400">
-              +{example.dailyReward.toFixed(4)}
+              +{formatNumber(example.dailyReward, 4)}
             </div>
             <div className="text-xs text-zinc-500">{symbol}</div>
           </div>
@@ -80,7 +91,7 @@ function RewardCard({
               <span>Monthly</span>
             </div>
             <div className="font-bold text-indigo-600 dark:text-indigo-400">
-              +{example.monthlyReward.toFixed(2)}
+              +{formatNumber(example.monthlyReward, 2)}
             </div>
             <div className="text-xs text-zinc-500">{symbol}</div>
           </div>
@@ -92,7 +103,7 @@ function RewardCard({
               <span>Yearly</span>
             </div>
             <div className="font-bold text-green-600 dark:text-green-400">
-              +{example.yearlyReward.toFixed(2)}
+              +{formatNumber(example.yearlyReward, 2)}
             </div>
             <div className="text-xs text-zinc-500">{symbol}</div>
           </div>

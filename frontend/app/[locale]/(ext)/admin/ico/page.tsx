@@ -56,7 +56,7 @@ export default function AdminDashboard() {
   // Helper to ensure numeric display even if stat is undefined
   const numOrZero = (value?: number) => value ?? 0;
   const formattedTotalRaised = useMemo(() => {
-    const amount = stats?.totalRaised ?? 0;
+    const amount = Number(stats?.totalRaised) || 0;
     if (amount >= 1_000_000_000) {
       return `$${(amount / 1_000_000_000).toFixed(2)}B`;
     }

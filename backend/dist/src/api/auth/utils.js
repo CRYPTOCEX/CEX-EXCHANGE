@@ -113,8 +113,16 @@ exports.userInclude = {
         },
         {
             model: db_1.models.kycApplication,
-            as: "kyc",
-            attributes: ["status", "level"],
+            as: "kycApplications",
+            attributes: ["id", "status", "levelId", "createdAt"],
+            include: [
+                {
+                    model: db_1.models.kycLevel,
+                    as: "level",
+                    attributes: ["id", "name", "level", "features"],
+                },
+            ],
+            required: false,
         },
         {
             model: db_1.models.author,

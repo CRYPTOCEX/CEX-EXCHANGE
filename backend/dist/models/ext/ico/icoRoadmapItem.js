@@ -59,6 +59,10 @@ class icoRoadmapItem extends sequelize_1.Model {
                     unique: true,
                     fields: [{ name: "id" }],
                 },
+                {
+                    name: "icoRoadmapItemOfferingIdIdx",
+                    fields: [{ name: "offeringId" }],
+                },
             ],
         });
     }

@@ -37,6 +37,30 @@ exports.default = async (data) => {
     const markets = await db_1.models.ecosystemMarket.findAll({
         where: { status: true },
     });
-    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${(markets === null || markets === void 0 ? void 0 : markets.length) || 0} active markets`);
-    return markets;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching token icons");
+    const currencies = [
+        ...new Set(markets.map((m) => m.currency)),
+    ];
+    const tokens = currencies.length > 0
+        ? await db_1.models.ecosystemToken.findAll({
+            where: { currency: currencies },
+            attributes: ["currency", "icon"],
+        })
+        : [];
+    const iconMap = new Map();
+    for (const token of tokens) {
+        const t = token;
+        if (t.icon) {
+            iconMap.set(t.currency, t.icon);
+        }
+    }
+    const result = markets.map((market) => {
+        const plain = market.get ? market.get({ plain: true }) : market;
+        return {
+            ...plain,
+            icon: iconMap.get(plain.currency) || null,
+        };
+    });
+    ctx === null || ctx === void 0 ? void 0 : ctx.success(`Retrieved ${result.length} active markets`);
+    return result;
 };

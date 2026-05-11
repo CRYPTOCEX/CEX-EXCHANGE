@@ -236,7 +236,7 @@ async function getActivatedProducts() {
 }
 async function sendBatchHeartbeat(products) {
     var _a;
-    const apiUrl = "https://localhost.com";
+    const apiUrl = "https://updates.mashdiv.com";
     try {
         const fingerprint = (0, security_1.getCachedFingerprint)();
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.APP_PUBLIC_URL || "localhost";
@@ -309,8 +309,74 @@ async function sendBatchHeartbeat(products) {
     }
 }
 async function processLicenseHeartbeat() {
-    const security_1 = require("@b/utils/security");
-    console_1.logger.group("HEARTBEAT", "Processing license heartbeats... (BYPASSED)");
-    console_1.logger.groupItem("HEARTBEAT", "Heartbeat check bypassed by Antigravity");
-    console_1.logger.groupEnd("HEARTBEAT", "Heartbeat completed", true);
+    var _a;
+    const securityStatus = (0, security_1.getSecurityStatus)();
+    if (!securityStatus.initialized) {
+        return;
+    }
+    console_1.logger.group("HEARTBEAT", "Processing license heartbeats...");
+    try {
+        const products = await getActivatedProducts();
+        if (products.length === 0) {
+            console_1.logger.groupItem("HEARTBEAT", "No activated products found");
+            console_1.logger.groupEnd("HEARTBEAT", "No heartbeats to send", true);
+            return;
+        }
+        const productMap = new Map();
+        for (const p of products) {
+            productMap.set(p.productId, p);
+        }
+        const batchResult = await sendBatchHeartbeat(products);
+        if (!batchResult.success && batchResult.results.length === 0) {
+            console_1.logger.groupItem("HEARTBEAT", "Batch endpoint unavailable, skipping heartbeat", "warn");
+            console_1.logger.groupEnd("HEARTBEAT", "Heartbeat skipped", false);
+            return;
+        }
+        let successCount = 0;
+        let failCount = 0;
+        const CHART_ENGINE_PRODUCT_ID = "61200000";
+        for (const result of batchResult.results) {
+            const product = productMap.get(result.product_id);
+            const productName = (product === null || product === void 0 ? void 0 : product.name) || result.product_id;
+            const productType = ((_a = product === null || product === void 0 ? void 0 : product.type) === null || _a === void 0 ? void 0 : _a.toUpperCase()) || "UNKNOWN";
+            if (result.success) {
+                successCount++;
+                console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: OK`);
+            }
+            else {
+                failCount++;
+                const status = result.status || "unknown";
+                if (status === "not_activated") {
+                    console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: Not activated`, "warn");
+                }
+                else if (status === "revoked") {
+                    console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: License revoked`, "error");
+                    if (result.product_id === CHART_ENGINE_PRODUCT_ID) {
+                        await resetChartEngineSettings();
+                    }
+                }
+                else if (status === "expired") {
+                    console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: License expired`, "error");
+                    if (result.product_id === CHART_ENGINE_PRODUCT_ID) {
+                        await resetChartEngineSettings();
+                    }
+                }
+                else if (status === "not_found") {
+                    console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: License not found`, "warn");
+                }
+                else {
+                    console_1.logger.groupItem("HEARTBEAT", `[${productType}] ${productName}: ${result.message || status}`, "warn");
+                }
+            }
+        }
+        const level = (0, security_1.getSecurityLevel)();
+        console_1.logger.groupItem("HEARTBEAT", `Security level: ${level}`);
+        console_1.logger.groupItem("HEARTBEAT", `Products: ${successCount} OK, ${failCount} failed`);
+        console_1.logger.groupEnd("HEARTBEAT", `Batch heartbeat completed (${products.length} products)`, failCount === 0);
+    }
+    catch (error) {
+        console_1.logger.groupItem("HEARTBEAT", `Error: ${error.message}`, "error");
+        console_1.logger.groupEnd("HEARTBEAT", "Heartbeat failed", false);
+        throw error;
+    }
 }

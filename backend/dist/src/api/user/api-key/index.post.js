@@ -65,12 +65,31 @@ exports.metadata = {
     requiresAuth: true,
 };
 exports.default = async (data) => {
+    var _a, _b, _c;
     const { user, body, ctx } = data;
     if (!user) {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("User not authenticated");
         throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
     }
     const { name, permissions, ipWhitelist, ipRestriction } = body;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking KYC level for API key access");
+    const userRecord = await db_1.models.user.findByPk(user.id);
+    if (!userRecord) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "User not found" });
+    }
+    const kycApplication = await ((_b = (_a = db_1.models.kycApplication) === null || _a === void 0 ? void 0 : _a.findOne) === null || _b === void 0 ? void 0 : _b.call(_a, {
+        where: { userId: user.id, status: "APPROVED" },
+        include: [{ model: db_1.models.kycLevel, as: "level", attributes: ["level"] }],
+        order: [["createdAt", "DESC"]],
+    }));
+    const userKycLevel = ((_c = kycApplication === null || kycApplication === void 0 ? void 0 : kycApplication.level) === null || _c === void 0 ? void 0 : _c.level) || 0;
+    if (userKycLevel < 2) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("KYC Level 2 required for API key management");
+        throw (0, error_1.createError)({
+            statusCode: 403,
+            message: "KYC Level 2 verification is required to create API keys.",
+        });
+    }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking API key limit");
     const existingApiKeys = await db_1.models.apiKey.count({
         where: { userId: user.id },

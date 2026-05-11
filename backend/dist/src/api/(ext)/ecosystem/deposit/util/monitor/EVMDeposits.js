@@ -9,6 +9,7 @@ const ethers_1 = require("ethers");
 const DepositUtils_1 = require("../DepositUtils");
 const deposit_1 = require("@b/api/(ext)/ecosystem/utils/redis/deposit");
 const console_1 = require("@b/utils/console");
+const db_1 = require("@b/db");
 class EVMDeposits {
     constructor(options) {
         this.active = true;
@@ -66,11 +67,12 @@ class EVMDeposits {
         var _a;
         const decimals = ((_a = chains_1.chainConfigs[this.chain]) === null || _a === void 0 ? void 0 : _a.decimals) || 18;
         let depositFound = false;
-        let startTime = Math.floor(Date.now() / 1000);
+        let startTime = Math.floor(Date.now() / 1000) - 86400;
         let consecutiveErrors = 0;
         const MAX_CONSECUTIVE_ERRORS = 10;
         console_1.logger.info("EVM_DEPOSIT", `Starting native deposit monitoring for ${this.chain} address ${this.address}`);
         const verifyDeposits = async () => {
+            var _a;
             if (depositFound || !this.active) {
                 return;
             }
@@ -82,6 +84,14 @@ class EVMDeposits {
                         Number(tx.timestamp) > startTime &&
                         Number(tx.status) === 1) {
                         consecutiveErrors = 0;
+                        const existingTx = await db_1.models.transaction.findOne({
+                            where: { trxId: tx.hash, walletId: this.wallet.id },
+                            attributes: ['id'],
+                        });
+                        if (existingTx) {
+                            console_1.logger.info("EVM_DEPOSIT", `Transaction ${tx.hash} already exists in DB, skipping`);
+                            continue;
+                        }
                         try {
                             console_1.logger.success("EVM_DEPOSIT", `Found native deposit for ${this.chain}: ${tx.hash}`);
                             const txDetails = await (0, DepositUtils_1.createTransactionDetails)("NATIVE", this.wallet.id, tx, this.address, this.chain, decimals, feeDecimals, "DEPOSIT");
@@ -92,6 +102,12 @@ class EVMDeposits {
                             return;
                         }
                         catch (error) {
+                            if ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes("already processed")) {
+                                console_1.logger.info("EVM_DEPOSIT", `Transaction ${tx.hash} already processed, marking as found`);
+                                depositFound = true;
+                                this.stopPolling();
+                                return;
+                            }
                             console_1.logger.error("EVM_DEPOSIT", `Error processing native transaction ${tx.hash}: ${error.message}`);
                         }
                         startTime = Math.floor(Date.now() / 1000);

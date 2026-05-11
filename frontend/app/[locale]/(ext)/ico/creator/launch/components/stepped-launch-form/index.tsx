@@ -192,6 +192,9 @@ export function SteppedLaunchForm({
         ) {
           tempErrors.symbol = "Token symbol must be between 2 and 5 characters";
         }
+        if (!formData.icon) {
+          tempErrors.icon = "Token icon is required";
+        }
         break;
 
       case 2: // Token Configuration
@@ -343,6 +346,9 @@ export function SteppedLaunchForm({
           formData.symbol.length > 5
         ) {
           newErrors.symbol = "Token symbol must be between 2 and 5 characters";
+        }
+        if (!formData.icon) {
+          newErrors.icon = "Token icon is required";
         }
         break;
 

@@ -85,6 +85,14 @@ export default function CheckoutClient() {
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState<any>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  // BUG-21: Store order summary before cart is cleared
+  const [completedOrderSummary, setCompletedOrderSummary] = useState<{
+    subtotal: number;
+    discountAmount: number;
+    shipping: number;
+    tax: number;
+    total: number;
+  } | null>(null);
   const { settings } = useConfigStore();
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -127,32 +135,37 @@ export default function CheckoutClient() {
     return cart.some((item) => item.product.type === "DOWNLOADABLE");
   }, [cart]);
 
-  // Calculate tax based on settings
-  const tax = useMemo(() => {
-    if (settings && getBooleanSetting(settings.ecommerceTaxEnabled)) {
-      return subtotal * (settings.ecommerceDefaultTaxRate / 100);
+  // BUG-7: Calculate discount FIRST, then tax on discounted subtotal (matches backend)
+  const discountAmount = useMemo(() => {
+    if (!discount) return 0;
+    if (discount.type === "PERCENTAGE") {
+      return subtotal * (discount.value / 100);
+    } else if (discount.type === "FIXED") {
+      return Math.min(discount.value, subtotal);
     }
     return 0;
-  }, [subtotal, settings]);
+  }, [discount, subtotal]);
 
-  // Calculate shipping based on settings
+  const discountedSubtotal = subtotal - discountAmount;
+
+  // Calculate tax on discounted subtotal (matches backend logic)
+  const tax = useMemo(() => {
+    if (settings && getBooleanSetting(settings.ecommerceTaxEnabled)) {
+      return discountedSubtotal * (settings.ecommerceDefaultTaxRate / 100);
+    }
+    return 0;
+  }, [discountedSubtotal, settings]);
+
+  // Calculate shipping based on settings (FREE_SHIPPING discount zeroes it)
   const shipping = useMemo(() => {
+    if (discount?.type === "FREE_SHIPPING") return 0;
     if (settings && getBooleanSetting(settings.ecommerceShippingEnabled) && hasPhysicalProductsValue) {
       return settings.ecommerceDefaultShippingCost || 0;
     }
     return 0;
-  }, [settings, hasPhysicalProductsValue]);
+  }, [settings, hasPhysicalProductsValue, discount]);
 
-  let total = subtotal + tax + shipping;
-
-  // Apply discount if available
-  if (discount) {
-    if (discount.type === "PERCENTAGE") {
-      total -= subtotal * (discount.value / 100);
-    } else if (discount.type === "FIXED") {
-      total -= discount.value;
-    }
-  }
+  const total = discountedSubtotal + tax + shipping;
 
   // Group cart items by wallet type and currency
   const cartByWallet = cart.reduce(
@@ -412,12 +425,13 @@ export default function CheckoutClient() {
     setIsSubmitting(true);
 
     try {
-      // Process each order based on cart groups
-      const orderPromises = cart.map(async (item) => {
-        const key = `${item.product.walletType}-${item.product.currency}`;
+      // BUG-9: Process orders SEQUENTIALLY to avoid partial checkout
+      const results: any[] = [];
+      const failedItems: string[] = [];
 
+      for (const item of cart) {
         // Prepare shipping address only for physical products
-        let shippingAddressData = null;
+        let shippingAddressData: any = null;
         if (item.product.type === "PHYSICAL") {
           shippingAddressData = {
             name: `${formData.firstName} ${formData.lastName}`,
@@ -431,29 +445,49 @@ export default function CheckoutClient() {
           };
         }
 
+        // BUG-8: Only send discountId if discount applies to THIS product
+        const itemDiscountId =
+          discount?.productId === item.product.id ? discount.id : null;
+
         const { data, error } = await $fetch({
           url: "/api/ecommerce/order",
           method: "POST",
           body: {
             productId: item.product.id,
             amount: item.quantity,
-            discountId: discount?.id || null,
+            discountId: itemDiscountId,
             shippingAddress: shippingAddressData,
           },
         });
 
         if (error) {
-          throw new Error(error);
+          failedItems.push(item.product.name);
+          // Stop on first failure to prevent partial checkout
+          break;
         }
 
-        return data;
+        results.push(data);
+      }
+
+      if (failedItems.length > 0) {
+        toast.error(
+          `Failed to order: ${failedItems.join(", ")}. ${results.length > 0 ? `${results.length} item(s) were ordered successfully.` : ""}`
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      // BUG-21: Capture order summary BEFORE clearing cart
+      setOrderNumber(results[0]?.id || `ORD-${Date.now()}`);
+      setCompletedOrderSummary({
+        subtotal,
+        discountAmount,
+        shipping,
+        tax,
+        total,
       });
-
-      const results = await Promise.all(orderPromises);
-
       setIsSubmitting(false);
       setOrderComplete(true);
-      setOrderNumber(results[0]?.id || `ORD-${Date.now()}`);
       clearCart();
       toast.success("Order completed successfully!");
     } catch (err: any) {
@@ -518,23 +552,31 @@ export default function CheckoutClient() {
                   <span className="text-gray-500 dark:text-zinc-400">
                     {t("subtotal")}:
                   </span>
-                  <span className="font-medium">${subtotal.toFixed(2)}</span>
+                  <span className="font-medium">${(completedOrderSummary?.subtotal ?? subtotal).toFixed(2)}</span>
                 </div>
-                {hasPhysicalProducts() && (
+                {(completedOrderSummary?.discountAmount ?? discountAmount) > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 dark:text-zinc-400">
+                      {tCommon("discount")}:
+                    </span>
+                    <span className="font-medium text-green-600">-${(completedOrderSummary?.discountAmount ?? discountAmount).toFixed(2)}</span>
+                  </div>
+                )}
+                {(completedOrderSummary?.shipping ?? shipping) > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-500 dark:text-zinc-400">
                       {t("shipping")}:
                     </span>
-                    <span className="font-medium">${shipping.toFixed(2)}</span>
+                    <span className="font-medium">${(completedOrderSummary?.shipping ?? shipping).toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-zinc-400">{tExt("tax")}:</span>
-                  <span className="font-medium">${tax.toFixed(2)}</span>
+                  <span className="font-medium">${(completedOrderSummary?.tax ?? tax).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-gray-200 dark:border-zinc-700 mt-2">
                   <span className="font-medium">{tCommon("total")}:</span>
-                  <span className="font-bold">${total.toFixed(2)}</span>
+                  <span className="font-bold">${(completedOrderSummary?.total ?? total).toFixed(2)}</span>
                 </div>
               </div>
             </div>

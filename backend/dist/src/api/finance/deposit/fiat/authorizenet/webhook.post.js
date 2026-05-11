@@ -4,6 +4,7 @@ exports.metadata = void 0;
 const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const db_1 = require("@b/db");
+const fees_1 = require("@b/utils/fees");
 const emails_1 = require("@b/utils/emails");
 const utils_1 = require("./utils");
 const console_1 = require("@b/utils/console");
@@ -240,18 +241,16 @@ async function handleCaptureCreated(payload) {
             transaction: dbTransaction,
         });
         if (feeAmount > 0) {
-            try {
-                await db_1.models.adminProfit.create({
-                    amount: feeAmount,
-                    currency: wallet.currency,
-                    type: "DEPOSIT",
-                    description: `Authorize.Net deposit fee for transaction ${merchantReferenceId}`,
-                    transactionId: transaction.id,
-                }, { transaction: dbTransaction });
-            }
-            catch (profitError) {
-                console_1.logger.error("AUTH_NET", "Failed to record admin profit", profitError);
-            }
+            await (0, fees_1.collectPlatformFee)({
+                userId: transaction.userId,
+                currency: wallet.currency,
+                walletType: "FIAT",
+                feeAmount,
+                type: "DEPOSIT",
+                description: `Platform fee from Authorize.Net deposit for transaction ${merchantReferenceId}`,
+                referenceId: transaction.id,
+                metadata: { method: "authorizenet", merchantReferenceId },
+            });
         }
     });
     try {

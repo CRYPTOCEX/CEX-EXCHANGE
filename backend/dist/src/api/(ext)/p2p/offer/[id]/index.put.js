@@ -6,7 +6,10 @@ const error_1 = require("@b/utils/error");
 const sequelize_1 = require("sequelize");
 const cache_1 = require("@b/utils/cache");
 const json_parser_1 = require("@b/api/(ext)/p2p/utils/json-parser");
+const utils_1 = require("@b/api/finance/wallet/utils");
+const wallet_1 = require("@b/services/wallet");
 const console_1 = require("@b/utils/console");
+const ownership_1 = require("@b/api/(ext)/p2p/utils/ownership");
 exports.metadata = {
     summary: "Updates a P2P offer",
     description: "Updates specific fields of a P2P offer with security restrictions",
@@ -33,7 +36,7 @@ exports.metadata = {
                         priceConfig: {
                             type: "object",
                             properties: {
-                                model: { type: "string", enum: ["fixed", "dynamic"] },
+                                model: { type: "string" },
                                 fixedPrice: { type: "number", minimum: 0 },
                                 dynamicOffset: { type: "number", minimum: -50, maximum: 50 },
                                 currency: { type: "string" },
@@ -115,7 +118,7 @@ exports.metadata = {
     requiresAuth: true,
 };
 exports.default = async (data) => {
-    var _a;
+    var _a, _b, _c, _d, _e, _f;
     const { user, params, body, ctx } = data;
     const { id } = params;
     if (!(user === null || user === void 0 ? void 0 : user.id)) {
@@ -124,40 +127,8 @@ exports.default = async (data) => {
             message: "Unauthorized: User not authenticated",
         });
     }
-    ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding and validating offer ownership");
-    const { p2pOffer, p2pPaymentMethod, p2pTrade } = db_1.models;
-    const offer = await p2pOffer.findOne({
-        where: { id, userId: user.id },
-        include: [
-            {
-                model: p2pTrade,
-                as: "trades",
-                where: { status: { [sequelize_1.Op.in]: ["PENDING", "ACTIVE", "ESCROW"] } },
-                required: false,
-            },
-        ],
-    });
-    if (!offer) {
-        throw (0, error_1.createError)({
-            statusCode: 404,
-            message: "Offer not found or you don't have permission to edit it",
-        });
-    }
-    const canEdit = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "PAUSED"].includes(offer.status);
-    if (!canEdit) {
-        throw (0, error_1.createError)({
-            statusCode: 422,
-            message: `Cannot edit offer in ${offer.status} status`,
-        });
-    }
-    const activeTrades = offer.trades || [];
-    if (activeTrades.length > 0) {
-        throw (0, error_1.createError)({
-            statusCode: 422,
-            message: "Cannot edit offer while there are active trades. Please wait for trades to complete.",
-        });
-    }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating and preparing update data");
+    const { p2pOffer, p2pPaymentMethod, p2pTrade } = db_1.models;
     const allowedFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements", "paymentMethodIds", "status"];
     const jsonFields = ["priceConfig", "amountConfig", "tradeSettings", "locationSettings", "userRequirements"];
     const updateData = {};
@@ -188,12 +159,6 @@ exports.default = async (data) => {
                 message: "Invalid status. Only ACTIVE and PAUSED are allowed.",
             });
         }
-        if (updateData.status === "ACTIVE" && offer.status === "DRAFT") {
-            throw (0, error_1.createError)({
-                statusCode: 422,
-                message: "Cannot activate a draft offer. Please complete all required fields first.",
-            });
-        }
     }
     if (updateData.tradeSettings) {
         const settings = updateData.tradeSettings;
@@ -217,38 +182,26 @@ exports.default = async (data) => {
                 message: "Additional notes cannot exceed 500 characters",
             });
         }
-        updateData.tradeSettings = {
-            ...offer.tradeSettings,
-            ...settings,
-        };
     }
     if (updateData.priceConfig) {
         const priceConfig = updateData.priceConfig;
-        const existingPriceConfig = typeof offer.priceConfig === "string"
-            ? JSON.parse(offer.priceConfig)
-            : offer.priceConfig || {};
-        if (priceConfig.model && !["fixed", "dynamic"].includes(priceConfig.model)) {
+        if (priceConfig.model) {
+            priceConfig.model = priceConfig.model.toUpperCase();
+        }
+        if (priceConfig.model && !["FIXED", "MARGIN"].includes(priceConfig.model)) {
             throw (0, error_1.createError)({
                 statusCode: 400,
-                message: "Invalid price model. Must be 'fixed' or 'dynamic'",
+                message: "Invalid price model. Must be 'FIXED' or 'MARGIN'",
             });
         }
-        if (priceConfig.model === "fixed") {
-            const fixedPrice = priceConfig.fixedPrice !== undefined
-                ? priceConfig.fixedPrice
-                : existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0;
-            if (fixedPrice < 0) {
-                throw (0, error_1.createError)({
-                    statusCode: 400,
-                    message: "Fixed price must be greater than or equal to 0",
-                });
-            }
-            priceConfig.fixedPrice = fixedPrice;
+        if (priceConfig.model === "FIXED" && priceConfig.fixedPrice !== undefined && priceConfig.fixedPrice < 0) {
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: "Fixed price must be greater than or equal to 0",
+            });
         }
-        if (priceConfig.model === "dynamic") {
-            const dynamicOffset = priceConfig.dynamicOffset !== undefined
-                ? Number(priceConfig.dynamicOffset)
-                : Number(existingPriceConfig.dynamicOffset) || 0;
+        if (priceConfig.model === "MARGIN" && priceConfig.dynamicOffset !== undefined) {
+            const dynamicOffset = Number(priceConfig.dynamicOffset);
             if (dynamicOffset < -50 || dynamicOffset > 50) {
                 throw (0, error_1.createError)({
                     statusCode: 400,
@@ -257,41 +210,9 @@ exports.default = async (data) => {
             }
             priceConfig.dynamicOffset = dynamicOffset;
         }
-        const targetModel = priceConfig.model || existingPriceConfig.model || "fixed";
-        const mergedPriceConfig = {
-            model: targetModel,
-            currency: priceConfig.currency || existingPriceConfig.currency,
-        };
-        if (mergedPriceConfig.model === "fixed") {
-            mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined
-                ? priceConfig.fixedPrice
-                : (existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0);
-        }
-        else {
-            mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined
-                ? priceConfig.dynamicOffset
-                : (existingPriceConfig.dynamicOffset || 0);
-            mergedPriceConfig.marketPrice = priceConfig.marketPrice || existingPriceConfig.marketPrice;
-        }
-        if (mergedPriceConfig.model === "fixed") {
-            mergedPriceConfig.finalPrice = mergedPriceConfig.fixedPrice;
-            mergedPriceConfig.value = mergedPriceConfig.finalPrice;
-        }
-        else if (mergedPriceConfig.model === "dynamic") {
-            if (!mergedPriceConfig.finalPrice) {
-                mergedPriceConfig.finalPrice = mergedPriceConfig.marketPrice || existingPriceConfig.finalPrice || 0;
-            }
-        }
-        updateData.priceConfig = mergedPriceConfig;
-        if (priceConfig.currency) {
-            updateData.priceCurrency = priceConfig.currency;
-        }
     }
     if (updateData.amountConfig) {
         const amountConfig = updateData.amountConfig;
-        const existingAmountConfig = typeof offer.amountConfig === "string"
-            ? JSON.parse(offer.amountConfig)
-            : offer.amountConfig || {};
         if (amountConfig.min !== undefined && amountConfig.min < 0) {
             throw (0, error_1.createError)({
                 statusCode: 400,
@@ -310,18 +231,12 @@ exports.default = async (data) => {
                 message: "Total amount must be greater than or equal to 0",
             });
         }
-        const finalMin = amountConfig.min !== undefined ? amountConfig.min : existingAmountConfig.min;
-        const finalMax = amountConfig.max !== undefined ? amountConfig.max : existingAmountConfig.max;
-        if (finalMin > finalMax) {
+        if (amountConfig.min !== undefined && amountConfig.max !== undefined && amountConfig.min > amountConfig.max) {
             throw (0, error_1.createError)({
                 statusCode: 400,
                 message: "Minimum amount cannot be greater than maximum amount",
             });
         }
-        updateData.amountConfig = {
-            ...existingAmountConfig,
-            ...amountConfig,
-        };
         if (amountConfig.min !== undefined) {
             updateData.minLimit = amountConfig.min;
         }
@@ -349,10 +264,6 @@ exports.default = async (data) => {
                 message: "Minimum account age must be between 0 and 365 days",
             });
         }
-        updateData.userRequirements = {
-            ...offer.userRequirements,
-            ...requirements,
-        };
     }
     if (updateData.locationSettings) {
         const location = updateData.locationSettings;
@@ -374,10 +285,6 @@ exports.default = async (data) => {
                 message: "City name cannot exceed 100 characters",
             });
         }
-        updateData.locationSettings = {
-            ...offer.locationSettings,
-            ...location,
-        };
     }
     if (updateData.paymentMethodIds) {
         if (!Array.isArray(updateData.paymentMethodIds) || updateData.paymentMethodIds.length === 0) {
@@ -394,6 +301,15 @@ exports.default = async (data) => {
                 statusCode: 400,
                 message: "One or more payment method IDs are invalid",
             });
+        }
+        for (const methodId of updateData.paymentMethodIds) {
+            const owns = await (0, ownership_1.isPaymentMethodOwner)(user.id, methodId);
+            if (!owns) {
+                throw (0, error_1.createError)({
+                    statusCode: 403,
+                    message: "You do not have permission to use one or more of the provided payment methods",
+                });
+            }
         }
     }
     if (Object.keys(updateData).length === 0) {
@@ -414,7 +330,214 @@ exports.default = async (data) => {
     let transaction;
     try {
         transaction = await db_1.sequelize.transaction();
+        const offer = await p2pOffer.findOne({
+            where: { id, userId: user.id },
+            include: [
+                {
+                    model: p2pTrade,
+                    as: "trades",
+                    where: { status: { [sequelize_1.Op.in]: ["PENDING", "ACTIVE", "ESCROW"] } },
+                    required: false,
+                },
+            ],
+            lock: true,
+            transaction,
+        });
+        if (!offer) {
+            throw (0, error_1.createError)({
+                statusCode: 404,
+                message: "Offer not found or you don't have permission to edit it",
+            });
+        }
+        const canEdit = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "PAUSED"].includes(offer.status);
+        if (!canEdit) {
+            throw (0, error_1.createError)({
+                statusCode: 422,
+                message: `Cannot edit offer in ${offer.status} status`,
+            });
+        }
+        const activeTrades = offer.trades || [];
+        if (activeTrades.length > 0) {
+            throw (0, error_1.createError)({
+                statusCode: 422,
+                message: "Cannot edit offer while there are active trades. Please wait for trades to complete.",
+            });
+        }
+        if (updateData.status === "ACTIVE" && offer.status === "DRAFT") {
+            throw (0, error_1.createError)({
+                statusCode: 422,
+                message: "Cannot activate a draft offer. Please complete all required fields first.",
+            });
+        }
+        if (updateData.tradeSettings) {
+            const existingTradeSettings = typeof offer.tradeSettings === "string"
+                ? JSON.parse(offer.tradeSettings)
+                : offer.tradeSettings || {};
+            updateData.tradeSettings = {
+                ...existingTradeSettings,
+                ...updateData.tradeSettings,
+            };
+            if (updateData.tradeSettings.autoCancel !== undefined) {
+                updateData.tradeSettings.autoCancel = Number(updateData.tradeSettings.autoCancel) || existingTradeSettings.autoCancel || 30;
+            }
+        }
+        if (updateData.priceConfig) {
+            const existingPriceConfig = typeof offer.priceConfig === "string"
+                ? JSON.parse(offer.priceConfig)
+                : offer.priceConfig || {};
+            const priceConfig = updateData.priceConfig;
+            const targetModel = priceConfig.model || existingPriceConfig.model || "FIXED";
+            const mergedPriceConfig = {
+                model: targetModel,
+                currency: priceConfig.currency || existingPriceConfig.currency,
+            };
+            if (mergedPriceConfig.model === "FIXED") {
+                mergedPriceConfig.fixedPrice = priceConfig.fixedPrice !== undefined
+                    ? priceConfig.fixedPrice
+                    : (existingPriceConfig.fixedPrice || existingPriceConfig.finalPrice || 0);
+                mergedPriceConfig.finalPrice = mergedPriceConfig.fixedPrice;
+                mergedPriceConfig.value = mergedPriceConfig.finalPrice;
+            }
+            else {
+                mergedPriceConfig.dynamicOffset = priceConfig.dynamicOffset !== undefined
+                    ? priceConfig.dynamicOffset
+                    : (existingPriceConfig.dynamicOffset || 0);
+                mergedPriceConfig.marketPrice = priceConfig.marketPrice || existingPriceConfig.marketPrice;
+                mergedPriceConfig.finalPrice = mergedPriceConfig.marketPrice || existingPriceConfig.finalPrice || 0;
+            }
+            if (priceConfig.currency) {
+                updateData.priceCurrency = priceConfig.currency;
+            }
+            updateData.priceConfig = mergedPriceConfig;
+        }
+        if (updateData.amountConfig) {
+            const existingAmountConfig = typeof offer.amountConfig === "string"
+                ? JSON.parse(offer.amountConfig)
+                : offer.amountConfig || {};
+            const amountConfig = updateData.amountConfig;
+            const finalMin = amountConfig.min !== undefined ? amountConfig.min : existingAmountConfig.min;
+            const finalMax = amountConfig.max !== undefined ? amountConfig.max : existingAmountConfig.max;
+            if (finalMin !== undefined && finalMax !== undefined && finalMin > finalMax) {
+                throw (0, error_1.createError)({
+                    statusCode: 400,
+                    message: "Minimum amount cannot be greater than maximum amount",
+                });
+            }
+            updateData.amountConfig = {
+                ...existingAmountConfig,
+                ...amountConfig,
+            };
+        }
+        if (updateData.userRequirements) {
+            updateData.userRequirements = {
+                ...offer.userRequirements,
+                ...updateData.userRequirements,
+            };
+        }
+        if (updateData.locationSettings) {
+            updateData.locationSettings = {
+                ...offer.locationSettings,
+                ...updateData.locationSettings,
+            };
+        }
+        if (offer.type === "SELL" && offer.status === "ACTIVE" && ((_a = updateData.amountConfig) === null || _a === void 0 ? void 0 : _a.total) !== undefined) {
+            const oldTotal = (0, json_parser_1.parseAmountConfig)(offer.amountConfig).total;
+            const newTotal = updateData.amountConfig.total;
+            const delta = newTotal - oldTotal;
+            if (delta !== 0) {
+                const sellerWallet = await db_1.models.wallet.findOne({
+                    where: { userId: offer.userId, type: offer.walletType, currency: offer.currency },
+                    lock: true,
+                    transaction,
+                });
+                if (sellerWallet) {
+                    const updateScope = offer.updatedAt ? new Date(offer.updatedAt).getTime() : "no_updated_at";
+                    if (delta > 0) {
+                        if (sellerWallet.balance < delta) {
+                            throw (0, error_1.createError)({ statusCode: 409, message: `Insufficient balance to increase offer amount. Available: ${sellerWallet.balance}` });
+                        }
+                        await wallet_1.walletService.hold({
+                            idempotencyKey: `p2p_offer_increase_${offer.id}_${updateScope}`,
+                            userId: offer.userId,
+                            walletId: sellerWallet.id,
+                            walletType: offer.walletType,
+                            currency: offer.currency,
+                            amount: delta,
+                            operationType: "P2P_OFFER_INCREASE",
+                            description: `Lock additional ${delta} ${offer.currency} for P2P offer increase`,
+                            metadata: { offerId: offer.id },
+                            transaction,
+                        });
+                    }
+                    else {
+                        const releaseAmount = Math.min(Math.abs(delta), (_b = sellerWallet.inOrder) !== null && _b !== void 0 ? _b : 0);
+                        if (releaseAmount > 0) {
+                            await wallet_1.walletService.release({
+                                idempotencyKey: `p2p_offer_decrease_${offer.id}_${updateScope}`,
+                                userId: offer.userId,
+                                walletId: sellerWallet.id,
+                                walletType: offer.walletType,
+                                currency: offer.currency,
+                                amount: releaseAmount,
+                                operationType: "P2P_OFFER_DECREASE",
+                                description: `Release ${releaseAmount} ${offer.currency} from P2P offer decrease`,
+                                metadata: { offerId: offer.id },
+                                transaction,
+                            });
+                        }
+                    }
+                }
+            }
+        }
         const { paymentMethodIds, ...offerUpdateData } = updateData;
+        const previousOfferStatus = offer.status;
+        if (offer.type === "SELL" && updateData.status && updateData.status !== previousOfferStatus) {
+            const amountConfig = (0, json_parser_1.parseAmountConfig)(offer.amountConfig);
+            const offerAmount = amountConfig.total;
+            if (offerAmount > 0) {
+                if (updateData.status === "PAUSED") {
+                    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Releasing ${offerAmount} ${offer.currency} - offer paused`);
+                    const wallet = await (0, utils_1.getWalletSafe)(user.id, offer.walletType, offer.currency, false, ctx);
+                    if (wallet && ((_c = wallet.inOrder) !== null && _c !== void 0 ? _c : 0) >= offerAmount) {
+                        await wallet_1.walletService.release({
+                            idempotencyKey: `p2p_offer_pause_release_${offer.id}`,
+                            userId: user.id,
+                            walletId: wallet.id,
+                            walletType: offer.walletType,
+                            currency: offer.currency,
+                            amount: offerAmount,
+                            operationType: "P2P_OFFER_PAUSE",
+                            description: `Release ${offerAmount} ${offer.currency} - P2P offer paused`,
+                            metadata: { offerId: offer.id },
+                            transaction,
+                        });
+                    }
+                }
+                else if (updateData.status === "ACTIVE" && previousOfferStatus === "PAUSED") {
+                    ctx === null || ctx === void 0 ? void 0 : ctx.step(`Re-locking ${offerAmount} ${offer.currency} - offer resumed`);
+                    const wallet = await (0, utils_1.getWalletSafe)(user.id, offer.walletType, offer.currency, false, ctx);
+                    if (!wallet || ((_d = wallet.balance) !== null && _d !== void 0 ? _d : 0) < offerAmount) {
+                        await transaction.rollback();
+                        throw (0, error_1.createError)({
+                            statusCode: 400,
+                            message: `Insufficient balance to resume offer. Available: ${(_e = wallet === null || wallet === void 0 ? void 0 : wallet.balance) !== null && _e !== void 0 ? _e : 0} ${offer.currency}, Required: ${offerAmount} ${offer.currency}`,
+                        });
+                    }
+                    await wallet_1.walletService.hold({
+                        idempotencyKey: `p2p_offer_resume_lock_${offer.id}`,
+                        userId: user.id,
+                        walletId: wallet.id,
+                        walletType: offer.walletType,
+                        currency: offer.currency,
+                        amount: offerAmount,
+                        operationType: "P2P_OFFER_LOCK",
+                        description: `Lock ${offerAmount} ${offer.currency} - P2P offer resumed`,
+                        metadata: { offerId: offer.id },
+                        transaction,
+                    });
+                }
+            }
+        }
         await offer.update(offerUpdateData, { transaction });
         if (paymentMethodIds) {
             ctx === null || ctx === void 0 ? void 0 : ctx.step(`Updating payment methods (${paymentMethodIds.length} methods)`);
@@ -469,7 +592,7 @@ exports.default = async (data) => {
                 message: `Database error: ${error.message}`,
             });
         }
-        if (error.code === 'ECONNRESET' || ((_a = error.message) === null || _a === void 0 ? void 0 : _a.includes('ECONNRESET'))) {
+        if (error.code === 'ECONNRESET' || ((_f = error.message) === null || _f === void 0 ? void 0 : _f.includes('ECONNRESET'))) {
             throw (0, error_1.createError)({
                 statusCode: 500,
                 message: "Database connection error. Please try again.",

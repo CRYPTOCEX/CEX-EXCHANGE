@@ -1,1 +1,203 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0});exports.metadata=void 0;const db_1=require("@b/db"),error_1=require("@b/utils/error");exports.metadata={summary:"Update API key settings",description:"Updates an API key's settings (URLs, status, etc.).",operationId:"updateApiKey",tags:["Gateway","Merchant","API Keys"],parameters:[{name:"id",in:"path",required:!0,schema:{type:"string"}}],requestBody:{required:!0,content:{"application/json":{schema:{type:"object",properties:{successUrl:{type:"string",format:"uri",description:"Success redirect URL"},cancelUrl:{type:"string",format:"uri",description:"Cancel redirect URL"},webhookUrl:{type:"string",format:"uri",description:"Webhook URL"},status:{type:"boolean",description:"Enable/disable the key"},permissions:{type:"array",items:{type:"string"},description:"List of permissions for the key. Use '*' for full access, or specific permissions like 'payment.create', 'payment.read', 'payment.cancel', 'refund.create', 'refund.read'"},allowedWalletTypes:{type:"object",description:"Allowed wallet types and currencies for this API key",additionalProperties:{type:"object",properties:{enabled:{type:"boolean"},currencies:{type:"array",items:{type:"string"}}}}},ipWhitelist:{type:"array",items:{type:"string"},nullable:!0,description:"List of IP addresses or CIDR ranges allowed to use this API key. Only applies to secret keys (sk_*). Supports IPv4/IPv6 and CIDR notation (e.g., '192.168.1.0/24'). Use '*' to allow all IPs. Set to null to allow all."}}}}}},responses:{200:{description:"API key updated"},404:{description:"API key not found"}},requiresAuth:!0,logModule:"GATEWAY",logTitle:"Update API Key Settings"};exports.default=async e=>{const{user:t,params:s,body:r,ctx:a}=e,{id:i}=s;null==a||a.step("Validate user authentication");if(!(null==t?void 0:t.id)){null==a||a.fail("Unauthorized - no user ID");throw(0,error_1.createError)({statusCode:401,message:"Unauthorized"})}null==a||a.step("Find merchant account");const l=await db_1.models.gatewayMerchant.findOne({where:{userId:t.id}});if(!l){null==a||a.fail("Merchant account not found");throw(0,error_1.createError)({statusCode:404,message:"Merchant account not found"})}null==a||a.step("Find API key to update");const o=await db_1.models.gatewayApiKey.findOne({where:{id:i,merchantId:l.id}});if(!o){null==a||a.fail("API key not found");throw(0,error_1.createError)({statusCode:404,message:"API key not found"})}null==a||a.step("Build and validate updates");const n={};void 0!==r.successUrl&&(n.successUrl=r.successUrl||null);void 0!==r.cancelUrl&&(n.cancelUrl=r.cancelUrl||null);void 0!==r.webhookUrl&&(n.webhookUrl=r.webhookUrl||null);void 0!==r.status&&(n.status=r.status);if(void 0!==r.permissions){const e=["*","payment.create","payment.read","payment.cancel","refund.create","refund.read"];let t=r.permissions;Array.isArray(t)||(t=["*"]);t=t.filter(t=>e.includes(t));0===t.length&&(t=["*"]);n.permissions=t}void 0!==r.allowedWalletTypes&&(n.allowedWalletTypes=r.allowedWalletTypes||null);if(void 0!==r.ipWhitelist&&"SECRET"===o.type)if(r.ipWhitelist&&Array.isArray(r.ipWhitelist)){const e=r.ipWhitelist.map(e=>null==e?void 0:e.trim()).filter(e=>e&&e.length>0);n.ipWhitelist=e.length>0?e:null}else n.ipWhitelist=null;null==a||a.step("Update API key and its pair");await o.update(n);const d=o.name.replace(" (Public)","").replace(" (Secret)",""),p="PUBLIC"===o.type?"SECRET":"PUBLIC",c="PUBLIC"===p?" (Public)":" (Secret)",u=await db_1.models.gatewayApiKey.findOne({where:{merchantId:l.id,mode:o.mode,type:p,name:`${d}${c}`}});u&&await u.update(n);null==a||a.success("API key updated successfully");return{message:"API key updated successfully",key:{id:o.id,name:o.name,keyPreview:`${o.keyPrefix}...${o.lastFourChars}`,type:o.type,mode:o.mode,permissions:o.permissions,allowedWalletTypes:o.allowedWalletTypes,ipWhitelist:"SECRET"===o.type?o.ipWhitelist:void 0,successUrl:o.successUrl,cancelUrl:o.cancelUrl,webhookUrl:o.webhookUrl,status:o.status}}};
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const db_1 = require("@b/db");
+const error_1 = require("@b/utils/error");
+exports.metadata = {
+    summary: "Update API key settings",
+    description: "Updates an API key's settings (URLs, status, etc.).",
+    operationId: "updateApiKey",
+    tags: ["Gateway", "Merchant", "API Keys"],
+    parameters: [
+        {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+        },
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        successUrl: {
+                            type: "string",
+                            format: "uri",
+                            description: "Success redirect URL",
+                        },
+                        cancelUrl: {
+                            type: "string",
+                            format: "uri",
+                            description: "Cancel redirect URL",
+                        },
+                        webhookUrl: {
+                            type: "string",
+                            format: "uri",
+                            description: "Webhook URL",
+                        },
+                        status: {
+                            type: "boolean",
+                            description: "Enable/disable the key",
+                        },
+                        permissions: {
+                            type: "array",
+                            items: { type: "string" },
+                            description: "List of permissions for the key. Use '*' for full access, or specific permissions like 'payment.create', 'payment.read', 'payment.cancel', 'refund.create', 'refund.read'",
+                        },
+                        allowedWalletTypes: {
+                            type: "object",
+                            description: "Allowed wallet types and currencies for this API key",
+                            additionalProperties: {
+                                type: "object",
+                                properties: {
+                                    enabled: { type: "boolean" },
+                                    currencies: {
+                                        type: "array",
+                                        items: { type: "string" },
+                                    },
+                                },
+                            },
+                        },
+                        ipWhitelist: {
+                            type: "array",
+                            items: { type: "string" },
+                            nullable: true,
+                            description: "List of IP addresses or CIDR ranges allowed to use this API key. Only applies to secret keys (sk_*). Supports IPv4/IPv6 and CIDR notation (e.g., '192.168.1.0/24'). Use '*' to allow all IPs. Set to null to allow all.",
+                        },
+                    },
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "API key updated",
+        },
+        404: {
+            description: "API key not found",
+        },
+    },
+    requiresAuth: true,
+    logModule: "GATEWAY",
+    logTitle: "Update API Key Settings",
+};
+exports.default = async (data) => {
+    const { user, params, body, ctx } = data;
+    const { id } = params;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Validate user authentication");
+    if (!(user === null || user === void 0 ? void 0 : user.id)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Unauthorized - no user ID");
+        throw (0, error_1.createError)({ statusCode: 401, message: "Unauthorized" });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Find merchant account");
+    const merchant = await db_1.models.gatewayMerchant.findOne({
+        where: { userId: user.id },
+    });
+    if (!merchant) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Merchant account not found");
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "Merchant account not found",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Find API key to update");
+    const apiKey = await db_1.models.gatewayApiKey.findOne({
+        where: {
+            id,
+            merchantId: merchant.id,
+        },
+    });
+    if (!apiKey) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("API key not found");
+        throw (0, error_1.createError)({
+            statusCode: 404,
+            message: "API key not found",
+        });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Build and validate updates");
+    const updates = {};
+    if (body.successUrl !== undefined) {
+        updates.successUrl = body.successUrl || null;
+    }
+    if (body.cancelUrl !== undefined) {
+        updates.cancelUrl = body.cancelUrl || null;
+    }
+    if (body.webhookUrl !== undefined) {
+        updates.webhookUrl = body.webhookUrl || null;
+    }
+    if (body.status !== undefined) {
+        updates.status = body.status;
+    }
+    if (body.permissions !== undefined) {
+        const validPermissions = [
+            "*",
+            "payment.create",
+            "payment.read",
+            "payment.cancel",
+            "refund.create",
+            "refund.read",
+        ];
+        let permissions = body.permissions;
+        if (!Array.isArray(permissions)) {
+            permissions = ["*"];
+        }
+        permissions = permissions.filter((p) => validPermissions.includes(p));
+        if (permissions.length === 0) {
+            permissions = ["*"];
+        }
+        updates.permissions = permissions;
+    }
+    if (body.allowedWalletTypes !== undefined) {
+        updates.allowedWalletTypes = body.allowedWalletTypes || null;
+    }
+    if (body.ipWhitelist !== undefined) {
+        if (apiKey.type === "SECRET") {
+            if (body.ipWhitelist && Array.isArray(body.ipWhitelist)) {
+                const sanitized = body.ipWhitelist
+                    .map((ip) => ip === null || ip === void 0 ? void 0 : ip.trim())
+                    .filter((ip) => ip && ip.length > 0);
+                updates.ipWhitelist = sanitized.length > 0 ? sanitized : null;
+            }
+            else {
+                updates.ipWhitelist = null;
+            }
+        }
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Update API key and its pair");
+    await apiKey.update(updates);
+    const baseName = apiKey.name.replace(" (Public)", "").replace(" (Secret)", "");
+    const pairType = apiKey.type === "PUBLIC" ? "SECRET" : "PUBLIC";
+    const pairSuffix = pairType === "PUBLIC" ? " (Public)" : " (Secret)";
+    const pairKey = await db_1.models.gatewayApiKey.findOne({
+        where: {
+            merchantId: merchant.id,
+            mode: apiKey.mode,
+            type: pairType,
+            name: `${baseName}${pairSuffix}`,
+        },
+    });
+    if (pairKey) {
+        await pairKey.update(updates);
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.success("API key updated successfully");
+    return {
+        message: "API key updated successfully",
+        key: {
+            id: apiKey.id,
+            name: apiKey.name,
+            keyPreview: `${apiKey.keyPrefix}...${apiKey.lastFourChars}`,
+            type: apiKey.type,
+            mode: apiKey.mode,
+            permissions: apiKey.permissions,
+            allowedWalletTypes: apiKey.allowedWalletTypes,
+            ipWhitelist: apiKey.type === "SECRET" ? apiKey.ipWhitelist : undefined,
+            successUrl: apiKey.successUrl,
+            cancelUrl: apiKey.cancelUrl,
+            webhookUrl: apiKey.webhookUrl,
+            status: apiKey.status,
+        },
+    };
+};

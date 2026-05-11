@@ -97,11 +97,38 @@ export function WalletTypeStep() {
         if (!response.ok) {
           throw new Error("Failed to fetch wallet options");
         }
-        setWalletOptions(data);
+
+        // Handle both old format (array) and new format (object with walletTypes)
+        // P2P only supports FIAT, SPOT, and ECO wallet types
+        const p2pSupportedTypes = ["FIAT", "SPOT", "ECO"];
+        const walletTypeNames: Record<string, string> = {
+          FIAT: "Fiat",
+          SPOT: "Spot",
+          ECO: "Funding",
+        };
+
+        let options: WalletOption[];
+        if (Array.isArray(data)) {
+          // Old format: [{ id: "FIAT", name: "Fiat" }, ...]
+          options = data.filter((opt: WalletOption) => p2pSupportedTypes.includes(opt.id));
+        } else if (data.walletTypes && Array.isArray(data.walletTypes)) {
+          // New format: { walletTypes: ["FIAT", "SPOT", ...], ... }
+          // Filter to only P2P supported types
+          options = data.walletTypes
+            .filter((type: string) => p2pSupportedTypes.includes(type))
+            .map((type: string) => ({
+              id: type,
+              name: walletTypeNames[type] || type,
+            }));
+        } else {
+          options = [];
+        }
+
+        setWalletOptions(options);
 
         // Set default selection if we have options
-        if (data.length > 0 && !selectedWallet) {
-          const defaultWallet = data[0].id;
+        if (options.length > 0 && !selectedWallet) {
+          const defaultWallet = options[0].id;
           setSelectedWallet(defaultWallet);
           updateTradeData({
             walletType: defaultWallet,

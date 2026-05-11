@@ -270,7 +270,7 @@ export default function ForexAccounts({ accounts }) {
                             className="bg-green-600 hover:bg-green-700 text-white"
                             size="sm"
                             onClick={() =>
-                              router.push(`/forex/trading/${account.id}`)
+                              router.push(`/forex/trade/${account.id}`)
                             }
                           >
                             <LineChart className="mr-1 h-4 w-4" />

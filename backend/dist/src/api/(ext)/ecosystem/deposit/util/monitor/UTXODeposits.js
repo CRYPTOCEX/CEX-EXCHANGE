@@ -146,6 +146,7 @@ class UTXODeposits {
                                     type: "DEPOSIT",
                                     from: convertedInputs.map((input) => input.addresses).flat(),
                                     to: convertedOutputs.map((output) => output.addresses).flat(),
+                                    address: this.address,
                                     amount: amount.toString(),
                                     fee: "0",
                                     status: "CONFIRMED",
