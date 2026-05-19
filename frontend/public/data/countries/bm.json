@@ -1,0 +1,70 @@
+{
+  "name": "Bermuda",
+  "iso2": "BM",
+  "iso3": "BMU",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Devonshire",
+      "code": "DEV",
+      "cities": [
+        "Devonshire"
+      ]
+    },
+    {
+      "name": "Hamilton",
+      "code": "HA",
+      "cities": [
+        "Hamilton"
+      ]
+    },
+    {
+      "name": "Paget",
+      "code": "PAG",
+      "cities": [
+        "Paget"
+      ]
+    },
+    {
+      "name": "Pembroke",
+      "code": "PEM",
+      "cities": []
+    },
+    {
+      "name": "Saint George's",
+      "code": "SGE",
+      "cities": [
+        "St. George's",
+        "Tucker’s Town"
+      ]
+    },
+    {
+      "name": "Sandys",
+      "code": "SAN",
+      "cities": [
+        "Somerset"
+      ]
+    },
+    {
+      "name": "Smith's",
+      "code": "SMI",
+      "cities": [
+        "Flatts"
+      ]
+    },
+    {
+      "name": "Southampton",
+      "code": "SOU",
+      "cities": [
+        "Southampton"
+      ]
+    },
+    {
+      "name": "Warwick",
+      "code": "WAR",
+      "cities": [
+        "Warwick"
+      ]
+    }
+  ]
+}

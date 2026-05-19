@@ -1,0 +1,496 @@
+{
+  "name": "Lithuania",
+  "iso2": "LT",
+  "iso3": "LTU",
+  "phonecode": "370",
+  "states": [
+    {
+      "name": "Akmenė",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Alytus",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Alytus",
+      "code": "02",
+      "cities": [
+        "Alytus",
+        "Daugai",
+        "Druskininkai",
+        "Lazdijai",
+        "Simnas",
+        "Varėna",
+        "Veisiejai"
+      ]
+    },
+    {
+      "name": "Alytus",
+      "code": "AL",
+      "cities": []
+    },
+    {
+      "name": "Anykščiai",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Birštonas",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Biržai",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Druskininkai",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Elektrėnai",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Ignalina",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Jonava",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Joniškis",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Jurbarkas",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Kaišiadorys",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Kalvarija",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Kaunas",
+      "code": "KU",
+      "cities": []
+    },
+    {
+      "name": "Kaunas",
+      "code": "16",
+      "cities": []
+    },
+    {
+      "name": "Kaunas",
+      "code": "15",
+      "cities": [
+        "Akademija (Kaunas)",
+        "Aleksotas",
+        "Ariogala",
+        "Birštonas",
+        "Dainava (Kaunas)",
+        "Eiguliai",
+        "Ežerėlis",
+        "Garliava",
+        "Jieznas",
+        "Jonava",
+        "Kaišiadorys",
+        "Karmėlava",
+        "Kaunas",
+        "Kėdainiai",
+        "Kulautuva",
+        "Mastaiciai",
+        "Prienai",
+        "Ramučiai",
+        "Raseiniai",
+        "Sargėnai",
+        "Šilainiai",
+        "Vilkija",
+        "Žiežmariai"
+      ]
+    },
+    {
+      "name": "Kazlų Rūda",
+      "code": "17",
+      "cities": []
+    },
+    {
+      "name": "Kėdainiai",
+      "code": "18",
+      "cities": []
+    },
+    {
+      "name": "Kelmė",
+      "code": "19",
+      "cities": []
+    },
+    {
+      "name": "Klaipėda",
+      "code": "KL",
+      "cities": []
+    },
+    {
+      "name": "Klaipėda",
+      "code": "21",
+      "cities": [
+        "Gargždai",
+        "Klaipėda",
+        "Kretinga",
+        "Neringa",
+        "Nida",
+        "Palanga",
+        "Priekulė",
+        "Rusnė",
+        "Salantai",
+        "Silute",
+        "Skuodas",
+        "Šventoji",
+        "Žemaičių Naumiestis"
+      ]
+    },
+    {
+      "name": "Klaipėdos miestas",
+      "code": "20",
+      "cities": []
+    },
+    {
+      "name": "Kretinga",
+      "code": "22",
+      "cities": []
+    },
+    {
+      "name": "Kupiškis",
+      "code": "23",
+      "cities": []
+    },
+    {
+      "name": "Lazdijai",
+      "code": "24",
+      "cities": []
+    },
+    {
+      "name": "Marijampolė",
+      "code": "25",
+      "cities": [
+        "Gelgaudiškis",
+        "Kalvarija",
+        "Kalvarija Municipality",
+        "Kazlų Rūda",
+        "Kazlų Rūda Municipality",
+        "Kudirkos Naumiestis",
+        "Kybartai",
+        "Marijampolė",
+        "Marijampolė Municipality",
+        "Sakiai",
+        "Vilkaviskis",
+        "Vilkaviškis District Municipality",
+        "Virbalis"
+      ]
+    },
+    {
+      "name": "Marijampolė",
+      "code": "MR",
+      "cities": []
+    },
+    {
+      "name": "Mažeikiai",
+      "code": "26",
+      "cities": []
+    },
+    {
+      "name": "Molėtai",
+      "code": "27",
+      "cities": []
+    },
+    {
+      "name": "Neringa",
+      "code": "28",
+      "cities": []
+    },
+    {
+      "name": "Pagėgiai",
+      "code": "29",
+      "cities": []
+    },
+    {
+      "name": "Pakruojis",
+      "code": "30",
+      "cities": []
+    },
+    {
+      "name": "Palanga",
+      "code": "31",
+      "cities": []
+    },
+    {
+      "name": "Panevėžio miestas",
+      "code": "32",
+      "cities": []
+    },
+    {
+      "name": "Panevėžys",
+      "code": "33",
+      "cities": [
+        "Birzai",
+        "Juodupė",
+        "Kupiskis",
+        "Obeliai",
+        "Panevėžys",
+        "Panevėžys District Municipality",
+        "Pasvalys",
+        "Ramygala",
+        "Rokiškis",
+        "Vabalninkas"
+      ]
+    },
+    {
+      "name": "Panevėžys",
+      "code": "PN",
+      "cities": []
+    },
+    {
+      "name": "Pasvalys",
+      "code": "34",
+      "cities": []
+    },
+    {
+      "name": "Plungė",
+      "code": "35",
+      "cities": []
+    },
+    {
+      "name": "Prienai",
+      "code": "36",
+      "cities": []
+    },
+    {
+      "name": "Radviliškis",
+      "code": "37",
+      "cities": []
+    },
+    {
+      "name": "Raseiniai",
+      "code": "38",
+      "cities": []
+    },
+    {
+      "name": "Rietavas",
+      "code": "39",
+      "cities": []
+    },
+    {
+      "name": "Rokiškis",
+      "code": "40",
+      "cities": []
+    },
+    {
+      "name": "Šakiai",
+      "code": "41",
+      "cities": []
+    },
+    {
+      "name": "Šalčininkai",
+      "code": "42",
+      "cities": []
+    },
+    {
+      "name": "Šiauliai",
+      "code": "SA",
+      "cities": []
+    },
+    {
+      "name": "Šiauliai",
+      "code": "43",
+      "cities": [
+        "Akmenė",
+        "Joniškis",
+        "Kelmė",
+        "Kuršėnai",
+        "Linkuva",
+        "Naujoji Akmene",
+        "Pakruojis",
+        "Radviliskis",
+        "Šeduva",
+        "Šiauliai",
+        "Tytuvėnėliai",
+        "Venta",
+        "Žagarė"
+      ]
+    },
+    {
+      "name": "Šiauliai",
+      "code": "44",
+      "cities": []
+    },
+    {
+      "name": "Šilalė ",
+      "code": "45",
+      "cities": []
+    },
+    {
+      "name": "Šilutė",
+      "code": "46",
+      "cities": []
+    },
+    {
+      "name": "Širvintos",
+      "code": "47",
+      "cities": []
+    },
+    {
+      "name": "Skuodas",
+      "code": "48",
+      "cities": []
+    },
+    {
+      "name": "Švenčionys",
+      "code": "49",
+      "cities": []
+    },
+    {
+      "name": "Tauragė",
+      "code": "TA",
+      "cities": [
+        "Būgai",
+        "Jurbarkas",
+        "Pagėgiai",
+        "Šilalė",
+        "Taurage"
+      ]
+    },
+    {
+      "name": "Tauragė",
+      "code": "50",
+      "cities": []
+    },
+    {
+      "name": "Telšiai",
+      "code": "51",
+      "cities": [
+        "Mazeikiai",
+        "Plateliai",
+        "Plunge",
+        "Rietavas",
+        "Seda",
+        "Telsiai",
+        "Varniai",
+        "Viekšniai"
+      ]
+    },
+    {
+      "name": "Telšiai",
+      "code": "TE",
+      "cities": []
+    },
+    {
+      "name": "Trakai",
+      "code": "52",
+      "cities": []
+    },
+    {
+      "name": "Ukmergė",
+      "code": "53",
+      "cities": []
+    },
+    {
+      "name": "Utena",
+      "code": "54",
+      "cities": []
+    },
+    {
+      "name": "Utena",
+      "code": "UT",
+      "cities": [
+        "Anyksciai",
+        "Dūkštas",
+        "Ignalina",
+        "Moletai",
+        "Utena",
+        "Visaginas",
+        "Zarasai"
+      ]
+    },
+    {
+      "name": "Varėna",
+      "code": "55",
+      "cities": []
+    },
+    {
+      "name": "Vilkaviškis",
+      "code": "56",
+      "cities": []
+    },
+    {
+      "name": "Vilnius",
+      "code": "58",
+      "cities": []
+    },
+    {
+      "name": "Vilnius",
+      "code": "57",
+      "cities": [
+        "Aukstadvaris",
+        "Baltoji Vokė",
+        "Eišiškės",
+        "Elektrėnai",
+        "Fabijoniškės",
+        "Grigiškės",
+        "Justiniškės",
+        "Lazdynai",
+        "Lentvaris",
+        "Naujamiestis",
+        "Nemenčinė",
+        "Pabradė",
+        "Pašilaičiai",
+        "Pilaitė",
+        "Rasos",
+        "Rūdiškės",
+        "Šalčininkai",
+        "Senieji Trakai",
+        "Šeškinė",
+        "Sirvintos",
+        "Skaidiškės",
+        "Švenčionėliai",
+        "Svencionys",
+        "Trakai",
+        "Ukmerge",
+        "Vievis",
+        "Vilkpėdė",
+        "Vilnius",
+        "Vilnius District Municipality"
+      ]
+    },
+    {
+      "name": "Vilnius",
+      "code": "VL",
+      "cities": []
+    },
+    {
+      "name": "Visaginas",
+      "code": "59",
+      "cities": []
+    },
+    {
+      "name": "Zarasai",
+      "code": "60",
+      "cities": []
+    }
+  ]
+}

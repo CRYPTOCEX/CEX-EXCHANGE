@@ -1,0 +1,554 @@
+{
+  "name": "Puerto Rico",
+  "iso2": "PR",
+  "iso3": "PRI",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Adjuntas",
+      "code": "001",
+      "cities": [
+        "Adjuntas"
+      ]
+    },
+    {
+      "name": "Aguada",
+      "code": "003",
+      "cities": [
+        "Aguada"
+      ]
+    },
+    {
+      "name": "Aguadilla",
+      "code": "005",
+      "cities": [
+        "Aguadilla"
+      ]
+    },
+    {
+      "name": "Aguas Buenas",
+      "code": "007",
+      "cities": [
+        "Aguas Buenas"
+      ]
+    },
+    {
+      "name": "Aibonito",
+      "code": "009",
+      "cities": [
+        "Aibonito"
+      ]
+    },
+    {
+      "name": "Añasco",
+      "code": "011",
+      "cities": [
+        "Añasco"
+      ]
+    },
+    {
+      "name": "Arecibo",
+      "code": "AR",
+      "cities": [
+        "Arecibo"
+      ]
+    },
+    {
+      "name": "Arroyo",
+      "code": "015",
+      "cities": [
+        "Arroyo"
+      ]
+    },
+    {
+      "name": "Barceloneta",
+      "code": "017",
+      "cities": [
+        "Barceloneta"
+      ]
+    },
+    {
+      "name": "Barranquitas",
+      "code": "019",
+      "cities": [
+        "Barranquitas"
+      ]
+    },
+    {
+      "name": "Bayamon",
+      "code": "BY",
+      "cities": [
+        "Bayamón"
+      ]
+    },
+    {
+      "name": "Cabo Rojo",
+      "code": "023",
+      "cities": [
+        "Cabo Rojo"
+      ]
+    },
+    {
+      "name": "Caguas",
+      "code": "CG",
+      "cities": [
+        "Caguas"
+      ]
+    },
+    {
+      "name": "Camuy",
+      "code": "027",
+      "cities": [
+        "Camuy"
+      ]
+    },
+    {
+      "name": "Canóvanas",
+      "code": "029",
+      "cities": [
+        "Canóvanas"
+      ]
+    },
+    {
+      "name": "Carolina",
+      "code": "CL",
+      "cities": [
+        "Carolina"
+      ]
+    },
+    {
+      "name": "Cataño",
+      "code": "033",
+      "cities": [
+        "Cataño"
+      ]
+    },
+    {
+      "name": "Cayey",
+      "code": "035",
+      "cities": [
+        "Cayey"
+      ]
+    },
+    {
+      "name": "Ceiba",
+      "code": "037",
+      "cities": [
+        "Ceiba"
+      ]
+    },
+    {
+      "name": "Ciales",
+      "code": "039",
+      "cities": [
+        "Ciales"
+      ]
+    },
+    {
+      "name": "Cidra",
+      "code": "041",
+      "cities": [
+        "Cidra"
+      ]
+    },
+    {
+      "name": "Coamo",
+      "code": "043",
+      "cities": [
+        "Coamo"
+      ]
+    },
+    {
+      "name": "Comerío",
+      "code": "045",
+      "cities": [
+        "Comerío"
+      ]
+    },
+    {
+      "name": "Corozal",
+      "code": "047",
+      "cities": [
+        "Corozal"
+      ]
+    },
+    {
+      "name": "Culebra",
+      "code": "049",
+      "cities": [
+        "Culebra"
+      ]
+    },
+    {
+      "name": "Dorado",
+      "code": "051",
+      "cities": [
+        "Dorado"
+      ]
+    },
+    {
+      "name": "Fajardo",
+      "code": "053",
+      "cities": [
+        "Fajardo"
+      ]
+    },
+    {
+      "name": "Florida",
+      "code": "054",
+      "cities": [
+        "Florida"
+      ]
+    },
+    {
+      "name": "Guánica",
+      "code": "055",
+      "cities": [
+        "Guánica"
+      ]
+    },
+    {
+      "name": "Guayama",
+      "code": "057",
+      "cities": [
+        "Guayama"
+      ]
+    },
+    {
+      "name": "Guayanilla",
+      "code": "059",
+      "cities": [
+        "Guayanilla"
+      ]
+    },
+    {
+      "name": "Guaynabo",
+      "code": "GN",
+      "cities": [
+        "Guaynabo"
+      ]
+    },
+    {
+      "name": "Gurabo",
+      "code": "063",
+      "cities": [
+        "Gurabo"
+      ]
+    },
+    {
+      "name": "Hatillo",
+      "code": "065",
+      "cities": [
+        "Hatillo"
+      ]
+    },
+    {
+      "name": "Hormigueros",
+      "code": "067",
+      "cities": [
+        "Hormigueros"
+      ]
+    },
+    {
+      "name": "Humacao",
+      "code": "069",
+      "cities": [
+        "Humacao"
+      ]
+    },
+    {
+      "name": "Isabela",
+      "code": "071",
+      "cities": [
+        "Isabela"
+      ]
+    },
+    {
+      "name": "Jayuya",
+      "code": "073",
+      "cities": [
+        "Jayuya"
+      ]
+    },
+    {
+      "name": "Juana Díaz",
+      "code": "075",
+      "cities": [
+        "Juana Díaz"
+      ]
+    },
+    {
+      "name": "Juncos",
+      "code": "077",
+      "cities": [
+        "Juncos"
+      ]
+    },
+    {
+      "name": "Lajas",
+      "code": "079",
+      "cities": [
+        "Lajas"
+      ]
+    },
+    {
+      "name": "Lares",
+      "code": "081",
+      "cities": [
+        "Lares"
+      ]
+    },
+    {
+      "name": "Las Marías",
+      "code": "083",
+      "cities": [
+        "Las Marías"
+      ]
+    },
+    {
+      "name": "Las Piedras",
+      "code": "085",
+      "cities": [
+        "Las Piedras"
+      ]
+    },
+    {
+      "name": "Loíza",
+      "code": "087",
+      "cities": [
+        "Loíza"
+      ]
+    },
+    {
+      "name": "Luquillo",
+      "code": "089",
+      "cities": [
+        "Luquillo"
+      ]
+    },
+    {
+      "name": "Manatí",
+      "code": "091",
+      "cities": [
+        "Manatí"
+      ]
+    },
+    {
+      "name": "Maricao",
+      "code": "093",
+      "cities": [
+        "Maricao"
+      ]
+    },
+    {
+      "name": "Maunabo",
+      "code": "095",
+      "cities": [
+        "Maunabo"
+      ]
+    },
+    {
+      "name": "Mayagüez",
+      "code": "MG",
+      "cities": [
+        "Mayagüez"
+      ]
+    },
+    {
+      "name": "Moca",
+      "code": "099",
+      "cities": [
+        "Moca"
+      ]
+    },
+    {
+      "name": "Morovis",
+      "code": "101",
+      "cities": [
+        "Morovis"
+      ]
+    },
+    {
+      "name": "Naguabo",
+      "code": "103",
+      "cities": [
+        "Naguabo"
+      ]
+    },
+    {
+      "name": "Naranjito",
+      "code": "105",
+      "cities": [
+        "Naranjito"
+      ]
+    },
+    {
+      "name": "Orocovis",
+      "code": "107",
+      "cities": [
+        "Orocovis"
+      ]
+    },
+    {
+      "name": "Patillas",
+      "code": "109",
+      "cities": [
+        "Patillas"
+      ]
+    },
+    {
+      "name": "Peñuelas",
+      "code": "111",
+      "cities": [
+        "Peñuelas"
+      ]
+    },
+    {
+      "name": "Ponce",
+      "code": "PO",
+      "cities": [
+        "Ponce"
+      ]
+    },
+    {
+      "name": "Quebradillas",
+      "code": "115",
+      "cities": [
+        "Quebradillas"
+      ]
+    },
+    {
+      "name": "Rincón",
+      "code": "117",
+      "cities": [
+        "Rincón"
+      ]
+    },
+    {
+      "name": "Río Grande",
+      "code": "119",
+      "cities": [
+        "Río Grande"
+      ]
+    },
+    {
+      "name": "Sabana Grande",
+      "code": "121",
+      "cities": [
+        "Sabana Grande"
+      ]
+    },
+    {
+      "name": "Salinas",
+      "code": "123",
+      "cities": [
+        "Salinas"
+      ]
+    },
+    {
+      "name": "San Germán",
+      "code": "125",
+      "cities": [
+        "San Germán"
+      ]
+    },
+    {
+      "name": "San Juan",
+      "code": "SJ",
+      "cities": [
+        "San Juan"
+      ]
+    },
+    {
+      "name": "San Lorenzo",
+      "code": "129",
+      "cities": [
+        "San Lorenzo"
+      ]
+    },
+    {
+      "name": "San Sebastián",
+      "code": "131",
+      "cities": [
+        "San Sebastián"
+      ]
+    },
+    {
+      "name": "Santa Isabel",
+      "code": "133",
+      "cities": [
+        "Santa Isabel"
+      ]
+    },
+    {
+      "name": "Toa Alta",
+      "code": "135",
+      "cities": [
+        "Toa Alta"
+      ]
+    },
+    {
+      "name": "Toa Baja",
+      "code": "TB",
+      "cities": [
+        "Toa Baja"
+      ]
+    },
+    {
+      "name": "Trujillo Alto",
+      "code": "TA",
+      "cities": [
+        "Trujillo Alto"
+      ]
+    },
+    {
+      "name": "Utuado",
+      "code": "141",
+      "cities": [
+        "Utuado"
+      ]
+    },
+    {
+      "name": "Vega Alta",
+      "code": "143",
+      "cities": [
+        "Vega Alta"
+      ]
+    },
+    {
+      "name": "Vega Baja",
+      "code": "145",
+      "cities": [
+        "Vega Baja"
+      ]
+    },
+    {
+      "name": "Vieques",
+      "code": "147",
+      "cities": [
+        "Vieques"
+      ]
+    },
+    {
+      "name": "Villalba",
+      "code": "149",
+      "cities": [
+        "Villalba"
+      ]
+    },
+    {
+      "name": "Yabucoa",
+      "code": "151",
+      "cities": [
+        "Yabucoa"
+      ]
+    },
+    {
+      "name": "Yauco",
+      "code": "153",
+      "cities": [
+        "Yauco"
+      ]
+    }
+  ]
+}

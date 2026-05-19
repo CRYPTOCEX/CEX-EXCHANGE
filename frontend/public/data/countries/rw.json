@@ -1,0 +1,50 @@
+{
+  "name": "Rwanda",
+  "iso2": "RW",
+  "iso3": "RWA",
+  "phonecode": "250",
+  "states": [
+    {
+      "name": "Eastern",
+      "code": "02",
+      "cities": [
+        "Kibungo",
+        "Rwamagana"
+      ]
+    },
+    {
+      "name": "Kigali",
+      "code": "01",
+      "cities": [
+        "Kigali"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "03",
+      "cities": [
+        "Byumba",
+        "Musanze"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "05",
+      "cities": [
+        "Butare",
+        "Eglise Catholique Centrale GIKO",
+        "Gitarama",
+        "Nzega"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "04",
+      "cities": [
+        "Cyangugu",
+        "Gisenyi",
+        "Kibuye"
+      ]
+    }
+  ]
+}

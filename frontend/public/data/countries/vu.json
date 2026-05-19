@@ -1,0 +1,50 @@
+{
+  "name": "Vanuatu",
+  "iso2": "VU",
+  "iso3": "VUT",
+  "phonecode": "678",
+  "states": [
+    {
+      "name": "Malampa",
+      "code": "MAP",
+      "cities": [
+        "Lakatoro",
+        "Norsup"
+      ]
+    },
+    {
+      "name": "Penama",
+      "code": "PAM",
+      "cities": []
+    },
+    {
+      "name": "Sanma",
+      "code": "SAM",
+      "cities": [
+        "Luganville",
+        "Port-Olry"
+      ]
+    },
+    {
+      "name": "Shefa",
+      "code": "SEE",
+      "cities": [
+        "Port-Vila"
+      ]
+    },
+    {
+      "name": "Tafea",
+      "code": "TAE",
+      "cities": [
+        "Isangel"
+      ]
+    },
+    {
+      "name": "Torba",
+      "code": "TOB",
+      "cities": [
+        "Sola"
+      ]
+    }
+  ]
+}

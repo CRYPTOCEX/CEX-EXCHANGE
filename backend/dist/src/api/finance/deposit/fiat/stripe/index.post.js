@@ -1,0 +1,159 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.metadata = void 0;
+const query_1 = require("@b/utils/query");
+const error_1 = require("@b/utils/error");
+const utils_1 = require("./utils");
+const db_1 = require("@b/db");
+const publicUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const isProduction = process.env.NODE_ENV === "production";
+exports.metadata = {
+    summary: "Creates a Stripe payment intent or checkout session",
+    description: "Initiates a Stripe payment process by creating either a payment intent or a checkout session, based on the request parameters. This endpoint supports different workflows for web and Flutter applications.",
+    operationId: "createStripePayment",
+    tags: ["Finance", "Deposit"],
+    logModule: "STRIPE_DEPOSIT",
+    logTitle: "Create Stripe payment",
+    requestBody: {
+        description: "Payment information and application type",
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        amount: {
+                            type: "number",
+                            description: "Payment amount in smallest currency unit (e.g., cents)",
+                        },
+                        currency: {
+                            type: "string",
+                            description: "Currency code (e.g., USD)",
+                        },
+                        intent: {
+                            type: "boolean",
+                            description: "Flag indicating if the request is from a mobile app",
+                            nullable: true,
+                        },
+                    },
+                    required: ["amount", "currency"],
+                },
+            },
+        },
+    },
+    responses: {
+        200: {
+            description: "Payment intent or checkout session created successfully. The response structure varies based on the request context: for Flutter applications, `id` and `clientSecret` are returned; for web applications, `version`, `id`, and `url` are provided.",
+            content: {
+                "application/json": {
+                    schema: {
+                        type: "object",
+                        properties: {
+                            id: {
+                                type: "string",
+                                description: "Payment intent or session ID",
+                            },
+                            clientSecret: {
+                                type: "string",
+                                description: "Client secret for payment intent",
+                                nullable: true,
+                            },
+                            version: {
+                                type: "string",
+                                description: "Stripe API version",
+                                nullable: true,
+                            },
+                            url: {
+                                type: "string",
+                                description: "Checkout session URL",
+                                nullable: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        401: query_1.unauthorizedResponse,
+        404: (0, query_1.notFoundMetadataResponse)("Stripe"),
+        500: query_1.serverErrorResponse,
+    },
+    requiresAuth: true,
+};
+exports.default = async (data) => {
+    var _a;
+    const { user, body, ctx } = data;
+    if (!user)
+        throw (0, error_1.createError)({ statusCode: 401, message: "User not authenticated" });
+    const { amount, currency, intent } = body;
+    const amountCent = amount * 100;
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching payment gateway configuration");
+    const gateway = await db_1.models.depositGateway.findOne({
+        where: { alias: "stripe", status: true },
+    });
+    if (!gateway)
+        throw (0, error_1.createError)({ statusCode: 404, message: "Stripe gateway not found" });
+    if (!((_a = gateway.currencies) === null || _a === void 0 ? void 0 : _a.includes(currency))) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Currency ${currency} is not supported by Stripe` });
+    }
+    ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating fees");
+    const fixedFee = gateway.getFixedFee(currency);
+    const percentageFee = gateway.getPercentageFee(currency);
+    const taxAmount = (amount * percentageFee) / 100 + fixedFee;
+    const taxAmountCent = taxAmount * 100;
+    const stripe = (0, utils_1.useStripe)();
+    if (intent) {
+        const totalAmount = amountCent + taxAmountCent;
+        try {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: totalAmount,
+                currency: currency,
+            });
+            ctx === null || ctx === void 0 ? void 0 : ctx.success("Stripe payment intent created successfully");
+            return {
+                id: paymentIntent.id,
+                clientSecret: paymentIntent.client_secret,
+            };
+        }
+        catch (error) {
+            throw (0, error_1.createError)({ statusCode: 500, message: `Error creating payment intent: ${error.message}` });
+        }
+    }
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: [
+                {
+                    price_data: {
+                        currency: currency,
+                        product_data: {
+                            name: "Deposit",
+                        },
+                        unit_amount: amountCent,
+                    },
+                    quantity: 1,
+                },
+                {
+                    price_data: {
+                        currency: currency,
+                        product_data: {
+                            name: "Tax",
+                        },
+                        unit_amount: taxAmountCent,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: "payment",
+            success_url: `${publicUrl}${isProduction ? "" : ":3000"}/stripe-popup-success.html?sessionId={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${publicUrl}${isProduction ? "" : ":3000"}/stripe-popup-cancel.html`,
+        });
+        ctx === null || ctx === void 0 ? void 0 : ctx.success("Stripe checkout session created successfully");
+        return {
+            version: stripe.VERSION,
+            id: session.id,
+            url: session.url,
+        };
+    }
+    catch (error) {
+        throw (0, error_1.createError)({ statusCode: 500, message: `Error creating checkout session: ${error.message}` });
+    }
+};

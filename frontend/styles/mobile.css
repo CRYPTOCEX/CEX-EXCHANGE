@@ -1,0 +1,87 @@
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Prevent text selection on mobile to improve touch experience */
+  .no-select {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  /* Improve touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Slide transitions for panels */
+  .slide-in-right {
+    animation: slideInRight 0.3s forwards;
+  }
+
+  .slide-out-right {
+    animation: slideOutRight 0.3s forwards;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Improved mobile footer */
+  .mobile-footer {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Improved button feedback */
+  .mobile-btn:active {
+    transform: scale(0.96);
+    transition: transform 0.1s;
+  }
+}
+
+/* Mobile footer specific styles */
+.mobile-footer {
+  box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile layout transitions */
+.tab-transition {
+  transition: transform 0.3s ease;
+}
+
+/* Modal responsive styles */
+@media (max-width: 480px) {
+  .modal-container {
+    width: 95% !important;
+    max-width: 350px;
+    padding: 12px !important;
+  }
+
+  .modal-header {
+    margin-bottom: 10px !important;
+  }
+
+  .modal-content {
+    font-size: 0.875rem !important;
+  }
+
+  .modal-buttons {
+    gap: 8px !important;
+  }
+}

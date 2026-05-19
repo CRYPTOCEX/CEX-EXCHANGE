@@ -1,0 +1,185 @@
+{
+  "name": "Bhutan",
+  "iso2": "BT",
+  "iso3": "BTN",
+  "phonecode": "975",
+  "states": [
+    {
+      "name": "Bumthang ",
+      "code": "33",
+      "cities": [
+        "Jakar",
+        "Tang Valley"
+      ]
+    },
+    {
+      "name": "Chukha ",
+      "code": "12",
+      "cities": [
+        "Chapchha",
+        "Daphu",
+        "Khitokha",
+        "Lobnig",
+        "Pachu",
+        "Phuntsholing"
+      ]
+    },
+    {
+      "name": "Dagana ",
+      "code": "22",
+      "cities": [
+        "Daga",
+        "Sibsu",
+        "Thumgaon"
+      ]
+    },
+    {
+      "name": "Gasa ",
+      "code": "GA",
+      "cities": [
+        "Gasa"
+      ]
+    },
+    {
+      "name": "Haa ",
+      "code": "13",
+      "cities": [
+        "Ha",
+        "Naktsang",
+        "Sangkari"
+      ]
+    },
+    {
+      "name": "Lhuntse ",
+      "code": "44",
+      "cities": [
+        "Lhuentse"
+      ]
+    },
+    {
+      "name": "Mongar ",
+      "code": "42",
+      "cities": [
+        "Kengkhar",
+        "Mongar",
+        "Thebong"
+      ]
+    },
+    {
+      "name": "Paro ",
+      "code": "11",
+      "cities": [
+        "Paro",
+        "Suchha",
+        "Tshalunang"
+      ]
+    },
+    {
+      "name": "Pemagatshel ",
+      "code": "43",
+      "cities": [
+        "Nganglam",
+        "Pemagatshel"
+      ]
+    },
+    {
+      "name": "Punakha ",
+      "code": "23",
+      "cities": [
+        "Pajo",
+        "Punākha"
+      ]
+    },
+    {
+      "name": "Samdrup Jongkhar ",
+      "code": "45",
+      "cities": [
+        "Samdrup Jongkhar"
+      ]
+    },
+    {
+      "name": "Samtse ",
+      "code": "14",
+      "cities": [
+        "Denchukha",
+        "Dorokha",
+        "Samtse",
+        "Tendu"
+      ]
+    },
+    {
+      "name": "Sarpang ",
+      "code": "31",
+      "cities": [
+        "Bhurgaon",
+        "Galechugaon",
+        "Geylegphug",
+        "Sarpang"
+      ]
+    },
+    {
+      "name": "Thimphu ",
+      "code": "15",
+      "cities": [
+        "Thimphu"
+      ]
+    },
+    {
+      "name": "Trashi Yangtse\t",
+      "code": "TY",
+      "cities": [
+        "Shali",
+        "Trashi Yangtse",
+        "Yalang"
+      ]
+    },
+    {
+      "name": "Trashigang ",
+      "code": "41",
+      "cities": [
+        "Balfai",
+        "Ghunkarah",
+        "Ngalangkang",
+        "Rungzyung",
+        "Sassi",
+        "Thrimshing",
+        "Trashigang",
+        "Wamrong"
+      ]
+    },
+    {
+      "name": "Trongsa ",
+      "code": "32",
+      "cities": [
+        "Trongsa"
+      ]
+    },
+    {
+      "name": "Tsirang ",
+      "code": "21",
+      "cities": [
+        "Beteni",
+        "Dagapela",
+        "Damphu",
+        "Tsirang"
+      ]
+    },
+    {
+      "name": "Wangdue Phodrang ",
+      "code": "24",
+      "cities": [
+        "Manikyangsa",
+        "Ritang",
+        "Wangdue Phodrang"
+      ]
+    },
+    {
+      "name": "Zhemgang ",
+      "code": "34",
+      "cities": [
+        "Panbang",
+        "Zhemgang"
+      ]
+    }
+  ]
+}

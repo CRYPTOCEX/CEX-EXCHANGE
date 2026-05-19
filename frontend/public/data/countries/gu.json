@@ -1,0 +1,146 @@
+{
+  "name": "Guam",
+  "iso2": "GU",
+  "iso3": "GUM",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Agana Heights",
+      "code": "01",
+      "cities": [
+        "Agana Heights Village"
+      ]
+    },
+    {
+      "name": "Asan-Maina",
+      "code": "02",
+      "cities": [
+        "Asan-Maina Village"
+      ]
+    },
+    {
+      "name": "Barrigada",
+      "code": "03",
+      "cities": [
+        "Barrigada Village"
+      ]
+    },
+    {
+      "name": "Chalan Pago-Ordot",
+      "code": "04",
+      "cities": [
+        "Chalan Pago-Ordot Village"
+      ]
+    },
+    {
+      "name": "Dededo",
+      "code": "05",
+      "cities": [
+        "Dededo Village"
+      ]
+    },
+    {
+      "name": "Hågat",
+      "code": "06",
+      "cities": [
+        "Agat Village"
+      ]
+    },
+    {
+      "name": "Hagåtña",
+      "code": "12",
+      "cities": [
+        "Hagåtña",
+        "Hagåtña Village"
+      ]
+    },
+    {
+      "name": "Inarajan (Inalåhan)",
+      "code": "08",
+      "cities": [
+        "Inarajan Village"
+      ]
+    },
+    {
+      "name": "Mangilao",
+      "code": "10",
+      "cities": [
+        "Adacao",
+        "Mangilao Village"
+      ]
+    },
+    {
+      "name": "Merizo (Malesso)",
+      "code": "09",
+      "cities": [
+        "Merizo Village"
+      ]
+    },
+    {
+      "name": "Mongmong-Toto-Maite",
+      "code": "11",
+      "cities": [
+        "Mongmong-Toto-Maite Village"
+      ]
+    },
+    {
+      "name": "Piti",
+      "code": "13",
+      "cities": [
+        "Piti Village"
+      ]
+    },
+    {
+      "name": "Santa Rita (Sånta Rita-Sumai)",
+      "code": "14",
+      "cities": [
+        "Apra Harbor",
+        "Santa Rita Village"
+      ]
+    },
+    {
+      "name": "Sinajana",
+      "code": "15",
+      "cities": [
+        "Sinajana Village"
+      ]
+    },
+    {
+      "name": "Talofofo (Talo'fo'fo)",
+      "code": "16",
+      "cities": [
+        "Talofofo Village"
+      ]
+    },
+    {
+      "name": "Tamuning",
+      "code": "17",
+      "cities": [
+        "Apotgan",
+        "Tamuning",
+        "Tamuning-Tumon-Harmon Village"
+      ]
+    },
+    {
+      "name": "Umatac (Humåtak)",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Yigo",
+      "code": "18",
+      "cities": [
+        "Anao",
+        "Chaguian",
+        "Yigo Village"
+      ]
+    },
+    {
+      "name": "Yona",
+      "code": "19",
+      "cities": [
+        "Yona Village"
+      ]
+    }
+  ]
+}

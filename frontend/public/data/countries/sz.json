@@ -1,0 +1,66 @@
+{
+  "name": "Eswatini",
+  "iso2": "SZ",
+  "iso3": "SWZ",
+  "phonecode": "268",
+  "states": [
+    {
+      "name": "Hhohho",
+      "code": "HH",
+      "cities": [
+        "Bulembu",
+        "Hhukwini",
+        "Lobamba",
+        "Mbabane",
+        "Nkhaba",
+        "Piggs Peak"
+      ]
+    },
+    {
+      "name": "Lubombo",
+      "code": "LU",
+      "cities": [
+        "Big Bend",
+        "Dvokodvweni Inkhundla",
+        "Lomashasha",
+        "Mhlume",
+        "Nsoko",
+        "Siteki",
+        "Tshaneni",
+        "Vuvulane"
+      ]
+    },
+    {
+      "name": "Manzini",
+      "code": "MA",
+      "cities": [
+        "Bhunya",
+        "Ekukhanyeni",
+        "Kwaluseni",
+        "Malkerns",
+        "Manzini",
+        "Manzini South",
+        "Mhlambanyatsi",
+        "Ngwempisi",
+        "Ntondozi",
+        "Sidvokodvo"
+      ]
+    },
+    {
+      "name": "Shiselweni",
+      "code": "SH",
+      "cities": [
+        "Hlatikulu",
+        "Hluti",
+        "Kubuta",
+        "Lavumisa",
+        "Matsanjeni",
+        "Ngudzeni",
+        "Nhlangano",
+        "Nkwene",
+        "Sigwe Inkhundla",
+        "Zombodze Ikhundla"
+      ]
+    }
+  ]
+}

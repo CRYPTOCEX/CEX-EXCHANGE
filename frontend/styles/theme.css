@@ -1,0 +1,73 @@
+/* Theme-related styles */
+.dark-theme {
+  color-scheme: dark;
+}
+
+.light-theme {
+  color-scheme: light;
+}
+
+/* Theme transition */
+* {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.2s ease;
+}
+
+/* Prevent transition on page load */
+.no-transition * {
+  transition: none !important;
+}
+
+/* Add these new styles for light theme */
+:root:not(.dark) {
+  --border-color: rgba(228, 228, 231, 0.8);
+  --border-color-light: rgba(228, 228, 231, 0.5);
+  --table-border-color: rgba(228, 228, 231, 1);
+  --table-border-color-light: rgba(228, 228, 231, 0.7);
+  --panel-border-color: rgba(228, 228, 231, 1);
+}
+
+:root.dark {
+  --border-color: rgba(63, 63, 70, 0.5);
+  --border-color-light: rgba(39, 39, 42, 0.5);
+  --table-border-color: rgba(63, 63, 70, 0.8);
+  --table-border-color-light: rgba(39, 39, 42, 0.7);
+  --panel-border-color: rgba(63, 63, 70, 0.8);
+}
+
+/* Use CSS variables for borders */
+.border-theme {
+  border-color: var(--border-color) !important;
+}
+
+.border-theme-light {
+  border-color: var(--border-color-light) !important;
+}
+
+.table-border {
+  border-color: var(--table-border-color) !important;
+}
+
+.table-border-light {
+  border-color: var(--table-border-color-light) !important;
+}
+
+.panel-border {
+  border-color: var(--panel-border-color) !important;
+}
+
+/* Light theme specific overrides for tables */
+:root:not(.dark) table {
+  border-color: var(--table-border-color);
+}
+
+:root:not(.dark) table th,
+:root:not(.dark) table td {
+  border-color: var(--table-border-color-light);
+}
+
+:root:not(.dark) .order-book-row {
+  border-color: var(--table-border-color-light);
+}

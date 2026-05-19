@@ -1,0 +1,267 @@
+{
+  "name": "New Zealand",
+  "iso2": "NZ",
+  "iso3": "NZL",
+  "phonecode": "64",
+  "states": [
+    {
+      "name": "Auckland",
+      "code": "AUK",
+      "cities": [
+        "Auckland",
+        "Mangere",
+        "Manukau City",
+        "Muriwai Beach",
+        "Murrays Bay",
+        "North Shore",
+        "Pakuranga",
+        "Papakura",
+        "Parakai",
+        "Pukekohe East",
+        "Red Hill",
+        "Rosebank",
+        "Rothesay Bay",
+        "Takanini",
+        "Tamaki",
+        "Titirangi",
+        "Waitakere",
+        "Waiuku",
+        "Warkworth",
+        "Wellsford",
+        "Wiri"
+      ]
+    },
+    {
+      "name": "Bay of Plenty",
+      "code": "BOP",
+      "cities": [
+        "Edgecumbe",
+        "Katikati",
+        "Kawerau",
+        "Maketu",
+        "Murupara",
+        "Opotiki",
+        "Rotorua",
+        "Tauranga",
+        "Waihi Beach",
+        "Whakatane"
+      ]
+    },
+    {
+      "name": "Canterbury",
+      "code": "CAN",
+      "cities": [
+        "Amberley",
+        "Ashburton",
+        "Ashburton District",
+        "Burnham",
+        "Christchurch",
+        "Darfield",
+        "Geraldine",
+        "Kaiapoi",
+        "Leeston",
+        "Lincoln",
+        "Mackenzie",
+        "Methven",
+        "Oxford",
+        "Pleasant Point",
+        "Prebbleton",
+        "Rakaia",
+        "Rolleston",
+        "Selwyn",
+        "Timaru",
+        "Timaru District",
+        "Tinwald",
+        "Waimakariri",
+        "Woodend"
+      ]
+    },
+    {
+      "name": "Chatham Islands",
+      "code": "CIT",
+      "cities": [
+        "Waitangi"
+      ]
+    },
+    {
+      "name": "Gisborne",
+      "code": "GIS",
+      "cities": [
+        "Gisborne"
+      ]
+    },
+    {
+      "name": "Hawke's Bay",
+      "code": "HKB",
+      "cities": [
+        "Hastings",
+        "Napier",
+        "Taradale",
+        "Wairoa"
+      ]
+    },
+    {
+      "name": "Manawatu-Whanganui",
+      "code": "MWT",
+      "cities": [
+        "Bulls",
+        "Foxton",
+        "Horowhenua",
+        "Levin",
+        "Manawatu",
+        "Palmerston North",
+        "Waiouru",
+        "Wanganui"
+      ]
+    },
+    {
+      "name": "Marlborough",
+      "code": "MBH",
+      "cities": [
+        "Blenheim",
+        "Picton"
+      ]
+    },
+    {
+      "name": "Nelson",
+      "code": "NSN",
+      "cities": [
+        "Nelson"
+      ]
+    },
+    {
+      "name": "Northland",
+      "code": "NTL",
+      "cities": [
+        "Ahipara",
+        "Dargaville",
+        "Far North",
+        "Kaipara",
+        "Kaitaia",
+        "Kawakawa",
+        "Kerikeri",
+        "Maungatapere",
+        "Moerewa",
+        "Ngunguru",
+        "Paihia",
+        "Ruakaka",
+        "Taipa",
+        "Waimate North",
+        "Whangarei"
+      ]
+    },
+    {
+      "name": "Otago",
+      "code": "OTA",
+      "cities": [
+        "Arrowtown",
+        "Balclutha",
+        "Clutha",
+        "Cromwell",
+        "Dunedin",
+        "Kingston",
+        "Milton",
+        "Oamaru",
+        "Papatowai",
+        "Portobello",
+        "Queenstown",
+        "Wanaka"
+      ]
+    },
+    {
+      "name": "Southland",
+      "code": "STL",
+      "cities": [
+        "Bluff",
+        "Gore",
+        "Invercargill",
+        "Riverton",
+        "Southland",
+        "Te Anau",
+        "Winton"
+      ]
+    },
+    {
+      "name": "Taranaki",
+      "code": "TKI",
+      "cities": [
+        "Eltham",
+        "Hawera",
+        "New Plymouth",
+        "New Plymouth District",
+        "Opunake",
+        "Patea",
+        "South Taranaki",
+        "Stratford",
+        "Waitara"
+      ]
+    },
+    {
+      "name": "Tasman",
+      "code": "TAS",
+      "cities": [
+        "Brightwater",
+        "Mapua",
+        "Motueka",
+        "Richmond",
+        "Takaka",
+        "Wakefield"
+      ]
+    },
+    {
+      "name": "Waikato",
+      "code": "WKO",
+      "cities": [
+        "Cambridge",
+        "Coromandel",
+        "Hamilton",
+        "Matamata",
+        "Ngaruawahia",
+        "Ngatea",
+        "Otorohanga",
+        "Paeroa",
+        "Raglan",
+        "South Waikato",
+        "Tairua",
+        "Taupo",
+        "Te Kauwhata",
+        "Thames",
+        "Tokoroa",
+        "Turangi",
+        "Waihi",
+        "Whangamata",
+        "Whitianga"
+      ]
+    },
+    {
+      "name": "Wellington",
+      "code": "WGN",
+      "cities": [
+        "Brooklyn",
+        "Castlepoint",
+        "Kapiti Coast",
+        "Kelburn",
+        "Khandallah",
+        "Lower Hutt",
+        "Masterton",
+        "Otaki",
+        "Paraparaumu",
+        "Petone",
+        "Porirua",
+        "South Wairarapa",
+        "Upper Hutt",
+        "Waipawa",
+        "Wellington"
+      ]
+    },
+    {
+      "name": "West Coast",
+      "code": "WTC",
+      "cities": [
+        "Greymouth",
+        "Hokitika",
+        "Westport"
+      ]
+    }
+  ]
+}

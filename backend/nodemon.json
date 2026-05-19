@@ -1,0 +1,12 @@
+{
+  "watch": ["./*", "../.env"],
+  "ignore": ["node_modules/*", "dist/*"],
+  "ext": "ts,json",
+  "exec": "ts-node --files -r tsconfig-paths/register -r module-alias/register --project tsconfig.json index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo 'Backend restarted due to changes...'"
+  }
+}

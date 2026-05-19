@@ -1,0 +1,53 @@
+{
+  "name": "Saint Vincent and the Grenadines",
+  "iso2": "VC",
+  "iso3": "VCT",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Charlotte",
+      "code": "01",
+      "cities": [
+        "Biabou",
+        "Byera Village",
+        "Georgetown"
+      ]
+    },
+    {
+      "name": "Grenadines",
+      "code": "06",
+      "cities": [
+        "Port Elizabeth"
+      ]
+    },
+    {
+      "name": "Saint Andrew",
+      "code": "02",
+      "cities": [
+        "Layou"
+      ]
+    },
+    {
+      "name": "Saint David",
+      "code": "03",
+      "cities": [
+        "Chateaubelair"
+      ]
+    },
+    {
+      "name": "Saint George",
+      "code": "04",
+      "cities": [
+        "Kingstown",
+        "Kingstown Park"
+      ]
+    },
+    {
+      "name": "Saint Patrick",
+      "code": "05",
+      "cities": [
+        "Barrouallie"
+      ]
+    }
+  ]
+}

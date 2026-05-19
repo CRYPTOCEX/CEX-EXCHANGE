@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Canceled</title>
+</head>
+<body>
+    <script>
+        window.onload = function() {
+            console.log("Cancel page loaded - payment was cancelled");
+            if (window.opener) {
+                window.opener.postMessage({ 
+                    status: 'canceled',
+                    reason: 'user_cancelled',
+                    message: 'Payment was cancelled by the user'
+                }, '*');
+            }
+            // Small delay before closing to ensure message is sent
+            setTimeout(() => {
+                window.close();
+            }, 100);
+        };
+    </script>
+    
+</body>
+</html>

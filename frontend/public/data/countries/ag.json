@@ -1,0 +1,63 @@
+{
+  "name": "Antigua and Barbuda",
+  "iso2": "AG",
+  "iso3": "ATG",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Barbuda",
+      "code": "10",
+      "cities": [
+        "Codrington"
+      ]
+    },
+    {
+      "name": "Redonda",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Saint George",
+      "code": "03",
+      "cities": [
+        "Piggotts"
+      ]
+    },
+    {
+      "name": "Saint John",
+      "code": "04",
+      "cities": [
+        "Potters Village",
+        "Saint John’s"
+      ]
+    },
+    {
+      "name": "Saint Mary",
+      "code": "05",
+      "cities": [
+        "Bolands"
+      ]
+    },
+    {
+      "name": "Saint Paul",
+      "code": "06",
+      "cities": [
+        "Falmouth",
+        "Liberta"
+      ]
+    },
+    {
+      "name": "Saint Peter",
+      "code": "07",
+      "cities": [
+        "All Saints",
+        "Parham"
+      ]
+    },
+    {
+      "name": "Saint Philip",
+      "code": "08",
+      "cities": []
+    }
+  ]
+}

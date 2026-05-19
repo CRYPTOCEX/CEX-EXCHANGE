@@ -1,0 +1,109 @@
+{
+  "name": "Kosovo",
+  "iso2": "XK",
+  "iso3": "XKX",
+  "phonecode": "383",
+  "states": [
+    {
+      "name": "Ferizaj",
+      "code": "XUF",
+      "cities": [
+        "Ferizaj",
+        "Hani i Elezit",
+        "Kačanik",
+        "Shtime",
+        "Štrpce"
+      ]
+    },
+    {
+      "name": "Gjakove",
+      "code": "XDG",
+      "cities": [
+        "Deçan",
+        "Dranoc",
+        "Gjakovë",
+        "Gllogjan",
+        "Irzniq",
+        "Isniq",
+        "Lëbushë",
+        "Lloqan",
+        "Lluka e Eperme",
+        "Lumbardhi",
+        "Orahovac",
+        "Papraqan",
+        "Prilep",
+        "Strellc i Epërm",
+        "Strellc i Ulët"
+      ]
+    },
+    {
+      "name": "Gjilan",
+      "code": "XGJ",
+      "cities": [
+        "Gjilan",
+        "Kamenica",
+        "Klokot",
+        "Partesh",
+        "Pasjane",
+        "Ranilug",
+        "Vitina"
+      ]
+    },
+    {
+      "name": "Mitrovica",
+      "code": "XKM",
+      "cities": [
+        "Leposaviq",
+        "Mitrovicë",
+        "Srbica",
+        "Vushtrri",
+        "Zubin Potok",
+        "Zvečan"
+      ]
+    },
+    {
+      "name": "Peja",
+      "code": "PEJ",
+      "cities": [
+        "Dubova (Driloni)",
+        "Istok",
+        "Klina",
+        "Kosuriq",
+        "Pejë"
+      ]
+    },
+    {
+      "name": "Pristina",
+      "code": "XPI",
+      "cities": [
+        "Bradash",
+        "Glogovac",
+        "Gračanica",
+        "Kosovo Polje",
+        "Lipljan",
+        "Novo Brdo",
+        "Obiliq",
+        "Podujeva",
+        "Pristina"
+      ]
+    },
+    {
+      "name": "Prizren",
+      "code": "PRI",
+      "cities": [
+        "Budakovo",
+        "Dragash",
+        "Gjinoc",
+        "Leshan",
+        "Llazicë",
+        "Mališevo",
+        "Mamuša",
+        "Nishor",
+        "Pagaruša",
+        "Peqan",
+        "Prizren",
+        "Suva Reka"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "name": "Kyrgyzstan",
+  "iso2": "KG",
+  "iso3": "KGZ",
+  "phonecode": "996",
+  "states": [
+    {
+      "name": "Batken",
+      "code": "B",
+      "cities": [
+        "Aydarken",
+        "Batken",
+        "Iradan",
+        "Isfana",
+        "Karavan",
+        "Kyzyl-Kyya",
+        "Suluktu"
+      ]
+    },
+    {
+      "name": "Bishkek",
+      "code": "GB",
+      "cities": [
+        "Bishkek"
+      ]
+    },
+    {
+      "name": "Chuy",
+      "code": "C",
+      "cities": [
+        "Alamudunskiy Rayon",
+        "Belovodskoye",
+        "Chuyskiy Rayon",
+        "Ivanovka",
+        "Kaindy",
+        "Kant",
+        "Kara-Balta",
+        "Kemin",
+        "Lebedinovka",
+        "Sokulukskiy Rayon",
+        "Sosnovka",
+        "Tokmok",
+        "Ysyk-Ata"
+      ]
+    },
+    {
+      "name": "Issyk-Kul",
+      "code": "Y",
+      "cities": [
+        "Ak-Suu",
+        "Balykchy",
+        "Cholpon-Ata",
+        "Kadzhi-Say",
+        "Karakol",
+        "Kyzyl-Suu",
+        "Tyup"
+      ]
+    },
+    {
+      "name": "Jalal-Abad",
+      "code": "J",
+      "cities": [
+        "Ala-Buka",
+        "Bazar-Korgon",
+        "Jalal-Abad",
+        "Kazarman",
+        "Kerben",
+        "Kochkor-Ata",
+        "Suzak",
+        "Tash-Kumyr",
+        "Toktogul",
+        "Toktogul District"
+      ]
+    },
+    {
+      "name": "Naryn",
+      "code": "N",
+      "cities": [
+        "At-Bashi",
+        "Jumgal",
+        "Naryn"
+      ]
+    },
+    {
+      "name": "Osh",
+      "code": "GO",
+      "cities": []
+    },
+    {
+      "name": "Osh",
+      "code": "O",
+      "cities": [
+        "Chong-Alay",
+        "Daroot-Korgon",
+        "Kara Kulja",
+        "Kara Suu",
+        "Kyzyl-Eshme",
+        "Nookat",
+        "Osh",
+        "Uzgen",
+        "Uzgen District"
+      ]
+    },
+    {
+      "name": "Talas",
+      "code": "T",
+      "cities": [
+        "Kara-Buurinskiy Rayon",
+        "Talas",
+        "Talasskiy Rayon"
+      ]
+    }
+  ]
+}

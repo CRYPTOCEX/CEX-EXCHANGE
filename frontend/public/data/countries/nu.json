@@ -1,0 +1,78 @@
+{
+  "name": "Niue",
+  "iso2": "NU",
+  "iso3": "NIU",
+  "phonecode": "683",
+  "states": [
+    {
+      "name": "Alofi North",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Alofi South",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Avatele",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Hakupu",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Hikutavake",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Lakepa",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Liku",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Makefu",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Mutalau",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Namukulu",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Tamakautoga",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Toi",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Tuapa",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Vaiea",
+      "code": "10",
+      "cities": []
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "name": "Laos",
+  "iso2": "LA",
+  "iso3": "LAO",
+  "phonecode": "856",
+  "states": [
+    {
+      "name": "Attapeu",
+      "code": "AT",
+      "cities": [
+        "Attapeu",
+        "Muang Phouvong",
+        "Muang Samakhixai",
+        "Muang Sanamxai",
+        "Muang Sanxai",
+        "Muang Xaiséttha"
+      ]
+    },
+    {
+      "name": "Bokeo",
+      "code": "BK",
+      "cities": [
+        "Ban Houakhoua",
+        "Ban Houayxay",
+        "Muang Houayxay",
+        "Muang Meung",
+        "Muang Paktha",
+        "Muang Pha Oudôm",
+        "Muang Tônpheung"
+      ]
+    },
+    {
+      "name": "Bolikhamsai",
+      "code": "BL",
+      "cities": [
+        "Ban Nahin",
+        "Pakxan"
+      ]
+    },
+    {
+      "name": "Champasak",
+      "code": "CH",
+      "cities": [
+        "Champasak",
+        "Muang Bachiangchaleunsook",
+        "Muang Champasak",
+        "Muang Không",
+        "Muang Mounlapamôk",
+        "Muang Pakxé",
+        "Muang Pakxong",
+        "Muang Pathoumphon",
+        "Muang Phônthong",
+        "Muang Soukhouma",
+        "Muang Xanasômboun",
+        "Pakse",
+        "Pakxong"
+      ]
+    },
+    {
+      "name": "Houaphanh",
+      "code": "HO",
+      "cities": [
+        "Xam Neua",
+        "Xam Nua"
+      ]
+    },
+    {
+      "name": "Khammouane",
+      "code": "KH",
+      "cities": [
+        "Muang Thakhèk",
+        "Thakhèk"
+      ]
+    },
+    {
+      "name": "Luang Namtha",
+      "code": "LM",
+      "cities": [
+        "Luang Namtha",
+        "Muang Louang Namtha"
+      ]
+    },
+    {
+      "name": "Luang Prabang",
+      "code": "LP",
+      "cities": [
+        "Luang Prabang"
+      ]
+    },
+    {
+      "name": "Oudomxay",
+      "code": "OU",
+      "cities": [
+        "Muang Xay"
+      ]
+    },
+    {
+      "name": "Phongsaly",
+      "code": "PH",
+      "cities": [
+        "Phôngsali"
+      ]
+    },
+    {
+      "name": "Sainyabuli",
+      "code": "XA",
+      "cities": [
+        "Sainyabuli"
+      ]
+    },
+    {
+      "name": "Salavan",
+      "code": "SL",
+      "cities": [
+        "Muang Khôngxédôn",
+        "Muang Lakhonphéng",
+        "Muang Laongam",
+        "Muang Samouay",
+        "Muang Saravan",
+        "Muang Ta-Ôy",
+        "Muang Toumlan",
+        "Muang Vapi",
+        "Salavan"
+      ]
+    },
+    {
+      "name": "Savannakhet",
+      "code": "SV",
+      "cities": [
+        "Kaysone Phomvihane",
+        "Muang Alsaphangthong",
+        "Muang Atsaphan",
+        "Muang Champhon",
+        "Muang Nong",
+        "Muang Outhoumphon",
+        "Muang Phin",
+        "Muang Songkhon",
+        "Muang Thapangthong",
+        "Muang Vilabouli",
+        "Muang Xaibouli",
+        "Muang Xayphoothong",
+        "Muang Xônbouli",
+        "Savannakhet",
+        "Thaphalanxay"
+      ]
+    },
+    {
+      "name": "Sekong",
+      "code": "XE",
+      "cities": [
+        "Ban Thatèng",
+        "Lamam",
+        "Muang Dakchung",
+        "Muang Khaleum",
+        "Muang Laman",
+        "Muang Thatèng"
+      ]
+    },
+    {
+      "name": "Vientiane",
+      "code": "VI",
+      "cities": [
+        "Muang Phôn-Hông",
+        "Vangviang"
+      ]
+    },
+    {
+      "name": "Vientiane",
+      "code": "VT",
+      "cities": [
+        "Vientiane"
+      ]
+    },
+    {
+      "name": "Xaisomboun",
+      "code": "XS",
+      "cities": [
+        "Anouvong",
+        "Longchaeng",
+        "Muang Longxan",
+        "Muang Thathôm"
+      ]
+    },
+    {
+      "name": "Xiangkhouang",
+      "code": "XI",
+      "cities": [
+        "Muang Phônsavan"
+      ]
+    }
+  ]
+}

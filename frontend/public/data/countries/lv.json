@@ -1,0 +1,390 @@
+{
+  "name": "Latvia",
+  "iso2": "LV",
+  "iso3": "LVA",
+  "phonecode": "371",
+  "states": [
+    {
+      "name": "Ādaži",
+      "code": "011",
+      "cities": [
+        "Carnikava"
+      ]
+    },
+    {
+      "name": "Aizkraukle",
+      "code": "002",
+      "cities": [
+        "Aizkraukle",
+        "Jaunjelgava",
+        "Koknese",
+        "Nereta",
+        "Pļaviņas",
+        "Skrīveri"
+      ]
+    },
+    {
+      "name": "Alūksne",
+      "code": "007",
+      "cities": [
+        "Alūksne"
+      ]
+    },
+    {
+      "name": "Augšdaugava",
+      "code": "111",
+      "cities": [
+        "Daugavpils",
+        "Ilūkste"
+      ]
+    },
+    {
+      "name": "Balvi",
+      "code": "015",
+      "cities": [
+        "Baltinava",
+        "Balvi",
+        "Rugāji",
+        "Viļaka"
+      ]
+    },
+    {
+      "name": "Bauska",
+      "code": "016",
+      "cities": [
+        "Bauska",
+        "Iecava",
+        "Pilsrundāle",
+        "Vecumnieki"
+      ]
+    },
+    {
+      "name": "Cēsis",
+      "code": "022",
+      "cities": [
+        "Cēsis",
+        "Līgatne",
+        "Priekuļi",
+        "Stalbe",
+        "Vecpiebalga"
+      ]
+    },
+    {
+      "name": "Daugavpils",
+      "code": "DGV",
+      "cities": []
+    },
+    {
+      "name": "Dienvidkurzemes",
+      "code": "112",
+      "cities": [
+        "Aizpute",
+        "Grobiņa",
+        "Lieģi",
+        "Nīca",
+        "Pāvilosta",
+        "Priekule",
+        "Rucava",
+        "Vaiņode"
+      ]
+    },
+    {
+      "name": "Dobele",
+      "code": "026",
+      "cities": [
+        "Auce",
+        "Dobele",
+        "Tērvete",
+        "Zelmeņi"
+      ]
+    },
+    {
+      "name": "Gulbene",
+      "code": "033",
+      "cities": [
+        "Gulbene"
+      ]
+    },
+    {
+      "name": "Jēkabpils",
+      "code": "042",
+      "cities": [
+        "Aknīste",
+        "Jēkabpils",
+        "Krustpils",
+        "Viesīte"
+      ]
+    },
+    {
+      "name": "Jelgava",
+      "code": "041",
+      "cities": [
+        "Ozolnieki",
+        "Tīreļi"
+      ]
+    },
+    {
+      "name": "Jelgava",
+      "code": "JEL",
+      "cities": [
+        "Jelgava"
+      ]
+    },
+    {
+      "name": "Jūrmala",
+      "code": "JUR",
+      "cities": [
+        "Jūrmala"
+      ]
+    },
+    {
+      "name": "Ķekava",
+      "code": "052",
+      "cities": [
+        "Baldone",
+        "Baloži",
+        "Ķekava"
+      ]
+    },
+    {
+      "name": "Krāslava",
+      "code": "047",
+      "cities": [
+        "Dagda",
+        "Krāslava"
+      ]
+    },
+    {
+      "name": "Kuldīga",
+      "code": "050",
+      "cities": [
+        "Alsunga",
+        "Kuldīga",
+        "Skrunda"
+      ]
+    },
+    {
+      "name": "Liepāja",
+      "code": "LPX",
+      "cities": [
+        "Karosta",
+        "Liepāja"
+      ]
+    },
+    {
+      "name": "Limbaži",
+      "code": "054",
+      "cities": [
+        "Ainaži",
+        "Aloja",
+        "Limbaži",
+        "Salacgrīva",
+        "Staicele"
+      ]
+    },
+    {
+      "name": "Līvāni",
+      "code": "056",
+      "cities": [
+        "Līvāni"
+      ]
+    },
+    {
+      "name": "Ludza",
+      "code": "058",
+      "cities": [
+        "Cibla",
+        "Kārsava",
+        "Ludza",
+        "Zilupe"
+      ]
+    },
+    {
+      "name": "Madona",
+      "code": "059",
+      "cities": [
+        "Cesvaine",
+        "Ērgļi",
+        "Lubāna",
+        "Madona"
+      ]
+    },
+    {
+      "name": "Mārupe",
+      "code": "062",
+      "cities": [
+        "Mārupe",
+        "Piņķi"
+      ]
+    },
+    {
+      "name": "Ogre",
+      "code": "067",
+      "cities": [
+        "Ikšķile",
+        "Jumprava",
+        "Ķegums",
+        "Lielvārde",
+        "Ogre"
+      ]
+    },
+    {
+      "name": "Olaine",
+      "code": "068",
+      "cities": [
+        "Olaine"
+      ]
+    },
+    {
+      "name": "Preiļi",
+      "code": "073",
+      "cities": [
+        "Aglona",
+        "Jaunaglona",
+        "Preiļi",
+        "Riebiņi",
+        "Vecvārkava"
+      ]
+    },
+    {
+      "name": "Rēzekne",
+      "code": "REZ",
+      "cities": [
+        "Rēzekne"
+      ]
+    },
+    {
+      "name": "Rēzekne",
+      "code": "077",
+      "cities": [
+        "Viļāni"
+      ]
+    },
+    {
+      "name": "Riga",
+      "code": "RIX",
+      "cities": [
+        "Bolderaja",
+        "Daugavgrīva",
+        "Jaunciems",
+        "Mežaparks",
+        "Riga"
+      ]
+    },
+    {
+      "name": "Ropaži",
+      "code": "080",
+      "cities": [
+        "Garkalne",
+        "Ropaži",
+        "Ulbroka",
+        "Vangaži"
+      ]
+    },
+    {
+      "name": "Salaspils",
+      "code": "087",
+      "cities": [
+        "Salaspils"
+      ]
+    },
+    {
+      "name": "Saldus",
+      "code": "088",
+      "cities": [
+        "Brocēni",
+        "Saldus"
+      ]
+    },
+    {
+      "name": "Saulkrasti",
+      "code": "089",
+      "cities": [
+        "Saulkrasti"
+      ]
+    },
+    {
+      "name": "Sigulda",
+      "code": "091",
+      "cities": [
+        "Inčukalns",
+        "Mālpils",
+        "Sigulda"
+      ]
+    },
+    {
+      "name": "Smiltene",
+      "code": "094",
+      "cities": [
+        "Ape",
+        "Rauna",
+        "Smiltene"
+      ]
+    },
+    {
+      "name": "Talsi",
+      "code": "097",
+      "cities": [
+        "Dundaga",
+        "Roja",
+        "Sabile",
+        "Stende",
+        "Talsi",
+        "Valdemārpils"
+      ]
+    },
+    {
+      "name": "Tukums",
+      "code": "099",
+      "cities": [
+        "Engure",
+        "Jaunpils",
+        "Kandava",
+        "Smārde",
+        "Tukums"
+      ]
+    },
+    {
+      "name": "Valka",
+      "code": "101",
+      "cities": [
+        "Valka"
+      ]
+    },
+    {
+      "name": "Valmiera",
+      "code": "113",
+      "cities": [
+        "Kocēni",
+        "Mazsalaca",
+        "Mūrmuiža",
+        "Naukšēni",
+        "Rūjiena",
+        "Seda",
+        "Strenči",
+        "Valmiera"
+      ]
+    },
+    {
+      "name": "Varakļāni",
+      "code": "102",
+      "cities": [
+        "Varakļāni"
+      ]
+    },
+    {
+      "name": "Ventspils",
+      "code": "VEN",
+      "cities": [
+        "Ventspils"
+      ]
+    },
+    {
+      "name": "Ventspils",
+      "code": "106",
+      "cities": [
+        "Piltene"
+      ]
+    }
+  ]
+}

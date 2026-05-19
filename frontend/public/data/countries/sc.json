@@ -1,0 +1,161 @@
+{
+  "name": "Seychelles",
+  "iso2": "SC",
+  "iso3": "SYC",
+  "phonecode": "248",
+  "states": [
+    {
+      "name": "Anse Boileau",
+      "code": "02",
+      "cities": [
+        "Anse Boileau"
+      ]
+    },
+    {
+      "name": "Anse Etoile",
+      "code": "03",
+      "cities": [
+        "Anse Etoile"
+      ]
+    },
+    {
+      "name": "Anse Royale",
+      "code": "05",
+      "cities": [
+        "Anse Royale"
+      ]
+    },
+    {
+      "name": "Anse-aux-Pins",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Au Cap",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Baie Lazare",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Baie Sainte Anne",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Beau Vallon",
+      "code": "08",
+      "cities": [
+        "Beau Vallon"
+      ]
+    },
+    {
+      "name": "Bel Air",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Bel Ombre",
+      "code": "10",
+      "cities": [
+        "Bel Ombre"
+      ]
+    },
+    {
+      "name": "Cascade",
+      "code": "11",
+      "cities": [
+        "Cascade"
+      ]
+    },
+    {
+      "name": "Glacis",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Grand'Anse Mahé",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Grand'Anse Praslin",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Ile Perseverance I",
+      "code": "26",
+      "cities": []
+    },
+    {
+      "name": "Ile Perseverance II",
+      "code": "27",
+      "cities": []
+    },
+    {
+      "name": "La Digue",
+      "code": "15",
+      "cities": []
+    },
+    {
+      "name": "La Rivière Anglaise",
+      "code": "16",
+      "cities": [
+        "Victoria"
+      ]
+    },
+    {
+      "name": "Les Mamelles",
+      "code": "24",
+      "cities": []
+    },
+    {
+      "name": "Mont Buxton",
+      "code": "17",
+      "cities": []
+    },
+    {
+      "name": "Mont Fleuri",
+      "code": "18",
+      "cities": []
+    },
+    {
+      "name": "Plaisance",
+      "code": "19",
+      "cities": []
+    },
+    {
+      "name": "Pointe La Rue",
+      "code": "20",
+      "cities": []
+    },
+    {
+      "name": "Port Glaud",
+      "code": "21",
+      "cities": [
+        "Port Glaud"
+      ]
+    },
+    {
+      "name": "Roche Caiman",
+      "code": "25",
+      "cities": []
+    },
+    {
+      "name": "Saint Louis",
+      "code": "22",
+      "cities": []
+    },
+    {
+      "name": "Takamaka",
+      "code": "23",
+      "cities": [
+        "Takamaka"
+      ]
+    }
+  ]
+}

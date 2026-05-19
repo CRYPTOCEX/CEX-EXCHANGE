@@ -1,0 +1,127 @@
+{
+  "name": "Fiji Islands",
+  "iso2": "FJ",
+  "iso3": "FJI",
+  "phonecode": "679",
+  "states": [
+    {
+      "name": "Ba",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Bua",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Cakaudrove",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Central",
+      "code": "C",
+      "cities": [
+        "Naitasiri",
+        "Namosi",
+        "Rewa",
+        "Serua",
+        "Suva",
+        "Tailevu"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "E",
+      "cities": [
+        "Kadavu",
+        "Lau",
+        "Levuka",
+        "Lomaiviti"
+      ]
+    },
+    {
+      "name": "Kadavu",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Lau",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Lomaiviti",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Macuata",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Nadroga-Navosa",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Naitasiri",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Namosi",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Northern",
+      "code": "N",
+      "cities": [
+        "Bua",
+        "Cakaudrove",
+        "Labasa",
+        "Macuata"
+      ]
+    },
+    {
+      "name": "Ra",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Rewa",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Rotuma",
+      "code": "R",
+      "cities": []
+    },
+    {
+      "name": "Serua",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Tailevu",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Western",
+      "code": "W",
+      "cities": [
+        "Ba",
+        "Ba Province",
+        "Lautoka",
+        "Nadi",
+        "Nandronga and Navosa",
+        "Ra"
+      ]
+    }
+  ]
+}

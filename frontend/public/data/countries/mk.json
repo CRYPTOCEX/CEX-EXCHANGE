@@ -1,0 +1,680 @@
+{
+  "name": "North Macedonia",
+  "iso2": "MK",
+  "iso3": "MKD",
+  "phonecode": "389",
+  "states": [
+    {
+      "name": "Aerodrom",
+      "code": "801",
+      "cities": [
+        "Usje"
+      ]
+    },
+    {
+      "name": "Aračinovo",
+      "code": "802",
+      "cities": [
+        "Арачиново"
+      ]
+    },
+    {
+      "name": "Berovo",
+      "code": "201",
+      "cities": [
+        "Berovo",
+        "Rusinovo",
+        "Vladimirovo"
+      ]
+    },
+    {
+      "name": "Bitola",
+      "code": "501",
+      "cities": [
+        "Bistrica",
+        "Bitola",
+        "Capari",
+        "Dolno Orizari",
+        "Kukurečani",
+        "Logovardi"
+      ]
+    },
+    {
+      "name": "Bogdanci",
+      "code": "401",
+      "cities": [
+        "Bogdanci",
+        "Stojakovo"
+      ]
+    },
+    {
+      "name": "Bogovinje",
+      "code": "601",
+      "cities": [
+        "Bogovinje",
+        "Dolno Palčište",
+        "Kamenjane"
+      ]
+    },
+    {
+      "name": "Bosilovo",
+      "code": "402",
+      "cities": [
+        "Bosilovo",
+        "Ilovica",
+        "Sekirnik"
+      ]
+    },
+    {
+      "name": "Brvenica",
+      "code": "602",
+      "cities": [
+        "Brvenica",
+        "Čelopek",
+        "Gurgurnica",
+        "Miletino"
+      ]
+    },
+    {
+      "name": "Butel",
+      "code": "803",
+      "cities": [
+        "Butel",
+        "Radishani"
+      ]
+    },
+    {
+      "name": "Čair",
+      "code": "815",
+      "cities": [
+        "Čair"
+      ]
+    },
+    {
+      "name": "Čaška",
+      "code": "109",
+      "cities": [
+        "Bogomila",
+        "Čaška"
+      ]
+    },
+    {
+      "name": "Centar",
+      "code": "814",
+      "cities": []
+    },
+    {
+      "name": "Centar Župa",
+      "code": "313",
+      "cities": [
+        "Centar Župa"
+      ]
+    },
+    {
+      "name": "Češinovo-Obleševo",
+      "code": "210",
+      "cities": [
+        "Češinovo",
+        "Oblesevo"
+      ]
+    },
+    {
+      "name": "Čučer-Sandevo",
+      "code": "816",
+      "cities": [
+        "Чучер - Сандево"
+      ]
+    },
+    {
+      "name": "Debar",
+      "code": "303",
+      "cities": []
+    },
+    {
+      "name": "Debarca",
+      "code": "304",
+      "cities": [
+        "Belčišta",
+        "Mešeišta"
+      ]
+    },
+    {
+      "name": "Delčevo",
+      "code": "203",
+      "cities": [
+        "Delcevo"
+      ]
+    },
+    {
+      "name": "Demir Hisar",
+      "code": "502",
+      "cities": [
+        "Demir Hisar",
+        "Slepče",
+        "Sopotnica"
+      ]
+    },
+    {
+      "name": "Demir Kapija",
+      "code": "103",
+      "cities": [
+        "Demir Kapija"
+      ]
+    },
+    {
+      "name": "Dojran",
+      "code": "406",
+      "cities": [
+        "Star Dojran"
+      ]
+    },
+    {
+      "name": "Dolneni",
+      "code": "503",
+      "cities": [
+        "Crnilište",
+        "Desovo",
+        "Dolneni",
+        "Lažani",
+        "Žitoše"
+      ]
+    },
+    {
+      "name": "Gazi Baba",
+      "code": "804",
+      "cities": [
+        "Cresevo"
+      ]
+    },
+    {
+      "name": "Gevgelija",
+      "code": "405",
+      "cities": [
+        "Gevgelija",
+        "Miravci"
+      ]
+    },
+    {
+      "name": "Gjorče Petrov",
+      "code": "805",
+      "cities": [
+        "Gjorče Petro"
+      ]
+    },
+    {
+      "name": "Gostivar",
+      "code": "604",
+      "cities": [
+        "Cegrane",
+        "Dolna Banjica",
+        "Forino",
+        "Gostivar",
+        "Srbinovo",
+        "Vrutok"
+      ]
+    },
+    {
+      "name": "Gradsko",
+      "code": "102",
+      "cities": [
+        "Gradsko"
+      ]
+    },
+    {
+      "name": "Ilinden",
+      "code": "807",
+      "cities": [
+        "Ilinden",
+        "Kadino",
+        "Marino",
+        "Miladinovci",
+        "Идризово",
+        "Јурумлери"
+      ]
+    },
+    {
+      "name": "Jegunovce",
+      "code": "606",
+      "cities": [
+        "Jegunovce",
+        "Vratnica"
+      ]
+    },
+    {
+      "name": "Karbinci",
+      "code": "205",
+      "cities": [
+        "Karbinci"
+      ]
+    },
+    {
+      "name": "Karpoš",
+      "code": "808",
+      "cities": [
+        "Skopje"
+      ]
+    },
+    {
+      "name": "Kavadarci",
+      "code": "104",
+      "cities": [
+        "Kavadarci",
+        "Vataša"
+      ]
+    },
+    {
+      "name": "Kičevo",
+      "code": "307",
+      "cities": [
+        "Drugovo",
+        "Kičevo",
+        "Srbica",
+        "Strelci",
+        "Tuin",
+        "Vraneštica",
+        "Zajas"
+      ]
+    },
+    {
+      "name": "Kisela Voda",
+      "code": "809",
+      "cities": [
+        "Dračevo",
+        "Kisela Voda"
+      ]
+    },
+    {
+      "name": "Kočani",
+      "code": "206",
+      "cities": [
+        "Kochani",
+        "Orizari"
+      ]
+    },
+    {
+      "name": "Konče",
+      "code": "407",
+      "cities": [
+        "Konče"
+      ]
+    },
+    {
+      "name": "Kratovo",
+      "code": "701",
+      "cities": [
+        "Kratovo"
+      ]
+    },
+    {
+      "name": "Kriva Palanka",
+      "code": "702",
+      "cities": [
+        "Kriva Palanka"
+      ]
+    },
+    {
+      "name": "Krivogaštani",
+      "code": "504",
+      "cities": [
+        "Krivogashtani",
+        "Obršani",
+        "Клечовце"
+      ]
+    },
+    {
+      "name": "Kruševo",
+      "code": "505",
+      "cities": [
+        "Bučin",
+        "Krusevo"
+      ]
+    },
+    {
+      "name": "Kumanovo",
+      "code": "703",
+      "cities": [
+        "Bedinje",
+        "Kumanovo",
+        "Romanovci"
+      ]
+    },
+    {
+      "name": "Lipkovo",
+      "code": "704",
+      "cities": [
+        "Izvor",
+        "Lipkovo",
+        "Lojane",
+        "Matejce",
+        "Otlja",
+        "Vaksince",
+        "Слупчане"
+      ]
+    },
+    {
+      "name": "Lozovo",
+      "code": "105",
+      "cities": [
+        "Lozovo"
+      ]
+    },
+    {
+      "name": "Makedonska Kamenica",
+      "code": "207",
+      "cities": [
+        "Makedonska Kamenica"
+      ]
+    },
+    {
+      "name": "Makedonski Brod",
+      "code": "308",
+      "cities": [
+        "Makedonski Brod",
+        "Samokov"
+      ]
+    },
+    {
+      "name": "Mavrovo and Rostuša",
+      "code": "607",
+      "cities": [
+        "Rostusa"
+      ]
+    },
+    {
+      "name": "Mogila",
+      "code": "506",
+      "cities": [
+        "Beranci",
+        "Dobruševo",
+        "Dolno Srpci",
+        "Mogila"
+      ]
+    },
+    {
+      "name": "Negotino",
+      "code": "106",
+      "cities": [
+        "Negotino"
+      ]
+    },
+    {
+      "name": "Novaci",
+      "code": "507",
+      "cities": [
+        "Novaci"
+      ]
+    },
+    {
+      "name": "Novo Selo",
+      "code": "408",
+      "cities": [
+        "Novo Selo",
+        "Sušica"
+      ]
+    },
+    {
+      "name": "Ohrid",
+      "code": "310",
+      "cities": [
+        "Kosel",
+        "Ohrid",
+        "Ohrid Opština"
+      ]
+    },
+    {
+      "name": "Pehčevo",
+      "code": "208",
+      "cities": [
+        "Pehčevo"
+      ]
+    },
+    {
+      "name": "Petrovec",
+      "code": "810",
+      "cities": [
+        "Sredno Konjare",
+        "Петровец"
+      ]
+    },
+    {
+      "name": "Plasnica",
+      "code": "311",
+      "cities": [
+        "Lisičani",
+        "Plasnica"
+      ]
+    },
+    {
+      "name": "Prilep",
+      "code": "508",
+      "cities": [
+        "Kanatlarci",
+        "Markov Grad",
+        "Prilep",
+        "Topolčani"
+      ]
+    },
+    {
+      "name": "Probištip",
+      "code": "209",
+      "cities": [
+        "Probishtip",
+        "Zletovo"
+      ]
+    },
+    {
+      "name": "Radoviš",
+      "code": "409",
+      "cities": [
+        "Oraovica",
+        "Podareš",
+        "Radovis"
+      ]
+    },
+    {
+      "name": "Rankovce",
+      "code": "705",
+      "cities": [
+        "Ранковце"
+      ]
+    },
+    {
+      "name": "Resen",
+      "code": "509",
+      "cities": [
+        "Grnčari",
+        "Jankovec",
+        "Krani",
+        "Resen"
+      ]
+    },
+    {
+      "name": "Rosoman",
+      "code": "107",
+      "cities": [
+        "Rosoman"
+      ]
+    },
+    {
+      "name": "Saraj",
+      "code": "811",
+      "cities": [
+        "Bojane",
+        "Bukovik",
+        "Grčec",
+        "Kondovo",
+        "Krušopek",
+        "Ljubin",
+        "Saraj"
+      ]
+    },
+    {
+      "name": "Sopište",
+      "code": "812",
+      "cities": [
+        "Сопиште"
+      ]
+    },
+    {
+      "name": "Staro Nagoričane",
+      "code": "706",
+      "cities": [
+        "Старо Нагоричане"
+      ]
+    },
+    {
+      "name": "Štip",
+      "code": "211",
+      "cities": [
+        "Shtip"
+      ]
+    },
+    {
+      "name": "Struga",
+      "code": "312",
+      "cities": [
+        "Delogožda",
+        "Labunista",
+        "Lukovo",
+        "Mislesevo",
+        "Oktisi",
+        "Radolista",
+        "Struga",
+        "Velesta"
+      ]
+    },
+    {
+      "name": "Strumica",
+      "code": "410",
+      "cities": [
+        "Kuklis",
+        "Murtino",
+        "Strumica",
+        "Veljusa"
+      ]
+    },
+    {
+      "name": "Studeničani",
+      "code": "813",
+      "cities": [
+        "Batinci",
+        "Dolno Količani",
+        "Morani",
+        "Studeničane"
+      ]
+    },
+    {
+      "name": "Šuto Orizari",
+      "code": "817",
+      "cities": [
+        "Šuto Orizare"
+      ]
+    },
+    {
+      "name": "Sveti Nikole",
+      "code": "108",
+      "cities": [
+        "Gorobinci",
+        "Sveti Nikole"
+      ]
+    },
+    {
+      "name": "Tearce",
+      "code": "608",
+      "cities": [
+        "Nerašte",
+        "Orashac",
+        "Pršovce",
+        "Slatino",
+        "Tearce"
+      ]
+    },
+    {
+      "name": "Tetovo",
+      "code": "609",
+      "cities": [
+        "Dobrošte",
+        "Džepčište",
+        "Golema Rečica",
+        "Pirok",
+        "Poroj",
+        "Selce",
+        "Šipkovica",
+        "Tetovo"
+      ]
+    },
+    {
+      "name": "Valandovo",
+      "code": "403",
+      "cities": [
+        "Pirava",
+        "Valandovo"
+      ]
+    },
+    {
+      "name": "Vasilevo",
+      "code": "404",
+      "cities": [
+        "Vasilevo"
+      ]
+    },
+    {
+      "name": "Veles",
+      "code": "101",
+      "cities": [
+        "Gorno Orizari",
+        "Ivankovci",
+        "Veles"
+      ]
+    },
+    {
+      "name": "Vevčani",
+      "code": "301",
+      "cities": [
+        "Vevčani"
+      ]
+    },
+    {
+      "name": "Vinica",
+      "code": "202",
+      "cities": [
+        "Blatec",
+        "Gradec",
+        "Vinica"
+      ]
+    },
+    {
+      "name": "Vrapčište",
+      "code": "603",
+      "cities": [
+        "Dobri Dol",
+        "Vrapčište"
+      ]
+    },
+    {
+      "name": "Zelenikovo",
+      "code": "806",
+      "cities": [
+        "Zelenikovo"
+      ]
+    },
+    {
+      "name": "Želino",
+      "code": "605",
+      "cities": [
+        "Dobarce",
+        "Larce",
+        "Sedlarevo",
+        "Strimnica",
+        "Zelino"
+      ]
+    },
+    {
+      "name": "Zrnovci",
+      "code": "204",
+      "cities": [
+        "Zrnovci"
+      ]
+    }
+  ]
+}

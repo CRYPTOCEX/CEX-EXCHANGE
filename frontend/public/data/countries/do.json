@@ -1,0 +1,456 @@
+{
+  "name": "Dominican Republic",
+  "iso2": "DO",
+  "iso3": "DOM",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Azua",
+      "code": "02",
+      "cities": [
+        "Azua",
+        "El Guayabal",
+        "Estebanía",
+        "Las Charcas",
+        "Padre Las Casas",
+        "Palmar de Ocoa",
+        "Peralta",
+        "Pueblo Viejo",
+        "Sabana Yegua",
+        "Tábara Arriba",
+        "Villarpando",
+        "Yayas de Viajama"
+      ]
+    },
+    {
+      "name": "Baoruco",
+      "code": "03",
+      "cities": [
+        "El Palmar",
+        "Galván",
+        "La Uvilla",
+        "Los Ríos",
+        "Neiba",
+        "Tamayo",
+        "Villa Jaragua"
+      ]
+    },
+    {
+      "name": "Barahona",
+      "code": "04",
+      "cities": [
+        "Cabral",
+        "Cachón",
+        "Canoa",
+        "El Peñón",
+        "Enriquillo",
+        "Fundación",
+        "Jaquimeyes",
+        "La Ciénaga",
+        "Las Salinas",
+        "Paraíso",
+        "Pescadería",
+        "Polo",
+        "Santa Cruz de Barahona",
+        "Vicente Noble"
+      ]
+    },
+    {
+      "name": "Cibao Nordeste",
+      "code": "33",
+      "cities": []
+    },
+    {
+      "name": "Cibao Noroeste",
+      "code": "34",
+      "cities": []
+    },
+    {
+      "name": "Cibao Norte",
+      "code": "35",
+      "cities": []
+    },
+    {
+      "name": "Cibao Sur",
+      "code": "36",
+      "cities": []
+    },
+    {
+      "name": "Dajabón",
+      "code": "05",
+      "cities": [
+        "Dajabón",
+        "El Pino",
+        "Loma de Cabrera",
+        "Partido",
+        "Restauración"
+      ]
+    },
+    {
+      "name": "Distrito Nacional",
+      "code": "01",
+      "cities": [
+        "Bella Vista",
+        "Ciudad Nueva",
+        "Cristo Rey",
+        "Ensanche Luperón",
+        "La Agustina",
+        "La Julia",
+        "San Carlos",
+        "Santo Domingo",
+        "Villa Consuelo",
+        "Villa Francisca"
+      ]
+    },
+    {
+      "name": "Duarte",
+      "code": "06",
+      "cities": [
+        "Agua Santa del Yuna",
+        "Arenoso",
+        "Castillo",
+        "Hostos",
+        "Las Guáranas",
+        "Pimentel",
+        "San Francisco de Macorís",
+        "Villa Riva"
+      ]
+    },
+    {
+      "name": "El Seibo",
+      "code": "08",
+      "cities": [
+        "Miches",
+        "Pedro Sánchez",
+        "Santa Cruz de El Seibo"
+      ]
+    },
+    {
+      "name": "El Valle",
+      "code": "37",
+      "cities": []
+    },
+    {
+      "name": "Elías Piña",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Enriquillo",
+      "code": "38",
+      "cities": []
+    },
+    {
+      "name": "Espaillat",
+      "code": "09",
+      "cities": [
+        "Cayetano Germosén",
+        "Gaspar Hernández",
+        "Jamao al Norte",
+        "Joba Arriba",
+        "Juan López Abajo",
+        "Moca",
+        "San Víctor Arriba",
+        "Veragua Arriba"
+      ]
+    },
+    {
+      "name": "Hato Mayor",
+      "code": "30",
+      "cities": [
+        "El Valle",
+        "Guayabo Dulce",
+        "Hato Mayor del Rey",
+        "Sabana de la Mar"
+      ]
+    },
+    {
+      "name": "Hermanas Mirabal",
+      "code": "19",
+      "cities": [
+        "Salcedo",
+        "Salsipuedes",
+        "Tenares",
+        "Villa Tapia"
+      ]
+    },
+    {
+      "name": "Higuamo",
+      "code": "39",
+      "cities": []
+    },
+    {
+      "name": "Independencia",
+      "code": "10",
+      "cities": [
+        "Cristóbal",
+        "Duvergé",
+        "Guayabal",
+        "Jimaní",
+        "La Descubierta",
+        "Mella",
+        "Postrer Río"
+      ]
+    },
+    {
+      "name": "La Altagracia",
+      "code": "11",
+      "cities": [
+        "Boca de Yuma",
+        "Higüey",
+        "Otra Banda",
+        "Punta Cana",
+        "Salvaleón de Higüey",
+        "San Rafael del Yuma"
+      ]
+    },
+    {
+      "name": "La Romana",
+      "code": "12",
+      "cities": [
+        "Guaymate",
+        "La Romana"
+      ]
+    },
+    {
+      "name": "La Vega",
+      "code": "13",
+      "cities": [
+        "Concepción de La Vega",
+        "Constanza",
+        "Jarabacoa",
+        "Jima Abajo",
+        "Rincón",
+        "Río Verde Arriba",
+        "Tireo Arriba"
+      ]
+    },
+    {
+      "name": "María Trinidad Sánchez",
+      "code": "14",
+      "cities": [
+        "Arroyo Salado",
+        "Cabrera",
+        "El Factor",
+        "La Entrada",
+        "Nagua",
+        "Río San Juan"
+      ]
+    },
+    {
+      "name": "Monseñor Nouel",
+      "code": "28",
+      "cities": [
+        "Bonao",
+        "Juan Adrián",
+        "Maimón",
+        "Piedra Blanca",
+        "Sabana del Puerto"
+      ]
+    },
+    {
+      "name": "Monte Cristi",
+      "code": "15",
+      "cities": [
+        "Cana Chapetón",
+        "Castañuelas",
+        "Guayubín",
+        "Hatillo Palma",
+        "Las Matas de Santa Cruz",
+        "Monte Cristi",
+        "Pepillo Salcedo",
+        "San Fernando de Monte Cristi",
+        "Villa Elisa",
+        "Villa Vásquez"
+      ]
+    },
+    {
+      "name": "Monte Plata",
+      "code": "29",
+      "cities": [
+        "Bayaguana",
+        "Don Juan",
+        "Esperalvillo",
+        "Gonzalo",
+        "Los Botados",
+        "Majagual",
+        "Monte Plata",
+        "Sabana Grande de Boyá",
+        "Yamasá"
+      ]
+    },
+    {
+      "name": "Ozama",
+      "code": "40",
+      "cities": []
+    },
+    {
+      "name": "Pedernales",
+      "code": "16",
+      "cities": [
+        "Juancho",
+        "Oviedo",
+        "Pedernales"
+      ]
+    },
+    {
+      "name": "Peravia",
+      "code": "17",
+      "cities": [
+        "Baní",
+        "Matanzas",
+        "Nizao",
+        "Paya",
+        "Pizarrete",
+        "Sabana Buey"
+      ]
+    },
+    {
+      "name": "Puerto Plata",
+      "code": "18",
+      "cities": [
+        "Altamira",
+        "Cabarete",
+        "Estero Hondo",
+        "Guananico",
+        "Imbert",
+        "Los Hidalgos",
+        "Luperón",
+        "Monte Llano",
+        "Puerto Plata",
+        "Río Grande",
+        "Sosúa",
+        "Villa Isabela"
+      ]
+    },
+    {
+      "name": "Samaná",
+      "code": "20",
+      "cities": [
+        "Las Terrenas",
+        "Samaná",
+        "Sánchez"
+      ]
+    },
+    {
+      "name": "San Cristóbal",
+      "code": "21",
+      "cities": [
+        "Bajos de Haina",
+        "Cambita Garabitos",
+        "El Cacao",
+        "El Carril",
+        "Sabana Grande de Palenque",
+        "San Cristóbal",
+        "San Gregorio de Nigua",
+        "Villa Altagracia",
+        "Yaguate"
+      ]
+    },
+    {
+      "name": "San José de Ocoa",
+      "code": "31",
+      "cities": [
+        "San José de Ocoa"
+      ]
+    },
+    {
+      "name": "San Juan",
+      "code": "22",
+      "cities": [
+        "Bohechío",
+        "Cercado Abajo",
+        "El Cercado",
+        "Juan de Herrera",
+        "Las Matas de Farfán",
+        "Matayaya",
+        "Pedro Corto",
+        "San Juan de la Maguana",
+        "Vallejuelo"
+      ]
+    },
+    {
+      "name": "San Pedro de Macorís",
+      "code": "23",
+      "cities": [
+        "El Puerto",
+        "Los Llanos",
+        "Quisqueya",
+        "Ramón Santana",
+        "San Pedro de Macorís"
+      ]
+    },
+    {
+      "name": "Sánchez Ramírez",
+      "code": "24",
+      "cities": [
+        "Cevicos",
+        "Cotuí",
+        "Fantino"
+      ]
+    },
+    {
+      "name": "Santiago",
+      "code": "25",
+      "cities": [
+        "Baitoa",
+        "Bisonó",
+        "Juncalito Abajo",
+        "La Canela",
+        "Licey al Medio",
+        "Palmar Arriba",
+        "Pedro García",
+        "Sabana Iglesia",
+        "San José de Las Matas",
+        "Santiago de los Caballeros",
+        "Santo Tomás de Jánico",
+        "Tamboril",
+        "Villa Bisonó",
+        "Villa González"
+      ]
+    },
+    {
+      "name": "Santiago Rodríguez",
+      "code": "26",
+      "cities": [
+        "Monción",
+        "Sabaneta",
+        "San Ignacio de Sabaneta"
+      ]
+    },
+    {
+      "name": "Santo Domingo",
+      "code": "32",
+      "cities": [
+        "Boca Chica",
+        "Santo Domingo Este",
+        "Santo Domingo Oeste"
+      ]
+    },
+    {
+      "name": "Valdesia",
+      "code": "41",
+      "cities": []
+    },
+    {
+      "name": "Valverde",
+      "code": "27",
+      "cities": [
+        "Amina",
+        "Esperanza",
+        "Guatapanal",
+        "Jaibón",
+        "Jicomé",
+        "La Caya",
+        "Laguna Salada",
+        "Maizal",
+        "Mao"
+      ]
+    },
+    {
+      "name": "Yuma",
+      "code": "42",
+      "cities": []
+    }
+  ]
+}

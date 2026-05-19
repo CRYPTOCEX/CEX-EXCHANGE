@@ -1,0 +1,207 @@
+{
+  "name": "Cameroon",
+  "iso2": "CM",
+  "iso3": "CMR",
+  "phonecode": "237",
+  "states": [
+    {
+      "name": "Adamawa",
+      "code": "AD",
+      "cities": [
+        "Bankim",
+        "Banyo",
+        "Bélel",
+        "Djohong",
+        "Kontcha",
+        "Mayo-Banyo",
+        "Meïganga",
+        "Ngaoundéré",
+        "Somié",
+        "Tibati",
+        "Tignère",
+        "Vina"
+      ]
+    },
+    {
+      "name": "Centre",
+      "code": "CE",
+      "cities": [
+        "Akono",
+        "Akonolinga",
+        "Bafia",
+        "Eséka",
+        "Essé",
+        "Évodoula",
+        "Mbalmayo",
+        "Mbam-Et-Inoubou",
+        "Mbandjok",
+        "Mbankomo",
+        "Mefou-et-Akono",
+        "Mfoundi",
+        "Minta",
+        "Nanga Eboko",
+        "Ndikiniméki",
+        "Ngomedzap",
+        "Ngoro",
+        "Nkoteng",
+        "Ntui",
+        "Obala",
+        "Okoa",
+        "Okola",
+        "Ombésa",
+        "Saa",
+        "Yaoundé",
+        "Yoko"
+      ]
+    },
+    {
+      "name": "East",
+      "code": "ES",
+      "cities": [
+        "Abong Mbang",
+        "Batouri",
+        "Bélabo",
+        "Bertoua",
+        "Bétaré Oya",
+        "Dimako",
+        "Doumé",
+        "Garoua Boulaï",
+        "Mbang",
+        "Ndelele",
+        "Yokadouma"
+      ]
+    },
+    {
+      "name": "Far North",
+      "code": "EN",
+      "cities": [
+        "Bogo",
+        "Kaélé",
+        "Kousséri",
+        "Koza",
+        "Makary",
+        "Maroua",
+        "Mayo-Sava",
+        "Mayo-Tsanaga",
+        "Mindif",
+        "Mokolo",
+        "Mora",
+        "Yagoua"
+      ]
+    },
+    {
+      "name": "Littoral",
+      "code": "LT",
+      "cities": [
+        "Bonabéri",
+        "Diang",
+        "Dibombari",
+        "Dizangué",
+        "Douala",
+        "Edéa",
+        "Loum",
+        "Manjo",
+        "Mbanga",
+        "Melong",
+        "Mouanko",
+        "Ndom",
+        "Ngambé",
+        "Nkongsamba",
+        "Penja",
+        "Yabassi"
+      ]
+    },
+    {
+      "name": "North",
+      "code": "NO",
+      "cities": [
+        "Faro Department",
+        "Garoua",
+        "Guider",
+        "Lagdo",
+        "Mayo-Louti",
+        "Mayo-Rey",
+        "Pitoa",
+        "Poli",
+        "Rey Bouba",
+        "Tcholliré"
+      ]
+    },
+    {
+      "name": "Northwest",
+      "code": "NW",
+      "cities": [
+        "Babanki",
+        "Bali",
+        "Bamenda",
+        "Batibo",
+        "Belo",
+        "Boyo",
+        "Fundong",
+        "Jakiri",
+        "Kumbo",
+        "Mbengwi",
+        "Mme-Bafumen",
+        "Njinikom",
+        "Wum"
+      ]
+    },
+    {
+      "name": "South",
+      "code": "SU",
+      "cities": [
+        "Akom II",
+        "Ambam",
+        "Ébolowa",
+        "Kribi",
+        "Lolodorf",
+        "Mvangué",
+        "Mvila",
+        "Sangmélima"
+      ]
+    },
+    {
+      "name": "Southwest",
+      "code": "SW",
+      "cities": [
+        "Bamusso",
+        "Bekondo",
+        "Buea",
+        "Fako Division",
+        "Fontem",
+        "Kumba",
+        "Lebialem",
+        "Limbe",
+        "Mamfe",
+        "Mundemba",
+        "Mutengene",
+        "Muyuka",
+        "Nguti",
+        "Tiko"
+      ]
+    },
+    {
+      "name": "West",
+      "code": "OU",
+      "cities": [
+        "Bafang",
+        "Bafoussam",
+        "Bamendjou",
+        "Bana",
+        "Bandjoun",
+        "Bangangté",
+        "Bansoa",
+        "Bazou",
+        "Dschang",
+        "Foumban",
+        "Foumbot",
+        "Hauts-Plateaux",
+        "Koung-Khi",
+        "Mbouda",
+        "Ngou",
+        "Noun",
+        "Tonga"
+      ]
+    }
+  ]
+}

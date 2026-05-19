@@ -1,0 +1,127 @@
+{
+  "name": "Monaco",
+  "iso2": "MC",
+  "iso3": "MCO",
+  "phonecode": "377",
+  "states": [
+    {
+      "name": "Fontvieille",
+      "code": "FO",
+      "cities": [
+        "Fontvieille"
+      ]
+    },
+    {
+      "name": "Jardin Exotique",
+      "code": "JE",
+      "cities": [
+        "Jardin Exotique"
+      ]
+    },
+    {
+      "name": "La Colle",
+      "code": "CL",
+      "cities": [
+        "La Colle"
+      ]
+    },
+    {
+      "name": "La Condamine",
+      "code": "CO",
+      "cities": [
+        "La Condamine"
+      ]
+    },
+    {
+      "name": "La Gare",
+      "code": "GA",
+      "cities": [
+        "La Gare"
+      ]
+    },
+    {
+      "name": "La Source",
+      "code": "SO",
+      "cities": [
+        "La Source"
+      ]
+    },
+    {
+      "name": "Larvotto",
+      "code": "LA",
+      "cities": [
+        "Larvotto"
+      ]
+    },
+    {
+      "name": "Malbousquet",
+      "code": "MA",
+      "cities": [
+        "Malbousquet"
+      ]
+    },
+    {
+      "name": "Monaco-Ville",
+      "code": "MO",
+      "cities": [
+        "Monaco-Ville"
+      ]
+    },
+    {
+      "name": "Moneghetti",
+      "code": "MG",
+      "cities": [
+        "Moneghetti"
+      ]
+    },
+    {
+      "name": "Monte-Carlo",
+      "code": "MC",
+      "cities": [
+        "Monte-Carlo"
+      ]
+    },
+    {
+      "name": "Moulins",
+      "code": "MU",
+      "cities": [
+        "Moulins"
+      ]
+    },
+    {
+      "name": "Port-Hercule",
+      "code": "PH",
+      "cities": [
+        "Port-Hercule"
+      ]
+    },
+    {
+      "name": "Saint-Roman",
+      "code": "SR",
+      "cities": [
+        "Saint-Roman"
+      ]
+    },
+    {
+      "name": "Sainte-Dévote",
+      "code": "SD",
+      "cities": [
+        "Sainte-Dévote"
+      ]
+    },
+    {
+      "name": "Spélugues",
+      "code": "SP",
+      "cities": [
+        "Spélugues"
+      ]
+    },
+    {
+      "name": "Vallon de la Rousse",
+      "code": "VR",
+      "cities": [
+        "Vallon de la Rousse"
+      ]
+    }
+  ]
+}

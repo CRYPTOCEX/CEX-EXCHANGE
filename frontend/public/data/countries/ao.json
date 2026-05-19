@@ -1,0 +1,188 @@
+{
+  "name": "Angola",
+  "iso2": "AO",
+  "iso3": "AGO",
+  "phonecode": "244",
+  "states": [
+    {
+      "name": "Bengo",
+      "code": "BGO",
+      "cities": [
+        "Ambriz",
+        "Bula Atumba",
+        "Caxito",
+        "Dande",
+        "Muxima",
+        "Nambuangongo",
+        "Pango Aluquém",
+        "Úcua"
+      ]
+    },
+    {
+      "name": "Benguela",
+      "code": "BGU",
+      "cities": [
+        "Baía Farta",
+        "Balombo",
+        "Benguela",
+        "Bocoio",
+        "Caimbambo",
+        "Catumbela",
+        "Chongoroi",
+        "Cubal",
+        "Ganda",
+        "Lobito",
+        "Sumbe"
+      ]
+    },
+    {
+      "name": "Bié",
+      "code": "BIE",
+      "cities": [
+        "Camacupa",
+        "Catabola",
+        "Chissamba",
+        "Cuito"
+      ]
+    },
+    {
+      "name": "Cabinda",
+      "code": "CAB",
+      "cities": [
+        "Cabinda"
+      ]
+    },
+    {
+      "name": "Cuando Cubango",
+      "code": "CCU",
+      "cities": [
+        "Menongue"
+      ]
+    },
+    {
+      "name": "Cuanza",
+      "code": "CUS",
+      "cities": [
+        "Quibala",
+        "Sumbe",
+        "Uacu Cungo"
+      ]
+    },
+    {
+      "name": "Cuanza Norte",
+      "code": "CNO",
+      "cities": [
+        "Camabatela",
+        "N’dalatando"
+      ]
+    },
+    {
+      "name": "Cunene",
+      "code": "CNN",
+      "cities": [
+        "Ondjiva"
+      ]
+    },
+    {
+      "name": "Huambo",
+      "code": "HUA",
+      "cities": [
+        "Caála",
+        "Chela",
+        "Huambo",
+        "Longonjo"
+      ]
+    },
+    {
+      "name": "Huíla",
+      "code": "HUI",
+      "cities": [
+        "Caconda",
+        "Caluquembe",
+        "Chibia",
+        "Chicomba",
+        "Chipindo",
+        "Cuvango",
+        "Gambos",
+        "Humpata",
+        "Jamba",
+        "Lubango",
+        "Matala",
+        "Quilengues",
+        "Quipungo"
+      ]
+    },
+    {
+      "name": "Luanda",
+      "code": "LUA",
+      "cities": [
+        "Belas",
+        "Cacuaco",
+        "Cazenga",
+        "Icolo e Bengo",
+        "Luanda",
+        "Talatona",
+        "Viana"
+      ]
+    },
+    {
+      "name": "Lunda Norte",
+      "code": "LNO",
+      "cities": [
+        "Lucapa"
+      ]
+    },
+    {
+      "name": "Lunda Sul",
+      "code": "LSU",
+      "cities": [
+        "Cazaji",
+        "Saurimo"
+      ]
+    },
+    {
+      "name": "Malanje",
+      "code": "MAL",
+      "cities": [
+        "Malanje"
+      ]
+    },
+    {
+      "name": "Moxico",
+      "code": "MOX",
+      "cities": [
+        "Léua",
+        "Luau",
+        "Luena",
+        "Lumeje"
+      ]
+    },
+    {
+      "name": "Namibe",
+      "code": "NAM",
+      "cities": [
+        "Bibala",
+        "Camucuio",
+        "Namibe",
+        "Tombua",
+        "Virei"
+      ]
+    },
+    {
+      "name": "Uíge",
+      "code": "UIG",
+      "cities": [
+        "Uíge"
+      ]
+    },
+    {
+      "name": "Zaire",
+      "code": "ZAI",
+      "cities": [
+        "Mbanza Congo",
+        "N'zeto",
+        "Soio"
+      ]
+    }
+  ]
+}

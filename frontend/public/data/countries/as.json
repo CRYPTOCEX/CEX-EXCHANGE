@@ -1,0 +1,50 @@
+{
+  "name": "American Samoa",
+  "iso2": "AS",
+  "iso3": "ASM",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Eastern",
+      "code": "02",
+      "cities": [
+        "Ituʻau",
+        "Maʻoputasi",
+        "Saʻole",
+        "Sua",
+        "Vaifanua"
+      ]
+    },
+    {
+      "name": "Manuʻa",
+      "code": "03",
+      "cities": [
+        "Faleasao",
+        "Fitiuta",
+        "Ofu",
+        "Olosega",
+        "Tau"
+      ]
+    },
+    {
+      "name": "Rose",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Swains",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Western",
+      "code": "01",
+      "cities": [
+        "Lealataua",
+        "Leasina",
+        "Tualatai",
+        "Tualauta"
+      ]
+    }
+  ]
+}

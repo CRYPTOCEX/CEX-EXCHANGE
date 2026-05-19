@@ -1,0 +1,336 @@
+{
+  "name": "Sri Lanka",
+  "iso2": "LK",
+  "iso3": "LKA",
+  "phonecode": "94",
+  "states": [
+    {
+      "name": "Ampara",
+      "code": "52",
+      "cities": []
+    },
+    {
+      "name": "Anuradhapura",
+      "code": "71",
+      "cities": []
+    },
+    {
+      "name": "Badulla",
+      "code": "81",
+      "cities": []
+    },
+    {
+      "name": "Batticaloa",
+      "code": "51",
+      "cities": []
+    },
+    {
+      "name": "Central",
+      "code": "2",
+      "cities": [
+        "Dambulla",
+        "Hatton",
+        "Kandy",
+        "Kandy District",
+        "Matale",
+        "Matale District",
+        "Nuwara Eliya",
+        "Nuwara Eliya District",
+        "Sigiriya",
+        "Talawakele"
+      ]
+    },
+    {
+      "name": "Colombo",
+      "code": "11",
+      "cities": [
+        "Dehiwala-Mount Lavinia",
+        "Homagama",
+        "Kaduwela",
+        "Kesbewa",
+        "Kolonnawa",
+        "Kotte",
+        "Maharagama",
+        "Moratuwa",
+        "Padukka",
+        "Ratmalana",
+        "Seethawaka",
+        "Thimbirigasyaya"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "5",
+      "cities": [
+        "Ampara",
+        "Ampara District",
+        "Batticaloa",
+        "Batticaloa District",
+        "Eravur Town",
+        "Kalmunai",
+        "Trincomalee",
+        "Trincomalee District",
+        "Vakarai"
+      ]
+    },
+    {
+      "name": "Galle",
+      "code": "31",
+      "cities": []
+    },
+    {
+      "name": "Gampaha",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Hambantota",
+      "code": "33",
+      "cities": []
+    },
+    {
+      "name": "Jaffna",
+      "code": "41",
+      "cities": []
+    },
+    {
+      "name": "Kalutara",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Kandy",
+      "code": "21",
+      "cities": [
+        "Akurana",
+        "Alawatugoda",
+        "Ambatenna",
+        "Daskara",
+        "Daulagala",
+        "Delthota",
+        "Doluwa",
+        "Galagedara",
+        "Galhinna",
+        "Gampola",
+        "Ganga Ihala Korale",
+        "Hanguranketa",
+        "Hapugastalawa",
+        "Harispattuwa",
+        "Hatharaliyadda",
+        "Kadugannawa",
+        "Kandy Four Gravets",
+        "Katugastota",
+        "Kundasale",
+        "Madawala",
+        "Medadumbara",
+        "Menikdiwela",
+        "Minipe",
+        "Nawalapitiya",
+        "Pallekele",
+        "Panvila",
+        "Pasbage Korale",
+        "Pathadumbara",
+        "Pathahewaheta",
+        "Peradeniya",
+        "Pilimathalawa",
+        "Poojapitiya",
+        "Pussellawa",
+        "Talatuoya",
+        "Teldeniya",
+        "Thumpane",
+        "Udadumbara",
+        "Udapalatha",
+        "Ududumbara",
+        "Udunuwara",
+        "Ulapane",
+        "Watadeniya",
+        "Wattegama",
+        "Welamboda",
+        "Yatinuwara"
+      ]
+    },
+    {
+      "name": "Kegalle",
+      "code": "92",
+      "cities": []
+    },
+    {
+      "name": "Kilinochchi",
+      "code": "42",
+      "cities": []
+    },
+    {
+      "name": "Kurunegala",
+      "code": "61",
+      "cities": []
+    },
+    {
+      "name": "Mannar",
+      "code": "43",
+      "cities": []
+    },
+    {
+      "name": "Matale",
+      "code": "22",
+      "cities": []
+    },
+    {
+      "name": "Matara",
+      "code": "32",
+      "cities": []
+    },
+    {
+      "name": "Monaragala",
+      "code": "82",
+      "cities": []
+    },
+    {
+      "name": "Mullaitivu",
+      "code": "45",
+      "cities": []
+    },
+    {
+      "name": "North Central",
+      "code": "7",
+      "cities": [
+        "Anuradhapura",
+        "Anuradhapura District",
+        "Mihintale",
+        "Polonnaruwa",
+        "Polonnaruwa District"
+      ]
+    },
+    {
+      "name": "North Western",
+      "code": "6",
+      "cities": [
+        "Chilaw",
+        "Kuliyapitiya",
+        "Kurunegala",
+        "Kurunegala District",
+        "Puttalam",
+        "Puttalam District"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "4",
+      "cities": [
+        "Jaffna",
+        "Jaffna District",
+        "Kilinochchi",
+        "Kilinochchi District",
+        "Point Pedro",
+        "Valvedditturai",
+        "Vavuniya",
+        "Vavuniya District"
+      ]
+    },
+    {
+      "name": "Nuwara Eliya",
+      "code": "23",
+      "cities": []
+    },
+    {
+      "name": "Polonnaruwa",
+      "code": "72",
+      "cities": []
+    },
+    {
+      "name": "Puttalam",
+      "code": "62",
+      "cities": []
+    },
+    {
+      "name": "Ratnapura",
+      "code": "91",
+      "cities": []
+    },
+    {
+      "name": "Sabaragamuwa",
+      "code": "9",
+      "cities": [
+        "Kegalle",
+        "Kegalle District",
+        "Ratnapura",
+        "Ratnapura District"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "3",
+      "cities": [
+        "Ambalangoda",
+        "Bentota",
+        "Devinuwara",
+        "Galle",
+        "Galle District",
+        "Hambantota",
+        "Hikkaduwa",
+        "Koggala",
+        "Matara",
+        "Matara District",
+        "Mirissa city",
+        "Talpe",
+        "Tangalle",
+        "Unawatuna",
+        "Weligama"
+      ]
+    },
+    {
+      "name": "Trincomalee",
+      "code": "53",
+      "cities": []
+    },
+    {
+      "name": "Uva",
+      "code": "8",
+      "cities": [
+        "Badulla",
+        "Badulla District",
+        "Ella Town",
+        "Haputale",
+        "Kataragama",
+        "Monaragala",
+        "Moneragala",
+        "Wellawaya"
+      ]
+    },
+    {
+      "name": "Vavuniya",
+      "code": "44",
+      "cities": []
+    },
+    {
+      "name": "Western",
+      "code": "1",
+      "cities": [
+        "Battaramulla South",
+        "Beruwala",
+        "Colombo",
+        "Colombo District",
+        "Gampaha",
+        "Gampaha District",
+        "Hanwella Ihala",
+        "Hendala",
+        "Horana South",
+        "Horawala Junction",
+        "Ja Ela",
+        "Kalutara",
+        "Kandana",
+        "Katunayaka",
+        "Kelaniya",
+        "Kotikawatta",
+        "Minuwangoda",
+        "Mulleriyawa",
+        "Negombo",
+        "Panadura",
+        "Peliyagoda",
+        "Pita Kotte",
+        "Sri Jayewardenepura Kotte",
+        "Wattala",
+        "Welisara"
+      ]
+    }
+  ]
+}

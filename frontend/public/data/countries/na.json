@@ -1,0 +1,139 @@
+{
+  "name": "Namibia",
+  "iso2": "NA",
+  "iso3": "NAM",
+  "phonecode": "264",
+  "states": [
+    {
+      "name": "Erongo",
+      "code": "ER",
+      "cities": [
+        "Arandis",
+        "Hentiesbaai",
+        "Karibib",
+        "Omaruru",
+        "Otjimbingwe",
+        "Swakopmund",
+        "Swakopmund Constituency",
+        "Usakos",
+        "Walvis Bay"
+      ]
+    },
+    {
+      "name": "Hardap",
+      "code": "HA",
+      "cities": [
+        "Aranos",
+        "Hoachanas",
+        "Maltahöhe",
+        "Mariental",
+        "Rehoboth"
+      ]
+    },
+    {
+      "name": "Karas",
+      "code": "KA",
+      "cities": [
+        "Bethanie",
+        "Karasburg",
+        "Keetmanshoop",
+        "Lüderitz",
+        "Oranjemund",
+        "Tses",
+        "Warmbad"
+      ]
+    },
+    {
+      "name": "Kavango East",
+      "code": "KE",
+      "cities": [
+        "Rundu"
+      ]
+    },
+    {
+      "name": "Kavango West",
+      "code": "KW",
+      "cities": []
+    },
+    {
+      "name": "Khomas",
+      "code": "KH",
+      "cities": [
+        "Katutura",
+        "Windhoek"
+      ]
+    },
+    {
+      "name": "Kunene",
+      "code": "KU",
+      "cities": [
+        "Epupa Constituency",
+        "Khorixas",
+        "Khorixas Constituency",
+        "Opuwo",
+        "Opuwo Constituency",
+        "Outjo",
+        "Sesfontein Constituency"
+      ]
+    },
+    {
+      "name": "Ohangwena",
+      "code": "OW",
+      "cities": [
+        "Oshikango"
+      ]
+    },
+    {
+      "name": "Omaheke",
+      "code": "OH",
+      "cities": [
+        "Gobabis"
+      ]
+    },
+    {
+      "name": "Omusati",
+      "code": "OS",
+      "cities": [
+        "Okahao",
+        "Ongandjera",
+        "Outapi"
+      ]
+    },
+    {
+      "name": "Oshana",
+      "code": "ON",
+      "cities": [
+        "Ondangwa",
+        "Ongwediva",
+        "Oshakati"
+      ]
+    },
+    {
+      "name": "Oshikoto",
+      "code": "OT",
+      "cities": [
+        "Omuthiya",
+        "Tsumeb"
+      ]
+    },
+    {
+      "name": "Otjozondjupa",
+      "code": "OD",
+      "cities": [
+        "Grootfontein",
+        "Okahandja",
+        "Okakarara",
+        "Otavi",
+        "Otjiwarongo"
+      ]
+    },
+    {
+      "name": "Zambezi",
+      "code": "CA",
+      "cities": [
+        "Bagani",
+        "Katima Mulilo"
+      ]
+    }
+  ]
+}

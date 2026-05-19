@@ -1,0 +1,152 @@
+{
+  "name": "Central African Republic",
+  "iso2": "CF",
+  "iso3": "CAF",
+  "phonecode": "236",
+  "states": [
+    {
+      "name": "Bamingui-Bangoran",
+      "code": "BB",
+      "cities": [
+        "Bamingui",
+        "Ndélé"
+      ]
+    },
+    {
+      "name": "Bangui",
+      "code": "BGF",
+      "cities": [
+        "Bangui"
+      ]
+    },
+    {
+      "name": "Basse-Kotto",
+      "code": "BK",
+      "cities": [
+        "Alindao",
+        "Kembé",
+        "Mobaye"
+      ]
+    },
+    {
+      "name": "Haut-Mbomou",
+      "code": "HM",
+      "cities": [
+        "Obo",
+        "Zemio"
+      ]
+    },
+    {
+      "name": "Haute-Kotto",
+      "code": "HK",
+      "cities": [
+        "Bria",
+        "Ouadda"
+      ]
+    },
+    {
+      "name": "Kémo",
+      "code": "KG",
+      "cities": [
+        "Sibut"
+      ]
+    },
+    {
+      "name": "Lobaye",
+      "code": "LB",
+      "cities": [
+        "Boda",
+        "Boganangone",
+        "Mbaiki",
+        "Mongoumba"
+      ]
+    },
+    {
+      "name": "Mambéré-Kadéï",
+      "code": "HS",
+      "cities": [
+        "Berberati",
+        "Carnot",
+        "Gamboula"
+      ]
+    },
+    {
+      "name": "Mbomou",
+      "code": "MB",
+      "cities": [
+        "Bangassou",
+        "Gambo",
+        "Ouango",
+        "Rafai"
+      ]
+    },
+    {
+      "name": "Nana-Grébizi",
+      "code": "KB",
+      "cities": [
+        "Kaga Bandoro"
+      ]
+    },
+    {
+      "name": "Nana-Mambéré",
+      "code": "NM",
+      "cities": [
+        "Baoro",
+        "Bouar"
+      ]
+    },
+    {
+      "name": "Ombella-M'Poko",
+      "code": "MP",
+      "cities": [
+        "Bimbo",
+        "Boali",
+        "Damara"
+      ]
+    },
+    {
+      "name": "Ouaka",
+      "code": "UK",
+      "cities": [
+        "Bambari",
+        "Grimari",
+        "Ippy",
+        "Kouango"
+      ]
+    },
+    {
+      "name": "Ouham",
+      "code": "AC",
+      "cities": [
+        "Batangafo",
+        "Bossangoa",
+        "Bouca",
+        "Kabo"
+      ]
+    },
+    {
+      "name": "Ouham-Pendé",
+      "code": "OP",
+      "cities": [
+        "Bocaranga",
+        "Bozoum",
+        "Paoua"
+      ]
+    },
+    {
+      "name": "Sangha-Mbaéré",
+      "code": "SE",
+      "cities": [
+        "Nola"
+      ]
+    },
+    {
+      "name": "Vakaga",
+      "code": "VK",
+      "cities": [
+        "Birao",
+        "Ouanda-Djallé"
+      ]
+    }
+  ]
+}

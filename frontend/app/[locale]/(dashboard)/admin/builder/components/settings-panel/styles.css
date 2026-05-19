@@ -1,0 +1,32 @@
+.transition-height {
+  transition-property: height, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom tabs styles */
+.custom-tab-active {
+  color: #7c3aed;
+  border-bottom-color: #7c3aed;
+}
+
+.custom-tab-inactive {
+  color: #6b7280;
+  border-bottom-color: transparent;
+}
+
+.custom-tab-inactive:hover {
+  color: #374151;
+  border-bottom-color: #d1d5db;
+}
+
+/* Ensure content stays within the sidebar */
+.popover-content {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Fix for color picker popover */
+[data-radix-popper-content-wrapper] {
+  max-width: calc(100vw - 20px) !important;
+}

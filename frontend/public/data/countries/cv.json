@@ -1,0 +1,178 @@
+{
+  "name": "Cape Verde",
+  "iso2": "CV",
+  "iso3": "CPV",
+  "phonecode": "238",
+  "states": [
+    {
+      "name": "Barlavento Islands",
+      "code": "B",
+      "cities": []
+    },
+    {
+      "name": "Boa Vista",
+      "code": "BV",
+      "cities": [
+        "Sal Rei"
+      ]
+    },
+    {
+      "name": "Brava",
+      "code": "BR",
+      "cities": [
+        "Nova Sintra"
+      ]
+    },
+    {
+      "name": "Maio",
+      "code": "MA",
+      "cities": [
+        "Vila do Maio"
+      ]
+    },
+    {
+      "name": "Mosteiros",
+      "code": "MO",
+      "cities": [
+        "Igreja"
+      ]
+    },
+    {
+      "name": "Paul",
+      "code": "PA",
+      "cities": [
+        "Pombas"
+      ]
+    },
+    {
+      "name": "Porto Novo",
+      "code": "PN",
+      "cities": [
+        "Porto Novo"
+      ]
+    },
+    {
+      "name": "Praia",
+      "code": "PR",
+      "cities": [
+        "Praia"
+      ]
+    },
+    {
+      "name": "Ribeira Brava",
+      "code": "RB",
+      "cities": [
+        "Ribeira Brava"
+      ]
+    },
+    {
+      "name": "Ribeira Grande",
+      "code": "RG",
+      "cities": [
+        "Ponta do Sol",
+        "Ribeira Grande"
+      ]
+    },
+    {
+      "name": "Ribeira Grande de Santiago",
+      "code": "RS",
+      "cities": [
+        "Cidade Velha"
+      ]
+    },
+    {
+      "name": "Sal",
+      "code": "SL",
+      "cities": [
+        "Espargos",
+        "Santa Maria"
+      ]
+    },
+    {
+      "name": "Santa Catarina",
+      "code": "CA",
+      "cities": [
+        "Assomada"
+      ]
+    },
+    {
+      "name": "Santa Catarina do Fogo",
+      "code": "CF",
+      "cities": [
+        "Cova Figueira"
+      ]
+    },
+    {
+      "name": "Santa Cruz",
+      "code": "CR",
+      "cities": [
+        "Pedra Badejo",
+        "Santa Cruz"
+      ]
+    },
+    {
+      "name": "São Domingos",
+      "code": "SD",
+      "cities": [
+        "São Domingos"
+      ]
+    },
+    {
+      "name": "São Filipe",
+      "code": "SF",
+      "cities": [
+        "São Filipe"
+      ]
+    },
+    {
+      "name": "São Lourenço dos Órgãos",
+      "code": "SO",
+      "cities": [
+        "João Teves"
+      ]
+    },
+    {
+      "name": "São Miguel",
+      "code": "SM",
+      "cities": [
+        "Calheta"
+      ]
+    },
+    {
+      "name": "São Salvador do Mundo",
+      "code": "SS",
+      "cities": [
+        "Achada Leitão",
+        "Leitão Grande",
+        "Picos",
+        "Picos Acima"
+      ]
+    },
+    {
+      "name": "São Vicente",
+      "code": "SV",
+      "cities": [
+        "Mindelo"
+      ]
+    },
+    {
+      "name": "Sotavento Islands",
+      "code": "S",
+      "cities": []
+    },
+    {
+      "name": "Tarrafal",
+      "code": "TA",
+      "cities": [
+        "Tarrafal"
+      ]
+    },
+    {
+      "name": "Tarrafal de São Nicolau",
+      "code": "TS",
+      "cities": [
+        "Tarrafal de São Nicolau"
+      ]
+    }
+  ]
+}

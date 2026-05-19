@@ -1,0 +1,41 @@
+{
+  "name": "Brunei",
+  "iso2": "BN",
+  "iso3": "BRN",
+  "phonecode": "673",
+  "states": [
+    {
+      "name": "Belait",
+      "code": "BE",
+      "cities": [
+        "Kuala Belait",
+        "Seria"
+      ]
+    },
+    {
+      "name": "Brunei-Muara",
+      "code": "BM",
+      "cities": [
+        "Bandar Seri Begawan",
+        "Berakas A",
+        "Kapok",
+        "Mentiri",
+        "Serasa"
+      ]
+    },
+    {
+      "name": "Temburong",
+      "code": "TE",
+      "cities": [
+        "Bangar"
+      ]
+    },
+    {
+      "name": "Tutong",
+      "code": "TU",
+      "cities": [
+        "Tutong"
+      ]
+    }
+  ]
+}

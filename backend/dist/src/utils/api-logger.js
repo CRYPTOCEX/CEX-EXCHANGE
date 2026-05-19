@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.logFail = exports.logStep = exports.getApiContext = exports.withSubOperation = exports.logged = exports.withLogger = void 0;
+var api_logger_1 = require("./console/api-logger");
+Object.defineProperty(exports, "withLogger", { enumerable: true, get: function () { return api_logger_1.withLogger; } });
+Object.defineProperty(exports, "logged", { enumerable: true, get: function () { return api_logger_1.logged; } });
+Object.defineProperty(exports, "withSubOperation", { enumerable: true, get: function () { return api_logger_1.withSubOperation; } });
+Object.defineProperty(exports, "getApiContext", { enumerable: true, get: function () { return api_logger_1.getApiContext; } });
+Object.defineProperty(exports, "logStep", { enumerable: true, get: function () { return api_logger_1.logStep; } });
+Object.defineProperty(exports, "logFail", { enumerable: true, get: function () { return api_logger_1.logFail; } });

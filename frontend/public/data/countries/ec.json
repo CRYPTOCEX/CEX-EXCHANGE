@@ -1,0 +1,266 @@
+{
+  "name": "Ecuador",
+  "iso2": "EC",
+  "iso3": "ECU",
+  "phonecode": "593",
+  "states": [
+    {
+      "name": "Azuay",
+      "code": "A",
+      "cities": [
+        "Cantón San Fernando",
+        "Cuenca",
+        "Gualaceo",
+        "La Unión",
+        "Llacao",
+        "Nulti"
+      ]
+    },
+    {
+      "name": "Bolívar",
+      "code": "B",
+      "cities": [
+        "Guaranda",
+        "San Miguel"
+      ]
+    },
+    {
+      "name": "Cañar",
+      "code": "F",
+      "cities": [
+        "Azogues",
+        "Cañar",
+        "La Troncal"
+      ]
+    },
+    {
+      "name": "Carchi",
+      "code": "C",
+      "cities": [
+        "El Ángel",
+        "San Gabriel",
+        "Tulcán"
+      ]
+    },
+    {
+      "name": "Chimborazo",
+      "code": "H",
+      "cities": [
+        "Alausí",
+        "Guano",
+        "Riobamba"
+      ]
+    },
+    {
+      "name": "Cotopaxi",
+      "code": "X",
+      "cities": [
+        "La Maná",
+        "Latacunga",
+        "Pujilí",
+        "San Miguel de Salcedo",
+        "Saquisilí"
+      ]
+    },
+    {
+      "name": "El Oro",
+      "code": "O",
+      "cities": [
+        "Huaquillas",
+        "Machala",
+        "Pasaje",
+        "Piñas",
+        "Portovelo",
+        "Puerto Bolívar",
+        "Santa Rosa",
+        "Zaruma"
+      ]
+    },
+    {
+      "name": "Esmeraldas",
+      "code": "E",
+      "cities": [
+        "Esmeraldas",
+        "Muisne",
+        "Pampanal de Bolívar",
+        "Rio Verde",
+        "Rosa Zarate",
+        "San Lorenzo de Esmeraldas",
+        "Valdez"
+      ]
+    },
+    {
+      "name": "Galápagos",
+      "code": "W",
+      "cities": [
+        "Puerto Ayora",
+        "Puerto Baquerizo Moreno",
+        "Puerto Villamil"
+      ]
+    },
+    {
+      "name": "Guayas",
+      "code": "G",
+      "cities": [
+        "Alfredo Baquerizo Moreno",
+        "Baláo",
+        "Balzar",
+        "Colimes",
+        "Coronel Marcelino Maridueña",
+        "El Triunfo",
+        "Eloy Alfaro",
+        "Guayaquil",
+        "Lomas de Sargentillo",
+        "Milagro",
+        "Naranjal",
+        "Naranjito",
+        "Palestina",
+        "Pedro Carbo",
+        "Playas",
+        "Samborondón",
+        "Santa Lucía",
+        "Velasco Ibarra",
+        "Yaguachi Nuevo"
+      ]
+    },
+    {
+      "name": "Imbabura",
+      "code": "I",
+      "cities": [
+        "Atuntaqui",
+        "Cotacachi",
+        "Ibarra",
+        "Otavalo",
+        "Pimampiro"
+      ]
+    },
+    {
+      "name": "Loja",
+      "code": "L",
+      "cities": [
+        "Loja"
+      ]
+    },
+    {
+      "name": "Los Ríos",
+      "code": "R",
+      "cities": [
+        "Babahoyo",
+        "Catarama",
+        "Montalvo",
+        "Palenque",
+        "Quevedo",
+        "Ventanas",
+        "Vinces"
+      ]
+    },
+    {
+      "name": "Manabí",
+      "code": "M",
+      "cities": [
+        "Bahía de Caráquez",
+        "Calceta",
+        "Cantón Portoviejo",
+        "Chone",
+        "Jipijapa",
+        "Junín",
+        "Manta",
+        "Montecristi",
+        "Paján",
+        "Pedernales",
+        "Portoviejo",
+        "Rocafuerte",
+        "San Vicente",
+        "Santa Ana",
+        "Sucre",
+        "Tosagua"
+      ]
+    },
+    {
+      "name": "Morona-Santiago",
+      "code": "S",
+      "cities": [
+        "Gualaquiza",
+        "Macas",
+        "Palora",
+        "Sucúa"
+      ]
+    },
+    {
+      "name": "Napo",
+      "code": "N",
+      "cities": [
+        "Archidona",
+        "Tena"
+      ]
+    },
+    {
+      "name": "Orellana",
+      "code": "D",
+      "cities": [
+        "Boca Suno",
+        "Francisco de Orellana Canton",
+        "Loreto Canton",
+        "Puerto Francisco de Orellana"
+      ]
+    },
+    {
+      "name": "Pastaza",
+      "code": "Y",
+      "cities": [
+        "Puyo"
+      ]
+    },
+    {
+      "name": "Pichincha",
+      "code": "P",
+      "cities": [
+        "Cayambe",
+        "Machachi",
+        "Quito",
+        "Sangolquí"
+      ]
+    },
+    {
+      "name": "Santa Elena",
+      "code": "SE",
+      "cities": [
+        "La Libertad",
+        "Salinas",
+        "Santa Elena"
+      ]
+    },
+    {
+      "name": "Santo Domingo de los Tsáchilas",
+      "code": "SD",
+      "cities": [
+        "Santo Domingo de los Colorados"
+      ]
+    },
+    {
+      "name": "Sucumbíos",
+      "code": "U",
+      "cities": [
+        "Nueva Loja"
+      ]
+    },
+    {
+      "name": "Tungurahua",
+      "code": "T",
+      "cities": [
+        "Ambato",
+        "Baños",
+        "Pelileo",
+        "Píllaro"
+      ]
+    },
+    {
+      "name": "Zamora Chinchipe",
+      "code": "Z",
+      "cities": [
+        "Yantzaza",
+        "Zamora"
+      ]
+    }
+  ]
+}

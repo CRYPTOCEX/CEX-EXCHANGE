@@ -1,0 +1,274 @@
+{
+  "name": "Guinea",
+  "iso2": "GN",
+  "iso3": "GIN",
+  "phonecode": "224",
+  "states": [
+    {
+      "name": "Beyla",
+      "code": "BE",
+      "cities": []
+    },
+    {
+      "name": "Boffa",
+      "code": "BF",
+      "cities": []
+    },
+    {
+      "name": "Boké",
+      "code": "B",
+      "cities": [
+        "Boffa",
+        "Boké",
+        "Boke Prefecture",
+        "Fria",
+        "Gaoual",
+        "Gaoual Prefecture",
+        "Kimbo",
+        "Koundara",
+        "Koundara Prefecture",
+        "Sanguéya",
+        "Youkounkoun"
+      ]
+    },
+    {
+      "name": "Boké",
+      "code": "BK",
+      "cities": []
+    },
+    {
+      "name": "Conakry",
+      "code": "C",
+      "cities": [
+        "Camayenne",
+        "Conakry"
+      ]
+    },
+    {
+      "name": "Coyah",
+      "code": "CO",
+      "cities": []
+    },
+    {
+      "name": "Dabola",
+      "code": "DB",
+      "cities": []
+    },
+    {
+      "name": "Dalaba",
+      "code": "DL",
+      "cities": []
+    },
+    {
+      "name": "Dinguiraye",
+      "code": "DI",
+      "cities": []
+    },
+    {
+      "name": "Dubréka",
+      "code": "DU",
+      "cities": []
+    },
+    {
+      "name": "Faranah",
+      "code": "F",
+      "cities": []
+    },
+    {
+      "name": "Faranah",
+      "code": "FA",
+      "cities": []
+    },
+    {
+      "name": "Forécariah",
+      "code": "FO",
+      "cities": []
+    },
+    {
+      "name": "Fria",
+      "code": "FR",
+      "cities": []
+    },
+    {
+      "name": "Gaoual",
+      "code": "GA",
+      "cities": []
+    },
+    {
+      "name": "Guéckédou",
+      "code": "GU",
+      "cities": []
+    },
+    {
+      "name": "Kankan",
+      "code": "KA",
+      "cities": []
+    },
+    {
+      "name": "Kankan",
+      "code": "K",
+      "cities": [
+        "Kankan",
+        "Kankan Prefecture",
+        "Kérouané",
+        "Kerouane Prefecture",
+        "Kouroussa",
+        "Mandiana",
+        "Mandiana Prefecture",
+        "Siguiri",
+        "Siguiri Prefecture",
+        "Tokonou"
+      ]
+    },
+    {
+      "name": "Kérouané",
+      "code": "KE",
+      "cities": []
+    },
+    {
+      "name": "Kindia",
+      "code": "D",
+      "cities": [
+        "Coyah",
+        "Dubréka",
+        "Forécariah",
+        "Kindia",
+        "Préfecture de Dubréka",
+        "Préfecture de Forécariah",
+        "Télimélé",
+        "Telimele Prefecture",
+        "Tondon"
+      ]
+    },
+    {
+      "name": "Kindia",
+      "code": "KD",
+      "cities": []
+    },
+    {
+      "name": "Kissidougou",
+      "code": "KS",
+      "cities": []
+    },
+    {
+      "name": "Koubia",
+      "code": "KB",
+      "cities": []
+    },
+    {
+      "name": "Koundara",
+      "code": "KN",
+      "cities": []
+    },
+    {
+      "name": "Kouroussa",
+      "code": "KO",
+      "cities": []
+    },
+    {
+      "name": "Labé",
+      "code": "LA",
+      "cities": []
+    },
+    {
+      "name": "Labé",
+      "code": "L",
+      "cities": [
+        "Koubia",
+        "Labé",
+        "Labe Prefecture",
+        "Lélouma",
+        "Lelouma Prefecture",
+        "Mali",
+        "Mali Prefecture",
+        "Tougué",
+        "Tougue Prefecture"
+      ]
+    },
+    {
+      "name": "Lélouma",
+      "code": "LE",
+      "cities": []
+    },
+    {
+      "name": "Lola",
+      "code": "LO",
+      "cities": []
+    },
+    {
+      "name": "Macenta",
+      "code": "MC",
+      "cities": []
+    },
+    {
+      "name": "Mali",
+      "code": "ML",
+      "cities": []
+    },
+    {
+      "name": "Mamou",
+      "code": "M",
+      "cities": [
+        "Dalaba",
+        "Mamou",
+        "Mamou Prefecture",
+        "Pita"
+      ]
+    },
+    {
+      "name": "Mamou",
+      "code": "MM",
+      "cities": []
+    },
+    {
+      "name": "Mandiana",
+      "code": "MD",
+      "cities": []
+    },
+    {
+      "name": "Nzérékoré",
+      "code": "N",
+      "cities": [
+        "Beyla",
+        "Beyla Prefecture",
+        "Gueckedou",
+        "Lola",
+        "Macenta",
+        "Nzérékoré",
+        "Nzerekore Prefecture",
+        "Préfecture de Guékédou",
+        "Yomou"
+      ]
+    },
+    {
+      "name": "Nzérékoré",
+      "code": "NZ",
+      "cities": []
+    },
+    {
+      "name": "Pita",
+      "code": "PI",
+      "cities": []
+    },
+    {
+      "name": "Siguiri",
+      "code": "SI",
+      "cities": []
+    },
+    {
+      "name": "Télimélé",
+      "code": "TE",
+      "cities": []
+    },
+    {
+      "name": "Tougué",
+      "code": "TO",
+      "cities": []
+    },
+    {
+      "name": "Yomou",
+      "code": "YO",
+      "cities": []
+    }
+  ]
+}

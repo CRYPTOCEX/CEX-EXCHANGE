@@ -1,0 +1,66 @@
+{
+  "name": "Martinique",
+  "iso2": "MQ",
+  "iso3": "MTQ",
+  "phonecode": "596",
+  "states": [
+    {
+      "name": "Fort-de-France",
+      "code": "01",
+      "cities": [
+        "Fort-de-France",
+        "Le Lamentin",
+        "Saint-Joseph",
+        "Schœlcher"
+      ]
+    },
+    {
+      "name": "La Trinité",
+      "code": "02",
+      "cities": [
+        "Basse-Pointe",
+        "Grand'Rivière",
+        "Gros-Morne",
+        "L'Ajoupa-Bouillon",
+        "La Trinité",
+        "Le Lorrain",
+        "Le Marigot",
+        "Le Robert",
+        "Macouba",
+        "Sainte-Marie"
+      ]
+    },
+    {
+      "name": "Le Marin",
+      "code": "03",
+      "cities": [
+        "Ducos",
+        "Le Diamant",
+        "Le François",
+        "Le Marin",
+        "Le Vauclin",
+        "Les Anses-d'Arlet",
+        "Les Trois-Îlets",
+        "Rivière-Pilote",
+        "Rivière-Salée",
+        "Saint-Esprit",
+        "Sainte-Anne",
+        "Sainte-Luce"
+      ]
+    },
+    {
+      "name": "Saint-Pierre",
+      "code": "04",
+      "cities": [
+        "Bellefontaine",
+        "Case-Pilote",
+        "Fonds-Saint-Denis",
+        "Le Carbet",
+        "Le Morne-Rouge",
+        "Le Morne-Vert",
+        "Le Prêcheur",
+        "Saint-Pierre"
+      ]
+    }
+  ]
+}

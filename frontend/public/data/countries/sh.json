@@ -1,0 +1,48 @@
+{
+  "name": "Saint Helena",
+  "iso2": "SH",
+  "iso3": "SHN",
+  "phonecode": "290",
+  "states": [
+    {
+      "name": "Alarm Forest",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Blue Hill",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Half Tree Hollow",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Jamestown",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Levelwood",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Longwood",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Saint Paul's",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Sandy Bay",
+      "code": "07",
+      "cities": []
+    }
+  ]
+}

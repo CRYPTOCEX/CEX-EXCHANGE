@@ -1,0 +1,38 @@
+{
+  "name": "Turks and Caicos Islands",
+  "iso2": "TC",
+  "iso3": "TCA",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Grand Turk",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Middle Caicos",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "North Caicos",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Providenciales",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Salt Cay",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "South Caicos",
+      "code": "04",
+      "cities": []
+    }
+  ]
+}

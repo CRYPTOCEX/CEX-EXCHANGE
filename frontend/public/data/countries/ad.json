@@ -1,0 +1,60 @@
+{
+  "name": "Andorra",
+  "iso2": "AD",
+  "iso3": "AND",
+  "phonecode": "376",
+  "states": [
+    {
+      "name": "Andorra la Vella",
+      "code": "07",
+      "cities": [
+        "Andorra la Vella"
+      ]
+    },
+    {
+      "name": "Canillo",
+      "code": "02",
+      "cities": [
+        "Canillo",
+        "El Tarter"
+      ]
+    },
+    {
+      "name": "Encamp",
+      "code": "03",
+      "cities": [
+        "Encamp",
+        "Pas de la Casa"
+      ]
+    },
+    {
+      "name": "Escaldes-Engordany",
+      "code": "08",
+      "cities": [
+        "les Escaldes"
+      ]
+    },
+    {
+      "name": "La Massana",
+      "code": "04",
+      "cities": [
+        "Arinsal",
+        "la Massana"
+      ]
+    },
+    {
+      "name": "Ordino",
+      "code": "05",
+      "cities": [
+        "Ordino"
+      ]
+    },
+    {
+      "name": "Sant Julià de Lòria",
+      "code": "06",
+      "cities": [
+        "Sant Julià de Lòria"
+      ]
+    }
+  ]
+}

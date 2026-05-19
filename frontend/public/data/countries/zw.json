@@ -1,0 +1,177 @@
+{
+  "name": "Zimbabwe",
+  "iso2": "ZW",
+  "iso3": "ZWE",
+  "phonecode": "263",
+  "states": [
+    {
+      "name": "Bulawayo",
+      "code": "BU",
+      "cities": [
+        "Bulawayo"
+      ]
+    },
+    {
+      "name": "Harare",
+      "code": "HA",
+      "cities": [
+        "Chitungwiza",
+        "Epworth",
+        "Harare"
+      ]
+    },
+    {
+      "name": "Manicaland",
+      "code": "MA",
+      "cities": [
+        "Buhera",
+        "Chimanimani",
+        "Chimanimani District",
+        "Chipinge",
+        "Chipinge District",
+        "Dorowa Mining Lease",
+        "Headlands",
+        "Makoni",
+        "Mutare",
+        "Mutare District",
+        "Mutasa",
+        "Nyanga",
+        "Nyanga District",
+        "Nyazura",
+        "Odzi",
+        "Penhalonga",
+        "Rusape"
+      ]
+    },
+    {
+      "name": "Mashonaland Central",
+      "code": "MC",
+      "cities": [
+        "Bindura",
+        "Bindura District",
+        "Centenary",
+        "Centenary District",
+        "Concession",
+        "Glendale",
+        "Guruve",
+        "Mazowe",
+        "Mazowe District",
+        "Mount Darwin",
+        "Mvurwi",
+        "Rushinga",
+        "Shamva",
+        "Shamva District"
+      ]
+    },
+    {
+      "name": "Mashonaland East",
+      "code": "ME",
+      "cities": [
+        "Beatrice",
+        "Chivhu",
+        "Goromonzi",
+        "Macheke",
+        "Marondera",
+        "Marondera District",
+        "Mudzi",
+        "Murehwa",
+        "Murehwa District",
+        "Mutoko",
+        "Ruwa"
+      ]
+    },
+    {
+      "name": "Mashonaland West",
+      "code": "MW",
+      "cities": [
+        "Banket",
+        "Chakari",
+        "Chegutu",
+        "Chegutu District",
+        "Chinhoyi",
+        "Chirundu",
+        "Hurungwe",
+        "Kadoma",
+        "Kadoma District",
+        "Kariba",
+        "Kariba District",
+        "Karoi",
+        "Makonde",
+        "Mhangura",
+        "Norton",
+        "Raffingora"
+      ]
+    },
+    {
+      "name": "Masvingo",
+      "code": "MV",
+      "cities": [
+        "Bikita",
+        "Chiredzi",
+        "Chiredzi District",
+        "Chivi",
+        "Gutu",
+        "Mashava",
+        "Masvingo",
+        "Masvingo District",
+        "Mwenezi",
+        "Zvishavane"
+      ]
+    },
+    {
+      "name": "Matabeleland North",
+      "code": "MN",
+      "cities": [
+        "Binga",
+        "Binga District",
+        "Bubi",
+        "Dete",
+        "Hwange",
+        "Hwange District",
+        "Inyati",
+        "Kamativi Mine",
+        "Lupane",
+        "Lupane District",
+        "Nkayi",
+        "Victoria Falls"
+      ]
+    },
+    {
+      "name": "Matabeleland South",
+      "code": "MS",
+      "cities": [
+        "Beitbridge",
+        "Beitbridge District",
+        "Esigodini",
+        "Filabusi",
+        "Gwanda",
+        "Gwanda District",
+        "Insiza",
+        "Insiza District",
+        "Mangwe",
+        "Matobo",
+        "Plumtree",
+        "Umzingwane"
+      ]
+    },
+    {
+      "name": "Midlands",
+      "code": "MI",
+      "cities": [
+        "Gokwe",
+        "Gweru",
+        "Gweru District",
+        "Kwekwe",
+        "Kwekwe District",
+        "Lalapanzi",
+        "Mberengwa",
+        "Mvuma",
+        "Redcliff",
+        "Shangani",
+        "Shurugwi",
+        "Shurugwi District",
+        "Zvishavane"
+      ]
+    }
+  ]
+}

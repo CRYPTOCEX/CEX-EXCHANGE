@@ -1,0 +1,268 @@
+"use client";
+import React from "react";
+import { useTranslations } from "next-intl";
+import {
+  ClipboardList,
+  DollarSign,
+  Image as ImageIcon,
+  CheckSquare,
+  Shield,
+  ArrowUpCircle,
+} from "lucide-react";
+import type { FormConfig } from "@/components/blocks/data-table/types/table";
+
+export function useColumns(): ColumnDefinition[] {
+  const tCommon = useTranslations("common");
+  const tDashboardAdmin = useTranslations("dashboard_admin");
+  return [
+    {
+      key: "id",
+      title: tCommon("id"),
+      type: "text",
+      icon: ClipboardList,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("unique_identifier_for_the_withdraw_method"),
+      priority: 2,
+      expandedOnly: true,
+    },
+    {
+      key: "image",
+      title: tCommon("image"),
+      type: "image",
+      icon: ImageIcon,
+      sortable: false,
+      searchable: false,
+      filterable: false,
+      description: tDashboardAdmin("method_image_url"),
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "title",
+      title: tCommon("title"),
+      type: "text",
+      icon: Shield,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tCommon("display_title"),
+      priority: 3,
+      expandedOnly: true,
+    },
+    {
+      key: "compound",
+      title: tCommon("method"),
+      type: "compound",
+      disablePrefixSort: true,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      priority: 1,
+      icon: Shield,
+      render: {
+        type: "compound",
+        config: {
+          image: {
+            key: "image",
+            fallback: "/img/placeholder.svg",
+            type: "image",
+            title: tCommon("image"),
+            description: tDashboardAdmin("method_image_url"),
+            filterable: false,
+            sortable: false,
+          },
+          primary: {
+            key: "title",
+            title: tCommon("title"),
+            description: tCommon("display_title"),
+            sortable: true,
+            sortKey: "title",
+          },
+        },
+      },
+    },
+    {
+      key: "processingTime",
+      title: tCommon("processing_time"),
+      type: "text",
+      icon: ClipboardList,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("approximate_processing_time_e_g_1_2_business_days"),
+      priority: 1,
+    },
+    {
+      key: "instructions",
+      title: tCommon("instructions"),
+      type: "text",
+      icon: ClipboardList,
+      sortable: false,
+      searchable: true,
+      filterable: false,
+      description: tDashboardAdmin("how_to_withdraw_using_this_method"),
+      expandedOnly: true,
+      priority: 3,
+    },
+    {
+      key: "status",
+      title: tCommon("status"),
+      type: "boolean",
+      icon: CheckSquare,
+      sortable: true,
+      searchable: true,
+      filterable: true,
+      description: tDashboardAdmin("whether_this_method_is_active"),
+      priority: 1,
+    },
+    {
+      key: "fixedFee",
+      title: tCommon("fixed_fee"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tDashboardAdmin("fixed_fee_charged_for_this_method"),
+      priority: 1,
+    },
+    {
+      key: "percentageFee",
+      title: tCommon("percentage_fee"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tDashboardAdmin("percentage_fee_charged"),
+      priority: 1,
+    },
+    {
+      key: "minAmount",
+      title: tCommon("min_amount"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tDashboardAdmin("minimum_withdrawable_amount"),
+      expandedOnly: true,
+      priority: 2,
+    },
+    {
+      key: "maxAmount",
+      title: tCommon("max_amount"),
+      type: "number",
+      icon: DollarSign,
+      sortable: true,
+      searchable: false,
+      filterable: true,
+      description: tDashboardAdmin("maximum_withdrawable_amount"),
+      expandedOnly: true,
+      priority: 2,
+    },
+    {
+      key: "customFields",
+      title: tCommon("custom_fields"),
+      type: "customFields",
+      icon: ClipboardList,
+      sortable: false,
+      searchable: false,
+      filterable: false,
+      description: tDashboardAdmin("additional_custom_fields"),
+      expandedOnly: true,
+      priority: 3,
+      render: {
+        type: "customFields",
+        config: {
+          maxDisplay: 5,
+        },
+      },
+    },
+  ];
+}
+
+export function useFormConfig(): FormConfig {
+  const t = useTranslations("dashboard_admin");
+  const tCommon = useTranslations("common");
+  return {
+    create: {
+      title: t("create_withdraw_method"),
+      description: t("add_a_new_withdrawal_method_for_users"),
+      groups: [
+        {
+          id: "method-basic",
+          title: tCommon("basic_information"),
+          icon: ArrowUpCircle,
+          priority: 1,
+          fields: [
+            { key: "image", compoundKey: "compound" },
+            { key: "title", compoundKey: "compound", required: true },
+            { key: "processingTime", required: true },
+            { key: "instructions", required: true },
+            { key: "status", required: true },
+          ],
+        },
+        {
+          id: "method-fees",
+          title: t("fees_limits"),
+          icon: DollarSign,
+          priority: 2,
+          fields: [
+            { key: "fixedFee", required: true },
+            { key: "percentageFee", required: true },
+            { key: "minAmount", required: true },
+            { key: "maxAmount", required: true },
+          ],
+        },
+        {
+          id: "method-custom",
+          title: tCommon("custom_fields"),
+          icon: ClipboardList,
+          priority: 3,
+          fields: ["customFields"],
+        },
+      ],
+    },
+    edit: {
+      title: t("edit_withdraw_method"),
+      description: t("update_withdrawal_method_settings"),
+      groups: [
+        {
+          id: "method-basic",
+          title: tCommon("basic_information"),
+          icon: ArrowUpCircle,
+          priority: 1,
+          fields: [
+            { key: "image", compoundKey: "compound" },
+            { key: "title", compoundKey: "compound", required: true },
+            { key: "processingTime", required: true },
+            { key: "instructions", required: true },
+            { key: "status", required: true },
+          ],
+        },
+        {
+          id: "method-fees",
+          title: t("fees_limits"),
+          icon: DollarSign,
+          priority: 2,
+          fields: [
+            { key: "fixedFee", required: true },
+            { key: "percentageFee", required: true },
+            { key: "minAmount", required: true },
+            { key: "maxAmount", required: true },
+          ],
+        },
+        {
+          id: "method-custom",
+          title: tCommon("custom_fields"),
+          icon: ClipboardList,
+          priority: 3,
+          fields: ["customFields"],
+        },
+      ],
+    },
+  };
+}

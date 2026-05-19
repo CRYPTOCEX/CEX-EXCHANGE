@@ -1,0 +1,497 @@
+{
+  "name": "Malta",
+  "iso2": "MT",
+  "iso3": "MLT",
+  "phonecode": "356",
+  "states": [
+    {
+      "name": "Attard",
+      "code": "01",
+      "cities": [
+        "Attard"
+      ]
+    },
+    {
+      "name": "Balzan",
+      "code": "02",
+      "cities": [
+        "Balzan"
+      ]
+    },
+    {
+      "name": "Birgu",
+      "code": "03",
+      "cities": [
+        "Birgu (Vittoriosa)"
+      ]
+    },
+    {
+      "name": "Birkirkara",
+      "code": "04",
+      "cities": [
+        "Birkirkara",
+        "Fleur De Lys",
+        "Swatar"
+      ]
+    },
+    {
+      "name": "Birżebbuġa",
+      "code": "05",
+      "cities": [
+        "Birżebbuġa",
+        "Ħal Far"
+      ]
+    },
+    {
+      "name": "Cospicua",
+      "code": "06",
+      "cities": [
+        "Cospicua"
+      ]
+    },
+    {
+      "name": "Dingli",
+      "code": "07",
+      "cities": [
+        "Dingli"
+      ]
+    },
+    {
+      "name": "Fgura",
+      "code": "08",
+      "cities": [
+        "Fgura"
+      ]
+    },
+    {
+      "name": "Floriana",
+      "code": "09",
+      "cities": [
+        "Floriana"
+      ]
+    },
+    {
+      "name": "Fontana",
+      "code": "10",
+      "cities": [
+        "Fontana"
+      ]
+    },
+    {
+      "name": "Għajnsielem",
+      "code": "13",
+      "cities": [
+        "Għajnsielem",
+        "Ħal Għargħur"
+      ]
+    },
+    {
+      "name": "Għarb",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Għargħur",
+      "code": "15",
+      "cities": [
+        "Ħal Għaxaq"
+      ]
+    },
+    {
+      "name": "Għasri",
+      "code": "16",
+      "cities": [
+        "Gudja"
+      ]
+    },
+    {
+      "name": "Għaxaq",
+      "code": "17",
+      "cities": [
+        "Gżira"
+      ]
+    },
+    {
+      "name": "Gudja",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "Gżira",
+      "code": "12",
+      "cities": [
+        "Għarb"
+      ]
+    },
+    {
+      "name": "Ħamrun",
+      "code": "18",
+      "cities": [
+        "Blata l' Bajda",
+        "Ħamrun"
+      ]
+    },
+    {
+      "name": "Iklin",
+      "code": "19",
+      "cities": [
+        "L-Iklin"
+      ]
+    },
+    {
+      "name": "Kalkara",
+      "code": "21",
+      "cities": [
+        "Imġarr",
+        "Mġarr"
+      ]
+    },
+    {
+      "name": "Kerċem",
+      "code": "22",
+      "cities": [
+        "Mqabba"
+      ]
+    },
+    {
+      "name": "Kirkop",
+      "code": "23",
+      "cities": [
+        "Imsida",
+        "Kirkop"
+      ]
+    },
+    {
+      "name": "Lija",
+      "code": "24",
+      "cities": [
+        "Ħal Lija",
+        "Imtarfa"
+      ]
+    },
+    {
+      "name": "Luqa",
+      "code": "25",
+      "cities": [
+        "Ħal Luqa",
+        "Senglea"
+      ]
+    },
+    {
+      "name": "Marsa",
+      "code": "26",
+      "cities": [
+        "Kalkara"
+      ]
+    },
+    {
+      "name": "Marsaskala",
+      "code": "27",
+      "cities": [
+        "Kerċem",
+        "Marsaskala"
+      ]
+    },
+    {
+      "name": "Marsaxlokk",
+      "code": "28",
+      "cities": [
+        "Marsaxlokk"
+      ]
+    },
+    {
+      "name": "Mdina",
+      "code": "29",
+      "cities": []
+    },
+    {
+      "name": "Mellieħa",
+      "code": "30",
+      "cities": [
+        "Manikata"
+      ]
+    },
+    {
+      "name": "Mġarr",
+      "code": "31",
+      "cities": [
+        "Marsa"
+      ]
+    },
+    {
+      "name": "Mosta",
+      "code": "32",
+      "cities": [
+        "Bidnija"
+      ]
+    },
+    {
+      "name": "Mqabba",
+      "code": "33",
+      "cities": []
+    },
+    {
+      "name": "Msida",
+      "code": "34",
+      "cities": [
+        "Mellieħa"
+      ]
+    },
+    {
+      "name": "Mtarfa",
+      "code": "35",
+      "cities": []
+    },
+    {
+      "name": "Munxar",
+      "code": "36",
+      "cities": [
+        "Munxar"
+      ]
+    },
+    {
+      "name": "Nadur",
+      "code": "37",
+      "cities": [
+        "Nadur"
+      ]
+    },
+    {
+      "name": "Naxxar",
+      "code": "38",
+      "cities": [
+        "Baħar iċ-Ċagħaq",
+        "Magħtab",
+        "Naxxar",
+        "Salina"
+      ]
+    },
+    {
+      "name": "Paola",
+      "code": "39",
+      "cities": [
+        "Paola"
+      ]
+    },
+    {
+      "name": "Pembroke",
+      "code": "40",
+      "cities": [
+        "Pembroke"
+      ]
+    },
+    {
+      "name": "Pietà",
+      "code": "41",
+      "cities": [
+        "Pietà"
+      ]
+    },
+    {
+      "name": "Qala",
+      "code": "42",
+      "cities": [
+        "Qala"
+      ]
+    },
+    {
+      "name": "Qormi",
+      "code": "43",
+      "cities": [
+        "Qormi"
+      ]
+    },
+    {
+      "name": "Qrendi",
+      "code": "44",
+      "cities": [
+        "Qrendi"
+      ]
+    },
+    {
+      "name": "Rabat",
+      "code": "46",
+      "cities": [
+        "Baħrija",
+        "Binġemma"
+      ]
+    },
+    {
+      "name": "Safi",
+      "code": "47",
+      "cities": [
+        "Ħal Safi"
+      ]
+    },
+    {
+      "name": "San Ġwann",
+      "code": "49",
+      "cities": [
+        "San Ġiljan (St. Julian's)"
+      ]
+    },
+    {
+      "name": "San Lawrenz",
+      "code": "50",
+      "cities": [
+        "San Lawrenz"
+      ]
+    },
+    {
+      "name": "Sannat",
+      "code": "52",
+      "cities": [
+        "San Pawl il-Baħar",
+        "Sannat"
+      ]
+    },
+    {
+      "name": "Santa Luċija",
+      "code": "53",
+      "cities": [
+        "Santa Venera"
+      ]
+    },
+    {
+      "name": "Santa Venera",
+      "code": "54",
+      "cities": []
+    },
+    {
+      "name": "Senglea",
+      "code": "20",
+      "cities": [
+        "Imdina"
+      ]
+    },
+    {
+      "name": "Siġġiewi",
+      "code": "55",
+      "cities": [
+        "Siġġiewi"
+      ]
+    },
+    {
+      "name": "Sliema",
+      "code": "56",
+      "cities": [
+        "Sliema"
+      ]
+    },
+    {
+      "name": "St. Julian's",
+      "code": "48",
+      "cities": [
+        "Paceville",
+        "San Ġwann"
+      ]
+    },
+    {
+      "name": "St. Paul's Bay",
+      "code": "51",
+      "cities": [
+        "Buġibba",
+        "Burmarrad",
+        "Mosta",
+        "Qawra",
+        "Santa Luċija",
+        "Santa Luċija, Gozo",
+        "Wardija",
+        "Xemxija"
+      ]
+    },
+    {
+      "name": "Swieqi",
+      "code": "57",
+      "cities": [
+        "Madliena",
+        "Swieqi"
+      ]
+    },
+    {
+      "name": "Ta' Xbiex",
+      "code": "58",
+      "cities": [
+        "Ta’ Xbiex"
+      ]
+    },
+    {
+      "name": "Tarxien",
+      "code": "59",
+      "cities": [
+        "Ħal Tarxien"
+      ]
+    },
+    {
+      "name": "Valletta",
+      "code": "60",
+      "cities": [
+        "Valletta"
+      ]
+    },
+    {
+      "name": "Victoria",
+      "code": "45",
+      "cities": [
+        "Rabat",
+        "Victoria"
+      ]
+    },
+    {
+      "name": "Xagħra",
+      "code": "61",
+      "cities": [
+        "Xagħra"
+      ]
+    },
+    {
+      "name": "Xewkija",
+      "code": "62",
+      "cities": [
+        "Xewkija"
+      ]
+    },
+    {
+      "name": "Xgħajra",
+      "code": "63",
+      "cities": [
+        "Xgħajra"
+      ]
+    },
+    {
+      "name": "Żabbar",
+      "code": "64",
+      "cities": [
+        "Żabbar"
+      ]
+    },
+    {
+      "name": "Żebbuġ Gozo",
+      "code": "65",
+      "cities": [
+        "Ħaż-Żebbuġ"
+      ]
+    },
+    {
+      "name": "Żebbuġ Malta",
+      "code": "66",
+      "cities": [
+        "Żebbuġ"
+      ]
+    },
+    {
+      "name": "Żejtun",
+      "code": "67",
+      "cities": [
+        "Żejtun"
+      ]
+    },
+    {
+      "name": "Żurrieq",
+      "code": "68",
+      "cities": [
+        "Żurrieq"
+      ]
+    }
+  ]
+}

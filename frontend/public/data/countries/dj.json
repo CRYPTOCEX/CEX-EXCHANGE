@@ -1,0 +1,56 @@
+{
+  "name": "Djibouti",
+  "iso2": "DJ",
+  "iso3": "DJI",
+  "phonecode": "253",
+  "states": [
+    {
+      "name": "Ali Sabieh",
+      "code": "AS",
+      "cities": [
+        "Ali Sabieh",
+        "Goubétto",
+        "Holhol"
+      ]
+    },
+    {
+      "name": "Arta",
+      "code": "AR",
+      "cities": [
+        "Arta"
+      ]
+    },
+    {
+      "name": "Dikhil",
+      "code": "DI",
+      "cities": [
+        "Dikhil",
+        "Gâlâfi"
+      ]
+    },
+    {
+      "name": "Djibouti",
+      "code": "DJ",
+      "cities": [
+        "Djibouti",
+        "Loyada"
+      ]
+    },
+    {
+      "name": "Obock",
+      "code": "OB",
+      "cities": [
+        "Alaïli Ḏaḏḏa‘",
+        "Obock"
+      ]
+    },
+    {
+      "name": "Tadjourah",
+      "code": "TA",
+      "cities": [
+        "Dorra",
+        "Tadjourah"
+      ]
+    }
+  ]
+}

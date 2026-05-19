@@ -1,0 +1,178 @@
+{
+  "name": "Taiwan",
+  "iso2": "TW",
+  "iso3": "TWN",
+  "phonecode": "886",
+  "states": [
+    {
+      "name": "Changhua",
+      "code": "CHA",
+      "cities": [
+        "Changhua",
+        "Yuanlin"
+      ]
+    },
+    {
+      "name": "Chiayi",
+      "code": "CYI",
+      "cities": [
+        "Chiayi",
+        "Pizitou"
+      ]
+    },
+    {
+      "name": "Chiayi County",
+      "code": "CYQ",
+      "cities": [
+        "Budai",
+        "Chiayi",
+        "Dalin",
+        "Minxiong"
+      ]
+    },
+    {
+      "name": "Hsinchu",
+      "code": "HSZ",
+      "cities": [
+        "Hsinchu"
+      ]
+    },
+    {
+      "name": "Hsinchu County",
+      "code": "HSQ",
+      "cities": [
+        "Hsinchu",
+        "Hukou",
+        "Zhubei"
+      ]
+    },
+    {
+      "name": "Hualien",
+      "code": "HUA",
+      "cities": [
+        "Hualien"
+      ]
+    },
+    {
+      "name": "Kaohsiung",
+      "code": "KHH",
+      "cities": [
+        "Kaohsiung"
+      ]
+    },
+    {
+      "name": "Keelung",
+      "code": "KEE",
+      "cities": []
+    },
+    {
+      "name": "Kinmen",
+      "code": "KIN",
+      "cities": [
+        "Jincheng",
+        "Kinmen"
+      ]
+    },
+    {
+      "name": "Lienchiang",
+      "code": "LIE",
+      "cities": [
+        "Lienchiang",
+        "Nangan"
+      ]
+    },
+    {
+      "name": "Miaoli",
+      "code": "MIA",
+      "cities": [
+        "Miaoli"
+      ]
+    },
+    {
+      "name": "Nantou",
+      "code": "NAN",
+      "cities": [
+        "Lugu",
+        "Nantou",
+        "Puli",
+        "Zhongxing New Village"
+      ]
+    },
+    {
+      "name": "New Taipei",
+      "code": "NWT",
+      "cities": []
+    },
+    {
+      "name": "Penghu",
+      "code": "PEN",
+      "cities": [
+        "Magong",
+        "Penghu"
+      ]
+    },
+    {
+      "name": "Pingtung",
+      "code": "PIF",
+      "cities": [
+        "Donggang",
+        "Hengchun",
+        "Pingtung"
+      ]
+    },
+    {
+      "name": "Taichung",
+      "code": "TXG",
+      "cities": [
+        "Taichung"
+      ]
+    },
+    {
+      "name": "Tainan",
+      "code": "TNN",
+      "cities": [
+        "Tainan",
+        "Yujing"
+      ]
+    },
+    {
+      "name": "Taipei",
+      "code": "TPE",
+      "cities": [
+        "Banqiao",
+        "Jiufen",
+        "Taipei"
+      ]
+    },
+    {
+      "name": "Taitung",
+      "code": "TTT",
+      "cities": [
+        "Taitung"
+      ]
+    },
+    {
+      "name": "Taoyuan",
+      "code": "TAO",
+      "cities": [
+        "Daxi",
+        "Taoyuan"
+      ]
+    },
+    {
+      "name": "Yilan",
+      "code": "ILA",
+      "cities": [
+        "Yilan"
+      ]
+    },
+    {
+      "name": "Yunlin",
+      "code": "YUN",
+      "cities": [
+        "Douliu",
+        "Yunlin"
+      ]
+    }
+  ]
+}

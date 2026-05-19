@@ -1,0 +1,71 @@
+{
+  "name": "San Marino",
+  "iso2": "SM",
+  "iso3": "SMR",
+  "phonecode": "378",
+  "states": [
+    {
+      "name": "Acquaviva",
+      "code": "01",
+      "cities": [
+        "Acquaviva"
+      ]
+    },
+    {
+      "name": "Borgo Maggiore",
+      "code": "06",
+      "cities": [
+        "Borgo Maggiore"
+      ]
+    },
+    {
+      "name": "Chiesanuova",
+      "code": "02",
+      "cities": [
+        "Poggio di Chiesanuova"
+      ]
+    },
+    {
+      "name": "Domagnano",
+      "code": "03",
+      "cities": [
+        "Domagnano"
+      ]
+    },
+    {
+      "name": "Faetano",
+      "code": "04",
+      "cities": [
+        "Faetano"
+      ]
+    },
+    {
+      "name": "Fiorentino",
+      "code": "05",
+      "cities": [
+        "Fiorentino"
+      ]
+    },
+    {
+      "name": "Montegiardino",
+      "code": "08",
+      "cities": [
+        "Monte Giardino"
+      ]
+    },
+    {
+      "name": "San Marino",
+      "code": "07",
+      "cities": [
+        "San Marino"
+      ]
+    },
+    {
+      "name": "Serravalle",
+      "code": "09",
+      "cities": [
+        "Serravalle"
+      ]
+    }
+  ]
+}

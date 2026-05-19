@@ -1,0 +1,164 @@
+{
+  "name": "North Korea",
+  "iso2": "KP",
+  "iso3": "PRK",
+  "phonecode": "850",
+  "states": [
+    {
+      "name": "Chagang",
+      "code": "04",
+      "cities": [
+        "Changgang-gun",
+        "Chasŏng",
+        "Kanggye",
+        "Manp’o"
+      ]
+    },
+    {
+      "name": "Kaesong",
+      "code": "15",
+      "cities": []
+    },
+    {
+      "name": "Kangwon",
+      "code": "07",
+      "cities": [
+        "Anbyŏn-ŭp",
+        "Hoeyang",
+        "Kosan",
+        "T’ongch’ŏn-ŭp",
+        "Wŏnsan"
+      ]
+    },
+    {
+      "name": "Nampho",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "North Hamgyong",
+      "code": "09",
+      "cities": [
+        "Aoji",
+        "Chongjin",
+        "Hau-ri",
+        "Hoemul-li",
+        "Hoeryŏng",
+        "Kilju",
+        "Kimch’aek-si",
+        "Komusan Il-tong",
+        "Kyŏngsŏng",
+        "Kyŏngwŏn",
+        "Musan-ŭp",
+        "Namyang-dong",
+        "Nanam",
+        "Onsŏng",
+        "Puryŏng",
+        "Sŭngam-nodongjagu"
+      ]
+    },
+    {
+      "name": "North Hwanghae",
+      "code": "06",
+      "cities": [
+        "Anak",
+        "Hŭkkyo-ri",
+        "Hwangju-ŭp",
+        "Koksan",
+        "Sariwŏn",
+        "Sinmak",
+        "Songnim"
+      ]
+    },
+    {
+      "name": "North Pyongan",
+      "code": "03",
+      "cities": [
+        "Chŏngju",
+        "Chŏngju-gun",
+        "Kujang-ŭp",
+        "Kusŏng",
+        "Kwaksan",
+        "Panghyŏn-dong",
+        "Pukchil-lodongjagu",
+        "Sakchu-ŭp",
+        "Sinŭiju",
+        "Ŭiju",
+        "Yŏmju-ŭp",
+        "Yŏngbyŏn"
+      ]
+    },
+    {
+      "name": "Pyongyang",
+      "code": "01",
+      "cities": [
+        "Chunghwa",
+        "Kangdong-ŭp",
+        "Pyongyang",
+        "Sunan",
+        "Sŭngho 1-tong"
+      ]
+    },
+    {
+      "name": "Rason",
+      "code": "13",
+      "cities": [
+        "Sŏnbong",
+        "Ungsang-nodongjagu"
+      ]
+    },
+    {
+      "name": "Ryanggang",
+      "code": "10",
+      "cities": [
+        "Hyesan",
+        "Hyesan-dong",
+        "Kapsan-ŭp",
+        "Sŭngjibaegam"
+      ]
+    },
+    {
+      "name": "South Hamgyong",
+      "code": "08",
+      "cities": [
+        "Hamhŭng",
+        "Hongwŏn",
+        "Hŭngnam",
+        "Iwŏn-ŭp",
+        "Kowŏn-ŭp",
+        "Samho-rodongjagu",
+        "Sinsang-ni",
+        "Yŏnggwang-ŭp",
+        "Yuktae-dong"
+      ]
+    },
+    {
+      "name": "South Hwanghae",
+      "code": "05",
+      "cities": [
+        "Ayang-ni",
+        "Chaeryŏng-ŭp",
+        "Changyŏn",
+        "Haeju",
+        "Kaesŏng",
+        "Ongjin",
+        "Pyŏksŏng-ŭp",
+        "Yŏnan-ŭp"
+      ]
+    },
+    {
+      "name": "South Pyongan",
+      "code": "02",
+      "cities": [
+        "Anju",
+        "Namp’o",
+        "P’yŏngsŏng",
+        "Sangsŏng-ni",
+        "Sil-li",
+        "Sinanju",
+        "Sunch’ŏn",
+        "Yonggang-ŭp"
+      ]
+    }
+  ]
+}

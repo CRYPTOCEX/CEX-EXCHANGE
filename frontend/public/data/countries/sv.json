@@ -1,0 +1,192 @@
+{
+  "name": "El Salvador",
+  "iso2": "SV",
+  "iso3": "SLV",
+  "phonecode": "503",
+  "states": [
+    {
+      "name": "Ahuachapán",
+      "code": "AH",
+      "cities": [
+        "Ahuachapán",
+        "Atiquizaya",
+        "Concepción de Ataco",
+        "Guaymango",
+        "Jujutla",
+        "San Francisco Menéndez",
+        "Tacuba"
+      ]
+    },
+    {
+      "name": "Cabañas",
+      "code": "CA",
+      "cities": [
+        "Sensuntepeque",
+        "Victoria"
+      ]
+    },
+    {
+      "name": "Chalatenango",
+      "code": "CH",
+      "cities": [
+        "Chalatenango",
+        "Nueva Concepción"
+      ]
+    },
+    {
+      "name": "Cuscatlán",
+      "code": "CU",
+      "cities": [
+        "Cojutepeque",
+        "San Martín",
+        "Suchitoto",
+        "Tecoluca",
+        "Tenancingo"
+      ]
+    },
+    {
+      "name": "La Libertad",
+      "code": "LI",
+      "cities": [
+        "Antiguo Cuscatlán",
+        "Ciudad Arce",
+        "La Libertad",
+        "Nuevo Cuscatlán",
+        "Quezaltepeque",
+        "San Juan Opico",
+        "San Pablo Tacachico",
+        "Santa Tecla",
+        "Zaragoza"
+      ]
+    },
+    {
+      "name": "La Paz",
+      "code": "PA",
+      "cities": [
+        "El Rosario",
+        "Olocuilta",
+        "San Pedro Masahuat",
+        "Santiago Nonualco",
+        "Zacatecoluca"
+      ]
+    },
+    {
+      "name": "La Unión ",
+      "code": "UN",
+      "cities": [
+        "Anamorós",
+        "Conchagua",
+        "Intipucá",
+        "La Unión",
+        "Nueva Esparta",
+        "Pasaquina",
+        "San Alejo",
+        "Santa Rosa de Lima"
+      ]
+    },
+    {
+      "name": "Morazán",
+      "code": "MO",
+      "cities": [
+        "Cacaopera",
+        "Corinto",
+        "Guatajiagua",
+        "Jocoro",
+        "San Francisco",
+        "Sociedad"
+      ]
+    },
+    {
+      "name": "San Miguel",
+      "code": "SM",
+      "cities": [
+        "Chapeltique",
+        "Chinameca",
+        "Chirilagua",
+        "Ciudad Barrios",
+        "El Tránsito",
+        "Lolotique",
+        "Moncagua",
+        "Nueva Guadalupe",
+        "San Miguel",
+        "San Rafael Oriente",
+        "Sesori"
+      ]
+    },
+    {
+      "name": "San Salvador",
+      "code": "SS",
+      "cities": [
+        "Aguilares",
+        "Apopa",
+        "Ayutuxtepeque",
+        "Cuscatancingo",
+        "Delgado",
+        "El Paisnal",
+        "Guazapa",
+        "Ilopango",
+        "Mejicanos",
+        "Panchimalco",
+        "Rosario de Mora",
+        "San Marcos",
+        "San Salvador",
+        "Santo Tomás",
+        "Soyapango",
+        "Tonacatepeque"
+      ]
+    },
+    {
+      "name": "San Vicente",
+      "code": "SV",
+      "cities": [
+        "Apastepeque",
+        "San Sebastián",
+        "San Vicente"
+      ]
+    },
+    {
+      "name": "Santa Ana",
+      "code": "SA",
+      "cities": [
+        "Candelaria de La Frontera",
+        "Chalchuapa",
+        "Coatepeque",
+        "El Congo",
+        "Metapán",
+        "Santa Ana",
+        "Texistepeque"
+      ]
+    },
+    {
+      "name": "Sonsonate",
+      "code": "SO",
+      "cities": [
+        "Acajutla",
+        "Armenia",
+        "Izalco",
+        "Juayúa",
+        "Nahuizalco",
+        "San Antonio del Monte",
+        "Sonsonate",
+        "Sonzacate"
+      ]
+    },
+    {
+      "name": "Usulután",
+      "code": "US",
+      "cities": [
+        "Berlín",
+        "Concepción Batres",
+        "Jiquilisco",
+        "Jucuapa",
+        "Jucuarán",
+        "Ozatlán",
+        "Puerto El Triunfo",
+        "San Agustín",
+        "Santa Elena",
+        "Santiago de María",
+        "Usulután"
+      ]
+    }
+  ]
+}

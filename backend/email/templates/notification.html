@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Important Notification</title>
+</head>
+<body>
+    <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif;">
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">🔔 Notification</h1>
+            <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">Important update from your account</p>
+        </div>
+        
+        <div style="padding: 30px; background: white;">
+            <h2 style="color: #333; margin-bottom: 20px;">Hello %FIRSTNAME%,</h2>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="color: #856404; margin: 0; font-weight: 600;">
+                    ⚠️ This is an important notification regarding your account.
+                </p>
+            </div>
+            
+            <div style="color: #666; line-height: 1.6; margin: 20px 0;">
+                %NOTIFICATION_CONTENT%
+            </div>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">📋 Details</h3>
+                <p style="color: #666; margin: 0;">
+                    <strong>Date:</strong> %DATE%<br>
+                    <strong>Time:</strong> %TIME%<br>
+                    <strong>Reference:</strong> %REFERENCE_ID%
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="%ACTION_URL%" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                    View Details
+                </a>
+            </div>
+            
+            <p style="color: #666; line-height: 1.6; font-size: 14px;">
+                If you have any questions about this notification, please contact our support team.
+            </p>
+            
+            <p style="color: #666; line-height: 1.6;">
+                Best regards,<br>
+                <strong>The %SITE_NAME% Team</strong>
+            </p>
+        </div>
+        
+        <div style="background: #f7fafc; padding: 20px; text-align: center; color: #718096; font-size: 12px;">
+            <p>This is an automated notification. Please do not reply to this email.</p>
+            <p>© 2024 %SITE_NAME%. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html> 

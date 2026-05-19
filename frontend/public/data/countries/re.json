@@ -1,0 +1,56 @@
+{
+  "name": "Reunion",
+  "iso2": "RE",
+  "iso3": "REU",
+  "phonecode": "262",
+  "states": [
+    {
+      "name": "Saint-Benoît",
+      "code": "01",
+      "cities": [
+        "Bras-Panon",
+        "La Plaine-des-Palmistes",
+        "Saint-André",
+        "Saint-Benoît",
+        "Sainte-Rose",
+        "Salazie"
+      ]
+    },
+    {
+      "name": "Saint-Denis",
+      "code": "02",
+      "cities": [
+        "Saint-Denis",
+        "Sainte-Marie",
+        "Sainte-Suzanne"
+      ]
+    },
+    {
+      "name": "Saint-Paul",
+      "code": "03",
+      "cities": [
+        "La Possession",
+        "Le Port",
+        "Les Trois-Bassins",
+        "Saint-Leu",
+        "Saint-Paul"
+      ]
+    },
+    {
+      "name": "Saint-Pierre",
+      "code": "04",
+      "cities": [
+        "Cilaos",
+        "Entre-Deux",
+        "L'Étang-Salé",
+        "Le Tampon",
+        "Les Avirons",
+        "Petite-Île",
+        "Saint-Joseph",
+        "Saint-Louis",
+        "Saint-Philippe",
+        "Saint-Pierre"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "name": "Trinidad and Tobago",
+  "iso2": "TT",
+  "iso3": "TTO",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Arima",
+      "code": "ARI",
+      "cities": [
+        "Arima"
+      ]
+    },
+    {
+      "name": "Chaguanas",
+      "code": "CHA",
+      "cities": [
+        "Chaguanas",
+        "Ward of Chaguanas"
+      ]
+    },
+    {
+      "name": "Couva-Tabaquite-Talparo",
+      "code": "CTT",
+      "cities": [
+        "Couva",
+        "Tabaquite"
+      ]
+    },
+    {
+      "name": "Diego Martin",
+      "code": "DMN",
+      "cities": [
+        "Petit Valley",
+        "Ward of Diego Martin"
+      ]
+    },
+    {
+      "name": "Eastern Tobago",
+      "code": "ETO",
+      "cities": []
+    },
+    {
+      "name": "Penal-Debe",
+      "code": "PED",
+      "cities": [
+        "Debe",
+        "Peñal"
+      ]
+    },
+    {
+      "name": "Point Fortin",
+      "code": "PTF",
+      "cities": [
+        "Point Fortin"
+      ]
+    },
+    {
+      "name": "Port of Spain",
+      "code": "POS",
+      "cities": [
+        "Mucurapo",
+        "Port of Spain"
+      ]
+    },
+    {
+      "name": "Princes Town",
+      "code": "PRT",
+      "cities": [
+        "Princes Town"
+      ]
+    },
+    {
+      "name": "Rio Claro-Mayaro",
+      "code": "MRC",
+      "cities": [
+        "Rio Claro"
+      ]
+    },
+    {
+      "name": "San Fernando",
+      "code": "SFO",
+      "cities": [
+        "Marabella",
+        "Mon Repos",
+        "San Fernando"
+      ]
+    },
+    {
+      "name": "San Juan-Laventille",
+      "code": "SJL",
+      "cities": [
+        "Laventille"
+      ]
+    },
+    {
+      "name": "Sangre Grande",
+      "code": "SGE",
+      "cities": [
+        "Sangre Grande"
+      ]
+    },
+    {
+      "name": "Siparia",
+      "code": "SIP",
+      "cities": [
+        "Siparia",
+        "Ward of Siparia"
+      ]
+    },
+    {
+      "name": "Tobago",
+      "code": "TOB",
+      "cities": [
+        "Scarborough"
+      ]
+    },
+    {
+      "name": "Tunapuna-Piarco",
+      "code": "TUP",
+      "cities": [
+        "Arouca",
+        "Paradise",
+        "Tunapuna"
+      ]
+    },
+    {
+      "name": "Western Tobago",
+      "code": "WTO",
+      "cities": []
+    }
+  ]
+}

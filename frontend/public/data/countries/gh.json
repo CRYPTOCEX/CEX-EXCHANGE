@@ -1,0 +1,225 @@
+{
+  "name": "Ghana",
+  "iso2": "GH",
+  "iso3": "GHA",
+  "phonecode": "233",
+  "states": [
+    {
+      "name": "Ahafo",
+      "code": "AF",
+      "cities": [
+        "Asunafo North",
+        "Asunafo South",
+        "Asutifi North",
+        "Asutifi South",
+        "Tano North",
+        "Tano South"
+      ]
+    },
+    {
+      "name": "Ashanti",
+      "code": "AH",
+      "cities": [
+        "Agogo",
+        "Bekwai",
+        "Ejura",
+        "Konongo",
+        "Kumasi",
+        "Mampong",
+        "Obuase",
+        "Tafo"
+      ]
+    },
+    {
+      "name": "Bono",
+      "code": "BO",
+      "cities": [
+        "Banda",
+        "Berekum East",
+        "Berekum West",
+        "Dormaa Central",
+        "Dormaa East",
+        "Dormaa West",
+        "Jaman North",
+        "Jaman South",
+        "Sunyani",
+        "Sunyani West",
+        "Tain",
+        "Wenchi"
+      ]
+    },
+    {
+      "name": "Bono East",
+      "code": "BE",
+      "cities": [
+        "Atebubu-Amantin",
+        "Kintampo North",
+        "Kintampo South",
+        "Nkoranza North",
+        "Nkoranza South",
+        "Pru East",
+        "Pru West",
+        "Sene East",
+        "Sene West",
+        "Techiman",
+        "Techiman North"
+      ]
+    },
+    {
+      "name": "Central",
+      "code": "CP",
+      "cities": [
+        "Apam",
+        "Cape Coast",
+        "Dunkwa",
+        "Elmina",
+        "Foso",
+        "Kasoa",
+        "Mumford",
+        "Saltpond",
+        "Swedru",
+        "Winneba"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "EP",
+      "cities": [
+        "Aburi",
+        "Akim Oda",
+        "Akim Swedru",
+        "Akropong",
+        "Akwatia",
+        "Asamankese",
+        "Begoro",
+        "Kibi",
+        "Koforidua",
+        "Mpraeso",
+        "Nsawam",
+        "Suhum"
+      ]
+    },
+    {
+      "name": "Greater Accra",
+      "code": "AA",
+      "cities": [
+        "Accra",
+        "Atsiaman",
+        "Dome",
+        "Gbawe",
+        "Medina Estates",
+        "Nungua",
+        "Tema",
+        "Teshi Old Town"
+      ]
+    },
+    {
+      "name": "North East",
+      "code": "NE",
+      "cities": [
+        "Bunkpurugu-Nyakpanduri",
+        "Chereponi",
+        "East Mamprusi",
+        "Mamprugu-Moagduri",
+        "West Mamprusi",
+        "Yunyoo-Nasuan"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "NP",
+      "cities": [
+        "Kpandae",
+        "Salaga",
+        "Savelugu",
+        "Tamale",
+        "Yendi"
+      ]
+    },
+    {
+      "name": "Oti",
+      "code": "OT",
+      "cities": [
+        "Biakoye",
+        "Jasikan",
+        "Kadjebi",
+        "Krachi East",
+        "Krachi Nchumuru",
+        "Krachi West",
+        "Nkwanta North",
+        "Nkwanta South"
+      ]
+    },
+    {
+      "name": "Savannah",
+      "code": "SV",
+      "cities": [
+        "Bole",
+        "Central Gonja",
+        "East Gonja",
+        "North East Gonja",
+        "North Gonja",
+        "Sawla-Tuna-Kalba",
+        "West Gonja"
+      ]
+    },
+    {
+      "name": "Upper East",
+      "code": "UE",
+      "cities": [
+        "Bawku",
+        "Bolgatanga",
+        "Navrongo"
+      ]
+    },
+    {
+      "name": "Upper West",
+      "code": "UW",
+      "cities": [
+        "Wa"
+      ]
+    },
+    {
+      "name": "Volta",
+      "code": "TV",
+      "cities": [
+        "Aflao",
+        "Anloga",
+        "Ho",
+        "Hohoe",
+        "Keta",
+        "Kete Krachi",
+        "Kpandu"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "WP",
+      "cities": [
+        "Aboso",
+        "Axim",
+        "Bibiani",
+        "Prestea",
+        "Sekondi-Takoradi",
+        "Shama Junction",
+        "Takoradi",
+        "Tarkwa"
+      ]
+    },
+    {
+      "name": "Western North",
+      "code": "WN",
+      "cities": [
+        "Aowin",
+        "Bia East",
+        "Bia West",
+        "Bibiani-Anhwiaso-Bekwai",
+        "Bodi",
+        "Juaboso",
+        "Sefwi-Akontombra",
+        "Sefwi-Wiawso",
+        "Suaman"
+      ]
+    }
+  ]
+}

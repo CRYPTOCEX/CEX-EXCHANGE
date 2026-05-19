@@ -1,0 +1,1582 @@
+{
+  "name": "Slovenia",
+  "iso2": "SI",
+  "iso3": "SVN",
+  "phonecode": "386",
+  "states": [
+    {
+      "name": "Ajdovščina",
+      "code": "001",
+      "cities": [
+        "Ajdovščina",
+        "Cirkulane",
+        "Lokavec"
+      ]
+    },
+    {
+      "name": "Ankaran",
+      "code": "213",
+      "cities": [
+        "Ankaran"
+      ]
+    },
+    {
+      "name": "Apače",
+      "code": "195",
+      "cities": [
+        "Apače"
+      ]
+    },
+    {
+      "name": "Beltinci",
+      "code": "002",
+      "cities": [
+        "Beltinci",
+        "Gančani",
+        "Lipovci",
+        "Zgornje Gorje"
+      ]
+    },
+    {
+      "name": "Benedikt",
+      "code": "148",
+      "cities": [
+        "Benedikt"
+      ]
+    },
+    {
+      "name": "Bistrica ob Sotli",
+      "code": "149",
+      "cities": [
+        "Bistrica ob Sotli"
+      ]
+    },
+    {
+      "name": "Bled",
+      "code": "003",
+      "cities": [
+        "Bled",
+        "Kostanjevica na Krki",
+        "Zasip"
+      ]
+    },
+    {
+      "name": "Bloke",
+      "code": "150",
+      "cities": [
+        "Nova Vas"
+      ]
+    },
+    {
+      "name": "Bohinj",
+      "code": "004",
+      "cities": [
+        "Bohinjska Bistrica",
+        "Dragomer",
+        "Log pri Brezovici"
+      ]
+    },
+    {
+      "name": "Borovnica",
+      "code": "005",
+      "cities": [
+        "Borovnica",
+        "Makole"
+      ]
+    },
+    {
+      "name": "Bovec",
+      "code": "006",
+      "cities": [
+        "Bovec",
+        "Mirna"
+      ]
+    },
+    {
+      "name": "Braslovče",
+      "code": "151",
+      "cities": [
+        "Braslovče"
+      ]
+    },
+    {
+      "name": "Brda",
+      "code": "007",
+      "cities": [
+        "Dobrovo",
+        "Mokronog"
+      ]
+    },
+    {
+      "name": "Brežice",
+      "code": "009",
+      "cities": [
+        "Brežice",
+        "Poljčane"
+      ]
+    },
+    {
+      "name": "Brezovica",
+      "code": "008",
+      "cities": [
+        "Brezovica pri Ljubljani",
+        "Notranje Gorice",
+        "Opština Ljubljana-Vič-Rudnik",
+        "Rečica ob Savinji",
+        "Vnanje Gorice"
+      ]
+    },
+    {
+      "name": "Cankova",
+      "code": "152",
+      "cities": [
+        "Cankova"
+      ]
+    },
+    {
+      "name": "Celje",
+      "code": "011",
+      "cities": [
+        "Celje",
+        "Ljubečna",
+        "Trnovlje pri Celju"
+      ]
+    },
+    {
+      "name": "Cerklje na Gorenjskem",
+      "code": "012",
+      "cities": [
+        "Cerklje na Gorenjskem"
+      ]
+    },
+    {
+      "name": "Cerknica",
+      "code": "013",
+      "cities": [
+        "Cerknica",
+        "Rakek"
+      ]
+    },
+    {
+      "name": "Cerkno",
+      "code": "014",
+      "cities": [
+        "Cerkno"
+      ]
+    },
+    {
+      "name": "Cerkvenjak",
+      "code": "153",
+      "cities": [
+        "Cerkvenjak"
+      ]
+    },
+    {
+      "name": "Cirkulane",
+      "code": "196",
+      "cities": []
+    },
+    {
+      "name": "Črenšovci",
+      "code": "015",
+      "cities": [
+        "Črenšovci"
+      ]
+    },
+    {
+      "name": "Črna na Koroškem",
+      "code": "016",
+      "cities": [
+        "Črna na Koroškem"
+      ]
+    },
+    {
+      "name": "Črnomelj",
+      "code": "017",
+      "cities": [
+        "Črnomelj"
+      ]
+    },
+    {
+      "name": "Destrnik",
+      "code": "018",
+      "cities": [
+        "Destrnik"
+      ]
+    },
+    {
+      "name": "Divača",
+      "code": "019",
+      "cities": [
+        "Divača"
+      ]
+    },
+    {
+      "name": "Dobje",
+      "code": "154",
+      "cities": [
+        "Dobje pri Planini"
+      ]
+    },
+    {
+      "name": "Dobrepolje",
+      "code": "020",
+      "cities": [
+        "Videm"
+      ]
+    },
+    {
+      "name": "Dobrna",
+      "code": "155",
+      "cities": [
+        "Dobrna"
+      ]
+    },
+    {
+      "name": "Dobrova–Polhov Gradec",
+      "code": "021",
+      "cities": [
+        "Dobrova"
+      ]
+    },
+    {
+      "name": "Dobrovnik",
+      "code": "156",
+      "cities": [
+        "Dobrovnik"
+      ]
+    },
+    {
+      "name": "Dol pri Ljubljani",
+      "code": "022",
+      "cities": [
+        "Dol pri Ljubljani"
+      ]
+    },
+    {
+      "name": "Dolenjske Toplice",
+      "code": "157",
+      "cities": [
+        "Dolenjske Toplice"
+      ]
+    },
+    {
+      "name": "Domžale",
+      "code": "023",
+      "cities": [
+        "Dob",
+        "Domžale",
+        "Radomlje",
+        "Vir"
+      ]
+    },
+    {
+      "name": "Dornava",
+      "code": "024",
+      "cities": [
+        "Dornava"
+      ]
+    },
+    {
+      "name": "Dravograd",
+      "code": "025",
+      "cities": [
+        "Dravograd"
+      ]
+    },
+    {
+      "name": "Duplek",
+      "code": "026",
+      "cities": [
+        "Spodnji Duplek",
+        "Zgornji Duplek"
+      ]
+    },
+    {
+      "name": "Gorenja Vas–Poljane",
+      "code": "027",
+      "cities": [
+        "Gorenja Vas"
+      ]
+    },
+    {
+      "name": "Gorišnica",
+      "code": "028",
+      "cities": [
+        "Gorišnica"
+      ]
+    },
+    {
+      "name": "Gorje",
+      "code": "207",
+      "cities": []
+    },
+    {
+      "name": "Gornja Radgona",
+      "code": "029",
+      "cities": [
+        "Gornja Radgona"
+      ]
+    },
+    {
+      "name": "Gornji Grad",
+      "code": "030",
+      "cities": [
+        "Gornji Grad"
+      ]
+    },
+    {
+      "name": "Gornji Petrovci",
+      "code": "031",
+      "cities": [
+        "Gornji Petrovci"
+      ]
+    },
+    {
+      "name": "Grad",
+      "code": "158",
+      "cities": [
+        "Grad"
+      ]
+    },
+    {
+      "name": "Grosuplje",
+      "code": "032",
+      "cities": [
+        "Grosuplje",
+        "Šmarje-Sap"
+      ]
+    },
+    {
+      "name": "Hajdina",
+      "code": "159",
+      "cities": [
+        "Spodnja Hajdina"
+      ]
+    },
+    {
+      "name": "Hoče–Slivnica",
+      "code": "160",
+      "cities": [
+        "Hotinja Vas",
+        "Radizel",
+        "Rogoza",
+        "Spodnje Hoče"
+      ]
+    },
+    {
+      "name": "Hodoš",
+      "code": "161",
+      "cities": [
+        "Hodoš"
+      ]
+    },
+    {
+      "name": "Horjul",
+      "code": "162",
+      "cities": [
+        "Horjul"
+      ]
+    },
+    {
+      "name": "Hrastnik",
+      "code": "034",
+      "cities": [
+        "Dol pri Hrastniku",
+        "Hrastnik"
+      ]
+    },
+    {
+      "name": "Hrpelje–Kozina",
+      "code": "035",
+      "cities": [
+        "Kozina"
+      ]
+    },
+    {
+      "name": "Idrija",
+      "code": "036",
+      "cities": [
+        "Idrija",
+        "Spodnja Idrija"
+      ]
+    },
+    {
+      "name": "Ig",
+      "code": "037",
+      "cities": [
+        "Ig"
+      ]
+    },
+    {
+      "name": "Ilirska Bistrica",
+      "code": "038",
+      "cities": [
+        "Ilirska Bistrica"
+      ]
+    },
+    {
+      "name": "Ivančna Gorica",
+      "code": "039",
+      "cities": [
+        "Ivančna Gorica",
+        "Šentvid pri Stični"
+      ]
+    },
+    {
+      "name": "Izola",
+      "code": "040",
+      "cities": [
+        "Izola",
+        "Jagodje"
+      ]
+    },
+    {
+      "name": "Jesenice",
+      "code": "041",
+      "cities": [
+        "Hrušica",
+        "Jesenice",
+        "Koroška Bela",
+        "Slovenski Javornik"
+      ]
+    },
+    {
+      "name": "Jezersko",
+      "code": "163",
+      "cities": [
+        "Zgornje Jezersko"
+      ]
+    },
+    {
+      "name": "Juršinci",
+      "code": "042",
+      "cities": [
+        "Juršinci"
+      ]
+    },
+    {
+      "name": "Kamnik",
+      "code": "043",
+      "cities": [
+        "Kamnik",
+        "Mekinje",
+        "Šmarca"
+      ]
+    },
+    {
+      "name": "Kanal ob Soči",
+      "code": "044",
+      "cities": [
+        "Deskle",
+        "Kanal"
+      ]
+    },
+    {
+      "name": "Kidričevo",
+      "code": "045",
+      "cities": [
+        "Kidričevo"
+      ]
+    },
+    {
+      "name": "Kobarid",
+      "code": "046",
+      "cities": [
+        "Kobarid"
+      ]
+    },
+    {
+      "name": "Kobilje",
+      "code": "047",
+      "cities": [
+        "Kobilje"
+      ]
+    },
+    {
+      "name": "Kočevje",
+      "code": "048",
+      "cities": [
+        "Kočevje"
+      ]
+    },
+    {
+      "name": "Komen",
+      "code": "049",
+      "cities": [
+        "Komen"
+      ]
+    },
+    {
+      "name": "Komenda",
+      "code": "164",
+      "cities": [
+        "Komenda",
+        "Moste"
+      ]
+    },
+    {
+      "name": "Koper",
+      "code": "050",
+      "cities": [
+        "Dekani",
+        "Hrvatini",
+        "Koper",
+        "Pobegi",
+        "Prade",
+        "Spodnje Škofije",
+        "Sv. Anton"
+      ]
+    },
+    {
+      "name": "Kostanjevica na Krki",
+      "code": "197",
+      "cities": []
+    },
+    {
+      "name": "Kostel",
+      "code": "165",
+      "cities": [
+        "Kostel"
+      ]
+    },
+    {
+      "name": "Kozje",
+      "code": "051",
+      "cities": [
+        "Kozje"
+      ]
+    },
+    {
+      "name": "Kranj",
+      "code": "052",
+      "cities": [
+        "Britof",
+        "Golnik",
+        "Kokrica",
+        "Kranj",
+        "Mlaka pri Kranju",
+        "Zgornje Bitnje"
+      ]
+    },
+    {
+      "name": "Kranjska Gora",
+      "code": "053",
+      "cities": [
+        "Kranjska Gora",
+        "Mojstrana"
+      ]
+    },
+    {
+      "name": "Križevci",
+      "code": "166",
+      "cities": [
+        "Križevci pri Ljutomeru"
+      ]
+    },
+    {
+      "name": "Krško",
+      "code": "054",
+      "cities": [
+        "Krško",
+        "Leskovec pri Krškem",
+        "Senovo"
+      ]
+    },
+    {
+      "name": "Kungota",
+      "code": "055",
+      "cities": [
+        "Zgornja Kungota"
+      ]
+    },
+    {
+      "name": "Kuzma",
+      "code": "056",
+      "cities": [
+        "Kuzma"
+      ]
+    },
+    {
+      "name": "Laško",
+      "code": "057",
+      "cities": [
+        "Laško"
+      ]
+    },
+    {
+      "name": "Lenart",
+      "code": "058",
+      "cities": [
+        "Lenart v Slov. Goricah"
+      ]
+    },
+    {
+      "name": "Lendava",
+      "code": "059",
+      "cities": [
+        "Lendava"
+      ]
+    },
+    {
+      "name": "Litija",
+      "code": "060",
+      "cities": [
+        "Litija"
+      ]
+    },
+    {
+      "name": "Ljubljana",
+      "code": "061",
+      "cities": [
+        "Dravlje",
+        "Jarše",
+        "Ljubljana",
+        "Opčina Ljubljana-Bežigrad",
+        "Opština Ljubljana-Center",
+        "Opština Ljubljana-Moste-Polje",
+        "Rožnik",
+        "Šentvid",
+        "Sostro",
+        "Trnovo",
+        "Vič"
+      ]
+    },
+    {
+      "name": "Ljubno",
+      "code": "062",
+      "cities": [
+        "Ljubno ob Savinji"
+      ]
+    },
+    {
+      "name": "Ljutomer",
+      "code": "063",
+      "cities": [
+        "Ljutomer"
+      ]
+    },
+    {
+      "name": "Log–Dragomer",
+      "code": "208",
+      "cities": []
+    },
+    {
+      "name": "Logatec",
+      "code": "064",
+      "cities": [
+        "Logatec"
+      ]
+    },
+    {
+      "name": "Loška Dolina",
+      "code": "065",
+      "cities": [
+        "Leskova Dolina"
+      ]
+    },
+    {
+      "name": "Loški Potok",
+      "code": "066",
+      "cities": [
+        "Hrib-Loški Potok"
+      ]
+    },
+    {
+      "name": "Lovrenc na Pohorju",
+      "code": "167",
+      "cities": [
+        "Lovrenc na Pohorju"
+      ]
+    },
+    {
+      "name": "Luče",
+      "code": "067",
+      "cities": [
+        "Luče"
+      ]
+    },
+    {
+      "name": "Lukovica",
+      "code": "068",
+      "cities": [
+        "Lukovica pri Domžalah"
+      ]
+    },
+    {
+      "name": "Majšperk",
+      "code": "069",
+      "cities": [
+        "Majšperk"
+      ]
+    },
+    {
+      "name": "Makole",
+      "code": "198",
+      "cities": []
+    },
+    {
+      "name": "Maribor",
+      "code": "070",
+      "cities": [
+        "Bresternica",
+        "Kamnica",
+        "Limbuš",
+        "Maribor",
+        "Pekre",
+        "Razvanje"
+      ]
+    },
+    {
+      "name": "Markovci",
+      "code": "168",
+      "cities": [
+        "Markovci"
+      ]
+    },
+    {
+      "name": "Medvode",
+      "code": "071",
+      "cities": [
+        "Medvode",
+        "Opština [historical] Ljubljana-Šiška",
+        "Zgornje Pirniče"
+      ]
+    },
+    {
+      "name": "Mengeš",
+      "code": "072",
+      "cities": [
+        "Mengeš",
+        "Preserje pri Radomljah"
+      ]
+    },
+    {
+      "name": "Metlika",
+      "code": "073",
+      "cities": [
+        "Metlika"
+      ]
+    },
+    {
+      "name": "Mežica",
+      "code": "074",
+      "cities": [
+        "Mežica"
+      ]
+    },
+    {
+      "name": "Miklavž na Dravskem Polju",
+      "code": "169",
+      "cities": [
+        "Miklavž na Dravskem Polju"
+      ]
+    },
+    {
+      "name": "Miren–Kostanjevica",
+      "code": "075",
+      "cities": [
+        "Bilje",
+        "Miren"
+      ]
+    },
+    {
+      "name": "Mirna",
+      "code": "212",
+      "cities": []
+    },
+    {
+      "name": "Mirna Peč",
+      "code": "170",
+      "cities": [
+        "Mirna Peč"
+      ]
+    },
+    {
+      "name": "Mislinja",
+      "code": "076",
+      "cities": [
+        "Mislinja"
+      ]
+    },
+    {
+      "name": "Mokronog–Trebelno",
+      "code": "199",
+      "cities": []
+    },
+    {
+      "name": "Moravče",
+      "code": "077",
+      "cities": [
+        "Moravče"
+      ]
+    },
+    {
+      "name": "Moravske Toplice",
+      "code": "078",
+      "cities": [
+        "Moravske Toplice"
+      ]
+    },
+    {
+      "name": "Mozirje",
+      "code": "079",
+      "cities": [
+        "Mozirje"
+      ]
+    },
+    {
+      "name": "Murska Sobota",
+      "code": "080",
+      "cities": [
+        "Bakovci",
+        "Černelavci",
+        "Krog",
+        "Murska Sobota",
+        "Rakičan"
+      ]
+    },
+    {
+      "name": "Muta",
+      "code": "081",
+      "cities": [
+        "Muta"
+      ]
+    },
+    {
+      "name": "Naklo",
+      "code": "082",
+      "cities": [
+        "Naklo"
+      ]
+    },
+    {
+      "name": "Nazarje",
+      "code": "083",
+      "cities": [
+        "Nazarje"
+      ]
+    },
+    {
+      "name": "Nova Gorica",
+      "code": "084",
+      "cities": [
+        "Kromberk",
+        "Nova Gorica",
+        "Prvačina",
+        "Šempas",
+        "Solkan"
+      ]
+    },
+    {
+      "name": "Novo Mesto",
+      "code": "085",
+      "cities": [
+        "Novo Mesto"
+      ]
+    },
+    {
+      "name": "Odranci",
+      "code": "086",
+      "cities": [
+        "Odranci"
+      ]
+    },
+    {
+      "name": "Oplotnica",
+      "code": "171",
+      "cities": [
+        "Oplotnica"
+      ]
+    },
+    {
+      "name": "Ormož",
+      "code": "087",
+      "cities": [
+        "Ormož"
+      ]
+    },
+    {
+      "name": "Osilnica",
+      "code": "088",
+      "cities": [
+        "Osilnica"
+      ]
+    },
+    {
+      "name": "Pesnica",
+      "code": "089",
+      "cities": [
+        "Pesnica pri Mariboru"
+      ]
+    },
+    {
+      "name": "Piran",
+      "code": "090",
+      "cities": [
+        "Lucija",
+        "Piran",
+        "Portorož",
+        "Seča"
+      ]
+    },
+    {
+      "name": "Pivka",
+      "code": "091",
+      "cities": [
+        "Pivka"
+      ]
+    },
+    {
+      "name": "Podčetrtek",
+      "code": "092",
+      "cities": [
+        "Podčetrtek"
+      ]
+    },
+    {
+      "name": "Podlehnik",
+      "code": "172",
+      "cities": [
+        "Podlehnik"
+      ]
+    },
+    {
+      "name": "Podvelka",
+      "code": "093",
+      "cities": [
+        "Podvelka"
+      ]
+    },
+    {
+      "name": "Poljčane",
+      "code": "200",
+      "cities": []
+    },
+    {
+      "name": "Polzela",
+      "code": "173",
+      "cities": [
+        "Polzela"
+      ]
+    },
+    {
+      "name": "Postojna",
+      "code": "094",
+      "cities": [
+        "Postojna"
+      ]
+    },
+    {
+      "name": "Prebold",
+      "code": "174",
+      "cities": [
+        "Prebold"
+      ]
+    },
+    {
+      "name": "Preddvor",
+      "code": "095",
+      "cities": [
+        "Preddvor"
+      ]
+    },
+    {
+      "name": "Prevalje",
+      "code": "175",
+      "cities": [
+        "Prevalje"
+      ]
+    },
+    {
+      "name": "Ptuj",
+      "code": "096",
+      "cities": [
+        "Ptuj"
+      ]
+    },
+    {
+      "name": "Puconci",
+      "code": "097",
+      "cities": [
+        "Puconci"
+      ]
+    },
+    {
+      "name": "Rače–Fram",
+      "code": "098",
+      "cities": [
+        "Fram",
+        "Morje",
+        "Rače"
+      ]
+    },
+    {
+      "name": "Radeče",
+      "code": "099",
+      "cities": [
+        "Radeče"
+      ]
+    },
+    {
+      "name": "Radenci",
+      "code": "100",
+      "cities": [
+        "Radenci"
+      ]
+    },
+    {
+      "name": "Radlje ob Dravi",
+      "code": "101",
+      "cities": [
+        "Radlje ob Dravi"
+      ]
+    },
+    {
+      "name": "Radovljica",
+      "code": "102",
+      "cities": [
+        "Lesce",
+        "Radovljica"
+      ]
+    },
+    {
+      "name": "Ravne na Koroškem",
+      "code": "103",
+      "cities": [
+        "Kotlje",
+        "Ravne na Koroškem"
+      ]
+    },
+    {
+      "name": "Razkrižje",
+      "code": "176",
+      "cities": [
+        "Razkrižje"
+      ]
+    },
+    {
+      "name": "Rečica ob Savinji",
+      "code": "209",
+      "cities": []
+    },
+    {
+      "name": "Renče–Vogrsko",
+      "code": "201",
+      "cities": [
+        "Renče",
+        "Volčja Draga"
+      ]
+    },
+    {
+      "name": "Ribnica",
+      "code": "104",
+      "cities": [
+        "Ribnica"
+      ]
+    },
+    {
+      "name": "Ribnica na Pohorju",
+      "code": "177",
+      "cities": [
+        "Ribnica na Pohorju"
+      ]
+    },
+    {
+      "name": "Rogaška Slatina",
+      "code": "106",
+      "cities": [
+        "Rogaška Slatina"
+      ]
+    },
+    {
+      "name": "Rogašovci",
+      "code": "105",
+      "cities": [
+        "Rogašovci"
+      ]
+    },
+    {
+      "name": "Rogatec",
+      "code": "107",
+      "cities": [
+        "Rogatec"
+      ]
+    },
+    {
+      "name": "Ruše",
+      "code": "108",
+      "cities": [
+        "Bistrica ob Dravi",
+        "Ruše"
+      ]
+    },
+    {
+      "name": "Šalovci",
+      "code": "033",
+      "cities": [
+        "Šalovci"
+      ]
+    },
+    {
+      "name": "Selnica ob Dravi",
+      "code": "178",
+      "cities": [
+        "Selnica ob Dravi"
+      ]
+    },
+    {
+      "name": "Semič",
+      "code": "109",
+      "cities": [
+        "Semič"
+      ]
+    },
+    {
+      "name": "Šempeter–Vrtojba",
+      "code": "183",
+      "cities": [
+        "Rožna Dolina",
+        "Šempeter pri Gorici",
+        "Vrtojba"
+      ]
+    },
+    {
+      "name": "Šenčur",
+      "code": "117",
+      "cities": [
+        "Hrastje",
+        "Šenčur"
+      ]
+    },
+    {
+      "name": "Šentilj",
+      "code": "118",
+      "cities": [
+        "Selnica ob Muri",
+        "Šentilj v Slov. Goricah"
+      ]
+    },
+    {
+      "name": "Šentjernej",
+      "code": "119",
+      "cities": [
+        "Šentjernej"
+      ]
+    },
+    {
+      "name": "Šentjur",
+      "code": "120",
+      "cities": [
+        "Šentjur"
+      ]
+    },
+    {
+      "name": "Šentrupert",
+      "code": "211",
+      "cities": [
+        "Šentrupert"
+      ]
+    },
+    {
+      "name": "Sevnica",
+      "code": "110",
+      "cities": [
+        "Sevnica"
+      ]
+    },
+    {
+      "name": "Sežana",
+      "code": "111",
+      "cities": [
+        "Sežana"
+      ]
+    },
+    {
+      "name": "Škocjan",
+      "code": "121",
+      "cities": [
+        "Škocjan"
+      ]
+    },
+    {
+      "name": "Škofja Loka",
+      "code": "122",
+      "cities": [
+        "Škofja Loka",
+        "Sv. Duh"
+      ]
+    },
+    {
+      "name": "Škofljica",
+      "code": "123",
+      "cities": [
+        "Lavrica",
+        "Škofljica"
+      ]
+    },
+    {
+      "name": "Slovenj Gradec",
+      "code": "112",
+      "cities": [
+        "Legen",
+        "Pameče",
+        "Slovenj Gradec",
+        "Šmartno pri Slovenj Gradcu"
+      ]
+    },
+    {
+      "name": "Slovenska Bistrica",
+      "code": "113",
+      "cities": [
+        "Pragersko",
+        "Slovenska Bistrica",
+        "Zgornja Polskava"
+      ]
+    },
+    {
+      "name": "Slovenske Konjice",
+      "code": "114",
+      "cities": [
+        "Slovenske Konjice"
+      ]
+    },
+    {
+      "name": "Šmarje pri Jelšah",
+      "code": "124",
+      "cities": [
+        "Šmarje pri Jelšah"
+      ]
+    },
+    {
+      "name": "Šmarješke Toplice",
+      "code": "206",
+      "cities": [
+        "Šmarjeta"
+      ]
+    },
+    {
+      "name": "Šmartno ob Paki",
+      "code": "125",
+      "cities": [
+        "Šmartno ob Paki"
+      ]
+    },
+    {
+      "name": "Šmartno pri Litiji",
+      "code": "194",
+      "cities": [
+        "Šmartno pri Litiji"
+      ]
+    },
+    {
+      "name": "Sodražica",
+      "code": "179",
+      "cities": [
+        "Sodražica"
+      ]
+    },
+    {
+      "name": "Solčava",
+      "code": "180",
+      "cities": [
+        "Solčava"
+      ]
+    },
+    {
+      "name": "Šoštanj",
+      "code": "126",
+      "cities": [
+        "Ravne",
+        "Šoštanj",
+        "Topolšica"
+      ]
+    },
+    {
+      "name": "Središče ob Dravi",
+      "code": "202",
+      "cities": [
+        "Središče ob Dravi"
+      ]
+    },
+    {
+      "name": "Starše",
+      "code": "115",
+      "cities": [
+        "Starše"
+      ]
+    },
+    {
+      "name": "Štore",
+      "code": "127",
+      "cities": [
+        "Štore"
+      ]
+    },
+    {
+      "name": "Straža",
+      "code": "203",
+      "cities": [
+        "Straža"
+      ]
+    },
+    {
+      "name": "Sveta Ana",
+      "code": "181",
+      "cities": [
+        "Sv. Ana v Slov. Goricah"
+      ]
+    },
+    {
+      "name": "Sveta Trojica v Slovenskih Goricah",
+      "code": "204",
+      "cities": [
+        "Sv. Trojica v Slov. Goricah"
+      ]
+    },
+    {
+      "name": "Sveti Andraž v Slovenskih Goricah",
+      "code": "182",
+      "cities": [
+        "Vitomarci"
+      ]
+    },
+    {
+      "name": "Sveti Jurij ob Ščavnici",
+      "code": "116",
+      "cities": []
+    },
+    {
+      "name": "Sveti Jurij v Slovenskih Goricah",
+      "code": "210",
+      "cities": [
+        "Sveti Jurij ob Ščavnici"
+      ]
+    },
+    {
+      "name": "Sveti Tomaž",
+      "code": "205",
+      "cities": [
+        "Sveti Tomaž"
+      ]
+    },
+    {
+      "name": "Tabor",
+      "code": "184",
+      "cities": [
+        "Tabor"
+      ]
+    },
+    {
+      "name": "Tišina",
+      "code": "010",
+      "cities": [
+        "Tišina"
+      ]
+    },
+    {
+      "name": "Tolmin",
+      "code": "128",
+      "cities": [
+        "Tolmin"
+      ]
+    },
+    {
+      "name": "Trbovlje",
+      "code": "129",
+      "cities": [
+        "Trbovlje"
+      ]
+    },
+    {
+      "name": "Trebnje",
+      "code": "130",
+      "cities": [
+        "Trebnje"
+      ]
+    },
+    {
+      "name": "Trnovska Vas",
+      "code": "185",
+      "cities": [
+        "Trnovska Vas"
+      ]
+    },
+    {
+      "name": "Tržič",
+      "code": "131",
+      "cities": [
+        "Bistrica pri Tržiču",
+        "Tržič"
+      ]
+    },
+    {
+      "name": "Trzin",
+      "code": "186",
+      "cities": [
+        "Črnuče",
+        "Trzin"
+      ]
+    },
+    {
+      "name": "Turnišče",
+      "code": "132",
+      "cities": [
+        "Turnišče"
+      ]
+    },
+    {
+      "name": "Velenje",
+      "code": "133",
+      "cities": [
+        "Velenje"
+      ]
+    },
+    {
+      "name": "Velika Polana",
+      "code": "187",
+      "cities": [
+        "Velika Polana"
+      ]
+    },
+    {
+      "name": "Velike Lašče",
+      "code": "134",
+      "cities": [
+        "Velike Lašče"
+      ]
+    },
+    {
+      "name": "Veržej",
+      "code": "188",
+      "cities": [
+        "Veržej"
+      ]
+    },
+    {
+      "name": "Videm",
+      "code": "135",
+      "cities": [
+        "Videm pri Ptuju"
+      ]
+    },
+    {
+      "name": "Vipava",
+      "code": "136",
+      "cities": [
+        "Vipava"
+      ]
+    },
+    {
+      "name": "Vitanje",
+      "code": "137",
+      "cities": [
+        "Vitanje"
+      ]
+    },
+    {
+      "name": "Vodice",
+      "code": "138",
+      "cities": [
+        "Vodice"
+      ]
+    },
+    {
+      "name": "Vojnik",
+      "code": "139",
+      "cities": [
+        "Vojnik"
+      ]
+    },
+    {
+      "name": "Vransko",
+      "code": "189",
+      "cities": [
+        "Vransko"
+      ]
+    },
+    {
+      "name": "Vrhnika",
+      "code": "140",
+      "cities": [
+        "Verd",
+        "Vrhnika"
+      ]
+    },
+    {
+      "name": "Vuzenica",
+      "code": "141",
+      "cities": [
+        "Vuzenica"
+      ]
+    },
+    {
+      "name": "Zagorje ob Savi",
+      "code": "142",
+      "cities": [
+        "Izlake",
+        "Kisovec",
+        "Zagorje ob Savi"
+      ]
+    },
+    {
+      "name": "Žalec",
+      "code": "190",
+      "cities": [
+        "Gotovlje",
+        "Šempeter v Savinj. Dolini",
+        "Zabukovica",
+        "Žalec"
+      ]
+    },
+    {
+      "name": "Zavrč",
+      "code": "143",
+      "cities": [
+        "Zavrč"
+      ]
+    },
+    {
+      "name": "Železniki",
+      "code": "146",
+      "cities": [
+        "Železniki"
+      ]
+    },
+    {
+      "name": "Žetale",
+      "code": "191",
+      "cities": [
+        "Žetale"
+      ]
+    },
+    {
+      "name": "Žiri",
+      "code": "147",
+      "cities": [
+        "Žiri"
+      ]
+    },
+    {
+      "name": "Žirovnica",
+      "code": "192",
+      "cities": [
+        "Žirovnica"
+      ]
+    },
+    {
+      "name": "Zreče",
+      "code": "144",
+      "cities": [
+        "Zreče"
+      ]
+    },
+    {
+      "name": "Žužemberk",
+      "code": "193",
+      "cities": [
+        "Žužemberk"
+      ]
+    }
+  ]
+}

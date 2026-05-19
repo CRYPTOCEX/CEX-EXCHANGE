@@ -1,0 +1,139 @@
+{
+  "name": "Cyprus",
+  "iso2": "CY",
+  "iso3": "CYP",
+  "phonecode": "357",
+  "states": [
+    {
+      "name": "Famagusta (Mağusa)",
+      "code": "04",
+      "cities": [
+        "Acherítou",
+        "Áchna",
+        "Ammochostos",
+        "Avgórou",
+        "Ayia Napa",
+        "Derýneia",
+        "Famagusta",
+        "Frénaros",
+        "Lefkónoiko",
+        "Leonárisso",
+        "Liopétri",
+        "Paralímni",
+        "Protaras",
+        "Rizokárpaso",
+        "Tríkomo"
+      ]
+    },
+    {
+      "name": "Kyrenia (Keryneia)",
+      "code": "06",
+      "cities": [
+        "Kyrenia",
+        "Kyrenia Municipality",
+        "Lápithos"
+      ]
+    },
+    {
+      "name": "Larnaca (Larnaka)",
+      "code": "03",
+      "cities": [
+        "Aradíppou",
+        "Athíenou",
+        "Dhromolaxia",
+        "Kíti",
+        "Kofínou",
+        "Kolossi",
+        "Kórnos",
+        "Larnaca",
+        "Livádia",
+        "Meneou",
+        "Mosfilotí",
+        "Pérgamos",
+        "Perivólia",
+        "Psevdás",
+        "Pýla",
+        "Tersefánou",
+        "Troúlloi",
+        "Voróklini",
+        "Xylofágou",
+        "Xylotymbou"
+      ]
+    },
+    {
+      "name": "Limassol (Leymasun)",
+      "code": "02",
+      "cities": [
+        "Ágios Tomás",
+        "Ágios Týchon",
+        "Erími",
+        "Germasógeia",
+        "Kyperoúnta",
+        "Lemesós",
+        "Limassol",
+        "Mouttagiáka",
+        "Páchna",
+        "Páno Polemídia",
+        "Parekklisha",
+        "Peléndri",
+        "Pissoúri",
+        "Pyrgos",
+        "Sotíra",
+        "Soúni-Zanakiá",
+        "Ýpsonas"
+      ]
+    },
+    {
+      "name": "Nicosia (Lefkoşa)",
+      "code": "01",
+      "cities": [
+        "Akáki",
+        "Alámpra",
+        "Aredioú",
+        "Astromerítis",
+        "Dáli",
+        "Ergátes",
+        "Géri",
+        "Kakopetriá",
+        "Káto Defterá",
+        "Káto Pýrgos",
+        "Klírou",
+        "Kokkinotrimithiá",
+        "Léfka",
+        "Lýmpia",
+        "Lythrodóntas",
+        "Mámmari",
+        "Méniko",
+        "Mórfou",
+        "Nicosia",
+        "Nicosia Municipality",
+        "Páno Defterá",
+        "Péra",
+        "Peristeróna",
+        "Psimolofou",
+        "Tséri"
+      ]
+    },
+    {
+      "name": "Paphos (Pafos)",
+      "code": "05",
+      "cities": [
+        "Argáka",
+        "Chlórakas",
+        "Emba",
+        "Geroskipou",
+        "Geroskípou (quarter)",
+        "Geroskípou Municipality",
+        "Kissonerga",
+        "Koloni",
+        "Konia",
+        "Mesógi",
+        "Paphos",
+        "Pégeia",
+        "Pólis",
+        "Tála",
+        "Tsáda"
+      ]
+    }
+  ]
+}

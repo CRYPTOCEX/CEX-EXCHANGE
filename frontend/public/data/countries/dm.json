@@ -1,0 +1,85 @@
+{
+  "name": "Dominica",
+  "iso2": "DM",
+  "iso3": "DMA",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Saint Andrew",
+      "code": "02",
+      "cities": [
+        "Calibishie",
+        "Marigot",
+        "Wesley",
+        "Woodford Hill"
+      ]
+    },
+    {
+      "name": "Saint David",
+      "code": "03",
+      "cities": [
+        "Castle Bruce",
+        "Rosalie"
+      ]
+    },
+    {
+      "name": "Saint George",
+      "code": "04",
+      "cities": [
+        "Roseau"
+      ]
+    },
+    {
+      "name": "Saint John",
+      "code": "05",
+      "cities": [
+        "Portsmouth"
+      ]
+    },
+    {
+      "name": "Saint Joseph",
+      "code": "06",
+      "cities": [
+        "Saint Joseph",
+        "Salisbury"
+      ]
+    },
+    {
+      "name": "Saint Luke",
+      "code": "07",
+      "cities": [
+        "Pointe Michel"
+      ]
+    },
+    {
+      "name": "Saint Mark",
+      "code": "08",
+      "cities": [
+        "Soufrière"
+      ]
+    },
+    {
+      "name": "Saint Patrick",
+      "code": "09",
+      "cities": [
+        "Berekua",
+        "La Plaine"
+      ]
+    },
+    {
+      "name": "Saint Paul",
+      "code": "10",
+      "cities": [
+        "Mahaut",
+        "Pont Cassé"
+      ]
+    },
+    {
+      "name": "Saint Peter",
+      "code": "11",
+      "cities": [
+        "Colihaut"
+      ]
+    }
+  ]
+}

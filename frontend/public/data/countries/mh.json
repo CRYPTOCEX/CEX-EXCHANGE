@@ -1,0 +1,188 @@
+{
+  "name": "Marshall Islands",
+  "iso2": "MH",
+  "iso3": "MHL",
+  "phonecode": "692",
+  "states": [
+    {
+      "name": "Ailinglaplap",
+      "code": "ALL",
+      "cities": [
+        "Ailinglaplap"
+      ]
+    },
+    {
+      "name": "Ailuk",
+      "code": "ALK",
+      "cities": [
+        "Ailuk"
+      ]
+    },
+    {
+      "name": "Arno",
+      "code": "ARN",
+      "cities": [
+        "Arno"
+      ]
+    },
+    {
+      "name": "Aur",
+      "code": "AUR",
+      "cities": [
+        "Aur"
+      ]
+    },
+    {
+      "name": "Bikini & Kili",
+      "code": "KIL",
+      "cities": [
+        "Bikini",
+        "Kili"
+      ]
+    },
+    {
+      "name": "Ebon",
+      "code": "EBO",
+      "cities": [
+        "Ebon"
+      ]
+    },
+    {
+      "name": "Enewetak & Ujelang",
+      "code": "ENI",
+      "cities": [
+        "Enewetak",
+        "Ujelang"
+      ]
+    },
+    {
+      "name": "Jabat",
+      "code": "JAB",
+      "cities": [
+        "Jabat"
+      ]
+    },
+    {
+      "name": "Jaluit",
+      "code": "JAL",
+      "cities": [
+        "Jabor"
+      ]
+    },
+    {
+      "name": "Kwajalein",
+      "code": "KWA",
+      "cities": [
+        "Ebeye"
+      ]
+    },
+    {
+      "name": "Lae",
+      "code": "LAE",
+      "cities": [
+        "Lae"
+      ]
+    },
+    {
+      "name": "Lib",
+      "code": "LIB",
+      "cities": [
+        "Lib"
+      ]
+    },
+    {
+      "name": "Likiep",
+      "code": "LIK",
+      "cities": [
+        "Likiep"
+      ]
+    },
+    {
+      "name": "Majuro",
+      "code": "MAJ",
+      "cities": [
+        "Delap-Uliga-Djarrit"
+      ]
+    },
+    {
+      "name": "Maloelap",
+      "code": "MAL",
+      "cities": [
+        "Taroa"
+      ]
+    },
+    {
+      "name": "Mejit",
+      "code": "MEJ",
+      "cities": [
+        "Mejit"
+      ]
+    },
+    {
+      "name": "Mili",
+      "code": "MIL",
+      "cities": [
+        "Mili"
+      ]
+    },
+    {
+      "name": "Namdrik",
+      "code": "NMK",
+      "cities": [
+        "Namdrik"
+      ]
+    },
+    {
+      "name": "Namu",
+      "code": "NMU",
+      "cities": [
+        "Namu"
+      ]
+    },
+    {
+      "name": "Ralik",
+      "code": "L",
+      "cities": []
+    },
+    {
+      "name": "Ratak",
+      "code": "T",
+      "cities": []
+    },
+    {
+      "name": "Rongelap",
+      "code": "RON",
+      "cities": [
+        "Rongelap"
+      ]
+    },
+    {
+      "name": "Ujae",
+      "code": "UJA",
+      "cities": [
+        "Ujae"
+      ]
+    },
+    {
+      "name": "Utrik",
+      "code": "UTI",
+      "cities": [
+        "Utrik"
+      ]
+    },
+    {
+      "name": "Wotho",
+      "code": "WTH",
+      "cities": [
+        "Wotho"
+      ]
+    },
+    {
+      "name": "Wotje",
+      "code": "WTJ",
+      "cities": [
+        "Wotje"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+import React from "react";
+import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { ChartData } from "./types";
+import { getColor } from "./utils";
+import { CenterContent } from "./center-content";
+
+interface ContentProps {
+  data: ChartData[];
+  activeSegment: string | null;
+  setActiveSegment: React.Dispatch<React.SetStateAction<string | null>>;
+  total: number;
+  isEmpty?: boolean;
+}
+
+// Gray color for empty segments
+const EMPTY_SEGMENT_COLOR = "hsl(var(--muted))";
+
+function ContentImpl({
+  data,
+  activeSegment,
+  setActiveSegment,
+  total,
+  isEmpty = false,
+}: ContentProps) {
+  return (
+    <div className="relative h-[200px] md:h-[240px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={data}
+            innerRadius="70%"
+            outerRadius="90%"
+            paddingAngle={2}
+            dataKey="value"
+            startAngle={90}
+            endAngle={-270}
+            strokeWidth={2}
+            stroke="hsl(var(--background))"
+            onMouseEnter={(_, index: number) =>
+              setActiveSegment(data[index].id)
+            }
+            onMouseLeave={() => setActiveSegment(null)}
+            style={{ opacity: isEmpty ? 0.4 : 1 }}
+          >
+            {data.map((entry) => (
+              <Cell
+                key={entry.id}
+                fill={isEmpty ? EMPTY_SEGMENT_COLOR : getColor(entry.color)}
+                stroke="hsl(var(--background))"
+                strokeWidth={2}
+                style={{}}
+              />
+            ))}
+          </Pie>
+        </PieChart>
+      </ResponsiveContainer>
+
+      <CenterContent
+        activeSegment={activeSegment}
+        data={data}
+        total={total}
+        isEmpty={isEmpty}
+      />
+    </div>
+  );
+}
+
+export const Content = React.memo(ContentImpl);

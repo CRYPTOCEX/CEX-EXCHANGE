@@ -1,0 +1,60 @@
+{
+  "name": "Man (Isle of)",
+  "iso2": "IM",
+  "iso3": "IMN",
+  "phonecode": "44",
+  "states": [
+    {
+      "name": "Ayre",
+      "code": "01",
+      "cities": [
+        "Andreas",
+        "Bride",
+        "Lezayre"
+      ]
+    },
+    {
+      "name": "Garff",
+      "code": "02",
+      "cities": [
+        "Lonan",
+        "Maughold",
+        "Onchan"
+      ]
+    },
+    {
+      "name": "Glenfaba",
+      "code": "03",
+      "cities": [
+        "German"
+      ]
+    },
+    {
+      "name": "Michael",
+      "code": "04",
+      "cities": [
+        "Ballaugh",
+        "Jurby",
+        "Michael"
+      ]
+    },
+    {
+      "name": "Middle",
+      "code": "05",
+      "cities": [
+        "Braddan",
+        "Marown",
+        "Santon"
+      ]
+    },
+    {
+      "name": "Rushen",
+      "code": "06",
+      "cities": [
+        "Arbory",
+        "Malew",
+        "Rushen"
+      ]
+    }
+  ]
+}

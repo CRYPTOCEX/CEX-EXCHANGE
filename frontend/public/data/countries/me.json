@@ -1,0 +1,197 @@
+{
+  "name": "Montenegro",
+  "iso2": "ME",
+  "iso3": "MNE",
+  "phonecode": "382",
+  "states": [
+    {
+      "name": "Andrijevica",
+      "code": "01",
+      "cities": [
+        "Andrijevica"
+      ]
+    },
+    {
+      "name": "Bar",
+      "code": "02",
+      "cities": [
+        "Bar",
+        "Stari Bar",
+        "Šušanj",
+        "Sutomore"
+      ]
+    },
+    {
+      "name": "Berane",
+      "code": "03",
+      "cities": [
+        "Berane"
+      ]
+    },
+    {
+      "name": "Bijelo Polje",
+      "code": "04",
+      "cities": [
+        "Bijelo Polje"
+      ]
+    },
+    {
+      "name": "Budva",
+      "code": "05",
+      "cities": [
+        "Budva",
+        "Petrovac na Moru"
+      ]
+    },
+    {
+      "name": "Danilovgrad",
+      "code": "07",
+      "cities": [
+        "Danilovgrad",
+        "Spuž"
+      ]
+    },
+    {
+      "name": "Gusinje",
+      "code": "22",
+      "cities": [
+        "Gusinje"
+      ]
+    },
+    {
+      "name": "Herceg-Novi",
+      "code": "08",
+      "cities": [
+        "Bijela",
+        "Herceg Novi",
+        "Igalo",
+        "Kamenari"
+      ]
+    },
+    {
+      "name": "Kolašin",
+      "code": "09",
+      "cities": [
+        "Kolašin"
+      ]
+    },
+    {
+      "name": "Kotor",
+      "code": "10",
+      "cities": [
+        "Dobrota",
+        "Kotor",
+        "Prčanj",
+        "Risan"
+      ]
+    },
+    {
+      "name": "Mojkovac",
+      "code": "11",
+      "cities": [
+        "Mojkovac"
+      ]
+    },
+    {
+      "name": "Nikšić",
+      "code": "12",
+      "cities": [
+        "Nikšić"
+      ]
+    },
+    {
+      "name": "Old Royal Capital Cetinje",
+      "code": "06",
+      "cities": [
+        "Cetinje"
+      ]
+    },
+    {
+      "name": "Petnjica",
+      "code": "23",
+      "cities": []
+    },
+    {
+      "name": "Plav",
+      "code": "13",
+      "cities": [
+        "Plav"
+      ]
+    },
+    {
+      "name": "Pljevlja",
+      "code": "14",
+      "cities": [
+        "Pljevlja"
+      ]
+    },
+    {
+      "name": "Plužine",
+      "code": "15",
+      "cities": [
+        "Plužine"
+      ]
+    },
+    {
+      "name": "Podgorica",
+      "code": "16",
+      "cities": [
+        "Goričani",
+        "Mojanovići",
+        "Podgorica"
+      ]
+    },
+    {
+      "name": "Rožaje",
+      "code": "17",
+      "cities": [
+        "Rožaje"
+      ]
+    },
+    {
+      "name": "Šavnik",
+      "code": "18",
+      "cities": [
+        "Šavnik"
+      ]
+    },
+    {
+      "name": "Tivat",
+      "code": "19",
+      "cities": [
+        "Tivat"
+      ]
+    },
+    {
+      "name": "Tuzi",
+      "code": "24",
+      "cities": [
+        "Dinoša",
+        "Mataguži",
+        "Tuzi"
+      ]
+    },
+    {
+      "name": "Ulcinj",
+      "code": "20",
+      "cities": [
+        "Ulcinj"
+      ]
+    },
+    {
+      "name": "Žabljak",
+      "code": "21",
+      "cities": [
+        "Žabljak"
+      ]
+    },
+    {
+      "name": "Zeta",
+      "code": "25",
+      "cities": [
+        "Golubovci",
+        "Ponari"
+      ]
+    }
+  ]
+}

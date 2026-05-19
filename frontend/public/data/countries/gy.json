@@ -1,0 +1,82 @@
+{
+  "name": "Guyana",
+  "iso2": "GY",
+  "iso3": "GUY",
+  "phonecode": "592",
+  "states": [
+    {
+      "name": "Barima-Waini",
+      "code": "BA",
+      "cities": [
+        "Mabaruma"
+      ]
+    },
+    {
+      "name": "Cuyuni-Mazaruni",
+      "code": "CU",
+      "cities": [
+        "Bartica"
+      ]
+    },
+    {
+      "name": "Demerara-Mahaica",
+      "code": "DE",
+      "cities": [
+        "Georgetown",
+        "Mahaica Village"
+      ]
+    },
+    {
+      "name": "East Berbice-Corentyne",
+      "code": "EB",
+      "cities": [
+        "New Amsterdam",
+        "Skeldon"
+      ]
+    },
+    {
+      "name": "Essequibo Islands-West Demerara",
+      "code": "ES",
+      "cities": [
+        "Parika",
+        "Vreed-en-Hoop"
+      ]
+    },
+    {
+      "name": "Mahaica-Berbice",
+      "code": "MA",
+      "cities": [
+        "Mahaicony Village",
+        "Rosignol"
+      ]
+    },
+    {
+      "name": "Pomeroon-Supenaam",
+      "code": "PM",
+      "cities": [
+        "Anna Regina"
+      ]
+    },
+    {
+      "name": "Potaro-Siparuni",
+      "code": "PT",
+      "cities": [
+        "Mahdia"
+      ]
+    },
+    {
+      "name": "Upper Demerara-Berbice",
+      "code": "UD",
+      "cities": [
+        "Linden"
+      ]
+    },
+    {
+      "name": "Upper Takutu-Upper Essequibo",
+      "code": "UT",
+      "cities": [
+        "Lethem"
+      ]
+    }
+  ]
+}

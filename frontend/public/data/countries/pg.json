@@ -1,0 +1,239 @@
+{
+  "name": "Papua New Guinea",
+  "iso2": "PG",
+  "iso3": "PNG",
+  "phonecode": "675",
+  "states": [
+    {
+      "name": "Bougainville",
+      "code": "NSB",
+      "cities": [
+        "Arawa",
+        "Central Bougainville",
+        "Kieta",
+        "North Bougainville",
+        "Panguna",
+        "South Bougainville"
+      ]
+    },
+    {
+      "name": "Central",
+      "code": "CPM",
+      "cities": [
+        "Abau",
+        "Goilala",
+        "Kairuku-Hiri",
+        "Rigo"
+      ]
+    },
+    {
+      "name": "Chimbu",
+      "code": "CPK",
+      "cities": [
+        "Chuave",
+        "Gumine",
+        "Karimui Nomane",
+        "Kerowagi",
+        "Kundiawa",
+        "Sinasina Yonggamugl"
+      ]
+    },
+    {
+      "name": "East New Britain",
+      "code": "EBR",
+      "cities": [
+        "Gazelle",
+        "Kokopo",
+        "Pomio",
+        "Rabaul"
+      ]
+    },
+    {
+      "name": "East Sepik",
+      "code": "ESW",
+      "cities": []
+    },
+    {
+      "name": "Eastern Highlands",
+      "code": "EHG",
+      "cities": [
+        "Daulo",
+        "Goroka",
+        "Henganofi",
+        "Kainantu",
+        "Lufa",
+        "Obura Wonenara",
+        "Okapa",
+        "Unggai Bena"
+      ]
+    },
+    {
+      "name": "Enga",
+      "code": "EPW",
+      "cities": [
+        "Kandep",
+        "Kompiam Ambum",
+        "Lagaip Porgera",
+        "Porgera",
+        "Wabag",
+        "Wapenamanda"
+      ]
+    },
+    {
+      "name": "Gulf",
+      "code": "GPK",
+      "cities": [
+        "Kerema",
+        "Kikori"
+      ]
+    },
+    {
+      "name": "Hela",
+      "code": "HLA",
+      "cities": [
+        "Komo Margarima",
+        "Koroba-Lake Kopiago",
+        "Tari",
+        "Tari Pori"
+      ]
+    },
+    {
+      "name": "Jiwaka",
+      "code": "JWK",
+      "cities": [
+        "Angalimp South Wahgi",
+        "Jimi",
+        "North Wahgi"
+      ]
+    },
+    {
+      "name": "Madang",
+      "code": "MPM",
+      "cities": [
+        "Bogia",
+        "Madang",
+        "Middle Ramu",
+        "Rai Coast",
+        "Sumkar",
+        "Usino Bundi"
+      ]
+    },
+    {
+      "name": "Manus",
+      "code": "MRL",
+      "cities": [
+        "Lorengau",
+        "Manus"
+      ]
+    },
+    {
+      "name": "Milne Bay",
+      "code": "MBA",
+      "cities": [
+        "Alotau",
+        "Esa’ala",
+        "Kiriwina Goodenough",
+        "Samarai",
+        "Samarai Murua"
+      ]
+    },
+    {
+      "name": "Morobe",
+      "code": "MPL",
+      "cities": [
+        "Bulolo",
+        "Finschhafen",
+        "Huon Gulf",
+        "Kabwum",
+        "Lae",
+        "Markham",
+        "Menyamya",
+        "Nawae",
+        "Tewai Siassi",
+        "Wau"
+      ]
+    },
+    {
+      "name": "New Ireland",
+      "code": "NIK",
+      "cities": [
+        "Kavieng",
+        "Namatanai"
+      ]
+    },
+    {
+      "name": "Oro",
+      "code": "NPP",
+      "cities": [
+        "Ijivitari",
+        "Kokoda",
+        "Popondetta",
+        "Sohe"
+      ]
+    },
+    {
+      "name": "Port Moresby",
+      "code": "NCD",
+      "cities": [
+        "National Capital",
+        "Port Moresby"
+      ]
+    },
+    {
+      "name": "Sandaun",
+      "code": "SAN",
+      "cities": [
+        "Aitape",
+        "Aitape Lumi",
+        "Nuku",
+        "Telefomin",
+        "Vanimo",
+        "Vanimo Green"
+      ]
+    },
+    {
+      "name": "Southern Highlands",
+      "code": "SHM",
+      "cities": [
+        "Ialibu",
+        "Ialibu Pangia",
+        "Kagua Erave",
+        "Mendi",
+        "Nipa Kutubu"
+      ]
+    },
+    {
+      "name": "West New Britain",
+      "code": "WBK",
+      "cities": [
+        "Kandrian",
+        "Kandrian Gloucester",
+        "Kimbe",
+        "Talasea"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "WPD",
+      "cities": [
+        "Daru",
+        "Kiunga",
+        "Middle Fly",
+        "Morehead",
+        "North Fly",
+        "South Fly"
+      ]
+    },
+    {
+      "name": "Western Highlands",
+      "code": "WHM",
+      "cities": [
+        "Baiyer Mul",
+        "Dei",
+        "Hagen",
+        "Mount Hagen",
+        "Tambul Nebilyer"
+      ]
+    }
+  ]
+}

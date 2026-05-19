@@ -1,0 +1,106 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+build/
+.next/
+out/
+frontend/dist/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment files
+.env
+.env*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage/
+
+# Vercel
+.vercel
+
+# Archives
+*.zip
+*.rar
+
+# Security & credentials
+*.pem
+*.bak
+scripts/btc-node-credentials.txt
+.keys/
+
+# Uploads & user content
+public/uploads/
+frontend/public/uploads/
+
+# Blockchain asset conflicts (Windows reserved name)
+public/blockchains/*/assets/CON/
+frontend/public/blockchains/*/assets/CON/
+
+# Generated files
+public/swagger.json
+frontend/public/i18n/
+
+# Million Lint
+.million
+
+# Local folders
+/plans
+/wp
+/lic
+/license
+/envato
+/explorer
+/updates
+/docs-server
+
+# Data folders
+/data
+backend/data/chart/
+
+# Database sync
+.sync-hash
+backend/.sync-hash
+
+# Tools
+tools/translation-manager/node_modules/
+
+# Extension components (node_modules only - dist should be committed for bundling)
+frontend/components/(ext)/*/node_modules/
+
+# Misc
+git.js
+.cursorrules
+TODO.md
+docs/patch-notes-data.json
+/docs/dist
+/docs/patch-notes
+/preview
+/frontend/public/img/screenshots
+/backend/ecosystem/wallets
+/.omc
+/backend/.omc
+/frontend/.omc
+tools/translation-manager/package-lock.json
+tools/translation-manager/package-lock.json

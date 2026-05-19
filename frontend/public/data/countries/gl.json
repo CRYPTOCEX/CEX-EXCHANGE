@@ -1,0 +1,56 @@
+{
+  "name": "Greenland",
+  "iso2": "GL",
+  "iso3": "GRL",
+  "phonecode": "299",
+  "states": [
+    {
+      "name": "Avannaata",
+      "code": "AV",
+      "cities": [
+        "Ilulissat",
+        "Qaanaaq",
+        "Upernavik",
+        "Uummannaq"
+      ]
+    },
+    {
+      "name": "Kujalleq",
+      "code": "KU",
+      "cities": [
+        "Nanortalik",
+        "Narsaq",
+        "Qaqortoq"
+      ]
+    },
+    {
+      "name": "Qeqertalik",
+      "code": "QT",
+      "cities": [
+        "Aasiaat",
+        "Kangaatsiaq",
+        "Qasigiannguit",
+        "Qeqertarsuaq"
+      ]
+    },
+    {
+      "name": "Qeqqata",
+      "code": "QE",
+      "cities": [
+        "Maniitsoq",
+        "Sisimiut"
+      ]
+    },
+    {
+      "name": "Sermersooq",
+      "code": "SM",
+      "cities": [
+        "Ammassalik",
+        "Ittoqqortoormiit",
+        "Ivittuut",
+        "Nuuk",
+        "Paamiut"
+      ]
+    }
+  ]
+}

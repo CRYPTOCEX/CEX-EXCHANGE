@@ -1,0 +1,648 @@
+{
+  "name": "Azerbaijan",
+  "iso2": "AZ",
+  "iso3": "AZE",
+  "phonecode": "994",
+  "states": [
+    {
+      "name": "Absheron",
+      "code": "ABS",
+      "cities": [
+        "Ceyranbatan",
+        "Digah",
+        "Gyuzdek",
+        "Khirdalan",
+        "Qobu",
+        "Saray"
+      ]
+    },
+    {
+      "name": "Agdam",
+      "code": "AGM",
+      "cities": [
+        "Ağdam"
+      ]
+    },
+    {
+      "name": "Agdash",
+      "code": "AGS",
+      "cities": [
+        "Ağdaş"
+      ]
+    },
+    {
+      "name": "Aghjabadi",
+      "code": "AGC",
+      "cities": [
+        "Agdzhabedy",
+        "Avşar"
+      ]
+    },
+    {
+      "name": "Agstafa",
+      "code": "AGA",
+      "cities": [
+        "Aghstafa",
+        "Saloğlu",
+        "Vurğun"
+      ]
+    },
+    {
+      "name": "Agsu",
+      "code": "AGU",
+      "cities": [
+        "Aghsu"
+      ]
+    },
+    {
+      "name": "Astara",
+      "code": "AST",
+      "cities": [
+        "Astara",
+        "Kizhaba"
+      ]
+    },
+    {
+      "name": "Babek",
+      "code": "BAB",
+      "cities": []
+    },
+    {
+      "name": "Baku",
+      "code": "BA",
+      "cities": [
+        "Amirdzhan",
+        "Badamdar",
+        "Bakıxanov",
+        "Baku",
+        "Balakhani",
+        "Bilajari",
+        "Bilajer",
+        "Binagadi",
+        "Biny Selo",
+        "Buzovna",
+        "Hövsan",
+        "Khodzhi-Gasan",
+        "Korgöz",
+        "Lökbatan",
+        "Mardakan",
+        "Maştağa",
+        "Nardaran",
+        "Nizami Rayonu",
+        "Pirallahı",
+        "Puta",
+        "Qala",
+        "Qaraçuxur",
+        "Qobustan",
+        "Ramana",
+        "Sabunçu",
+        "Sanqaçal",
+        "Türkan",
+        "Yeni Suraxanı",
+        "Zabrat",
+        "Zyrya"
+      ]
+    },
+    {
+      "name": "Balakan",
+      "code": "BAL",
+      "cities": [
+        "Belokany",
+        "Qabaqçöl"
+      ]
+    },
+    {
+      "name": "Barda",
+      "code": "BAR",
+      "cities": [
+        "Barda",
+        "Samuxlu"
+      ]
+    },
+    {
+      "name": "Beylagan",
+      "code": "BEY",
+      "cities": [
+        "Beylagan",
+        "Birinci Aşıqlı",
+        "Dünyamalılar",
+        "Orjonikidze",
+        "Yuxarı Aran"
+      ]
+    },
+    {
+      "name": "Bilasuvar",
+      "code": "BIL",
+      "cities": [
+        "Pushkino"
+      ]
+    },
+    {
+      "name": "Dashkasan",
+      "code": "DAS",
+      "cities": [
+        "Verkhniy Dashkesan",
+        "Yukhary-Dashkesan"
+      ]
+    },
+    {
+      "name": "Fizuli",
+      "code": "FUZ",
+      "cities": [
+        "Fizuli",
+        "Horadiz"
+      ]
+    },
+    {
+      "name": "Ganja",
+      "code": "GA",
+      "cities": [
+        "Ganja"
+      ]
+    },
+    {
+      "name": "Gədəbəy",
+      "code": "GAD",
+      "cities": [
+        "Arıqdam",
+        "Arıqıran",
+        "Böyük Qaramurad",
+        "Kyadabek",
+        "Novosaratovka"
+      ]
+    },
+    {
+      "name": "Gobustan",
+      "code": "QOB",
+      "cities": [
+        "Qobustan"
+      ]
+    },
+    {
+      "name": "Goranboy",
+      "code": "GOR",
+      "cities": [
+        "Goranboy",
+        "Qızılhacılı"
+      ]
+    },
+    {
+      "name": "Goychay",
+      "code": "GOY",
+      "cities": [
+        "Geoktschai"
+      ]
+    },
+    {
+      "name": "Goygol",
+      "code": "GYG",
+      "cities": [
+        "Yelenendorf"
+      ]
+    },
+    {
+      "name": "Hajigabul",
+      "code": "HAC",
+      "cities": [
+        "Hacıqabul",
+        "Mughan"
+      ]
+    },
+    {
+      "name": "Imishli",
+      "code": "IMI",
+      "cities": [
+        "Imishli"
+      ]
+    },
+    {
+      "name": "Ismailli",
+      "code": "ISM",
+      "cities": [
+        "Basqal",
+        "İsmayıllı"
+      ]
+    },
+    {
+      "name": "Jabrayil",
+      "code": "CAB",
+      "cities": [
+        "Jebrail"
+      ]
+    },
+    {
+      "name": "Jalilabad",
+      "code": "CAL",
+      "cities": [
+        "Jalilabad",
+        "Prishibinskoye"
+      ]
+    },
+    {
+      "name": "Julfa",
+      "code": "CUL",
+      "cities": []
+    },
+    {
+      "name": "Kalbajar",
+      "code": "KAL",
+      "cities": [
+        "Kerbakhiar",
+        "Vank"
+      ]
+    },
+    {
+      "name": "Kangarli",
+      "code": "KAN",
+      "cities": []
+    },
+    {
+      "name": "Khachmaz",
+      "code": "XAC",
+      "cities": [
+        "Xaçmaz",
+        "Xudat"
+      ]
+    },
+    {
+      "name": "Khankendi",
+      "code": "XA",
+      "cities": [
+        "Khankendi"
+      ]
+    },
+    {
+      "name": "Khizi",
+      "code": "XIZ",
+      "cities": [
+        "Altıağac",
+        "Khyzy",
+        "Kilyazi",
+        "Şuraabad"
+      ]
+    },
+    {
+      "name": "Khojali",
+      "code": "XCI",
+      "cities": [
+        "Askyaran",
+        "Xocalı"
+      ]
+    },
+    {
+      "name": "Kurdamir",
+      "code": "KUR",
+      "cities": [
+        "Kyurdarmir"
+      ]
+    },
+    {
+      "name": "Lachin",
+      "code": "LAC",
+      "cities": [
+        "Laçın"
+      ]
+    },
+    {
+      "name": "Lankaran",
+      "code": "LAN",
+      "cities": []
+    },
+    {
+      "name": "Lankaran",
+      "code": "LA",
+      "cities": [
+        "Haftoni",
+        "Lankaran"
+      ]
+    },
+    {
+      "name": "Lerik",
+      "code": "LER",
+      "cities": [
+        "Lerik"
+      ]
+    },
+    {
+      "name": "Martuni",
+      "code": "XVD",
+      "cities": [
+        "Hadrut",
+        "Novyy Karanlug",
+        "Qırmızı Bazar"
+      ]
+    },
+    {
+      "name": "Masally",
+      "code": "MAS",
+      "cities": [
+        "Boradigah",
+        "Masally"
+      ]
+    },
+    {
+      "name": "Mingachevir",
+      "code": "MI",
+      "cities": [
+        "Mingelchaur"
+      ]
+    },
+    {
+      "name": "Naftalan",
+      "code": "NA",
+      "cities": [
+        "Naftalan"
+      ]
+    },
+    {
+      "name": "Nakhchivan",
+      "code": "NV",
+      "cities": [
+        "Nakhchivan"
+      ]
+    },
+    {
+      "name": "Nakhchivan",
+      "code": "NX",
+      "cities": [
+        "Cahri",
+        "Çalxanqala",
+        "Culfa",
+        "Deste",
+        "Heydarabad",
+        "Julfa Rayon",
+        "Oğlanqala",
+        "Ordubad",
+        "Ordubad Rayon",
+        "Qıvraq",
+        "Şahbuz",
+        "Sedarak",
+        "Shahbuz Rayon",
+        "Sharur City",
+        "Sumbatan-diza",
+        "Tazakend",
+        "Yaycı"
+      ]
+    },
+    {
+      "name": "Neftchala",
+      "code": "NEF",
+      "cities": [
+        "Neftçala",
+        "Severo-Vostotchnyi Bank",
+        "Sovetabad",
+        "Xıllı"
+      ]
+    },
+    {
+      "name": "Oghuz",
+      "code": "OGU",
+      "cities": [
+        "Oğuz"
+      ]
+    },
+    {
+      "name": "Ordubad",
+      "code": "ORD",
+      "cities": []
+    },
+    {
+      "name": "Qabala",
+      "code": "QAB",
+      "cities": [
+        "Qutqashen"
+      ]
+    },
+    {
+      "name": "Qakh",
+      "code": "QAX",
+      "cities": [
+        "Çinarlı",
+        "Qax",
+        "Qax İngiloy",
+        "Qaxbaş"
+      ]
+    },
+    {
+      "name": "Qazakh",
+      "code": "QAZ",
+      "cities": [
+        "Qazax"
+      ]
+    },
+    {
+      "name": "Quba",
+      "code": "QBA",
+      "cities": [
+        "Hacıhüseynli",
+        "Quba"
+      ]
+    },
+    {
+      "name": "Qubadli",
+      "code": "QBI",
+      "cities": [
+        "Qubadlı"
+      ]
+    },
+    {
+      "name": "Qusar",
+      "code": "QUS",
+      "cities": [
+        "Qusar",
+        "Samur"
+      ]
+    },
+    {
+      "name": "Saatly",
+      "code": "SAT",
+      "cities": [
+        "Əhmədbəyli",
+        "Saatlı"
+      ]
+    },
+    {
+      "name": "Sabirabad",
+      "code": "SAB",
+      "cities": [
+        "Sabirabad"
+      ]
+    },
+    {
+      "name": "Sadarak",
+      "code": "SAD",
+      "cities": []
+    },
+    {
+      "name": "Salyan",
+      "code": "SAL",
+      "cities": [
+        "Qaraçala",
+        "Salyan"
+      ]
+    },
+    {
+      "name": "Samukh",
+      "code": "SMX",
+      "cities": [
+        "Qarayeri",
+        "Qırmızı Samux",
+        "Samux"
+      ]
+    },
+    {
+      "name": "Shabran",
+      "code": "SBN",
+      "cities": [
+        "Divichibazar"
+      ]
+    },
+    {
+      "name": "Shahbuz",
+      "code": "SAH",
+      "cities": []
+    },
+    {
+      "name": "Shaki",
+      "code": "SA",
+      "cities": [
+        "Sheki"
+      ]
+    },
+    {
+      "name": "Shaki",
+      "code": "SAK",
+      "cities": [
+        "Baş Göynük"
+      ]
+    },
+    {
+      "name": "Shamakhi",
+      "code": "SMI",
+      "cities": [
+        "Shamakhi"
+      ]
+    },
+    {
+      "name": "Shamkir",
+      "code": "SKR",
+      "cities": [
+        "Dolyar",
+        "Dzagam",
+        "Qasım İsmayılov",
+        "Shamkhor"
+      ]
+    },
+    {
+      "name": "Sharur",
+      "code": "SAR",
+      "cities": []
+    },
+    {
+      "name": "Shirvan",
+      "code": "SR",
+      "cities": [
+        "Şirvan"
+      ]
+    },
+    {
+      "name": "Shusha",
+      "code": "SUS",
+      "cities": [
+        "Shushi"
+      ]
+    },
+    {
+      "name": "Siazan",
+      "code": "SIY",
+      "cities": [
+        "Gilgilçay",
+        "Kyzyl-Burun"
+      ]
+    },
+    {
+      "name": "Sumqayit",
+      "code": "SM",
+      "cities": [
+        "Corat",
+        "Hacı Zeynalabdin",
+        "Sumqayıt"
+      ]
+    },
+    {
+      "name": "Tartar",
+      "code": "TAR",
+      "cities": [
+        "Martakert",
+        "Terter"
+      ]
+    },
+    {
+      "name": "Tovuz",
+      "code": "TOV",
+      "cities": [
+        "Çatax",
+        "Çobansığnaq",
+        "Dondar Quşçu",
+        "Qaraxanlı",
+        "Tovuz",
+        "Yanıqlı"
+      ]
+    },
+    {
+      "name": "Ujar",
+      "code": "UCA",
+      "cities": [
+        "Ujar"
+      ]
+    },
+    {
+      "name": "Yardymli",
+      "code": "YAR",
+      "cities": [
+        "Yardımlı"
+      ]
+    },
+    {
+      "name": "Yevlakh",
+      "code": "YEV",
+      "cities": [
+        "Aran",
+        "Qaramanlı"
+      ]
+    },
+    {
+      "name": "Yevlakh",
+      "code": "YE",
+      "cities": [
+        "Yevlakh"
+      ]
+    },
+    {
+      "name": "Zangilan",
+      "code": "ZAN",
+      "cities": [
+        "Mincivan",
+        "Zangilan"
+      ]
+    },
+    {
+      "name": "Zaqatala",
+      "code": "ZAQ",
+      "cities": [
+        "Aliabad",
+        "Faldarlı",
+        "Mamrux",
+        "Qandax",
+        "Zaqatala"
+      ]
+    },
+    {
+      "name": "Zardab",
+      "code": "ZAR",
+      "cities": [
+        "Zardob"
+      ]
+    }
+  ]
+}

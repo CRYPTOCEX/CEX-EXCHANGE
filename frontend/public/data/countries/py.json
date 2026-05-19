@@ -1,0 +1,259 @@
+{
+  "name": "Paraguay",
+  "iso2": "PY",
+  "iso3": "PRY",
+  "phonecode": "595",
+  "states": [
+    {
+      "name": "Alto Paraguay",
+      "code": "16",
+      "cities": [
+        "Capitán Pablo Lagerenza",
+        "Fuerte Olimpo"
+      ]
+    },
+    {
+      "name": "Alto Paraná",
+      "code": "10",
+      "cities": [
+        "Cedrales",
+        "Ciudad del Este",
+        "Colonia Minga Porá",
+        "Doctor Juan León Mallorquín",
+        "Itakyry",
+        "Naranjal",
+        "Presidente Franco",
+        "San Alberto",
+        "Santa Rita",
+        "Yguazú"
+      ]
+    },
+    {
+      "name": "Amambay",
+      "code": "13",
+      "cities": [
+        "Bella Vista",
+        "Capitán Bado",
+        "Pedro Juan Caballero"
+      ]
+    },
+    {
+      "name": "Asuncion",
+      "code": "ASU",
+      "cities": []
+    },
+    {
+      "name": "Boquerón",
+      "code": "19",
+      "cities": [
+        "Colonia Menno",
+        "Colonia Neuland",
+        "Filadelfia"
+      ]
+    },
+    {
+      "name": "Caaguazú",
+      "code": "5",
+      "cities": [
+        "Caaguazú",
+        "Carayaó",
+        "Cecilio Baez",
+        "Colonia General Alfredo Stroessner",
+        "Coronel Oviedo",
+        "Doctor Juan Manuel Frutos",
+        "Mbutuý",
+        "Repatriación",
+        "San Joaquín",
+        "San José",
+        "Yhú"
+      ]
+    },
+    {
+      "name": "Caazapá",
+      "code": "6",
+      "cities": [
+        "Abaí",
+        "Buena Vista",
+        "Caazapá",
+        "General Higinio Morínigo",
+        "San Juan Nepomuceno",
+        "Yegros",
+        "Yuty"
+      ]
+    },
+    {
+      "name": "Canindeyú",
+      "code": "14",
+      "cities": [
+        "Colonia Catuete",
+        "Corpus Christi",
+        "La Paloma",
+        "Nueva Esperanza",
+        "Salto del Guairá",
+        "San Isidro de Curuguaty",
+        "Ygatimi"
+      ]
+    },
+    {
+      "name": "Central",
+      "code": "11",
+      "cities": [
+        "Areguá",
+        "Capiatá",
+        "Fernando de la Mora",
+        "Guarambaré",
+        "Itá",
+        "Itauguá",
+        "Julián Augusto Saldívar",
+        "Lambaré",
+        "Limpio",
+        "Luque",
+        "Mariano Roque Alonso",
+        "Nemby",
+        "Nueva Italia",
+        "San Antonio",
+        "San Lorenzo",
+        "Villa Elisa",
+        "Villeta",
+        "Ypacarai",
+        "Ypané"
+      ]
+    },
+    {
+      "name": "Concepción",
+      "code": "1",
+      "cities": [
+        "Belén",
+        "Concepción",
+        "Horqueta"
+      ]
+    },
+    {
+      "name": "Cordillera",
+      "code": "3",
+      "cities": [
+        "Altos",
+        "Arroyos y Esteros",
+        "Atyrá",
+        "Caacupé",
+        "Caraguatay",
+        "Emboscada",
+        "Eusebio Ayala",
+        "Isla Pucú",
+        "Itacurubí de la Cordillera",
+        "Piribebuy",
+        "San Bernardino",
+        "Santa Elena",
+        "Tobatí"
+      ]
+    },
+    {
+      "name": "Guairá",
+      "code": "4",
+      "cities": [
+        "Colonia Mauricio José Troche",
+        "Coronel Martínez",
+        "Independencia",
+        "Itapé",
+        "Iturbe",
+        "Mbocayaty",
+        "Natalicio Talavera",
+        "Villarrica"
+      ]
+    },
+    {
+      "name": "Itapúa",
+      "code": "7",
+      "cities": [
+        "Arquitecto Tomás Romero Pereira",
+        "Bella Vista",
+        "Capitán Miranda",
+        "Carmen del Paraná",
+        "Colonia Carlos Antonio López",
+        "Colonia San Lorenzo",
+        "Edelira",
+        "Encarnación",
+        "Fram",
+        "General Artigas",
+        "General Delgado",
+        "Hohenau",
+        "Jesús",
+        "Natalio",
+        "Obligado",
+        "Pirapó",
+        "Puerto Mayor Otaño",
+        "San Cosme y Damián",
+        "San Juan del Paraná",
+        "San Pedro del Paraná",
+        "Trinidad"
+      ]
+    },
+    {
+      "name": "Misiones",
+      "code": "8",
+      "cities": [
+        "Juan de Ayolas",
+        "San Juan Bautista",
+        "San Miguel",
+        "San Patricio",
+        "Santa María",
+        "Santa Rosa Misiones",
+        "Santiago",
+        "Villa Florida"
+      ]
+    },
+    {
+      "name": "Ñeembucú",
+      "code": "12",
+      "cities": [
+        "Cerrito",
+        "General José Eduvigis Díaz",
+        "Pilar"
+      ]
+    },
+    {
+      "name": "Paraguarí",
+      "code": "9",
+      "cities": [
+        "Acahay",
+        "Caapucú",
+        "Carapeguá",
+        "La Colmena",
+        "Mbuyapey",
+        "Paraguarí",
+        "Pirayú",
+        "Quiindy",
+        "Sapucaí",
+        "Yaguarón",
+        "Ybycuí"
+      ]
+    },
+    {
+      "name": "Presidente Hayes",
+      "code": "15",
+      "cities": [
+        "Benjamín Aceval",
+        "Nanawua",
+        "Villa Hayes"
+      ]
+    },
+    {
+      "name": "San Pedro",
+      "code": "2",
+      "cities": [
+        "Antequera",
+        "Capiíbary",
+        "Colonia Nueva Germania",
+        "General Elizardo Aquino",
+        "Guayaybi",
+        "Itacurubí del Rosario",
+        "Lima",
+        "Puerto Rosario",
+        "San Pedro de Ycuamandiyú",
+        "Tacuatí",
+        "Unión",
+        "Yataity del Norte"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "name": "Liechtenstein",
+  "iso2": "LI",
+  "iso3": "LIE",
+  "phonecode": "423",
+  "states": [
+    {
+      "name": "Balzers",
+      "code": "01",
+      "cities": [
+        "Balzers"
+      ]
+    },
+    {
+      "name": "Eschen",
+      "code": "02",
+      "cities": [
+        "Eschen"
+      ]
+    },
+    {
+      "name": "Gamprin",
+      "code": "03",
+      "cities": [
+        "Gamprin"
+      ]
+    },
+    {
+      "name": "Mauren",
+      "code": "04",
+      "cities": [
+        "Mauren"
+      ]
+    },
+    {
+      "name": "Planken",
+      "code": "05",
+      "cities": [
+        "Planken"
+      ]
+    },
+    {
+      "name": "Ruggell",
+      "code": "06",
+      "cities": [
+        "Ruggell"
+      ]
+    },
+    {
+      "name": "Schaan",
+      "code": "07",
+      "cities": [
+        "Schaan"
+      ]
+    },
+    {
+      "name": "Schellenberg",
+      "code": "08",
+      "cities": [
+        "Schellenberg"
+      ]
+    },
+    {
+      "name": "Triesen",
+      "code": "09",
+      "cities": [
+        "Triesen"
+      ]
+    },
+    {
+      "name": "Triesenberg",
+      "code": "10",
+      "cities": [
+        "Triesenberg"
+      ]
+    },
+    {
+      "name": "Vaduz",
+      "code": "11",
+      "cities": [
+        "Vaduz"
+      ]
+    }
+  ]
+}

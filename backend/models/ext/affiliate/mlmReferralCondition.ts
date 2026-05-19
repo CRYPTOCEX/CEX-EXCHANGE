@@ -1,0 +1,246 @@
+import * as Sequelize from "sequelize";
+import { DataTypes, Model } from "sequelize";
+import mlmReferralReward from "./mlmReferralReward";
+
+export default class mlmReferralCondition
+  extends Model<
+    mlmReferralConditionAttributes,
+    mlmReferralConditionCreationAttributes
+  >
+  implements mlmReferralConditionAttributes
+{
+  id!: string;
+  name!: string;
+  title!: string;
+  description!: string;
+  type!:
+    | "DEPOSIT"
+    | "TRADE"
+    | "SPOT_TRADE"
+    | "BINARY_WIN"
+    | "INVESTMENT"
+    | "AI_INVESTMENT"
+    | "FOREX_INVESTMENT"
+    | "ICO_CONTRIBUTION"
+    | "STAKING"
+    | "ECOMMERCE_PURCHASE"
+    | "P2P_TRADE"
+    | "NFT_TRADE"
+    | "COPY_TRADING"
+    | "FUTURES_TRADE"
+    | "TOKEN_PURCHASE";
+  reward!: number;
+  rewardType!: "PERCENTAGE" | "FIXED";
+  rewardWalletType!: "FIAT" | "SPOT" | "ECO";
+  rewardCurrency!: string;
+  rewardChain?: string;
+  image?: string;
+  minAmount!: number;
+  status!: boolean;
+
+  // mlmReferralCondition hasMany mlmReferralReward via conditionId
+  mlmReferralRewards!: mlmReferralReward[];
+  getMlmReferralRewards!: Sequelize.HasManyGetAssociationsMixin<mlmReferralReward>;
+  setMlmReferralRewards!: Sequelize.HasManySetAssociationsMixin<
+    mlmReferralReward,
+    string
+  >;
+  addMlmReferralReward!: Sequelize.HasManyAddAssociationMixin<
+    mlmReferralReward,
+    string
+  >;
+  addMlmReferralRewards!: Sequelize.HasManyAddAssociationsMixin<
+    mlmReferralReward,
+    string
+  >;
+  createMlmReferralReward!: Sequelize.HasManyCreateAssociationMixin<mlmReferralReward>;
+  removeMlmReferralReward!: Sequelize.HasManyRemoveAssociationMixin<
+    mlmReferralReward,
+    string
+  >;
+  removeMlmReferralRewards!: Sequelize.HasManyRemoveAssociationsMixin<
+    mlmReferralReward,
+    string
+  >;
+  hasMlmReferralReward!: Sequelize.HasManyHasAssociationMixin<
+    mlmReferralReward,
+    string
+  >;
+  hasMlmReferralRewards!: Sequelize.HasManyHasAssociationsMixin<
+    mlmReferralReward,
+    string
+  >;
+  countMlmReferralRewards!: Sequelize.HasManyCountAssociationsMixin;
+
+  public static initModel(
+    sequelize: Sequelize.Sequelize
+  ): typeof mlmReferralCondition {
+    return mlmReferralCondition.init(
+      {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          primaryKey: true,
+          allowNull: false,
+        },
+        name: {
+          type: DataTypes.STRING(191),
+          allowNull: false,
+          validate: {
+            notEmpty: { msg: "name: Name cannot be empty" },
+          },
+        },
+        title: {
+          type: DataTypes.STRING(191),
+          allowNull: false,
+          validate: {
+            notEmpty: { msg: "title: Title cannot be empty" },
+          },
+        },
+        description: {
+          type: DataTypes.STRING(191),
+          allowNull: false,
+          validate: {
+            notEmpty: { msg: "description: Description cannot be empty" },
+          },
+        },
+        type: {
+          type: DataTypes.ENUM(
+            "DEPOSIT",
+            "TRADE",
+            "SPOT_TRADE",
+            "BINARY_WIN",
+            "INVESTMENT",
+            "AI_INVESTMENT",
+            "FOREX_INVESTMENT",
+            "ICO_CONTRIBUTION",
+            "STAKING",
+            "ECOMMERCE_PURCHASE",
+            "P2P_TRADE",
+            "NFT_TRADE",
+            "COPY_TRADING",
+            "FUTURES_TRADE",
+            "TOKEN_PURCHASE"
+          ),
+          allowNull: false,
+          validate: {
+            isIn: {
+              args: [
+                [
+                  "DEPOSIT",
+                  "TRADE",
+                  "SPOT_TRADE",
+                  "BINARY_WIN",
+                  "INVESTMENT",
+                  "AI_INVESTMENT",
+                  "FOREX_INVESTMENT",
+                  "ICO_CONTRIBUTION",
+                  "STAKING",
+                  "ECOMMERCE_PURCHASE",
+                  "P2P_TRADE",
+                  "NFT_TRADE",
+                  "COPY_TRADING",
+                  "FUTURES_TRADE",
+                  "TOKEN_PURCHASE",
+                ],
+              ],
+              msg: "type: Type must be a valid referral condition type",
+            },
+          },
+        },
+        reward: {
+          type: DataTypes.DOUBLE,
+          allowNull: false,
+          validate: {
+            isFloat: { msg: "reward: Reward must be a valid number" },
+          },
+        },
+        rewardType: {
+          type: DataTypes.ENUM("PERCENTAGE", "FIXED"),
+          allowNull: false,
+          validate: {
+            isIn: {
+              args: [["PERCENTAGE", "FIXED"]],
+              msg: "rewardType: Reward type must be either PERCENTAGE or FIXED",
+            },
+          },
+        },
+        rewardWalletType: {
+          type: DataTypes.ENUM("FIAT", "SPOT", "ECO"),
+          allowNull: false,
+          validate: {
+            isIn: {
+              args: [["FIAT", "SPOT", "ECO"]],
+              msg: "rewardWalletType: Wallet type must be one of FIAT, SPOT, ECO",
+            },
+          },
+        },
+        rewardCurrency: {
+          type: DataTypes.STRING(191),
+          allowNull: false,
+          validate: {
+            notEmpty: {
+              msg: "rewardCurrency: Reward currency cannot be empty",
+            },
+          },
+        },
+        rewardChain: {
+          type: DataTypes.STRING(191),
+          allowNull: true,
+        },
+        image: {
+          type: DataTypes.STRING(191),
+          allowNull: true,
+        },
+        minAmount: {
+          type: DataTypes.DOUBLE,
+          allowNull: false,
+          defaultValue: 0,
+          validate: {
+            isFloat: { msg: "minAmount: Minimum amount must be a valid number" },
+            min: {
+              args: [0],
+              msg: "minAmount: Minimum amount cannot be negative",
+            },
+          },
+        },
+        status: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: true,
+          validate: {
+            isBoolean: { msg: "status: Status must be a boolean value" },
+          },
+        },
+      },
+      {
+        sequelize,
+        modelName: "mlmReferralCondition",
+        tableName: "mlm_referral_condition",
+        timestamps: false,
+        indexes: [
+          {
+            name: "PRIMARY",
+            unique: true,
+            using: "BTREE",
+            fields: [{ name: "id" }],
+          },
+          {
+            name: "mlmReferralConditionNameKey",
+            unique: true,
+            using: "BTREE",
+            fields: [{ name: "name" }],
+          },
+        ],
+      }
+    );
+  }
+  public static associate(models: any) {
+    mlmReferralCondition.hasMany(models.mlmReferralReward, {
+      as: "referralRewards", // Rewards tied to a specific condition
+      foreignKey: "conditionId",
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    });
+  }
+}

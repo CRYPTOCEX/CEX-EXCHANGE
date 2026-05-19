@@ -1,0 +1,64 @@
+{
+  "name": "Singapore",
+  "iso2": "SG",
+  "iso3": "SGP",
+  "phonecode": "65",
+  "states": [
+    {
+      "name": "Central Singapore",
+      "code": "01",
+      "cities": [
+        "Bukit Timah",
+        "Downtown Core",
+        "Geylang",
+        "Kallang",
+        "Marine Parade",
+        "Novena",
+        "Orchard Road",
+        "Outram",
+        "Rochor",
+        "Singapore",
+        "Tanjong Pagar",
+        "Toa Payoh"
+      ]
+    },
+    {
+      "name": "North East",
+      "code": "02",
+      "cities": [
+        "Ang Mo Kio",
+        "Hougang",
+        "Punggol",
+        "Sengkang",
+        "Serangoon"
+      ]
+    },
+    {
+      "name": "North West",
+      "code": "03",
+      "cities": [
+        "Sembawang",
+        "Woodlands",
+        "Yishun"
+      ]
+    },
+    {
+      "name": "South East",
+      "code": "04",
+      "cities": [
+        "Bedok",
+        "Pasir Ris",
+        "Tampines"
+      ]
+    },
+    {
+      "name": "South West",
+      "code": "05",
+      "cities": [
+        "Bukit Batok",
+        "Bukit Panjang",
+        "Jurong West"
+      ]
+    }
+  ]
+}

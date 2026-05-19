@@ -1,0 +1,41 @@
+{
+  "name": "Bahrain",
+  "iso2": "BH",
+  "iso3": "BHR",
+  "phonecode": "973",
+  "states": [
+    {
+      "name": "Capital",
+      "code": "13",
+      "cities": [
+        "Jidd Ḩafş",
+        "Manama",
+        "Sitrah"
+      ]
+    },
+    {
+      "name": "Muharraq",
+      "code": "15",
+      "cities": [
+        "Al Ḩadd",
+        "Al Muharraq"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "17",
+      "cities": [
+        "Madīnat Ḩamad"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "14",
+      "cities": [
+        "Ar Rifā‘",
+        "Dār Kulayb",
+        "Madīnat ‘Īsá"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "United States Minor Outlying Islands",
+  "iso2": "UM",
+  "iso3": "UMI",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Baker Island",
+      "code": "81",
+      "cities": []
+    },
+    {
+      "name": "Howland Island",
+      "code": "84",
+      "cities": []
+    },
+    {
+      "name": "Jarvis Island",
+      "code": "86",
+      "cities": []
+    },
+    {
+      "name": "Johnston Atoll",
+      "code": "67",
+      "cities": []
+    },
+    {
+      "name": "Kingman Reef",
+      "code": "89",
+      "cities": []
+    },
+    {
+      "name": "Midway Islands",
+      "code": "71",
+      "cities": []
+    },
+    {
+      "name": "Navassa Island",
+      "code": "76",
+      "cities": []
+    },
+    {
+      "name": "Palmyra Atoll",
+      "code": "95",
+      "cities": []
+    },
+    {
+      "name": "Wake Island",
+      "code": "79",
+      "cities": []
+    }
+  ]
+}

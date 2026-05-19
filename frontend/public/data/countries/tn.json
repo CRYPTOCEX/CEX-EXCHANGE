@@ -1,0 +1,317 @@
+{
+  "name": "Tunisia",
+  "iso2": "TN",
+  "iso3": "TUN",
+  "phonecode": "216",
+  "states": [
+    {
+      "name": "Ariana",
+      "code": "12",
+      "cities": [
+        "Ariana",
+        "Ettadhamen-Mnihla",
+        "Kalaat el-Andalous",
+        "La Soukra",
+        "Mnihla",
+        "Raoued",
+        "Sidi Thabet"
+      ]
+    },
+    {
+      "name": "Béja",
+      "code": "31",
+      "cities": [
+        "Amdoun",
+        "Béja",
+        "Goubellat",
+        "Medjez el Bab",
+        "Nefza",
+        "Tabursuq",
+        "Téboursouk",
+        "Testour",
+        "Thibar"
+      ]
+    },
+    {
+      "name": "Ben Arous",
+      "code": "13",
+      "cities": [
+        "Ben Arous",
+        "Hammam Lif",
+        "Mornag",
+        "Mornaguia",
+        "Radès"
+      ]
+    },
+    {
+      "name": "Bizerte",
+      "code": "23",
+      "cities": [
+        "Al Matlīn",
+        "Bizerte",
+        "Bizerte Sud",
+        "Douar Tindja",
+        "El Alia",
+        "Mateur",
+        "Menzel Abderhaman",
+        "Menzel Bourguiba",
+        "Menzel Jemil",
+        "Rafrāf",
+        "Rhar el Melah",
+        "Sejenane",
+        "Zahānah"
+      ]
+    },
+    {
+      "name": "Gabès",
+      "code": "81",
+      "cities": [
+        "Bou Attouche",
+        "El Hamma",
+        "Gabès",
+        "Matmata"
+      ]
+    },
+    {
+      "name": "Gafsa",
+      "code": "71",
+      "cities": [
+        "Ar Rudayyif",
+        "As Sanad",
+        "Gafsa",
+        "Metlaoui",
+        "Mu‘tamadīyat ar Rudayyif"
+      ]
+    },
+    {
+      "name": "Jendouba",
+      "code": "32",
+      "cities": [
+        "Fernana",
+        "Jendouba",
+        "Oued Meliz",
+        "Tabarka"
+      ]
+    },
+    {
+      "name": "Kairouan",
+      "code": "41",
+      "cities": [
+        "Haffouz",
+        "Kairouan",
+        "Sbikha"
+      ]
+    },
+    {
+      "name": "Kasserine",
+      "code": "42",
+      "cities": [
+        "Kasserine",
+        "Rohia",
+        "Sbiba",
+        "Thala"
+      ]
+    },
+    {
+      "name": "Kebili",
+      "code": "73",
+      "cities": [
+        "Douz",
+        "El Golaa",
+        "Jemna",
+        "Kebili"
+      ]
+    },
+    {
+      "name": "Kef",
+      "code": "33",
+      "cities": [
+        "As Sars",
+        "El Kef",
+        "El Ksour",
+        "Menzel Salem",
+        "Nibbar",
+        "Sakiet Sidi Youssef",
+        "Tajerouine"
+      ]
+    },
+    {
+      "name": "Mahdia",
+      "code": "53",
+      "cities": [
+        "Chebba",
+        "Chorbane",
+        "El Jem",
+        "Ksour Essaf",
+        "Mahdia",
+        "Melloulèche",
+        "Salakta",
+        "Sidi Alouane",
+        "Zouila"
+      ]
+    },
+    {
+      "name": "Manouba",
+      "code": "14",
+      "cities": [
+        "El Battan",
+        "Manouba",
+        "Mu‘tamadīyat Manūbah",
+        "Oued Lill"
+      ]
+    },
+    {
+      "name": "Medenine",
+      "code": "82",
+      "cities": [
+        "Ben Gardane",
+        "Beni Kheddache",
+        "Erriadh",
+        "Houmt El Souk",
+        "Jerba Midoun",
+        "Medenine",
+        "Midoun",
+        "Zarzis"
+      ]
+    },
+    {
+      "name": "Monastir",
+      "code": "52",
+      "cities": [
+        "Banbalah",
+        "Bekalta",
+        "Beni Hassane",
+        "Djemmal",
+        "Ksar Hellal",
+        "Ksibet el Mediouni",
+        "Lemta",
+        "Menzel Kamel",
+        "Mesdour",
+        "Monastir",
+        "Ouardenine",
+        "Sahline",
+        "Seïada",
+        "Sidi Ben Nour",
+        "Skanes",
+        "Touza"
+      ]
+    },
+    {
+      "name": "Nabeul",
+      "code": "21",
+      "cities": [
+        "Azmour",
+        "Beni Khalled",
+        "Béni Khiar",
+        "Bou Argoub",
+        "Dar Chaabane",
+        "El Haouaria",
+        "El Maâmoura",
+        "El Mida",
+        "El Mrezga",
+        "Grombalia",
+        "Hammamet",
+        "Kelibia",
+        "Korba",
+        "Korbous",
+        "Menzel Bouzelfa",
+        "Menzel Horr",
+        "Menzel Temime",
+        "Nabeul",
+        "Soliman",
+        "Takelsa",
+        "Tazerka",
+        "Zaouiet Djedidi",
+        "Zriba"
+      ]
+    },
+    {
+      "name": "Sfax",
+      "code": "61",
+      "cities": [
+        "Agareb",
+        "Bir Ali Ben Khalifa",
+        "Djebeniana",
+        "Gremda",
+        "Sfax",
+        "Skhira"
+      ]
+    },
+    {
+      "name": "Sidi Bouzid",
+      "code": "43",
+      "cities": [
+        "Bir el Hafey",
+        "Er Regueb",
+        "Jilma",
+        "Mezzouna",
+        "Sidi Bouzid"
+      ]
+    },
+    {
+      "name": "Siliana",
+      "code": "34",
+      "cities": [
+        "Bou Arada",
+        "Gafour",
+        "Kesra",
+        "Le Krib",
+        "Maktar",
+        "Siliana"
+      ]
+    },
+    {
+      "name": "Sousse",
+      "code": "51",
+      "cities": [
+        "Akouda",
+        "Hammam Sousse",
+        "Harqalah",
+        "Msaken",
+        "Port el Kantaoui",
+        "Sidi Bou Ali",
+        "Sidi el Hani",
+        "Sousse"
+      ]
+    },
+    {
+      "name": "Tataouine",
+      "code": "83",
+      "cities": [
+        "Remada",
+        "Tataouine"
+      ]
+    },
+    {
+      "name": "Tozeur",
+      "code": "72",
+      "cities": [
+        "Chebika",
+        "Degache",
+        "Nefta",
+        "Tamaghzah",
+        "Tozeur"
+      ]
+    },
+    {
+      "name": "Tunis",
+      "code": "11",
+      "cities": [
+        "Al Marsá",
+        "Carthage",
+        "La Goulette",
+        "La Mohammedia",
+        "Sidi Bou Saïd",
+        "Tunis"
+      ]
+    },
+    {
+      "name": "Zaghouan",
+      "code": "22",
+      "cities": [
+        "El Fahs",
+        "Zaghouan"
+      ]
+    }
+  ]
+}

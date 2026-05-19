@@ -1,0 +1,57 @@
+{
+  "name": "Grenada",
+  "iso2": "GD",
+  "iso3": "GRD",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Carriacou",
+      "code": "10",
+      "cities": [
+        "Hillsborough"
+      ]
+    },
+    {
+      "name": "Saint Andrew",
+      "code": "01",
+      "cities": [
+        "Grenville"
+      ]
+    },
+    {
+      "name": "Saint David",
+      "code": "02",
+      "cities": [
+        "Saint David’s"
+      ]
+    },
+    {
+      "name": "Saint George",
+      "code": "03",
+      "cities": [
+        "Saint George's"
+      ]
+    },
+    {
+      "name": "Saint John",
+      "code": "04",
+      "cities": [
+        "Gouyave"
+      ]
+    },
+    {
+      "name": "Saint Mark",
+      "code": "05",
+      "cities": [
+        "Victoria"
+      ]
+    },
+    {
+      "name": "Saint Patrick",
+      "code": "06",
+      "cities": [
+        "Sauteurs"
+      ]
+    }
+  ]
+}
