@@ -1,5 +1,5 @@
 # This is the CEX Code for team to develop frontend & backend🧑‍💻
- -Binance -xt -Kucoin -bybit -okx -kraken -bitget -gate -mexc 
+ -Binance -xt -Kucoin -kraken -bybit -okx -kraken -bitget -gate -mexc 
 -----
 
 ## ✅ Prerequisites
@@ -36,9 +36,8 @@ For the main application installation and initial Virtualmin setup, please follo
 -----
 
 ## 🛠️ Step 3: Core Configuration
--Binance -xt -Kucoin -bybit -okx -kraken -bitget -gate -mexc
 ### Exchange & Wallet Configuration
-
+-Binance -xt -Kucoin -bybit -okx -kraken -bitget -gate -mexc
 1.  Navigate to the admin finance panel: `https://yourwebsite.com/en/admin/finance/exchange`.
 
 2.  Import and activate the currencies you plan to support.
