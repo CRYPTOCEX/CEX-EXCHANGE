@@ -108,7 +108,10 @@ exports.default = async (data) => {
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing transfer transaction");
-        const idempotencyKey = `eco_transfer_${user.id}_${id}_${currency}_${amount}`;
+        // pass2 #18: scope to a coarse 30s window so genuine double-submits dedupe but legitimate
+        // repeat transfers of the same amount are not blocked forever.
+        const idempotencyWindow = Math.floor(Date.now() / 30000);
+        const idempotencyKey = `eco_transfer_${user.id}_${id}_${currency}_${amount}_${idempotencyWindow}`;
         await wallet_2.walletService.transfer({
             idempotencyKey,
             fromUserId: user.id,

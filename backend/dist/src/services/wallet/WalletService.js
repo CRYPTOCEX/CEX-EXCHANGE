@@ -7,6 +7,7 @@ const sequelize_1 = require("sequelize");
 const fees_1 = require("@b/utils/fees");
 const errors_1 = require("./errors");
 const precision_1 = require("./utils/precision");
+const constants_1 = require("@b/services/wallet/constants");
 const AuditLogger_1 = require("./audit/AuditLogger");
 const PrecisionCacheService_1 = require("./PrecisionCacheService");
 class WalletService {
@@ -207,7 +208,7 @@ class WalletService {
                 userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType),
-                status: "COMPLETED",
+                status: operation.status || "COMPLETED",
                 amount: creditAmount,
                 fee: operation.fee || 0,
                 description: operation.description,
@@ -268,7 +269,7 @@ class WalletService {
                 userId: resolvedUserId,
                 walletId: wallet.id,
                 type: this.mapOperationTypeToTransactionType(operation.operationType),
-                status: "COMPLETED",
+                status: operation.status || "COMPLETED",
                 amount: debitAmount,
                 fee: feeAmount,
                 description: operation.description,
@@ -605,8 +606,9 @@ class WalletService {
         return (0, precision_1.safeAdd)(wallet.balance, wallet.inOrder, currency);
     }
     async getAvailableBalance(userId, type, currency) {
+        var _a;
         const wallet = await this.getWallet(userId, type, currency);
-        return wallet.balance;
+        return (0, precision_1.safeSubtract)(wallet.balance, (_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0, currency);
     }
     async getUserWallets(userId, type) {
         const where = { userId };
@@ -675,8 +677,9 @@ class WalletService {
         }
         const actualBalance = wallet.balance;
         const discrepancy = Math.abs(expectedBalance - actualBalance);
+        const maxDiscrepancy = 1 / Math.pow(10, (0, constants_1.getPrecision)(wallet.currency));
         return {
-            isValid: discrepancy < 0.00000001,
+            isValid: discrepancy < maxDiscrepancy,
             expectedBalance: (0, precision_1.roundToPrecision)(expectedBalance, wallet.currency),
             actualBalance,
             discrepancy,
@@ -740,6 +743,9 @@ class WalletService {
                 previousChainBalance = await this.updateBalancePrecision(parseFloat(((_a = addresses[chain].balance) === null || _a === void 0 ? void 0 : _a.toString()) || "0"), currency, chain);
                 newChainBalance = await this.updateBalancePrecision(previousChainBalance + precisionAmount, currency, chain);
                 addresses[chain].balance = newChainBalance;
+            }
+            else {
+                throw (0, error_1.createError)({ statusCode: 404, message: `Chain ${chain} not found in wallet addresses` });
             }
             const previousBalance = wallet.balance;
             const newBalance = await this.updateBalancePrecision(previousBalance + precisionAmount, currency, chain);
@@ -856,11 +862,35 @@ class WalletService {
                 }
                 await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
             }
-            await this.auditLogger.logDebit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, operation.idempotencyKey, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, ...operation.metadata });
+            // pass2 #19 FIX: persist a transaction row carrying metadata.idempotencyKey so the
+            // checkIdempotency() guard above can actually detect a retry. Previously ecoDebit
+            // recorded NO transaction, so the duplicate check never matched → double-debit risk.
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
+                status: "COMPLETED",
+                amount: precisionAmount,
+                fee: operation.fee || 0,
+                description: operation.description || `Debit of ${precisionAmount} ${operation.currency}`,
+                trxId: operation.txHash,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    chain,
+                    currency: operation.currency,
+                    previousBalance,
+                    newBalance,
+                    previousChainBalance,
+                    newChainBalance,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logDebit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, ...operation.metadata });
             return {
                 success: true,
                 walletId: wallet.id,
-                transactionId: operation.idempotencyKey,
+                transactionId: txRecord.id,
                 previousBalance,
                 newBalance,
                 previousChainBalance,
@@ -919,11 +949,36 @@ class WalletService {
                     await db_1.models.walletData.update({ balance: newWalletDataBalance }, { where: { walletId: wallet.id, chain }, transaction: t });
                 }
             }
-            await this.auditLogger.logCredit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, operation.idempotencyKey, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, refund: true, ...operation.metadata });
+            // pass2 #19 FIX: persist a transaction row with metadata.idempotencyKey so
+            // checkIdempotency() can detect a retry. Previously ecoRefund recorded no
+            // transaction → the duplicate check never matched → double-refund risk.
+            const txRecord = await db_1.models.transaction.create({
+                userId: operation.userId,
+                walletId: wallet.id,
+                type: this.mapOperationTypeToTransactionType(operation.operationType),
+                status: "COMPLETED",
+                amount: precisionAmount,
+                fee: operation.fee || 0,
+                description: operation.description || `Refund of ${precisionAmount} ${operation.currency}`,
+                trxId: operation.txHash,
+                referenceId: operation.referenceId,
+                metadata: JSON.stringify({
+                    idempotencyKey: operation.idempotencyKey,
+                    chain,
+                    currency: operation.currency,
+                    previousBalance,
+                    newBalance,
+                    previousChainBalance,
+                    newChainBalance,
+                    refund: true,
+                    ...operation.metadata,
+                }),
+            }, { transaction: t });
+            await this.auditLogger.logCredit(wallet.id, operation.userId, precisionAmount, previousBalance, newBalance, txRecord.id, operation.idempotencyKey, { chain, previousChainBalance, newChainBalance, refund: true, ...operation.metadata });
             return {
                 success: true,
                 walletId: wallet.id,
-                transactionId: operation.idempotencyKey,
+                transactionId: txRecord.id,
                 previousBalance,
                 newBalance,
                 previousChainBalance,

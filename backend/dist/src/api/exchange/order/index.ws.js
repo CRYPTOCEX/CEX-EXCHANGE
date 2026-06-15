@@ -58,7 +58,9 @@ class OrderHandler {
             const metadata = typeof market.metadata === "string"
                 ? JSON.parse(market.metadata)
                 : market.metadata;
-            const feeRate = order.side === "BUY" ? Number(metadata.taker) : Number(metadata.maker);
+            // pass2 #17 FIX: maker/taker is set by order TYPE (market=taker, limit=maker), not by
+            // buy/sell side. Matches the REST order path; using side mischarged limit-buys/market-sells.
+            const feeRate = (order.type && String(order.type).toLowerCase() === "market") ? Number(metadata.taker) : Number(metadata.maker);
             order = (0, utils_3.adjustOrderData)(order, provider, feeRate);
             const amount = Number(order.amount);
             const cost = Number(order.cost);
@@ -109,9 +111,15 @@ class OrderHandler {
                     },
                 });
             }
+            // pass2 #7 FIX: signal success so callers only mark CLOSED / untrack after a
+            // durable credit. The idempotencyKey above makes a later retry double-credit-safe.
+            return true;
         }
         catch (error) {
+            // pass2 #7 FIX: do NOT swallow — return false so the order stays OPEN and tracked,
+            // and the next 5s poll retries the credit (idempotent) instead of losing the fill.
             console_1.logger.error("EXCHANGE", "Failed to update wallet balance", error);
+            return false;
         }
     }
     flushOrders() {
@@ -162,7 +170,8 @@ class OrderHandler {
                     ? JSON.parse(market.metadata)
                     : market.metadata;
                 const adjustedOrders = orders.map((order) => {
-                    const feeRate = order.side === "BUY"
+                    // pass2 #17 FIX: maker/taker by order TYPE (market=taker, limit=maker), not side.
+                    const feeRate = (order.type && String(order.type).toLowerCase() === "market")
                         ? Number(metadata.taker)
                         : Number(metadata.maker);
                     return (0, utils_3.adjustOrderData)(order, provider, feeRate);
@@ -209,7 +218,8 @@ class OrderHandler {
                 const metadata = typeof market.metadata === "string"
                     ? JSON.parse(market.metadata)
                     : market.metadata;
-                const feeRate = order.side === "BUY"
+                // pass2 #17 FIX: maker/taker by order TYPE (market=taker, limit=maker), not side.
+                const feeRate = (order.type && String(order.type).toLowerCase() === "market")
                     ? Number(metadata.taker)
                     : Number(metadata.maker);
                 return (0, utils_3.adjustOrderData)(order, provider, feeRate);
@@ -326,15 +336,29 @@ class OrderHandler {
                                         remaining: fetchedOrder.remaining,
                                         timestamp: fetchedOrder.timestamp,
                                     });
-                                    await this.updateOrder(fetchedOrder.id, {
-                                        status: fetchedOrder.status.toUpperCase(),
-                                        price: fetchedOrder.price,
-                                        filled: fetchedOrder.filled,
-                                        remaining: fetchedOrder.remaining,
-                                    });
                                     if (fetchedOrder.status === "CLOSED") {
-                                        userOrders.splice(userOrders.indexOf(order), 1);
-                                        await this.updateWalletBalance(userId, fetchedOrder, provider);
+                                        // pass2 #7 FIX: credit the wallet FIRST. Only mark CLOSED +
+                                        // untrack after a successful credit, so a transient credit
+                                        // failure leaves the order OPEN/tracked for the next poll
+                                        // to retry (idempotent) instead of silently losing the fill.
+                                        const credited = await this.updateWalletBalance(userId, fetchedOrder, provider);
+                                        if (credited) {
+                                            await this.updateOrder(fetchedOrder.id, {
+                                                status: fetchedOrder.status.toUpperCase(),
+                                                price: fetchedOrder.price,
+                                                filled: fetchedOrder.filled,
+                                                remaining: fetchedOrder.remaining,
+                                            });
+                                            userOrders.splice(userOrders.indexOf(order), 1);
+                                        }
+                                    }
+                                    else {
+                                        await this.updateOrder(fetchedOrder.id, {
+                                            status: fetchedOrder.status.toUpperCase(),
+                                            price: fetchedOrder.price,
+                                            filled: fetchedOrder.filled,
+                                            remaining: fetchedOrder.remaining,
+                                        });
                                     }
                                 }
                             }
@@ -358,17 +382,29 @@ class OrderHandler {
                                 remaining: updatedOrder.remaining,
                                 timestamp: updatedOrder.timestamp,
                             });
-                            await this.updateOrder(updatedOrder.id, {
-                                status: updatedOrder.status.toUpperCase(),
-                                price: updatedOrder.price,
-                                filled: updatedOrder.filled,
-                                remaining: updatedOrder.remaining,
-                            });
                             if (updatedOrder.status === "CLOSED") {
-                                userOrders.splice(userOrders.indexOf(order), 1);
-                                await this.updateWalletBalance(userId, updatedOrder, provider);
+                                // pass2 #7 FIX: credit the wallet FIRST. Only mark CLOSED +
+                                // untrack after a successful credit, so a transient credit
+                                // failure leaves the order OPEN/tracked for the next poll
+                                // to retry (idempotent) instead of silently losing the fill.
+                                const credited = await this.updateWalletBalance(userId, updatedOrder, provider);
+                                if (credited) {
+                                    await this.updateOrder(updatedOrder.id, {
+                                        status: updatedOrder.status.toUpperCase(),
+                                        price: updatedOrder.price,
+                                        filled: updatedOrder.filled,
+                                        remaining: updatedOrder.remaining,
+                                    });
+                                    userOrders.splice(userOrders.indexOf(order), 1);
+                                }
                             }
                             else {
+                                await this.updateOrder(updatedOrder.id, {
+                                    status: updatedOrder.status.toUpperCase(),
+                                    price: updatedOrder.price,
+                                    filled: updatedOrder.filled,
+                                    remaining: updatedOrder.remaining,
+                                });
                                 order.status = updatedOrder.status;
                             }
                         }

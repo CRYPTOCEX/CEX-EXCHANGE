@@ -48,6 +48,37 @@ exports.default = async (data) => {
     if (transaction.status !== "PENDING") {
         throw (0, error_1.createError)({ statusCode: 400, message: "Only pending transactions can be updated" });
     }
+    // pass2 #8 FIX: this generic editor never moves the wallet ledger, so settling a
+    // money-bearing transaction here desyncs the books or loses funds. The worst case is a
+    // PENDING WITHDRAW (already debited at creation in manual-approval mode) being marked
+    // REJECTED/CANCELLED here with NO walletService.credit refund -> the user's debited funds
+    // are permanently lost. Force money-bearing settlements through their dedicated
+    // approve/reject/refund endpoints, which handle the ledger correctly.
+    const MONEY_TYPES = ["DEPOSIT", "WITHDRAW", "INCOMING_TRANSFER", "OUTGOING_TRANSFER"];
+    const SETTLED_STATUSES = ["COMPLETED", "REJECTED", "CANCELLED", "FAILED", "EXPIRED", "REFUNDED"];
+    if (MONEY_TYPES.includes(transaction.type) &&
+        status !== undefined &&
+        status !== transaction.status &&
+        SETTLED_STATUSES.includes(status)) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: `Settling a ${transaction.type} transaction (status → ${status}) must go through its dedicated approve/reject/refund flow so the wallet ledger and any refund are handled. This change is not permitted via the generic transaction editor.`,
+        });
+    }
+    // Block silent ledger desync: this endpoint does not move the wallet balance,
+    // so changing amount/fee away from the stored values would desync the books.
+    if (amount !== undefined && Number(amount) !== Number(transaction.amount)) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Amount changes must go through an audited balance adjustment so the wallet ledger stays in sync. Amount change not permitted here.",
+        });
+    }
+    if (fee !== undefined && Number(fee) !== Number(transaction.fee)) {
+        throw (0, error_1.createError)({
+            statusCode: 400,
+            message: "Fee changes must go through an audited balance adjustment so the wallet ledger stays in sync. Fee change not permitted here.",
+        });
+    }
     transaction.amount = amount;
     transaction.fee = fee;
     transaction.description = description;

@@ -110,7 +110,9 @@ async function processGeneralInvestment(investment) {
         console_1.logger.error("CRON", `User not found for investment ${id}`, new Error("User not found"));
         return null;
     }
-    const roi = profit || plan.defaultProfit;
+    // pass2 #23 FIX: use nullish check so a legitimate zero-profit (profit === 0) is honored
+    // instead of falling through to plan.defaultProfit (which would over-pay a 0% plan).
+    const roi = (profit !== null && profit !== undefined) ? profit : plan.defaultProfit;
     (0, broadcast_1.broadcastLog)(cronName, `Calculated ROI (${roi}) for investment ${id}`);
     const investmentResult = result || plan.defaultResult;
     (0, broadcast_1.broadcastLog)(cronName, `Determined result (${investmentResult}) for investment ${id}`);
@@ -156,7 +158,17 @@ async function processGeneralInvestment(investment) {
                 throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
             }
             (0, broadcast_1.broadcastLog)(cronName, `Wallet found with balance ${wallet.balance} for investment ${id}`);
-            const payoutAmount = investmentResult === "WIN" ? roi : 0;
+            // pass2 #3 FIX: the principal `amount` is debited at creation but was never
+            // returned. WIN must pay back principal + profit; DRAW returns the principal
+            // (break-even); LOSS forfeits the principal (unchanged). Previously only `roi`
+            // (profit-only) was credited on WIN, so a winning investor still lost the principal.
+            let payoutAmount = 0;
+            if (investmentResult === "WIN") {
+                payoutAmount = Number(amount) + Number(roi);
+            }
+            else if (investmentResult === "DRAW") {
+                payoutAmount = Number(amount);
+            }
             if (payoutAmount > 0) {
                 const idempotencyKey = `investment_roi_${id}`;
                 await wallet_1.walletService.credit({

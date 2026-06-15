@@ -13,6 +13,7 @@ const cache_1 = require("@b/utils/cache");
 const console_1 = require("@b/utils/console");
 const wallet_1 = require("@b/services/wallet");
 const fees_1 = require("@b/utils/fees");
+const settingsParser_1 = require("@b/utils/settingsParser");
 function countDecimals(value) {
     var _a;
     if (Number.isInteger(value))
@@ -127,14 +128,20 @@ exports.default = async (data) => {
         throw (0, error_1.createError)(404, `Currency ${currency} is not available for withdrawal on the exchange. Please contact support if you believe this is an error.`);
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Validating withdrawal amount and precision");
-    const precision = (_d = (_c = (_b = (exchangeCurrency.networks &&
+    const rawPrecision = (_d = (_c = (_b = (exchangeCurrency.networks &&
         ((_a = exchangeCurrency.networks[chain]) === null || _a === void 0 ? void 0 : _a.precision))) !== null && _b !== void 0 ? _b : exchangeCurrency.precision) !== null && _c !== void 0 ? _c : currencyData.precision) !== null && _d !== void 0 ? _d : 8;
+    // BUG-001: exchanges may return precision as a STEP SIZE (e.g. 1e-8) rather than a
+    // decimal count. Convert step size -> decimal count before comparing against the
+    // number of decimals in the user's amount.
+    const maxDecimals = Number.isInteger(rawPrecision)
+        ? rawPrecision
+        : countDecimals(rawPrecision);
     const actualDecimals = countDecimals(amount);
-    if (actualDecimals > precision) {
-        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Amount exceeds precision: ${actualDecimals} > ${precision}`);
+    if (actualDecimals > maxDecimals) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Amount exceeds precision: ${actualDecimals} > ${maxDecimals}`);
         throw (0, error_1.createError)({
             statusCode: 400,
-            message: `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${precision} decimal places. Your amount has ${actualDecimals} decimal places.`,
+            message: `Amount has too many decimal places for ${currency} on ${chain}. Max allowed is ${maxDecimals} decimal places. Your amount has ${actualDecimals} decimal places.`,
         });
     }
     const netConf = (_f = (_e = exchangeCurrency.networks) === null || _e === void 0 ? void 0 : _e[chain]) !== null && _f !== void 0 ? _f : {};
@@ -154,14 +161,16 @@ exports.default = async (data) => {
             message: `Maximum withdrawal for ${currency} on ${chain} is ${maxWithdraw}`,
         });
     }
-    const totalWithdrawAmount = Math.abs(parseFloat(amount));
-    if (totalWithdrawAmount <= 0 || isNaN(totalWithdrawAmount)) {
+    // BUG-016: do NOT Math.abs() — negative amounts must be rejected, not silently flipped.
+    const parsedWithdrawAmount = parseFloat(amount);
+    if (!(parsedWithdrawAmount > 0) || !isFinite(parsedWithdrawAmount)) {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid amount: must be positive number");
         throw (0, error_1.createError)({
             statusCode: 400,
             message: "Amount must be a positive number",
         });
     }
+    const totalWithdrawAmount = parsedWithdrawAmount;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating withdrawal fees");
     let fixedFee = 0;
     if (exchangeCurrency.networks && exchangeCurrency.networks[chain]) {
@@ -173,16 +182,32 @@ exports.default = async (data) => {
     const percentageFee = currencyData.fee || 0;
     const cacheManager = cache_1.CacheManager.getInstance();
     const settings = await cacheManager.getSettings();
-    const withdrawChainFeeEnabled = settings.has("withdrawChainFee") &&
-        settings.get("withdrawChainFee") === "true";
-    const spotWithdrawFee = parseFloat(settings.get("spotWithdrawFee") || "0");
+    // BUG-018: withdrawalRestrictions flag. It is honored here, but there is no real
+    // per-user gating field (e.g. user.canWithdraw / KYC status) reachable in this scope,
+    // so the flag is wired but kept NON-blocking by default to avoid blocking all users.
+    const withdrawalRestrictions = (0, settingsParser_1.getBooleanSetting)(settings, "withdrawalRestrictions", false);
+    if (withdrawalRestrictions) {
+        const userCanWithdraw = (userPk === null || userPk === void 0 ? void 0 : userPk.canWithdraw);
+        if (userCanWithdraw === false) {
+            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawals are restricted for this account");
+            throw (0, error_1.createError)({
+                statusCode: 403,
+                message: "Withdrawals are currently restricted for your account. Please complete verification or contact support.",
+            });
+        }
+    }
+    // BUG-002: settings are stored as strings; a toggled-off boolean becomes "false",
+    // and parseFloat("false") === NaN poisons all downstream fee math. Use the guarded helpers.
+    const withdrawChainFeeEnabled = (0, settingsParser_1.getBooleanSetting)(settings, "withdrawChainFee", false);
+    const spotWithdrawFee = (0, settingsParser_1.getNumericSetting)(settings, "spotWithdrawFee", 0);
     const combinedPercentageFee = percentageFee + spotWithdrawFee;
-    const percentageFeeAmount = parseFloat(Math.max((totalWithdrawAmount * combinedPercentageFee) / 100, 0).toFixed(precision));
+    const percentageFeeAmount = parseFloat(Math.max((totalWithdrawAmount * combinedPercentageFee) / 100, 0).toFixed(maxDecimals));
     const isAdmin = await (0, fees_1.isSuperAdmin)(user.id);
     const internalFeeAmount = isAdmin ? 0 : percentageFeeAmount;
     const externalFeeAmount = withdrawChainFeeEnabled ? 0 : fixedFee;
-    const totalDeductionAmount = parseFloat((totalWithdrawAmount + internalFeeAmount).toFixed(precision));
-    const netWithdrawAmount = parseFloat((totalWithdrawAmount - externalFeeAmount).toFixed(precision));
+    // BUG-007: compute the full deduction (withdraw + internal fee) BEFORE the balance check.
+    const totalDeductionAmount = parseFloat((totalWithdrawAmount + internalFeeAmount).toFixed(maxDecimals));
+    const netWithdrawAmount = parseFloat((totalWithdrawAmount - externalFeeAmount).toFixed(maxDecimals));
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing withdrawal transaction");
     const result = await db_1.sequelize.transaction(async (t) => {
         var _a, _b;
@@ -200,15 +225,32 @@ exports.default = async (data) => {
         const availableBalance = wallet.balance - ((_a = wallet.inOrder) !== null && _a !== void 0 ? _a : 0);
         if (availableBalance < totalDeductionAmount) {
             ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Insufficient balance: available=${availableBalance} (balance=${wallet.balance}, inOrder=${(_b = wallet.inOrder) !== null && _b !== void 0 ? _b : 0}) < ${totalDeductionAmount}`);
-            throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
+            throw (0, error_1.createError)({
+                statusCode: 400,
+                message: `Insufficient funds. Required: ${totalDeductionAmount} ${currency} (${totalWithdrawAmount} + ${internalFeeAmount} fee). Available: ${availableBalance} ${currency}.`,
+            });
         }
-        const newBalance = parseFloat((wallet.balance - totalDeductionAmount).toFixed(precision));
+        const newBalance = parseFloat((wallet.balance - totalDeductionAmount).toFixed(maxDecimals));
         if (newBalance < 0) {
             ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Calculated balance would be negative: ${newBalance}`);
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting funds from wallet via wallet service");
-        const idempotencyKey = `spot_withdraw_${user.id}_${currency}_${totalWithdrawAmount}`;
+        // BUG-011: the old key (user/currency/amount only) permanently blocked a user from
+        // ever repeating an identical withdrawal. The key now scopes to wallet/chain/
+        // destination/amount within a coarse 30s idempotency window: genuine double-submits
+        // and network retries within the window still dedupe (preventing double-debit), but a
+        // deliberate repeat withdrawal after the window is allowed through.
+        // pass2 #26: include memo/tag so two otherwise-identical withdrawals that differ only by
+        // memo (common on memo-based chains) are not wrongly deduped within the window.
+        const idempotencyWindow = Math.floor(Date.now() / 30000);
+        const idempotencyKey = `spot_withdraw_${wallet.id}_${chain}_${toAddress}_${memo || ""}_${totalWithdrawAmount}_${idempotencyWindow}`;
+        // BUG-010 (withdraw side): in manual-approval mode the transaction must land as
+        // PENDING so the admin approve endpoint can process it. When approval is enabled
+        // (auto-process) it stays COMPLETED.
+        const debitStatus = (0, settingsParser_1.getBooleanSetting)(settings, "withdrawApproval", false)
+            ? "COMPLETED"
+            : "PENDING";
         const walletResult = await wallet_1.walletService.debit({
             idempotencyKey,
             userId: user.id,
@@ -217,6 +259,7 @@ exports.default = async (data) => {
             currency,
             amount: totalDeductionAmount,
             operationType: "WITHDRAW",
+            status: debitStatus,
             description: `Withdrawal of ${totalWithdrawAmount} ${currency} (net: ${netWithdrawAmount}) to ${toAddress} via ${chain}`,
             metadata: {
                 chain,
@@ -251,8 +294,7 @@ exports.default = async (data) => {
     }
     const resultWithTx = { ...result, dbTransaction };
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking withdrawal approval settings");
-    const withdrawApprovalEnabled = settings.has("withdrawApproval") &&
-        settings.get("withdrawApproval") === "true";
+    const withdrawApprovalEnabled = (0, settingsParser_1.getBooleanSetting)(settings, "withdrawApproval", false);
     if (withdrawApprovalEnabled) {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Auto-approval enabled, proceeding with exchange withdrawal");
         let withdrawResponse;
@@ -281,43 +323,60 @@ exports.default = async (data) => {
             ctx === null || ctx === void 0 ? void 0 : ctx.step(`Executing withdrawal via ${provider} exchange`);
             switch (provider) {
                 case "kucoin":
+                    // Step 1: transfer to trade account + submit withdrawal. A failure HERE is safe
+                    // to refund because the funds have not left the exchange yet.
                     try {
                         ctx === null || ctx === void 0 ? void 0 : ctx.step("Transferring funds to trade account (KuCoin)");
                         const transferResult = await exchange.transfer(currency, providerWithdrawAmount, "main", "trade");
-                        if (transferResult && transferResult.id) {
-                            ctx === null || ctx === void 0 ? void 0 : ctx.step("Initiating withdrawal to external address");
-                            withdrawResponse = await exchange.withdraw(currency, providerWithdrawAmount, toAddress, memo, { network: chain });
-                            if (withdrawResponse && withdrawResponse.id) {
-                                ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching withdrawal details");
-                                const withdrawals = await exchange.fetchWithdrawals(currency);
-                                const withdrawData = withdrawals.find((w) => w.id === withdrawResponse.id);
-                                if (withdrawData) {
-                                    withdrawResponse.fee = withdrawChainFeeEnabled
-                                        ? ((_m = withdrawData.fee) === null || _m === void 0 ? void 0 : _m.cost) || fixedFee
-                                        : 0;
-                                    withdrawStatus =
-                                        withdrawData.status === "ok"
-                                            ? "COMPLETED"
-                                            : withdrawData.status.toUpperCase();
-                                }
-                                else {
-                                    withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
-                                    withdrawStatus = "COMPLETED";
-                                }
-                            }
-                            else {
-                                ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawal response invalid from exchange");
-                                throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal response invalid" });
-                            }
-                        }
-                        else {
+                        if (!transferResult || !transferResult.id) {
                             ctx === null || ctx === void 0 ? void 0 : ctx.fail("Transfer to trade account failed");
                             throw (0, error_1.createError)({ statusCode: 500, message: "Transfer to trade account failed" });
                         }
+                        ctx === null || ctx === void 0 ? void 0 : ctx.step("Initiating withdrawal to external address");
+                        withdrawResponse = await exchange.withdraw(currency, providerWithdrawAmount, toAddress, memo, { network: chain });
                     }
-                    catch (error) {
-                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("KuCoin withdrawal failed: " + error.message);
+                    catch (submitError) {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("KuCoin withdrawal failed: " + submitError.message);
                         throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal request failed. Please try again or contact support." });
+                    }
+                    if (!withdrawResponse || !withdrawResponse.id) {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawal response invalid from exchange");
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal response invalid" });
+                    }
+                    // Step 2: pass2 #10 FIX — the withdrawal was accepted and funds have left the
+                    // exchange. Post-processing failures must NOT trigger the outer refund (that
+                    // would double-spend). Mark PENDING and let the cron reconcile.
+                    try {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching withdrawal details");
+                        const withdrawals = await exchange.fetchWithdrawals(currency);
+                        const withdrawData = withdrawals.find((w) => w.id === withdrawResponse.id);
+                        if (withdrawData) {
+                            withdrawResponse.fee = withdrawChainFeeEnabled
+                                ? ((_m = withdrawData.fee) === null || _m === void 0 ? void 0 : _m.cost) || fixedFee
+                                : 0;
+                            const rawStatus = (withdrawData.status || "").toString().toLowerCase();
+                            if (rawStatus === "ok" || rawStatus === "completed") {
+                                withdrawStatus = "COMPLETED";
+                            }
+                            else if (rawStatus === "canceled" || rawStatus === "cancelled") {
+                                withdrawStatus = "CANCELLED";
+                            }
+                            else if (rawStatus === "failed") {
+                                withdrawStatus = "FAILED";
+                            }
+                            else {
+                                withdrawStatus = "PENDING";
+                            }
+                        }
+                        else {
+                            withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
+                            withdrawStatus = "PENDING";
+                        }
+                    }
+                    catch (postError) {
+                        console_1.logger.warn("WITHDRAW", `KuCoin withdrawal accepted (id=${withdrawResponse.id}) but status fetch failed: ${postError.message}. Marking PENDING for cron reconciliation.`);
+                        withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
+                        withdrawStatus = "PENDING";
                     }
                     break;
                 case "binance":
@@ -393,44 +452,52 @@ exports.default = async (data) => {
                     }
                     break;
                 case "xt":
+                    // Step 1: submit. A failure here is safe to refund (funds did not leave).
                     try {
                         ctx === null || ctx === void 0 ? void 0 : ctx.step("Initiating withdrawal to external address");
                         withdrawResponse = await exchange.withdraw(currency, providerWithdrawAmount, toAddress, memo, { network: chain });
-                        if (withdrawResponse && withdrawResponse.id) {
-                            ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching withdrawal details");
-                            const withdrawals = await exchange.fetchWithdrawals(currency);
-                            const withdrawData = withdrawals.find((w) => w.id === withdrawResponse.id);
-                            if (withdrawData) {
-                                withdrawResponse.fee = withdrawChainFeeEnabled
-                                    ? ((_p = withdrawData.fee) === null || _p === void 0 ? void 0 : _p.cost) || fixedFee
-                                    : 0;
-                                const statusMapping = {
-                                    SUCCESS: "COMPLETED",
-                                    SUBMIT: "PENDING",
-                                    REVIEW: "PENDING",
-                                    AUDITED: "PROCESSING",
-                                    AUDITED_AGAIN: "PROCESSING",
-                                    PENDING: "PENDING",
-                                    FAIL: "FAILED",
-                                    CANCEL: "CANCELLED",
-                                };
-                                withdrawStatus =
-                                    statusMapping[withdrawData.status] ||
-                                        withdrawData.status.toUpperCase();
-                            }
-                            else {
-                                withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
-                                withdrawStatus = "COMPLETED";
-                            }
+                    }
+                    catch (submitError) {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("XT withdrawal failed: " + submitError.message);
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal request failed. Please try again or contact support." });
+                    }
+                    if (!withdrawResponse || !withdrawResponse.id) {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawal response invalid from exchange");
+                        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal response invalid" });
+                    }
+                    // Step 2: pass2 #10 FIX — funds left the exchange; post-processing failures must
+                    // NOT trigger the outer refund (double-spend). Mark PENDING for cron reconcile.
+                    try {
+                        ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching withdrawal details");
+                        const withdrawals = await exchange.fetchWithdrawals(currency);
+                        const withdrawData = withdrawals.find((w) => w.id === withdrawResponse.id);
+                        if (withdrawData) {
+                            withdrawResponse.fee = withdrawChainFeeEnabled
+                                ? ((_p = withdrawData.fee) === null || _p === void 0 ? void 0 : _p.cost) || fixedFee
+                                : 0;
+                            const statusMapping = {
+                                SUCCESS: "COMPLETED",
+                                SUBMIT: "PENDING",
+                                REVIEW: "PENDING",
+                                AUDITED: "PROCESSING",
+                                AUDITED_AGAIN: "PROCESSING",
+                                PENDING: "PENDING",
+                                FAIL: "FAILED",
+                                CANCEL: "CANCELLED",
+                            };
+                            withdrawStatus =
+                                statusMapping[withdrawData.status] ||
+                                    (withdrawData.status ? withdrawData.status.toUpperCase() : "PENDING");
                         }
                         else {
-                            ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawal response invalid from exchange");
-                            throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal response invalid" });
+                            withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
+                            withdrawStatus = "PENDING";
                         }
                     }
-                    catch (error) {
-                        ctx === null || ctx === void 0 ? void 0 : ctx.fail("XT withdrawal failed: " + error.message);
-                        throw (0, error_1.createError)({ statusCode: 500, message: "Withdrawal request failed. Please try again or contact support." });
+                    catch (postError) {
+                        console_1.logger.warn("WITHDRAW", `XT withdrawal accepted (id=${withdrawResponse.id}) but status fetch failed: ${postError.message}. Marking PENDING for cron reconciliation.`);
+                        withdrawResponse.fee = withdrawChainFeeEnabled ? fixedFee : 0;
+                        withdrawStatus = "PENDING";
                     }
                     break;
                 default:
@@ -499,6 +566,32 @@ exports.default = async (data) => {
                     transaction: t,
                 });
             });
+            // pass2 #11 FIX: the platform fee was credited to the super admin during the initial
+            // debit. When the withdrawal is refunded the user is made whole, so leaving the fee on
+            // the admin wallet mints unbacked funds. Reverse it BEST-EFFORT — wrapped so it can
+            // never block or undo the user's refund above; failures are logged for reconciliation.
+            if (internalFeeAmount > 0) {
+                try {
+                    const superAdmin = await (0, fees_1.getSuperAdmin)();
+                    if (superAdmin && superAdmin.id !== user.id) {
+                        const adminWallet = await wallet_1.walletCreationService.getOrCreateWallet(superAdmin.id, "SPOT", currency);
+                        await wallet_1.walletService.debit({
+                            idempotencyKey: `platform_fee_reversal_${resultWithTx.dbTransaction.id}`,
+                            userId: superAdmin.id,
+                            walletId: adminWallet.id,
+                            walletType: "SPOT",
+                            currency,
+                            amount: internalFeeAmount,
+                            operationType: "ADMIN_ADJUSTMENT",
+                            description: `Reversal of platform fee for refunded withdrawal ${resultWithTx.dbTransaction.id}`,
+                            metadata: { originalTransactionId: resultWithTx.dbTransaction.id, reason: "withdrawal_refund_fee_reversal" },
+                        });
+                    }
+                }
+                catch (feeReversalError) {
+                    console_1.logger.error("WITHDRAW", `Failed to reverse platform fee for refunded withdrawal ${resultWithTx.dbTransaction.id}: ${feeReversalError.message}. Manual reconciliation may be needed.`);
+                }
+            }
             ctx === null || ctx === void 0 ? void 0 : ctx.fail("Withdrawal failed: " + error.message);
             throw (0, error_1.createError)(500, "Withdrawal failed: " + error.message);
         }

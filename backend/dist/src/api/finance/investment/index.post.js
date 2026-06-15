@@ -114,6 +114,19 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Investment duration not found: ${durationId}`);
         throw (0, error_1.createError)({ statusCode: 404, message: "Investment duration not found" });
     }
+    // pass2 #15 FIX: validate the amount against plan limits (and basic sanity) before debiting.
+    // Guards use `!= null` so they never falsely block when a plan has no configured limit.
+    const investAmount = Number(amount);
+    if (!(investAmount > 0) || !isFinite(investAmount)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail(`Invalid investment amount: ${amount}`);
+        throw (0, error_1.createError)({ statusCode: 400, message: "Investment amount must be a positive number" });
+    }
+    if (plan.minAmount != null && investAmount < Number(plan.minAmount)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Minimum investment for this plan is ${plan.minAmount} ${plan.currency}` });
+    }
+    if (plan.maxAmount != null && investAmount > Number(plan.maxAmount)) {
+        throw (0, error_1.createError)({ statusCode: 400, message: `Maximum investment for this plan is ${plan.maxAmount} ${plan.currency}` });
+    }
     ctx === null || ctx === void 0 ? void 0 : ctx.step(`Fetching ${plan.currency} ${plan.walletType} wallet`);
     const wallet = await (0, utils_1.getWallet)(user.id, plan.walletType, plan.currency);
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Verifying wallet balance");
@@ -125,7 +138,9 @@ exports.default = async (data) => {
     const roi = (plan.profitPercentage / 100) * amount;
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Creating investment record and transaction");
     const newInvestment = await db_1.sequelize.transaction(async (transaction) => {
-        const idempotencyKey = `investment_${user.id}_${planId}_${amount}`;
+        // pass2 #16 FIX: scope the idempotency key to a coarse 30s window so genuine
+        // double-submits dedupe, but a deliberate repeat investment later is not blocked forever.
+        const idempotencyKey = `investment_${user.id}_${planId}_${amount}_${Math.floor(Date.now() / 30000)}`;
         const walletResult = await wallet_1.walletService.debit({
             idempotencyKey,
             userId: user.id,

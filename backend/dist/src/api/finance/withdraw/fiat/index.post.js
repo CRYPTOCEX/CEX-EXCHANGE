@@ -6,6 +6,7 @@ const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const wallet_1 = require("@b/services/wallet");
 const fees_1 = require("@b/utils/fees");
+const settingsParser_1 = require("@b/utils/settingsParser");
 exports.metadata = {
     summary: "Performs a custom fiat withdraw transaction",
     description: "Initiates a custom fiat withdraw transaction for the currently authenticated user",
@@ -87,9 +88,17 @@ exports.default = async (data) => {
         throw (0, error_1.createError)({ statusCode: 404, message: "Currency not found" });
     }
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating withdrawal fees");
-    const totalWithdrawAmount = Math.abs(parseFloat(amount));
-    const fixedFee = method.fixedFee || 0;
-    const percentageFee = method.percentageFee || 0;
+    // BUG-016: reject non-positive/non-finite amounts instead of silently flipping a
+    // negative input to positive via Math.abs.
+    const parsedFiatAmount = parseFloat(amount);
+    if (!(parsedFiatAmount > 0) || !isFinite(parsedFiatAmount)) {
+        ctx === null || ctx === void 0 ? void 0 : ctx.fail("Invalid amount: must be a positive number");
+        throw (0, error_1.createError)({ statusCode: 400, message: "Amount must be a positive number" });
+    }
+    const totalWithdrawAmount = parsedFiatAmount;
+    // BUG-002: guard fee inputs against NaN/"false"-style poisoning before fee math.
+    const fixedFee = (0, settingsParser_1.parseNumeric)(method.fixedFee, 0);
+    const percentageFee = (0, settingsParser_1.parseNumeric)(method.percentageFee, 0);
     const isAdmin = await (0, fees_1.isSuperAdmin)(user.id);
     const feeAmount = isAdmin ? 0 : parseFloat(Math.max((totalWithdrawAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2));
     const netReceiveAmount = parseFloat((totalWithdrawAmount - feeAmount).toFixed(2));
@@ -113,16 +122,28 @@ exports.default = async (data) => {
             throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds" });
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Deducting funds from wallet via wallet service");
-        const idempotencyKey = `fiat_withdraw_${user.id}_${currency}_${totalWithdrawAmount}`;
+        // BUG-011: scope the idempotency key to wallet/method/amount within a coarse 30s
+        // window so genuine double-submits and network retries dedupe (preventing a
+        // double-debit), while a deliberate repeat withdrawal after the window is allowed.
+        const idempotencyWindow = Math.floor(Date.now() / 30000);
+        const idempotencyKey = `fiat_withdraw_${wallet.id}_${methodId}_${totalWithdrawAmount}_${idempotencyWindow}`;
+        // BUG-003: input is treated as GROSS. The user is responsible for the full
+        // totalWithdrawAmount; they receive netReceiveAmount and the fee is taken on top.
+        // WalletService.debit decrements balance by amount + fee, so passing
+        // amount: netReceiveAmount and fee: feeAmount makes the wallet decrease by
+        // exactly netReceiveAmount + feeAmount === totalWithdrawAmount, and the fee is
+        // recorded on the transaction instead of being silently skipped.
         const walletResult = await wallet_1.walletService.debit({
             idempotencyKey,
             userId: user.id,
             walletId: wallet.id,
             walletType: "FIAT",
             currency,
-            amount: totalWithdrawAmount,
+            amount: netReceiveAmount,
+            fee: feeAmount,
             operationType: "WITHDRAW",
-            description: `Withdrawal of ${netReceiveAmount} ${currency} (fee: ${feeAmount}) via ${method.title}`,
+            // BUG-021: description now reflects what was actually charged (gross debit) and the fee taken.
+            description: `Withdrawal of ${totalWithdrawAmount} ${currency} (net: ${netReceiveAmount}, fee: ${feeAmount}) via ${method.title}`,
             metadata: {
                 method: method.title,
                 totalAmount: totalWithdrawAmount,

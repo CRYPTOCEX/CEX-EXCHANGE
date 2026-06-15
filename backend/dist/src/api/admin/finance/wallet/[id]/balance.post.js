@@ -7,6 +7,7 @@ const db_1 = require("@b/db");
 const query_1 = require("@b/utils/query");
 const wallet_1 = require("@b/services/wallet");
 const error_1 = require("@b/utils/error");
+const crypto = require("crypto");
 exports.metadata = {
     summary: "Updates the balance of a wallet",
     operationId: "updateWalletBalance",
@@ -78,10 +79,9 @@ async function updateWalletBalance(id, type, amount, adminId) {
     if (type === "SUBTRACT" && wallet.balance < amount) {
         throw (0, error_1.createError)({ statusCode: 400, message: "Insufficient funds in wallet" });
     }
-    // Idempotency key includes time and admin id so repeat manual adjustments aren't falsely deduped.
-    // Same admin can still trigger a true retry by reusing the same composite within ~1 second.
-    const idempotencySecond = Math.floor(Date.now() / 1000);
-    const idempotencyKey = `admin_balance_${id}_${type}_${amount}_${adminId}_${idempotencySecond}`;
+    // Idempotency key includes a unique UUID so each manual adjustment is intentionally unique.
+    // Two legitimate identical admin adjustments are never falsely deduped, even within the same second.
+    const idempotencyKey = `admin_balance_${id}_${type}_${amount}_${adminId}_${crypto.randomUUID()}`;
     let result;
     if (type === "ADD") {
         result = await wallet_1.walletService.credit({

@@ -5,6 +5,7 @@ exports.updateOrderData = updateOrderData;
 exports.adjustOrderData = adjustOrderData;
 const db_1 = require("@b/db");
 const error_1 = require("@b/utils/error");
+const precision_1 = require("@b/services/wallet/utils/precision");
 async function updateOrderData(id, orderData) {
     var _a;
     const updateData = {
@@ -59,10 +60,28 @@ exports.baseOrderSchema = {
     updatedAt: (0, schema_1.baseStringSchema)("Last update date of the order"),
 };
 function adjustOrderData(order, provider, feeRate) {
-    var _a;
+    var _a, _b;
     const side = order.side ? order.side.toUpperCase() : null;
     let amount = parseFloat(order.amount);
     let cost = parseFloat(order.cost);
+    // Determine the fee currency for precision-aware rounding.
+    // Prefer the exchange-reported fee currency, otherwise fall back to the
+    // quote ("pair") currency derived from the order symbol (e.g. "BTC/USDT" -> "USDT").
+    const pair = order.symbol && order.symbol.includes("/")
+        ? order.symbol.split("/")[1]
+        : order.symbol;
+    const feeCurrency = ((_b = order.fee) === null || _b === void 0 ? void 0 : _b.currency) || pair;
+    // BUG-014 fix: round fees with currency-aware precision instead of a hardcoded
+    // toFixed(8). This is a PRECISION-ONLY change — the fee SOURCE control flow below
+    // (XT recalc; else recalc from the platform's configured feeRate) is intentionally
+    // preserved so the platform maker/taker fee continues to drive wallet accounting.
+    const FEE_DECIMAL_PRECISION = 8;
+    const roundFee = (value) => {
+        if (typeof precision_1.roundToPrecision === "function" && feeCurrency) {
+            return precision_1.roundToPrecision(value, feeCurrency);
+        }
+        return parseFloat(value.toFixed(FEE_DECIMAL_PRECISION));
+    };
     let fee = parseFloat(((_a = order.fee) === null || _a === void 0 ? void 0 : _a.cost) || "0");
     if (provider === "xt") {
         const info = order.info;
@@ -75,11 +94,12 @@ function adjustOrderData(order, provider, feeRate) {
             amount = executedQty;
         }
         cost = amount * avgPrice;
+        // XT requires the fee recalculated from feeRate; round with currency-aware precision.
         const calculatedFee = amount * (feeRate / 100);
-        fee = parseFloat(calculatedFee.toFixed(8));
+        fee = roundFee(calculatedFee);
     }
     else if (amount && feeRate) {
-        fee = parseFloat((amount * (feeRate / 100)).toFixed(8));
+        fee = roundFee(amount * (feeRate / 100));
     }
     return {
         ...order,

@@ -14,6 +14,7 @@ const exchange_1 = __importDefault(require("@b/utils/exchange"));
 const db_1 = require("@b/db");
 const query_1 = require("@b/utils/query");
 const console_1 = require("@b/utils/console");
+const { Transaction } = require("sequelize");
 exports.metadata = {
     summary: "Approves a spot wallet withdrawal request",
     operationId: "approveSpotWalletWithdrawal",
@@ -56,15 +57,26 @@ exports.default = async (data) => {
     const { id } = params;
     try {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching transaction");
-        const transaction = await db_1.models.transaction.findOne({
-            where: { id },
+        // Atomically claim the withdrawal under a row lock BEFORE calling the exchange so that
+        // concurrent admin approvals (double-click / two admins / auto-process race) cannot both
+        // reach exchange.withdraw and double-send funds. The claim transaction commits before the
+        // exchange call; a concurrent request that acquires the lock next sees PROCESSING and is rejected.
+        const transaction = await db_1.sequelize.transaction(async (t) => {
+            const txn = await db_1.models.transaction.findOne({
+                where: { id },
+                lock: Transaction.LOCK.UPDATE,
+                transaction: t,
+            });
+            if (!txn) {
+                throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
+            }
+            if (txn.status !== "PENDING" &&
+                !(txn.status === "COMPLETED" && !txn.referenceId)) {
+                throw (0, error_1.createError)({ statusCode: 400, message: "Transaction cannot be processed" });
+            }
+            await db_1.models.transaction.update({ status: "PROCESSING" }, { where: { id }, transaction: t });
+            return txn.get({ plain: true });
         });
-        if (!transaction) {
-            throw (0, error_1.createError)({ statusCode: 404, message: "Transaction not found" });
-        }
-        if (transaction.status !== "PENDING") {
-            throw (0, error_1.createError)({ statusCode: 400, message: "Transaction is not pending" });
-        }
         const { amount, userId } = transaction;
         const { currency, chain, address, memo } = transaction.metadata;
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Fetching wallet and currency data");
@@ -103,7 +115,7 @@ exports.default = async (data) => {
                                     const withdrawData = withdrawals.find((w) => w.id === withdrawResponse.id);
                                     if (withdrawData) {
                                         withdrawResponse.fee =
-                                            withdrawAmount * fee + ((_c = withdrawData.fee) === null || _c === void 0 ? void 0 : _c.cost);
+                                            Number((_c = withdrawData.fee) === null || _c === void 0 ? void 0 : _c.cost) || Number(fee) || 0;
                                         switch (withdrawData.status) {
                                             case "completed":
                                             case "ok":
@@ -205,6 +217,17 @@ exports.default = async (data) => {
         };
     }
     catch (error) {
+        // If the row is still in our claimed PROCESSING state, the failure happened before the
+        // exchange accepted the withdrawal (no funds left and no referenceId was persisted), so
+        // revert to PENDING to release the claim and allow a retry. The conditional where-clause
+        // guarantees we never clobber a row that already reached a final status (FAILED/CANCELLED/
+        // COMPLETED) with its referenceId persisted for cron reconciliation.
+        try {
+            await db_1.models.transaction.update({ status: "PENDING" }, { where: { id, status: "PROCESSING" } });
+        }
+        catch (revertError) {
+            console_1.logger.error("WALLET", `Failed to revert withdrawal claim to PENDING: ${revertError.message}`, revertError);
+        }
         throw (0, error_1.createError)({ statusCode: 500, message: error.message });
     }
 };
@@ -245,6 +268,13 @@ function mapChainNameToChainId(chainName) {
         BEP2: "bnb",
         ERC20: "eth",
         TRC20: "trx",
+        SOL: "sol",
+        MATIC: "matic",
+        AVAX: "avaxc",
+        ARB: "arbitrum",
+        OP: "optimism",
+        TON: "ton",
+        APT: "aptos",
     };
     return chainMap[chainName] || chainName;
 }

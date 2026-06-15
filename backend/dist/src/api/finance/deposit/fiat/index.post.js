@@ -6,6 +6,7 @@ const fees_1 = require("@b/utils/fees");
 const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const wallet_1 = require("@b/services/wallet");
+const precision_1 = require("@b/services/wallet/utils/precision");
 exports.metadata = {
     summary: "Performs a custom fiat deposit transaction",
     description: "Initiates a custom fiat deposit transaction for the currently authenticated user",
@@ -86,7 +87,8 @@ exports.default = async (data) => {
     const parsedAmount = parseFloat(amount);
     const fixedFee = method.fixedFee || 0;
     const percentageFee = method.percentageFee || 0;
-    const taxAmount = parseFloat(Math.max((parsedAmount * percentageFee) / 100 + fixedFee, 0).toFixed(2));
+    const rawTax = Math.max((parsedAmount * percentageFee) / 100 + fixedFee, 0);
+    const taxAmount = (0, precision_1.roundToPrecision)(rawTax, currency);
     ctx === null || ctx === void 0 ? void 0 : ctx.step("Processing deposit transaction");
     const depositTransaction = await db_1.sequelize.transaction(async (t) => {
         const walletResult = await wallet_1.walletCreationService.getOrCreateWallet(user.id, "FIAT", currency, t);

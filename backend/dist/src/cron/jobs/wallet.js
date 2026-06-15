@@ -315,10 +315,28 @@ async function processPendingWithdrawals() {
                     (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} already has status ${withdrawStatus}; skipping update`, "info");
                     continue;
                 }
+                // pass2 #5 FIX: for FAILED/CANCELLED, refund the user BEFORE flipping the
+                // transaction status, with a deterministic idempotency key. Previously the
+                // refund call omitted the (required) idempotencyKey arg so it threw and the user
+                // was never refunded; and because the status was flipped first, the skip-guard
+                // above blocked any retry. Refund-first + stable key is retry-safe and cannot
+                // double-refund.
+                if (withdrawStatus === "FAILED" || withdrawStatus === "CANCELLED") {
+                    try {
+                        await (0, spot_1.updateSpotWalletBalance)(userId, wallet === null || wallet === void 0 ? void 0 : wallet.currency, Number(transaction.amount), Number(transaction.fee), "REFUND_WITHDRAWAL", undefined, `refund_withdrawal_${transaction.id}`);
+                    }
+                    catch (refundErr) {
+                        const alreadyRefunded = refundErr && ((refundErr.name === "DuplicateOperationError") || /duplicate/i.test(String((refundErr === null || refundErr === void 0 ? void 0 : refundErr.message) || "")));
+                        if (!alreadyRefunded) {
+                            (0, broadcast_1.broadcastLog)(cronName, `Refund failed for transaction ${transaction.id}, leaving status unchanged for retry: ${refundErr === null || refundErr === void 0 ? void 0 : refundErr.message}`, "error");
+                            continue;
+                        }
+                        (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} already refunded (idempotent)`, "info");
+                    }
+                }
                 await (0, utils_1.updateTransaction)(transaction.id, { status: withdrawStatus });
                 (0, broadcast_1.broadcastLog)(cronName, `Transaction ${transaction.id} status updated to ${withdrawStatus}`, "success");
                 if (withdrawStatus === "FAILED" || withdrawStatus === "CANCELLED") {
-                    await (0, spot_1.updateSpotWalletBalance)(userId, wallet === null || wallet === void 0 ? void 0 : wallet.currency, Number(transaction.amount), Number(transaction.fee), "REFUND_WITHDRAWAL");
                     await (0, notifications_1.createNotification)({
                         userId,
                         relatedId: transaction.id,

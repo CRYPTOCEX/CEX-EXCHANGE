@@ -4,6 +4,7 @@ exports.metadata = void 0;
 exports.parseAddresses = parseAddresses;
 exports.processInternalTransfer = processInternalTransfer;
 const db_1 = require("@b/db");
+const { Transaction } = require("sequelize");
 const query_1 = require("@b/utils/query");
 const error_1 = require("@b/utils/error");
 const safe_imports_1 = require("@b/utils/safe-imports");
@@ -380,8 +381,24 @@ async function handleCompleteTransfer({ fromWallet, toWallet, parsedAmount, targ
 }
 async function handleEcoClientBalanceTransfer({ fromWallet, toWallet, parsedAmount, fromCurrency, currencyData, t, }) {
     console_1.logger.info("TRANSFER", "Parsing ECO wallet addresses");
-    const fromAddresses = parseAddresses(fromWallet.address);
-    const toAddresses = parseAddresses(toWallet.address);
+    // pass2 #4: lock BOTH wallet rows inside the transaction before reading/mutating their
+    // address-JSON balances, in a consistent id order to avoid deadlock, so concurrent ECO
+    // transfers serialize and cannot lose a deduction/credit (TOCTOU).
+    const lockIds = [fromWallet.id, toWallet.id].sort();
+    const lockedById = {};
+    for (const lockId of lockIds) {
+        const lockedWallet = await db_1.models.wallet.findOne({
+            where: { id: lockId },
+            lock: Transaction.LOCK.UPDATE,
+            transaction: t,
+        });
+        if (!lockedWallet) {
+            throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+        }
+        lockedById[lockId] = lockedWallet;
+    }
+    const fromAddresses = parseAddresses(lockedById[fromWallet.id].address);
+    const toAddresses = parseAddresses(lockedById[toWallet.id].address);
     console_1.logger.info("TRANSFER", `Distributing ${parsedAmount} ${fromCurrency} across chains`);
     let remainingAmount = parsedAmount;
     for (const [chain, chainInfo] of (0, utils_1.getSortedChainBalances)(fromAddresses)) {
@@ -435,7 +452,17 @@ async function handleNonClientTransfer({ fromWallet, toWallet, parsedAmount, fro
 }
 async function deductFromEcoWallet(wallet, amount, currency, t) {
     console_1.logger.info("TRANSFER", `Deducting ${amount} ${currency} from ECO wallet`);
-    const addresses = parseAddresses(wallet.address);
+    // pass2 #4: lock the wallet row inside the transaction before reading/mutating the
+    // address-JSON balance, so concurrent ECO transfers serialize and cannot lose a deduction (TOCTOU).
+    const lockedWallet = await db_1.models.wallet.findOne({
+        where: { id: wallet.id },
+        lock: Transaction.LOCK.UPDATE,
+        transaction: t,
+    });
+    if (!lockedWallet) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    const addresses = parseAddresses(lockedWallet.address);
     let remainingAmount = amount;
     const deductionDetails = [];
     for (const chain in addresses) {
@@ -457,15 +484,25 @@ async function deductFromEcoWallet(wallet, amount, currency, t) {
         throw (0, error_1.createError)(400, "Insufficient chain balance to complete the transfer");
     }
     console_1.logger.info("TRANSFER", "Updating wallet address data");
-    await wallet.update({
+    await db_1.models.wallet.update({
         address: JSON.stringify(addresses),
-    }, { transaction: t });
+    }, { where: { id: wallet.id }, transaction: t });
     console_1.logger.info("TRANSFER", `Successfully deducted from ${deductionDetails.length} chain(s)`);
     return deductionDetails;
 }
 async function addToEcoWallet(wallet, deductionDetails, currency, t) {
     console_1.logger.info("TRANSFER", `Adding to ECO wallet across ${deductionDetails.length} chain(s)`);
-    const addresses = parseAddresses(wallet.address);
+    // pass2 #4: lock the wallet row inside the transaction before reading/mutating the
+    // address-JSON balance, so concurrent ECO transfers serialize and cannot lose a credit (TOCTOU).
+    const lockedWallet = await db_1.models.wallet.findOne({
+        where: { id: wallet.id },
+        lock: Transaction.LOCK.UPDATE,
+        transaction: t,
+    });
+    if (!lockedWallet) {
+        throw (0, error_1.createError)({ statusCode: 404, message: "Wallet not found" });
+    }
+    const addresses = parseAddresses(lockedWallet.address);
     for (const detail of deductionDetails) {
         const { chain, amount } = detail;
         console_1.logger.info("TRANSFER", `Adding ${amount} ${currency} to chain: ${chain}`);
@@ -482,13 +519,16 @@ async function addToEcoWallet(wallet, deductionDetails, currency, t) {
         await (0, utils_1.updatePrivateLedger)(wallet.id, 0, currency, chain, amount, t);
     }
     console_1.logger.info("TRANSFER", "Updating wallet address data");
-    await wallet.update({
+    await db_1.models.wallet.update({
         address: JSON.stringify(addresses),
-    }, { transaction: t });
+    }, { where: { id: wallet.id }, transaction: t });
     console_1.logger.info("TRANSFER", "Successfully added to ECO wallet");
 }
 async function handlePendingTransfer({ fromWallet, toWallet, totalDeducted, targetReceiveAmount, transferStatus, currencyData, t, }) {
-    const idempotencyKey = `pending_transfer_${fromWallet.id}_${toWallet.id}_${totalDeducted}`;
+    // pass2 #14: scope to a coarse 30s window so genuine double-submits dedupe but legitimate
+    // repeat transfers of the same amount are not blocked forever.
+    const idempotencyWindow = Math.floor(Date.now() / 30000);
+    const idempotencyKey = `pending_transfer_${fromWallet.id}_${toWallet.id}_${totalDeducted}_${idempotencyWindow}`;
     console_1.logger.info("TRANSFER", `Debiting source wallet (current: ${fromWallet.balance}, deducting: ${totalDeducted})`);
     const fromResult = await wallet_1.walletService.debit({
         idempotencyKey: `${idempotencyKey}_from`,

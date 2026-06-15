@@ -117,7 +117,11 @@ exports.default = async (data) => {
             await db_1.sequelize.transaction(async (transaction) => {
                 var _a, _b;
                 if (order.side.toUpperCase() === "BUY") {
-                    const refundCost = remainingAmount * Number(order.price);
+                    const filledAmount = Number((_a = orderData.filled) !== null && _a !== void 0 ? _a : 0) || 0;
+                    const avg = Number(orderData.average) || Number(order.price);
+                    const totalLocked = Number(order.amount) * Number(order.price);
+                    const filledCost = filledAmount * avg;
+                    const refundCost = Math.max(totalLocked - filledCost, 0);
                     await wallet_1.walletService.credit({
                         idempotencyKey: `${idempotencyKey}_refund`,
                         userId: user.id,

@@ -48,7 +48,29 @@ async function collectPlatformFee(params) {
             return null;
         }
         if (!superAdmin) {
-            console_1.logger.warn("PLATFORM_FEE", `No Super Admin found for fee collection: ${type} ${feeAmount} ${currency}`);
+            console_1.logger.error("PLATFORM_FEE", `CRITICAL: No Super Admin found. Fee of ${feeAmount} ${currency} (${type}) could not be collected. referenceId=${referenceId}`);
+            try {
+                await db_1.models.pendingFee?.create({
+                    userId,
+                    currency,
+                    walletType,
+                    chain: chain || null,
+                    feeAmount,
+                    type,
+                    description,
+                    referenceId,
+                    metadata: {
+                        type: "PLATFORM_FEE",
+                        sourceType: type,
+                        referenceId,
+                        reason: "NO_SUPER_ADMIN",
+                        ...metadata,
+                    },
+                }, t ? { transaction: t } : undefined);
+            }
+            catch (pendingError) {
+                console_1.logger.error("PLATFORM_FEE", `Failed to record pendingFee for uncollected fee: ${type} ${feeAmount} ${currency} referenceId=${referenceId} - ${pendingError.message}`);
+            }
             return null;
         }
         const adminWalletResult = await wallet_1.walletCreationService.getOrCreateWallet(superAdmin.id, walletType, currency, t);
@@ -108,7 +130,7 @@ async function collectPlatformFee(params) {
         return { transactionId, adminWalletId };
     }
     catch (error) {
-        console_1.logger.warn("PLATFORM_FEE", `Failed to collect fee: ${type} ${feeAmount} ${currency} ref=${referenceId} - ${error.message}`);
+        console_1.logger.error("PLATFORM_FEE", `CRITICAL: Failed to collect fee: ${type} ${feeAmount} ${currency} (walletType=${walletType}${chain ? "/" + chain : ""}) userId=${userId} referenceId=${referenceId} - ${error.message}`, error);
         return null;
     }
 }

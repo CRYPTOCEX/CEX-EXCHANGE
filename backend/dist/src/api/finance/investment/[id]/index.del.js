@@ -105,6 +105,12 @@ exports.default = async (data) => {
         });
         if (!investment)
             throw (0, error_1.createError)({ statusCode: 404, message: "Investment not found" });
+        // pass2 #6 FIX: only ACTIVE investments may be cancelled. Without this guard a COMPLETED
+        // investment (whose principal+profit the cron already paid out) or a LOSS investment could
+        // be cancelled to refund the principal a second time — a double refund.
+        if (investment.status !== "ACTIVE") {
+            throw (0, error_1.createError)({ statusCode: 400, message: `Only active investments can be cancelled (current status: ${investment.status})` });
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Finding wallet");
         const wallet = await (0, utils_1.getWallet)(user.id, investment.plan.walletType, investment.plan.currency);
         if (!wallet) {

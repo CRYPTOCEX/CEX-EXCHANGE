@@ -23,6 +23,22 @@ exports.ensureNonNegative = ensureNonNegative;
 exports.safeSum = safeSum;
 const error_1 = require("@b/utils/error");
 const constants_1 = require("../constants");
+// Max exponent used to build the integer multiplier (10^exp) for the
+// round-to-integer step in the safe-math helpers below. 10^15 is the largest
+// power of ten that stays under Number.MAX_SAFE_INTEGER (~9.007e15), so
+// value * multiplier still preserves integer precision. For high-precision
+// currencies (e.g. DAI at 18 decimals) the configured precision can exceed
+// this, and 10^precision would overflow the safe-integer range, corrupting the
+// Math.round() result and therefore the balance math. We clamp the multiplier
+// exponent here (NOT getPrecision / display precision) so currencies with
+// precision <= 15 are UNCHANGED, while precision > 15 falls back to 15 for the
+// rounding step only. The discarded fraction is below 1e-15, far under any real
+// balance significance. NOTE: exact integer math at 18 decimals would require
+// BigInt; that is out of scope here and this clamp is the safe interim guard.
+const SAFE_MULTIPLIER_EXP = 15;
+function safeMultiplierExp(precision) {
+    return precision > SAFE_MULTIPLIER_EXP ? SAFE_MULTIPLIER_EXP : precision;
+}
 function roundToPrecision(value, currency) {
     const precision = (0, constants_1.getPrecision)(currency);
     const multiplier = Math.pow(10, precision);
@@ -36,21 +52,21 @@ function validatePrecision(value, currency) {
 }
 function safeAdd(a, b, currency) {
     const precision = (0, constants_1.getPrecision)(currency);
-    const multiplier = Math.pow(10, precision);
+    const multiplier = Math.pow(10, safeMultiplierExp(precision));
     const aInt = Math.round(a * multiplier);
     const bInt = Math.round(b * multiplier);
     return (aInt + bInt) / multiplier;
 }
 function safeSubtract(a, b, currency) {
     const precision = (0, constants_1.getPrecision)(currency);
-    const multiplier = Math.pow(10, precision);
+    const multiplier = Math.pow(10, safeMultiplierExp(precision));
     const aInt = Math.round(a * multiplier);
     const bInt = Math.round(b * multiplier);
     return (aInt - bInt) / multiplier;
 }
 function safeMultiply(a, b, currency) {
     const precision = (0, constants_1.getPrecision)(currency);
-    const multiplier = Math.pow(10, precision);
+    const multiplier = Math.pow(10, safeMultiplierExp(precision));
     return Math.round(a * b * multiplier) / multiplier;
 }
 function safeDivide(a, b, currency) {
@@ -58,7 +74,7 @@ function safeDivide(a, b, currency) {
         throw (0, error_1.createError)({ statusCode: 400, message: "Division by zero" });
     }
     const precision = (0, constants_1.getPrecision)(currency);
-    const multiplier = Math.pow(10, precision);
+    const multiplier = Math.pow(10, safeMultiplierExp(precision));
     return Math.round((a / b) * multiplier) / multiplier;
 }
 function safeEquals(a, b, tolerance = 0.00000001) {

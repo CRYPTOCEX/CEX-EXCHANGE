@@ -969,8 +969,13 @@ const executeNativeWithdrawal = async (payer, toAddress, amount, provider) => {
             if (adjustedAmount <= BigInt(0)) {
                 throw (0, error_1.createError)({ statusCode: 400, message: `Insufficient funds: balance ${balance} cannot cover gas cost ${gasCost}` });
             }
-            console_1.logger.warn("EVM_WITHDRAW", `Adjusting withdrawal amount from ${amount} to ${adjustedAmount} to cover gas (${gasCost})`);
-            amount = adjustedAmount;
+            // The on-chain payer cannot cover amount + gas. Silently sending the
+            // reduced amount would short the recipient while the user was debited
+            // the full amount and the tx is still marked COMPLETED (ledger desync,
+            // no record of the shortfall). Fail loudly instead so the withdrawal
+            // queue refunds the full debited amount via markTransactionFailed ->
+            // refundUser, keeping the books honest.
+            throw (0, error_1.createError)({ statusCode: 400, message: `Insufficient funds: balance ${balance} cannot cover amount ${amount} + gas ${gasCost} (short by ${(amount + gasCost) - balance})` });
         }
         const tx = {
             to: toAddress,

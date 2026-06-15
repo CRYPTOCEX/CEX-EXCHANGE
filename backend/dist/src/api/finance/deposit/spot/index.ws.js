@@ -357,6 +357,40 @@ async function verifyTransaction(userId, trx, payload) {
             }
             return txid;
         }
+        // pass2 #1/#2 FIX: credit the wallet FIRST, with a deterministic idempotency key, and
+        // only mark the transaction COMPLETED AFTER the credit succeeds. Previously the status
+        // was flipped to COMPLETED before crediting AND the credit call omitted the (required)
+        // idempotencyKey arg, so updateSpotWalletBalance threw "idempotencyKey is required" — the
+        // deposit was marked COMPLETED but the balance was never credited (silent, unrecoverable
+        // loss). The stable key makes re-ticks idempotent and prevents orphaned COMPLETED rows.
+        console_1.logger.debug("SPOT_DEPOSIT", `Crediting wallet for user ${userId} (tx ${transaction.id})`);
+        const depositIdempotencyKey = `spot_deposit_${transaction.id}`;
+        let updatedWallet;
+        try {
+            updatedWallet = await (0, spot_1.updateSpotWalletBalance)(userId, wallet.currency, amount, fee, "DEPOSIT", undefined, depositIdempotencyKey);
+        }
+        catch (creditErr) {
+            const alreadyCredited = creditErr && ((creditErr.name === "DuplicateOperationError") || /duplicate/i.test(String((creditErr === null || creditErr === void 0 ? void 0 : creditErr.message) || "")));
+            if (!alreadyCredited) {
+                // Do NOT mark COMPLETED and do NOT stop the schedule: leave the deposit to be
+                // retried on the next verification tick rather than silently losing the funds.
+                console_1.logger.error("SPOT_DEPOSIT", `Deposit credit failed for ${transaction.id}, will retry: ${creditErr === null || creditErr === void 0 ? void 0 : creditErr.message}`);
+                sendMessage(payload, { status: 500, message: "Failed to credit deposit; will retry shortly" });
+                return;
+            }
+            // Already credited on a previous tick (e.g. COMPLETED write failed after credit).
+            // Treat as success and proceed to finalize the transaction status.
+            console_1.logger.warn("SPOT_DEPOSIT", `Deposit ${transaction.id} already credited (idempotent); finalizing status`);
+            updatedWallet = { id: wallet.id, userId, currency: wallet.currency, type: "SPOT", balance: wallet.balance, inOrder: wallet.inOrder };
+        }
+        if (!updatedWallet) {
+            console_1.logger.error("SPOT_DEPOSIT", "Failed to update wallet balance");
+            sendMessage(payload, {
+                status: 500,
+                message: "Failed to update wallet balance",
+            });
+            return;
+        }
         console_1.logger.debug("SPOT_DEPOSIT", `Updating transaction ${transaction.id} to COMPLETED`);
         const updatedTransaction = await (0, utils_2.updateTransaction)(transaction.id, {
             status: "COMPLETED",
@@ -364,17 +398,6 @@ async function verifyTransaction(userId, trx, payload) {
             amount: amount,
             fee: fee,
         });
-        console_1.logger.debug("SPOT_DEPOSIT", `Updating wallet balance for user ${userId}`);
-        const updatedWallet = (await (0, spot_1.updateSpotWalletBalance)(userId, wallet.currency, amount, fee, "DEPOSIT"));
-        if (!updatedWallet) {
-            console_1.logger.error("SPOT_DEPOSIT", "Failed to update wallet balance");
-            sendMessage(payload, {
-                status: 500,
-                message: "Failed to update wallet balance",
-            });
-            stopVerificationSchedule(updatedTransaction.id);
-            return;
-        }
         if (provider === "kucoin") {
             try {
                 await exchange.transfer(wallet.currency, deposit.amount, "main", "trade");

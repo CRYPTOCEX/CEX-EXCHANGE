@@ -15,6 +15,7 @@ const utils_2 = require("./utils");
 const wallet_1 = require("@b/services/wallet");
 const error_1 = require("@b/utils/error");
 const cache_1 = require("@b/utils/cache");
+const precision_1 = require("@b/services/wallet/utils/precision");
 exports.metadata = {
     summary: "Create Order",
     operationId: "createOrder",
@@ -64,7 +65,7 @@ exports.metadata = {
     logTitle: "Create exchange order",
 };
 exports.default = async (data) => {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     const { user, body, ctx } = data;
     if (!user) {
         throw (0, error_1.createError)({ statusCode: 401, message: "User not found" });
@@ -164,7 +165,12 @@ exports.default = async (data) => {
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating order cost");
         const formattedAmount = parseFloat(amount.toFixed(amountPrecision));
         const formattedPrice = parseFloat(orderPrice.toFixed(pricePrecision));
-        const cost = parseFloat((formattedAmount * formattedPrice).toFixed(pricePrecision));
+        // BUG-020: cost is denominated in the pair (quote) currency, so round with the
+        // pair currency's precision instead of pricePrecision. Falls back to the original
+        // toFixed(pricePrecision) behavior if the precision helper is unavailable.
+        const cost = (typeof precision_1.roundToPrecision === "function")
+            ? precision_1.roundToPrecision(formattedAmount * formattedPrice, pair)
+            : parseFloat((formattedAmount * formattedPrice).toFixed(pricePrecision));
         if (side === "BUY" && cost < minCost) {
             throw (0, error_1.createError)({
                 statusCode: 400,
@@ -196,6 +202,32 @@ exports.default = async (data) => {
         // Both market BUY and market SELL are takers; both limit BUY and limit SELL are makers.
         const feeRate = type.toLowerCase() === "market" ? Number(metadata.taker) : Number(metadata.maker);
         const feeCurrency = side === "BUY" ? currency : pair;
+        // BUG-009: Pre-flight liquidity check on the shared exchange account.
+        // The platform routes all user orders through a single exchange account. When a market
+        // maker bot (or other users) locks the available balance, CCXT throws the cryptic
+        // "Account has insufficient balance". Surface a clear message instead.
+        // A balance-fetch failure must NOT block the order: warn and continue.
+        ctx === null || ctx === void 0 ? void 0 : ctx.step("Checking exchange account liquidity");
+        try {
+            const exchangeBalanceCheck = await exchange.fetchBalance();
+            const asset = side === "SELL" ? currency : pair;
+            const needed = side === "SELL" ? formattedAmount : cost;
+            const freeBalances = (exchangeBalanceCheck && exchangeBalanceCheck.free) || {};
+            const available = (_r = freeBalances[asset]) !== null && _r !== void 0 ? _r : 0;
+            if (available < needed) {
+                throw (0, error_1.createError)({
+                    statusCode: 503,
+                    message: `${currency}/${pair} market is temporarily unavailable due to liquidity constraints. Please try again shortly or contact support.`
+                });
+            }
+        }
+        catch (liquidityErr) {
+            // Re-throw our own 503 liquidity error; swallow only balance-fetch failures.
+            if (liquidityErr && liquidityErr.statusCode === 503) {
+                throw liquidityErr;
+            }
+            console_1.logger.warn("EXCHANGE", `Pre-flight liquidity check failed for ${symbol}, continuing: ${liquidityErr === null || liquidityErr === void 0 ? void 0 : liquidityErr.message}`);
+        }
         ctx === null || ctx === void 0 ? void 0 : ctx.step(`Creating ${type.toLowerCase()} ${side.toLowerCase()} order on exchange`);
         let order;
         try {
@@ -261,17 +293,23 @@ exports.default = async (data) => {
                     transaction,
                 });
                 if (["closed", "filled"].includes(orderData.status)) {
-                    const netAmount = Number(orderData.amount) - Number(orderData.fee || 0);
+                    // BUG-005: Do NOT subtract the fee from the filled amount. Most CCXT exchanges
+                    // already return 'amount'/'filled' net of the trading fee, so subtracting
+                    // orderData.fee again double-charges the user. Credit the filled amount directly
+                    // (prefer orderData.filled) and record the fee separately for accounting.
+                    // NOTE: adjustOrderData() above flattens orderData.fee to a numeric cost.
+                    const filledAmount = Number((_s = orderData.filled) !== null && _s !== void 0 ? _s : orderData.amount);
+                    const buyFeeCost = Number(orderData.fee || 0);
                     await wallet_1.walletService.credit({
                         idempotencyKey: `${idempotencyKey}_credit`,
                         userId: user.id,
                         walletId: currencyWallet.id,
                         walletType: "SPOT",
                         currency: currency,
-                        amount: netAmount,
+                        amount: filledAmount,
                         operationType: "EXCHANGE_ORDER_FILL",
-                        fee: Number(orderData.fee || 0),
-                        description: `Buy order filled: ${netAmount} ${currency}`,
+                        fee: buyFeeCost,
+                        description: `Buy order filled: ${filledAmount} ${currency}`,
                         metadata: {
                             orderId: order.id,
                             symbol,
@@ -301,8 +339,24 @@ exports.default = async (data) => {
                     transaction,
                 });
                 if (["closed", "filled"].includes(orderData.status)) {
-                    const proceeds = Number(orderData.amount) * Number(orderData.price);
-                    const netProceeds = proceeds - Number(orderData.fee || 0);
+                    // BUG-006: Use the exchange-provided cost as the actual proceeds. Computing
+                    // proceeds from orderData.amount * orderData.price is wrong for partial or
+                    // averaged fills (price is the limit price, not the realized fill price).
+                    // orderData.cost already reflects the realized fill value.
+                    // NOTE: adjustOrderData() above flattens orderData.fee to a numeric cost.
+                    const sellFeeCost = Number(orderData.fee || 0);
+                    // pass2 #21 FIX: orderData.cost can be undefined/NaN on some market fills.
+                    // Falling straight into Number(undefined) → NaN would make the credit throw
+                    // ("Amount must be a finite number") and roll back an order that already
+                    // executed on the exchange. Fall back to the realized fill value
+                    // (filled * average), then to filled * limit price.
+                    let proceeds = Number(orderData.cost);
+                    if (!isFinite(proceeds) || proceeds <= 0) {
+                        const filledQty = Number((orderData.filled !== undefined && orderData.filled !== null) ? orderData.filled : orderData.amount);
+                        const avgPrice = Number((orderData.average !== undefined && orderData.average !== null) ? orderData.average : formattedPrice);
+                        proceeds = filledQty * avgPrice;
+                    }
+                    const netProceeds = proceeds - sellFeeCost;
                     await wallet_1.walletService.credit({
                         idempotencyKey: `${idempotencyKey}_credit`,
                         userId: user.id,
@@ -311,7 +365,7 @@ exports.default = async (data) => {
                         currency: pair,
                         amount: netProceeds,
                         operationType: "EXCHANGE_ORDER_FILL",
-                        fee: Number(orderData.fee || 0),
+                        fee: sellFeeCost,
                         description: `Sell order filled: ${netProceeds} ${pair}`,
                         metadata: {
                             orderId: order.id,

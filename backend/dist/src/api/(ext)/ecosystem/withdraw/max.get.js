@@ -137,14 +137,28 @@ exports.default = async (data) => {
         }
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Calculating platform fees");
         let platformFee = 0;
+        let percentageFee = 0;
+        let minFee = 0;
         if (token.fee) {
             const tokenFee = JSON.parse(token.fee);
-            const percentageFee = (_a = tokenFee.percentage) !== null && _a !== void 0 ? _a : 0;
-            const minFee = (_b = tokenFee.min) !== null && _b !== void 0 ? _b : 0;
-            platformFee = minFee;
+            percentageFee = (_a = tokenFee.percentage) !== null && _a !== void 0 ? _a : 0;
+            minFee = (_b = tokenFee.min) !== null && _b !== void 0 ? _b : 0;
         }
         const isUtxoChain = ["BTC", "LTC", "DOGE", "DASH"].includes(chain);
-        let maxAmount = availableBalance - platformFee;
+        // Mirror the withdraw endpoint's fee logic (calculateWithdrawalFee in index.post.js):
+        // it charges withdrawalFee = Math.max(amount * percentage / 100, min) and rejects when
+        // availableBalance < amount + withdrawalFee. Solve for the largest gross "amount" such that
+        // amount + Math.max(amount * percentage / 100, min) <= availableBalance.
+        // Case 1 (percentage binds): amount = availableBalance / (1 + percentage / 100).
+        let candidateAmount = availableBalance / (1 + percentageFee / 100);
+        let candidateFee = (candidateAmount * percentageFee) / 100;
+        if (candidateFee < minFee) {
+            // Case 2 (min fee binds instead): amount = availableBalance - min.
+            candidateFee = minFee;
+            candidateAmount = availableBalance - minFee;
+        }
+        platformFee = candidateFee;
+        let maxAmount = candidateAmount;
         let estimatedNetworkFee = 0;
         let utxoInfo = null;
         const evmChains = ["ETH", "BSC", "POLYGON", "FTM", "OPTIMISM", "ARBITRUM", "BASE", "CELO", "RSK", "AVAX"];
@@ -226,6 +240,18 @@ exports.default = async (data) => {
         maxAmount = Math.max(0, maxAmount);
         ctx === null || ctx === void 0 ? void 0 : ctx.step("Formatting result");
         const precision = (_f = (_e = token.precision) !== null && _e !== void 0 ? _e : token.decimals) !== null && _f !== void 0 ? _f : 8;
+        // Round DOWN at the given precision so the advertised max is strictly withdrawable
+        // (avoid toFixed rounding up and re-introducing the insufficient-funds rejection).
+        const precisionFactor = Math.pow(10, precision);
+        maxAmount = Math.floor(maxAmount * precisionFactor) / precisionFactor;
+        // pass2 #25 refinement: the withdraw endpoint recomputes the percentage fee from this
+        // amount and rounds it to-nearest, which can nudge (amount + fee) one ulp over the
+        // balance and reject the advertised max. Drop one precision unit when a percentage fee
+        // applies so the max always round-trips as withdrawable.
+        if (percentageFee > 0 && maxAmount > 0) {
+            maxAmount = Math.max(0, maxAmount - (1 / precisionFactor));
+            maxAmount = Math.floor(maxAmount * precisionFactor) / precisionFactor;
+        }
         maxAmount = parseFloat(maxAmount.toFixed(precision));
         platformFee = parseFloat(platformFee.toFixed(precision));
         estimatedNetworkFee = parseFloat(estimatedNetworkFee.toFixed(precision));
