@@ -2,7 +2,7 @@
   "id": "35599184",
   "name": "Bicrypto",
   "private": true,
-  "version": "6.2.7",
+  "version": "6.4.4",
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=7780 concurrently \"pnpm --filter frontend dev\" \"pnpm --filter backend dev\"",
     "dev:backend": "cross-env NODE_OPTIONS=--max-old-space-size=7780 pnpm --filter backend dev",
