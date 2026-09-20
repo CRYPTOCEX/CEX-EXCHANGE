@@ -1,0 +1,48 @@
+{
+  "name": "@bicrypto/chart-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "//main": "THIS PACKAGE IS NOT PUBLISHABLE, AND THESE FIELDS ARE NOT A PROMISE THAT IT IS. dist/index.js keeps its `@/...` imports (@/lib/api, @/lib/utils, @/lib/precision-utils, @/lib/status-tone, @/components/ui/dropdown-menu, @/components/binary/notifications) - see the `external` block in tsup.config.ts, which externalises them ON PURPOSE so the chart shares the host app's singletons instead of shipping copies. `@/...` is not a resolvable Node or ESM specifier: it works only because the consumer aliases `@` to the frontend root (next.config.js). Import this by name from anywhere else - another app, a bare `node -e \"import('@bicrypto/chart-engine')\"` - and the FIRST import throws ERR_MODULE_NOT_FOUND. main/module/types/exports exist so the host's `@/lib/stubs/chart-engine-stub` alias can resolve this directory; `private: true` is what keeps it off the registry, and there is deliberately no `prepublishOnly`, which would otherwise dress a host-coupled bundle up as a release artefact. Making it portable means moving those six modules into the package, not editing this block.",
+  "//sideEffects": "DELIBERATELY ABSENT. `\"sideEffects\": false` would let a consumer's bundler drop an imported-but-unused module, and several modules here construct a singleton at import time - core/event-bus.ts, core/raf-manager.ts, patterns/core/pattern-aggregator.ts, divergence/core/divergence-detector.ts. Claiming purity today would delete those constructions and the chart would lose its event bus or its frame scheduler with no error anywhere. The flag becomes worth real bytes when dist/ is split into per-panel chunks, but it has to land in the SAME change that puts those singletons behind a lazy accessor, never before it.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "//build": "Three steps, in this order. tsup emits the bundle. ensure-use-client puts back the `use client` directive that tsup's rollup treeshake pass strips out of every chunk (measured: grep -c returned 0), and fails the build if it cannot. The manifest runs LAST because tsup.config.ts sets `clean: true`, so a manifest written first is deleted by the very build it describes; it records the sha256 of every bundle-input source, which is what e2e/unit/frontend/chart-engine-dist-freshness.test.ts checks the committed dist/ against.",
+    "build": "tsup --config tsup.config.ts && node scripts/ensure-use-client.mjs && node scripts/write-build-manifest.mjs",
+    "//build:watch": "NOT THE INNER LOOP - use `pnpm dev`, which aliases the app straight at these sources (next.config.js) and hot-reloads them like any other frontend file. This script rebuilds the BUNDLE: every save re-runs the dts worker over the whole tree, and the app sees one changed 1.1 MB dist/index.js, so React remounts the chart and every bit of its state - the symbol, the drawings, the indicator setup - is gone. Kept only for checking that a change survives minify/treeshake the way a release will.",
+    "build:watch": "tsup --config tsup.config.ts --watch",
+    "clean": "rimraf dist",
+    "//postinstall": "Every peerDependency here is a bare star and npm 7+ installs peers automatically, so a plain `npm install` used to drop a second react/react-dom/next/zustand into this package at versions the app does not pin - 323 MB of it, inside the frontend source tree. Inert while the app loads dist/ (tsup externalises them all) and fatal once dev compiles these sources directly: resolution from index.tsx finds the local react first and every hook throws the invalid-hook-call error. .npmrc sets legacy-peer-deps=true so it stops happening; this cleans up installs that predate it.",
+    "postinstall": "node scripts/prune-peer-installs.mjs",
+    "prune:peers": "node scripts/prune-peer-installs.mjs"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*",
+    "next": "*",
+    "next-themes": "*",
+    "zustand": "*",
+    "framer-motion": "*",
+    "lucide-react": "*",
+    "clsx": "*",
+    "tailwind-merge": "*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "rimraf": "^6.0.1"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "name": "Hong Kong S.A.R.",
+  "iso2": "HK",
+  "iso3": "HKG",
+  "phonecode": "852",
+  "states": [
+    {
+      "name": "Central and Western",
+      "code": "HCW",
+      "cities": [
+        "Admiralty",
+        "Central"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "HEA",
+      "cities": []
+    },
+    {
+      "name": "Islands",
+      "code": "NIS",
+      "cities": [
+        "Tai O"
+      ]
+    },
+    {
+      "name": "Kowloon City",
+      "code": "KKC",
+      "cities": [
+        "Kowloon Tong"
+      ]
+    },
+    {
+      "name": "Kwai Tsing",
+      "code": "NKT",
+      "cities": []
+    },
+    {
+      "name": "Kwun Tong",
+      "code": "KKT",
+      "cities": [
+        "Kwun Tong",
+        "Lam Tin"
+      ]
+    },
+    {
+      "name": "North",
+      "code": "NNO",
+      "cities": [
+        "Sheung Shui"
+      ]
+    },
+    {
+      "name": "Sai Kung",
+      "code": "NSK",
+      "cities": [
+        "Sai Kung",
+        "Tseung Kwan O"
+      ]
+    },
+    {
+      "name": "Sha Tin",
+      "code": "NST",
+      "cities": [
+        "Ma On Shan",
+        "Sha Tin",
+        "Sha Tin Wai"
+      ]
+    },
+    {
+      "name": "Sham Shui Po",
+      "code": "KSS",
+      "cities": [
+        "Cheung Sha Wan",
+        "Lai Chi Kok"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "HSO",
+      "cities": [
+        "Aberdeen",
+        "Stanley",
+        "Stanley Peninsula"
+      ]
+    },
+    {
+      "name": "Tai Po",
+      "code": "NTP",
+      "cities": [
+        "Tai Mei Tuk",
+        "Tai Po"
+      ]
+    },
+    {
+      "name": "Tsuen Wan",
+      "code": "NTW",
+      "cities": [
+        "Tsuen Wan",
+        "Tuen Mun"
+      ]
+    },
+    {
+      "name": "Tuen Mun",
+      "code": "NTM",
+      "cities": []
+    },
+    {
+      "name": "Wan Chai",
+      "code": "HWC",
+      "cities": [
+        "Causeway Bay",
+        "Wan Chai"
+      ]
+    },
+    {
+      "name": "Wong Tai Sin",
+      "code": "KWT",
+      "cities": [
+        "Wong Tai Sin"
+      ]
+    },
+    {
+      "name": "Yau Tsim Mong",
+      "code": "KYT",
+      "cities": [
+        "Mong Kok",
+        "Tsim Sha Tsui"
+      ]
+    },
+    {
+      "name": "Yuen Long",
+      "code": "NYL",
+      "cities": [
+        "Yuen Long"
+      ]
+    }
+  ]
+}

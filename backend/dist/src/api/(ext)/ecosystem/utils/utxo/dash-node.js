@@ -1,0 +1,18 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DashNodeService = void 0;
+const generic_utxo_node_1 = require("./generic-utxo-node");
+class DashNodeService extends generic_utxo_node_1.GenericUTXONodeService {
+    constructor() {
+        super('DASH');
+    }
+    static async getInstance() {
+        if (!DashNodeService.instance) {
+            DashNodeService.instance = new DashNodeService();
+            await DashNodeService.instance.initialize();
+        }
+        return DashNodeService.instance;
+    }
+}
+exports.DashNodeService = DashNodeService;
+exports.default = DashNodeService;

@@ -1,0 +1,9 @@
+# `.demo-state.json` records which `currency` rows were switched OFF before the
+# seeder switched them on — the one thing `--drop` cannot learn from the rows
+# themselves. It is machine-local state and must never travel with the script.
+#
+# The seeder itself DOES ship now. The root .gitignore used to exclude this
+# whole directory while two of its library files were already tracked, so a
+# fresh clone got orphans and nothing runnable; that rule is narrowed to the
+# state file, and this is the belt to its braces.
+.demo-state.json

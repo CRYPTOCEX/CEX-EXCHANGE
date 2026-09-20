@@ -1,0 +1,293 @@
+{
+  "name": "Venezuela",
+  "iso2": "VE",
+  "iso3": "VEN",
+  "phonecode": "58",
+  "states": [
+    {
+      "name": "Amazonas",
+      "code": "Z",
+      "cities": [
+        "Maroa",
+        "Municipio Autónomo Alto Orinoco",
+        "Puerto Ayacucho",
+        "San Carlos de Río Negro",
+        "San Fernando de Atabapo",
+        "San Juan de Manapiare"
+      ]
+    },
+    {
+      "name": "Anzoátegui",
+      "code": "B",
+      "cities": [
+        "Anaco",
+        "Aragua de Barcelona",
+        "Barcelona",
+        "Cantaura",
+        "El Tigre",
+        "Municipio José Gregorio Monagas",
+        "Onoto",
+        "Puerto La Cruz",
+        "Puerto Píritu",
+        "San José de Guanipa"
+      ]
+    },
+    {
+      "name": "Apure",
+      "code": "C",
+      "cities": [
+        "San Fernando de Apure"
+      ]
+    },
+    {
+      "name": "Aragua",
+      "code": "D",
+      "cities": [
+        "Cagua",
+        "El Limón",
+        "La Victoria",
+        "Las Tejerías",
+        "Maracay",
+        "Palo Negro",
+        "San Mateo",
+        "Santa Rita",
+        "Turmero",
+        "Villa de Cura"
+      ]
+    },
+    {
+      "name": "Barinas",
+      "code": "E",
+      "cities": [
+        "Alto Barinas",
+        "Barinas",
+        "Barinitas",
+        "Municipio Barinas"
+      ]
+    },
+    {
+      "name": "Bolívar",
+      "code": "F",
+      "cities": [
+        "Ciudad Bolívar",
+        "Ciudad Guayana",
+        "Municipio Padre Pedro Chien",
+        "Santa Elena de Uairén",
+        "Upata"
+      ]
+    },
+    {
+      "name": "Carabobo",
+      "code": "G",
+      "cities": [
+        "Guacara",
+        "Güigüe",
+        "Los Guayos",
+        "Mariara",
+        "Morón",
+        "Puerto Cabello",
+        "San Joaquín",
+        "Tacarigua",
+        "Tocuyito",
+        "Valencia"
+      ]
+    },
+    {
+      "name": "Cojedes",
+      "code": "H",
+      "cities": [
+        "San Carlos",
+        "Tinaquillo"
+      ]
+    },
+    {
+      "name": "Delta Amacuro",
+      "code": "Y",
+      "cities": [
+        "Tucupita"
+      ]
+    },
+    {
+      "name": "Distrito Capital",
+      "code": "A",
+      "cities": [
+        "Caracas"
+      ]
+    },
+    {
+      "name": "Falcón",
+      "code": "I",
+      "cities": [
+        "Chichiriviche",
+        "Coro",
+        "Municipio Los Taques",
+        "Municipio Miranda",
+        "Punta Cardón",
+        "Punto Fijo",
+        "Tucacas"
+      ]
+    },
+    {
+      "name": "Guárico",
+      "code": "J",
+      "cities": [
+        "Altagracia de Orituco",
+        "Calabozo",
+        "San Juan de los Morros",
+        "Valle de La Pascua",
+        "Zaraza"
+      ]
+    },
+    {
+      "name": "La Guaira",
+      "code": "X",
+      "cities": [
+        "Caraballeda",
+        "Catia La Mar",
+        "La Guaira",
+        "Maiquetía"
+      ]
+    },
+    {
+      "name": "Lara",
+      "code": "K",
+      "cities": [
+        "Barquisimeto",
+        "Cabudare",
+        "Carora",
+        "El Tocuyo",
+        "Los Rastrojos",
+        "Quíbor"
+      ]
+    },
+    {
+      "name": "Mérida",
+      "code": "L",
+      "cities": [
+        "Ejido",
+        "El Vigía",
+        "Mérida",
+        "Mucumpiz",
+        "Municipio Libertador"
+      ]
+    },
+    {
+      "name": "Miranda",
+      "code": "M",
+      "cities": [
+        "Baruta",
+        "Carrizal",
+        "Caucaguita",
+        "Caucagüito",
+        "Chacao",
+        "Charallave",
+        "Cúa",
+        "El Cafetal",
+        "El Hatillo",
+        "Guarenas",
+        "Guatire",
+        "La Dolorita",
+        "Los Dos Caminos",
+        "Los Teques",
+        "Ocumare del Tuy",
+        "Petare",
+        "San Antonio de Los Altos",
+        "Santa Teresa del Tuy"
+      ]
+    },
+    {
+      "name": "Monagas",
+      "code": "N",
+      "cities": [
+        "Caripito",
+        "Maturín",
+        "Municipio Maturín",
+        "Municipio Uracoa"
+      ]
+    },
+    {
+      "name": "Nueva Esparta",
+      "code": "O",
+      "cities": [
+        "Juan Griego",
+        "La Asunción",
+        "Porlamar"
+      ]
+    },
+    {
+      "name": "Portuguesa",
+      "code": "P",
+      "cities": [
+        "Acarigua",
+        "Araure",
+        "Guanare",
+        "Villa Bruzual"
+      ]
+    },
+    {
+      "name": "Sucre",
+      "code": "R",
+      "cities": [
+        "Carúpano",
+        "Cumaná",
+        "Güiria",
+        "Municipio Valdez"
+      ]
+    },
+    {
+      "name": "Táchira",
+      "code": "S",
+      "cities": [
+        "Colón",
+        "La Fría",
+        "La Grita",
+        "Municipio José María Vargas",
+        "Rubio",
+        "San Antonio del Táchira",
+        "San Cristóbal",
+        "Táriba"
+      ]
+    },
+    {
+      "name": "Trujillo",
+      "code": "T",
+      "cities": [
+        "Boconó",
+        "Municipio Pampanito",
+        "Municipio San Rafael de Carvajal",
+        "Trujillo",
+        "Valera"
+      ]
+    },
+    {
+      "name": "Venezuela",
+      "code": "W",
+      "cities": []
+    },
+    {
+      "name": "Yaracuy",
+      "code": "U",
+      "cities": [
+        "Chivacoa",
+        "Municipio Independencia",
+        "Nirgua",
+        "San Felipe",
+        "Yaritagua"
+      ]
+    },
+    {
+      "name": "Zulia",
+      "code": "V",
+      "cities": [
+        "Cabimas",
+        "Ciudad Ojeda",
+        "La Villa del Rosario",
+        "Lagunillas",
+        "Machiques",
+        "Maracaibo",
+        "San Carlos del Zulia",
+        "Santa Rita"
+      ]
+    }
+  ]
+}

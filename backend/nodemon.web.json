@@ -1,0 +1,21 @@
+{
+  "//": "The WEB tier (CRON_MODE=off, :4000). Identical to nodemon.json except for the sentinel: this one watches dev-restart.web.json, so a change that only the scheduler cares about no longer tears this process down. src is deliberately NOT watched — src/utils/dev/hot-reload.ts swaps what it can in place and touches THIS role's sentinel when it cannot, deciding with src/utils/dev/restart-scope.ts whether the change is even ours. The sentinel must exist before nodemon starts (it resolves its watch list once and silently drops missing entries): backend/scripts/ensure-dev-sentinel.mjs creates all three from predev.",
+  "watch": [
+    "index.ts",
+    "thread.ts",
+    "module-alias-setup.ts",
+    "models",
+    "dev-restart.web.json",
+    "../.env"
+  ],
+  "ignore": ["node_modules/**", "dist/**", "storage/**", "data/**", ".types-hash", ".sync-hash"],
+  "ext": "ts,json,env",
+  "delay": 300,
+  "exec": "tsx --tsconfig tsconfig.json -r tsconfig-paths/register -r module-alias/register index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo '[WEB] restarting...'"
+  }
+}

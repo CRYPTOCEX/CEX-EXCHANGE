@@ -1,0 +1,36 @@
+{
+  "name": "New Caledonia",
+  "iso2": "NC",
+  "iso3": "NCL",
+  "phonecode": "687",
+  "states": [
+    {
+      "name": "Loyalty Islands Province",
+      "code": "03",
+      "cities": [
+        "Lifou",
+        "Maré"
+      ]
+    },
+    {
+      "name": "North Province",
+      "code": "02",
+      "cities": [
+        "Houaïlou",
+        "Koné",
+        "Poindimié"
+      ]
+    },
+    {
+      "name": "South Province",
+      "code": "01",
+      "cities": [
+        "Bourail",
+        "Dumbéa",
+        "Le Mont-Dore",
+        "Nouméa",
+        "Païta"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,798 @@
+{
+  "name": "Uganda",
+  "iso2": "UG",
+  "iso3": "UGA",
+  "phonecode": "256",
+  "states": [
+    {
+      "name": "Abim",
+      "code": "314",
+      "cities": []
+    },
+    {
+      "name": "Adjumani",
+      "code": "301",
+      "cities": []
+    },
+    {
+      "name": "Agago",
+      "code": "322",
+      "cities": []
+    },
+    {
+      "name": "Alebtong",
+      "code": "323",
+      "cities": []
+    },
+    {
+      "name": "Amolatar",
+      "code": "315",
+      "cities": []
+    },
+    {
+      "name": "Amudat",
+      "code": "324",
+      "cities": []
+    },
+    {
+      "name": "Amuria",
+      "code": "216",
+      "cities": []
+    },
+    {
+      "name": "Amuru",
+      "code": "316",
+      "cities": []
+    },
+    {
+      "name": "Apac",
+      "code": "302",
+      "cities": []
+    },
+    {
+      "name": "Arua",
+      "code": "303",
+      "cities": []
+    },
+    {
+      "name": "Budaka",
+      "code": "217",
+      "cities": []
+    },
+    {
+      "name": "Bududa",
+      "code": "218",
+      "cities": []
+    },
+    {
+      "name": "Bugiri",
+      "code": "201",
+      "cities": []
+    },
+    {
+      "name": "Bugweri",
+      "code": "235",
+      "cities": []
+    },
+    {
+      "name": "Buhweju",
+      "code": "420",
+      "cities": []
+    },
+    {
+      "name": "Buikwe",
+      "code": "117",
+      "cities": []
+    },
+    {
+      "name": "Bukedea",
+      "code": "219",
+      "cities": []
+    },
+    {
+      "name": "Bukomansimbi",
+      "code": "118",
+      "cities": []
+    },
+    {
+      "name": "Bukwo",
+      "code": "220",
+      "cities": []
+    },
+    {
+      "name": "Bulambuli",
+      "code": "225",
+      "cities": []
+    },
+    {
+      "name": "Buliisa",
+      "code": "416",
+      "cities": []
+    },
+    {
+      "name": "Bundibugyo",
+      "code": "401",
+      "cities": []
+    },
+    {
+      "name": "Bunyangabu",
+      "code": "430",
+      "cities": []
+    },
+    {
+      "name": "Bushenyi",
+      "code": "402",
+      "cities": []
+    },
+    {
+      "name": "Busia",
+      "code": "202",
+      "cities": []
+    },
+    {
+      "name": "Butaleja",
+      "code": "221",
+      "cities": []
+    },
+    {
+      "name": "Butambala",
+      "code": "119",
+      "cities": []
+    },
+    {
+      "name": "Butebo",
+      "code": "233",
+      "cities": []
+    },
+    {
+      "name": "Buvuma",
+      "code": "120",
+      "cities": []
+    },
+    {
+      "name": "Buyende",
+      "code": "226",
+      "cities": []
+    },
+    {
+      "name": "Central",
+      "code": "C",
+      "cities": [
+        "Bukomansimbi",
+        "Buvuma",
+        "Bweyogerere",
+        "Byakabanda",
+        "Entebbe",
+        "Gomba",
+        "Kajansi",
+        "Kampala",
+        "Kampala District",
+        "Kanoni",
+        "Kayunga",
+        "Kiboga",
+        "Kireka",
+        "Kyotera",
+        "Lugazi",
+        "Luwero",
+        "Lyantonde",
+        "Masaka",
+        "Mityana",
+        "Mpigi",
+        "Mubende",
+        "Mubende District",
+        "Mukono",
+        "Nakasongola",
+        "Namasuba",
+        "Njeru",
+        "Sembabule",
+        "Wakiso",
+        "Wakiso District",
+        "Wobulenzi"
+      ]
+    },
+    {
+      "name": "Dokolo",
+      "code": "317",
+      "cities": []
+    },
+    {
+      "name": "Eastern",
+      "code": "E",
+      "cities": [
+        "Bugembe",
+        "Bugiri",
+        "Bukwa",
+        "Bulambuli",
+        "Busembatia",
+        "Busia",
+        "Buwenge",
+        "Iganga",
+        "Jinja",
+        "Kamuli",
+        "Kapchorwa",
+        "Kibuku",
+        "Kumi",
+        "Mayuge",
+        "Mbale",
+        "Pallisa",
+        "Sironko",
+        "Soroti",
+        "Tororo"
+      ]
+    },
+    {
+      "name": "Gomba",
+      "code": "121",
+      "cities": []
+    },
+    {
+      "name": "Gulu",
+      "code": "304",
+      "cities": []
+    },
+    {
+      "name": "Hoima",
+      "code": "403",
+      "cities": []
+    },
+    {
+      "name": "Ibanda",
+      "code": "417",
+      "cities": []
+    },
+    {
+      "name": "Iganga",
+      "code": "203",
+      "cities": []
+    },
+    {
+      "name": "Isingiro",
+      "code": "418",
+      "cities": []
+    },
+    {
+      "name": "Jinja",
+      "code": "204",
+      "cities": []
+    },
+    {
+      "name": "Kaabong",
+      "code": "318",
+      "cities": []
+    },
+    {
+      "name": "Kabale",
+      "code": "404",
+      "cities": []
+    },
+    {
+      "name": "Kabarole",
+      "code": "405",
+      "cities": []
+    },
+    {
+      "name": "Kaberamaido",
+      "code": "213",
+      "cities": []
+    },
+    {
+      "name": "Kagadi",
+      "code": "427",
+      "cities": []
+    },
+    {
+      "name": "Kakumiro",
+      "code": "428",
+      "cities": []
+    },
+    {
+      "name": "Kalaki",
+      "code": "237",
+      "cities": []
+    },
+    {
+      "name": "Kalangala",
+      "code": "101",
+      "cities": []
+    },
+    {
+      "name": "Kaliro",
+      "code": "222",
+      "cities": []
+    },
+    {
+      "name": "Kalungu",
+      "code": "122",
+      "cities": []
+    },
+    {
+      "name": "Kampala",
+      "code": "102",
+      "cities": []
+    },
+    {
+      "name": "Kamuli",
+      "code": "205",
+      "cities": []
+    },
+    {
+      "name": "Kamwenge",
+      "code": "413",
+      "cities": []
+    },
+    {
+      "name": "Kanungu",
+      "code": "414",
+      "cities": []
+    },
+    {
+      "name": "Kapchorwa",
+      "code": "206",
+      "cities": []
+    },
+    {
+      "name": "Kapelebyong",
+      "code": "236",
+      "cities": []
+    },
+    {
+      "name": "Karenga",
+      "code": "335",
+      "cities": []
+    },
+    {
+      "name": "Kasanda",
+      "code": "126",
+      "cities": []
+    },
+    {
+      "name": "Kasese",
+      "code": "406",
+      "cities": []
+    },
+    {
+      "name": "Katakwi",
+      "code": "207",
+      "cities": []
+    },
+    {
+      "name": "Kayunga",
+      "code": "112",
+      "cities": []
+    },
+    {
+      "name": "Kazo",
+      "code": "433",
+      "cities": []
+    },
+    {
+      "name": "Kibaale",
+      "code": "407",
+      "cities": []
+    },
+    {
+      "name": "Kiboga",
+      "code": "103",
+      "cities": []
+    },
+    {
+      "name": "Kibuku",
+      "code": "227",
+      "cities": []
+    },
+    {
+      "name": "Kikuube",
+      "code": "432",
+      "cities": []
+    },
+    {
+      "name": "Kiruhura",
+      "code": "419",
+      "cities": []
+    },
+    {
+      "name": "Kiryandongo",
+      "code": "421",
+      "cities": []
+    },
+    {
+      "name": "Kisoro",
+      "code": "408",
+      "cities": []
+    },
+    {
+      "name": "Kitagwenda",
+      "code": "434",
+      "cities": []
+    },
+    {
+      "name": "Kitgum",
+      "code": "305",
+      "cities": []
+    },
+    {
+      "name": "Koboko",
+      "code": "319",
+      "cities": []
+    },
+    {
+      "name": "Kole",
+      "code": "325",
+      "cities": []
+    },
+    {
+      "name": "Kotido",
+      "code": "306",
+      "cities": []
+    },
+    {
+      "name": "Kumi",
+      "code": "208",
+      "cities": []
+    },
+    {
+      "name": "Kwania",
+      "code": "333",
+      "cities": []
+    },
+    {
+      "name": "Kween",
+      "code": "228",
+      "cities": []
+    },
+    {
+      "name": "Kyankwanzi",
+      "code": "123",
+      "cities": []
+    },
+    {
+      "name": "Kyegegwa",
+      "code": "422",
+      "cities": []
+    },
+    {
+      "name": "Kyenjojo",
+      "code": "415",
+      "cities": []
+    },
+    {
+      "name": "Kyotera",
+      "code": "125",
+      "cities": []
+    },
+    {
+      "name": "Lamwo",
+      "code": "326",
+      "cities": []
+    },
+    {
+      "name": "Lira",
+      "code": "307",
+      "cities": []
+    },
+    {
+      "name": "Luuka",
+      "code": "229",
+      "cities": []
+    },
+    {
+      "name": "Luwero",
+      "code": "104",
+      "cities": []
+    },
+    {
+      "name": "Lwengo",
+      "code": "124",
+      "cities": []
+    },
+    {
+      "name": "Lyantonde",
+      "code": "114",
+      "cities": []
+    },
+    {
+      "name": "Madi-Okollo",
+      "code": "336",
+      "cities": []
+    },
+    {
+      "name": "Manafwa",
+      "code": "223",
+      "cities": []
+    },
+    {
+      "name": "Maracha",
+      "code": "320",
+      "cities": []
+    },
+    {
+      "name": "Masaka",
+      "code": "105",
+      "cities": []
+    },
+    {
+      "name": "Masindi",
+      "code": "409",
+      "cities": []
+    },
+    {
+      "name": "Mayuge",
+      "code": "214",
+      "cities": []
+    },
+    {
+      "name": "Mbale",
+      "code": "209",
+      "cities": []
+    },
+    {
+      "name": "Mbarara",
+      "code": "410",
+      "cities": []
+    },
+    {
+      "name": "Mitooma",
+      "code": "423",
+      "cities": []
+    },
+    {
+      "name": "Mityana",
+      "code": "115",
+      "cities": []
+    },
+    {
+      "name": "Moroto",
+      "code": "308",
+      "cities": []
+    },
+    {
+      "name": "Moyo",
+      "code": "309",
+      "cities": []
+    },
+    {
+      "name": "Mpigi",
+      "code": "106",
+      "cities": []
+    },
+    {
+      "name": "Mubende",
+      "code": "107",
+      "cities": []
+    },
+    {
+      "name": "Mukono",
+      "code": "108",
+      "cities": []
+    },
+    {
+      "name": "Nabilatuk",
+      "code": "334",
+      "cities": []
+    },
+    {
+      "name": "Nakapiripirit",
+      "code": "311",
+      "cities": []
+    },
+    {
+      "name": "Nakaseke",
+      "code": "116",
+      "cities": []
+    },
+    {
+      "name": "Nakasongola",
+      "code": "109",
+      "cities": []
+    },
+    {
+      "name": "Namayingo",
+      "code": "230",
+      "cities": []
+    },
+    {
+      "name": "Namisindwa",
+      "code": "234",
+      "cities": []
+    },
+    {
+      "name": "Namutumba",
+      "code": "224",
+      "cities": []
+    },
+    {
+      "name": "Napak",
+      "code": "327",
+      "cities": []
+    },
+    {
+      "name": "Nebbi",
+      "code": "310",
+      "cities": []
+    },
+    {
+      "name": "Ngora",
+      "code": "231",
+      "cities": []
+    },
+    {
+      "name": "Northern",
+      "code": "N",
+      "cities": [
+        "Adjumani",
+        "Amudat",
+        "Apac",
+        "Arua",
+        "Gulu",
+        "Kitgum",
+        "Kotido",
+        "Lira",
+        "Moroto",
+        "Moyo",
+        "Nebbi",
+        "Otuke",
+        "Oyam",
+        "Pader",
+        "Pader Palwo",
+        "Paidha",
+        "Yumbe"
+      ]
+    },
+    {
+      "name": "Ntoroko",
+      "code": "424",
+      "cities": []
+    },
+    {
+      "name": "Ntungamo",
+      "code": "411",
+      "cities": []
+    },
+    {
+      "name": "Nwoya",
+      "code": "328",
+      "cities": []
+    },
+    {
+      "name": "Obongi",
+      "code": "337",
+      "cities": []
+    },
+    {
+      "name": "Omoro",
+      "code": "331",
+      "cities": []
+    },
+    {
+      "name": "Otuke",
+      "code": "329",
+      "cities": []
+    },
+    {
+      "name": "Oyam",
+      "code": "321",
+      "cities": []
+    },
+    {
+      "name": "Pader",
+      "code": "312",
+      "cities": []
+    },
+    {
+      "name": "Pakwach",
+      "code": "332",
+      "cities": []
+    },
+    {
+      "name": "Pallisa",
+      "code": "210",
+      "cities": []
+    },
+    {
+      "name": "Rakai",
+      "code": "110",
+      "cities": []
+    },
+    {
+      "name": "Rubanda",
+      "code": "429",
+      "cities": []
+    },
+    {
+      "name": "Rubirizi",
+      "code": "425",
+      "cities": []
+    },
+    {
+      "name": "Rukiga",
+      "code": "431",
+      "cities": []
+    },
+    {
+      "name": "Rukungiri",
+      "code": "412",
+      "cities": []
+    },
+    {
+      "name": "Rwampara",
+      "code": "435",
+      "cities": []
+    },
+    {
+      "name": "Sembabule",
+      "code": "111",
+      "cities": []
+    },
+    {
+      "name": "Serere",
+      "code": "232",
+      "cities": []
+    },
+    {
+      "name": "Sheema",
+      "code": "426",
+      "cities": []
+    },
+    {
+      "name": "Sironko",
+      "code": "215",
+      "cities": []
+    },
+    {
+      "name": "Soroti",
+      "code": "211",
+      "cities": []
+    },
+    {
+      "name": "Tororo",
+      "code": "212",
+      "cities": []
+    },
+    {
+      "name": "Wakiso",
+      "code": "113",
+      "cities": []
+    },
+    {
+      "name": "Western",
+      "code": "W",
+      "cities": [
+        "Bundibugyo",
+        "Bwizibwera",
+        "Fort Portal",
+        "Hoima",
+        "Ibanda",
+        "Ibanda District",
+        "Kabale",
+        "Kagadi",
+        "Kamwenge",
+        "Kanungu",
+        "Kasese",
+        "Kibale",
+        "Kigorobya",
+        "Kilembe",
+        "Kiruhura",
+        "Kisoro",
+        "Kyenjojo",
+        "Margherita",
+        "Masindi",
+        "Masindi Port",
+        "Mbarara",
+        "Muhororo",
+        "Ntungamo",
+        "Nyachera",
+        "Rukungiri"
+      ]
+    },
+    {
+      "name": "Yumbe",
+      "code": "313",
+      "cities": []
+    },
+    {
+      "name": "Zombo",
+      "code": "330",
+      "cities": []
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "name": "Jersey",
+  "iso2": "JE",
+  "iso3": "JEY",
+  "phonecode": "44",
+  "states": [
+    {
+      "name": "Grouville",
+      "code": "01",
+      "cities": [
+        "Vingtaine de la Rocque",
+        "Vingtaine de la Rue",
+        "Vingtaine de Longueville",
+        "Vingtaine des Marais"
+      ]
+    },
+    {
+      "name": "St Brelade",
+      "code": "02",
+      "cities": [
+        "Vingtaine de la Moye",
+        "Vingtaine de Noirmont",
+        "Vingtaine des Quennevais",
+        "Vingtaine du Coin"
+      ]
+    },
+    {
+      "name": "St Clement",
+      "code": "03",
+      "cities": [
+        "Grande Vingtaine",
+        "Vingtaine de Samarès",
+        "Vingtaine du Rocquier"
+      ]
+    },
+    {
+      "name": "St Helier",
+      "code": "04",
+      "cities": [
+        "Vingtaine de Bas du Mont au Prêtre",
+        "Vingtaine de Haut du Mont au Prêtre",
+        "Vingtaine de la Ville",
+        "Vingtaine du Mont à l'Abbé",
+        "Vingtaine du Mont Cochon",
+        "Vingtaine du Rouge Bouillon"
+      ]
+    },
+    {
+      "name": "St John",
+      "code": "05",
+      "cities": [
+        "Vingtaine de Hérupe",
+        "Vingtaine du Douet",
+        "Vingtaine du Nord"
+      ]
+    },
+    {
+      "name": "St Lawrence",
+      "code": "06",
+      "cities": [
+        "Vingtaine Bas de la Vallée",
+        "Vingtaine du Coin Hatain",
+        "Vingtaine du Coin Motier",
+        "Vingtaine du Coin Tourgis Nord",
+        "Vingtaine du Coin Tourgis Sud"
+      ]
+    },
+    {
+      "name": "St Martin",
+      "code": "07",
+      "cities": [
+        "Vingtaine de Faldouet",
+        "Vingtaine de la Quéruée",
+        "Vingtaine de Rozel",
+        "Vingtaine du Fief de la Reine"
+      ]
+    },
+    {
+      "name": "St Mary",
+      "code": "08",
+      "cities": [
+        "Vingtaine du Nord",
+        "Vingtaine du Sud"
+      ]
+    },
+    {
+      "name": "St Ouen",
+      "code": "09",
+      "cities": [
+        "Cueillette de Grantez",
+        "Cueillette de Léoville",
+        "Cueillette de Millais",
+        "Cueillette de Vinchelez",
+        "Grande Cueillette",
+        "Petite Cueillette"
+      ]
+    },
+    {
+      "name": "St Peter",
+      "code": "10",
+      "cities": [
+        "Grande Vingtaine",
+        "Vingtaine des Augerez",
+        "Vingtaine du Coin Varin",
+        "Vingtaine du Douet"
+      ]
+    },
+    {
+      "name": "St Saviour",
+      "code": "11",
+      "cities": [
+        "Vingtaine de la Grande Longueville",
+        "Vingtaine de la Petite Longueville",
+        "Vingtaine de Maufant",
+        "Vingtaine de Sous la Hougue",
+        "Vingtaine des Pigneaux"
+      ]
+    },
+    {
+      "name": "Trinity",
+      "code": "12",
+      "cities": [
+        "Vingtaine de la Croiserie",
+        "Vingtaine de la Ville-à-l'Évêque",
+        "Vingtaine de Rozel",
+        "Vingtaine des Augrès",
+        "Vingtaine du Rondin"
+      ]
+    }
+  ]
+}

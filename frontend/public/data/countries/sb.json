@@ -1,0 +1,72 @@
+{
+  "name": "Solomon Islands",
+  "iso2": "SB",
+  "iso3": "SLB",
+  "phonecode": "677",
+  "states": [
+    {
+      "name": "Central",
+      "code": "CE",
+      "cities": [
+        "Tulagi"
+      ]
+    },
+    {
+      "name": "Choiseul",
+      "code": "CH",
+      "cities": []
+    },
+    {
+      "name": "Guadalcanal",
+      "code": "GU",
+      "cities": [
+        "Honiara"
+      ]
+    },
+    {
+      "name": "Honiara",
+      "code": "CT",
+      "cities": []
+    },
+    {
+      "name": "Isabel",
+      "code": "IS",
+      "cities": [
+        "Buala"
+      ]
+    },
+    {
+      "name": "Makira-Ulawa",
+      "code": "MK",
+      "cities": [
+        "Kirakira"
+      ]
+    },
+    {
+      "name": "Malaita",
+      "code": "ML",
+      "cities": [
+        "Auki"
+      ]
+    },
+    {
+      "name": "Rennell and Bellona",
+      "code": "RB",
+      "cities": []
+    },
+    {
+      "name": "Temotu",
+      "code": "TE",
+      "cities": [
+        "Lata"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "WE",
+      "cities": [
+        "Gizo"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,493 @@
+{
+  "name": "Iceland",
+  "iso2": "IS",
+  "iso3": "ISL",
+  "phonecode": "354",
+  "states": [
+    {
+      "name": "Akranes",
+      "code": "AKN",
+      "cities": [
+        "Akranes"
+      ]
+    },
+    {
+      "name": "Akureyri",
+      "code": "AKU",
+      "cities": [
+        "Akureyri"
+      ]
+    },
+    {
+      "name": "Árborg",
+      "code": "SFA",
+      "cities": [
+        "Selfoss"
+      ]
+    },
+    {
+      "name": "Árneshreppur",
+      "code": "ARN",
+      "cities": []
+    },
+    {
+      "name": "Ásahreppur",
+      "code": "ASA",
+      "cities": [
+        "Ásahreppur"
+      ]
+    },
+    {
+      "name": "Bláskógabyggð",
+      "code": "BLA",
+      "cities": [
+        "Bláskógabyggð"
+      ]
+    },
+    {
+      "name": "Bolungarvík",
+      "code": "BOL",
+      "cities": []
+    },
+    {
+      "name": "Borgarbyggð",
+      "code": "BOG",
+      "cities": [
+        "Akrahreppur",
+        "Borgarbyggð",
+        "Borgarfjarðarhreppur",
+        "Borgarnes"
+      ]
+    },
+    {
+      "name": "Capital",
+      "code": "1",
+      "cities": []
+    },
+    {
+      "name": "Dalabyggð",
+      "code": "DAB",
+      "cities": [
+        "Dalabyggð"
+      ]
+    },
+    {
+      "name": "Dalvíkurbyggð",
+      "code": "DAV",
+      "cities": [
+        "Dalvík",
+        "Dalvíkurbyggð"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "7",
+      "cities": []
+    },
+    {
+      "name": "Eyja- og Miklaholtshreppur",
+      "code": "EOM",
+      "cities": [
+        "Eyja- og Miklaholtshreppur"
+      ]
+    },
+    {
+      "name": "Eyjafjarðarsveit",
+      "code": "EYF",
+      "cities": [
+        "Eyjafjarðarsveit"
+      ]
+    },
+    {
+      "name": "Fjallabyggð",
+      "code": "FJL",
+      "cities": [
+        "Fjallabyggð",
+        "Siglufjörður"
+      ]
+    },
+    {
+      "name": "Fjarðabyggð",
+      "code": "FJD",
+      "cities": [
+        "Breiðdalshreppur",
+        "Egilsstaðir",
+        "Eskifjörður",
+        "Fjarðabyggð",
+        "Neskaupstaður",
+        "Reyðarfjörður"
+      ]
+    },
+    {
+      "name": "Fljótsdalshreppur",
+      "code": "FLR",
+      "cities": [
+        "Fljótsdalshreppur"
+      ]
+    },
+    {
+      "name": "Flóahreppur",
+      "code": "FLA",
+      "cities": [
+        "Flóahreppur"
+      ]
+    },
+    {
+      "name": "Garðabær",
+      "code": "GAR",
+      "cities": [
+        "Álftanes",
+        "Garðabær"
+      ]
+    },
+    {
+      "name": "Grímsnes- og Grafningshreppur",
+      "code": "GOG",
+      "cities": [
+        "Grímsnes- og Grafningshreppur"
+      ]
+    },
+    {
+      "name": "Grindavík",
+      "code": "GRN",
+      "cities": [
+        "Grindavík"
+      ]
+    },
+    {
+      "name": "Grundarfjörður",
+      "code": "GRU",
+      "cities": []
+    },
+    {
+      "name": "Grýtubakkahreppur",
+      "code": "GRY",
+      "cities": [
+        "Grýtubakkahreppur"
+      ]
+    },
+    {
+      "name": "Hafnarfjörður",
+      "code": "HAF",
+      "cities": [
+        "Hafnarfjörður"
+      ]
+    },
+    {
+      "name": "Hörðarsveit",
+      "code": "HRG",
+      "cities": [
+        "Hörgársveit"
+      ]
+    },
+    {
+      "name": "Hornafjörður",
+      "code": "SHF",
+      "cities": [
+        "Höfn"
+      ]
+    },
+    {
+      "name": "Hrunamannahreppur",
+      "code": "HRU",
+      "cities": [
+        "Hrunamannahreppur"
+      ]
+    },
+    {
+      "name": "Húnabyggð",
+      "code": "HUG",
+      "cities": []
+    },
+    {
+      "name": "Húnaþing vestra",
+      "code": "HUV",
+      "cities": [
+        "Húnaþing Vestra"
+      ]
+    },
+    {
+      "name": "Hvalfjarðarsveit",
+      "code": "HVA",
+      "cities": [
+        "Hvalfjarðarsveit"
+      ]
+    },
+    {
+      "name": "Hveragerði",
+      "code": "HVE",
+      "cities": [
+        "Hveragerði"
+      ]
+    },
+    {
+      "name": "Ísafjörður",
+      "code": "ISA",
+      "cities": [
+        "Ísafjarðarbær",
+        "Ísafjörður"
+      ]
+    },
+    {
+      "name": "Kaldrananeshreppur",
+      "code": "KAL",
+      "cities": []
+    },
+    {
+      "name": "Kjósarhreppur",
+      "code": "KJO",
+      "cities": [
+        "Kjósarhreppur"
+      ]
+    },
+    {
+      "name": "Kópavogur",
+      "code": "KOP",
+      "cities": [
+        "Kópavogur"
+      ]
+    },
+    {
+      "name": "Langanesbyggð",
+      "code": "LAN",
+      "cities": [
+        "Langanesbyggð"
+      ]
+    },
+    {
+      "name": "Mosfellsbær",
+      "code": "MOS",
+      "cities": [
+        "Mosfellsbaer"
+      ]
+    },
+    {
+      "name": "Múlaþing",
+      "code": "MUL",
+      "cities": [
+        "Fljótsdalshérað"
+      ]
+    },
+    {
+      "name": "Mýrdalshreppur",
+      "code": "MYR",
+      "cities": [
+        "Mýrdalshreppur"
+      ]
+    },
+    {
+      "name": "Norðurþing",
+      "code": "NOR",
+      "cities": [
+        "Húsavík"
+      ]
+    },
+    {
+      "name": "Northeastern",
+      "code": "6",
+      "cities": []
+    },
+    {
+      "name": "Northwestern",
+      "code": "5",
+      "cities": []
+    },
+    {
+      "name": "Ölfus",
+      "code": "SOL",
+      "cities": [
+        "Þorlákshöfn"
+      ]
+    },
+    {
+      "name": "Rangárþing eystra",
+      "code": "RGE",
+      "cities": []
+    },
+    {
+      "name": "Rangárþing ytra",
+      "code": "RGY",
+      "cities": []
+    },
+    {
+      "name": "Reykhólahreppur",
+      "code": "RHH",
+      "cities": [
+        "Reykhólahreppur"
+      ]
+    },
+    {
+      "name": "Reykjanesbær",
+      "code": "RKN",
+      "cities": [
+        "Garður",
+        "Keflavík",
+        "Reykjanesbær",
+        "Sandgerði"
+      ]
+    },
+    {
+      "name": "Reykjavík",
+      "code": "RKV",
+      "cities": [
+        "Reykjavík"
+      ]
+    },
+    {
+      "name": "Seltjarnarnes",
+      "code": "SEL",
+      "cities": [
+        "Seltjarnarnes"
+      ]
+    },
+    {
+      "name": "Skaftárhreppur",
+      "code": "SKF",
+      "cities": [
+        "Skaftárhreppur"
+      ]
+    },
+    {
+      "name": "Skagabyggð",
+      "code": "SKG",
+      "cities": [
+        "Skagabyggð"
+      ]
+    },
+    {
+      "name": "Skagafjörður",
+      "code": "SKR",
+      "cities": [
+        "Sauðárkrókur",
+        "Sveitarfélagið Skagafjörður"
+      ]
+    },
+    {
+      "name": "Skagaströnd",
+      "code": "SSS",
+      "cities": []
+    },
+    {
+      "name": "Skeiða- og Gnúpverjahreppur",
+      "code": "SOG",
+      "cities": [
+        "Skeiða- og Gnúpverjahreppur"
+      ]
+    },
+    {
+      "name": "Skorradalshreppur",
+      "code": "SKO",
+      "cities": [
+        "Skorradalshreppur"
+      ]
+    },
+    {
+      "name": "Snæfellsbær",
+      "code": "SNF",
+      "cities": [
+        "Ólafsvík",
+        "Snæfellsbær"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "8",
+      "cities": []
+    },
+    {
+      "name": "Southern Peninsula",
+      "code": "2",
+      "cities": []
+    },
+    {
+      "name": "Strandabyggð",
+      "code": "STR",
+      "cities": [
+        "Strandabyggð"
+      ]
+    },
+    {
+      "name": "Stykkishólmur",
+      "code": "STY",
+      "cities": [
+        "Helgafellssveit",
+        "Stykkishólmur"
+      ]
+    },
+    {
+      "name": "Súðavík",
+      "code": "SDV",
+      "cities": []
+    },
+    {
+      "name": "Suðurnesjabær",
+      "code": "SDN",
+      "cities": []
+    },
+    {
+      "name": "Svalbardsstrandarhreppur",
+      "code": "SBT",
+      "cities": [
+        "Svalbarðsstrandarhreppur"
+      ]
+    },
+    {
+      "name": "Tálknafjarðarhreppur",
+      "code": "TAL",
+      "cities": [
+        "Tálknafjarðarhreppur"
+      ]
+    },
+    {
+      "name": "Tjörneshreppur",
+      "code": "TJO",
+      "cities": [
+        "Tjörneshreppur"
+      ]
+    },
+    {
+      "name": "Vestmannaeyjar",
+      "code": "VEM",
+      "cities": [
+        "Vestmannaeyjabær",
+        "Vestmannaeyjar"
+      ]
+    },
+    {
+      "name": "Vesturbyggð",
+      "code": "VER",
+      "cities": []
+    },
+    {
+      "name": "Vogar",
+      "code": "SVG",
+      "cities": [
+        "Vogar"
+      ]
+    },
+    {
+      "name": "Vopnafjarðarhreppur",
+      "code": "VOP",
+      "cities": []
+    },
+    {
+      "name": "Western",
+      "code": "3",
+      "cities": []
+    },
+    {
+      "name": "Westfjords",
+      "code": "4",
+      "cities": []
+    },
+    {
+      "name": "Þingeyjarsveit",
+      "code": "THG",
+      "cities": [
+        "Laugar",
+        "Skútustaðahreppur",
+        "Þingeyjarsveit"
+      ]
+    }
+  ]
+}

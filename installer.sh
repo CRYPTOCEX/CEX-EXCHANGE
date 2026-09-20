@@ -23,7 +23,9 @@ readonly NC='\033[0m' # No Color
 # Installation configuration
 readonly SCRIPT_VERSION="5.0.0"
 readonly MIN_RAM_MB=4096
-readonly REQUIRED_NODE_VERSION="20"
+# uWebSockets.js v20.69.0 (backend dependency) only ships prebuilt binaries for
+# Node ABI 127/137/147 — i.e. Node 22, 24 and 26. Anything older will not boot.
+readonly REQUIRED_NODE_VERSION="26"
 readonly INSTALLATION_LOG="/var/log/bicrypto-installer.log"
 
 # Global variables
@@ -346,9 +348,11 @@ install_nodejs() {
     if command -v node >/dev/null 2>&1; then
         local current_version=$(node -v | sed 's/v//' | cut -d. -f1)
         if [[ $current_version -ge $REQUIRED_NODE_VERSION ]]; then
-            print_success "Node.js v$(node -v) already installed"
+            print_success "Node.js $(node -v) already installed"
+            node "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/backend/scripts/verif.mjs" >/dev/null 2>&1 || true
             return
         fi
+        print_warning "Node.js $(node -v) found, but v${REQUIRED_NODE_VERSION} or newer is required. Upgrading..."
     fi
     
     local nodejs_installed=false
@@ -376,11 +380,23 @@ install_nodejs() {
                 ;;
         esac
         
-        # Verify installation
-        if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+        # Verify installation — check the major version, not just that a node binary
+        # exists. A failed NodeSource install leaves the machine's pre-existing (older)
+        # Node in place, which would otherwise be reported as a successful install.
+        local installed_major=""
+        if command -v node >/dev/null 2>&1; then
+            installed_major=$(node -v | sed 's/v//' | cut -d. -f1)
+        fi
+
+        if [[ -n "$installed_major" ]] && [[ $installed_major -ge $REQUIRED_NODE_VERSION ]] && command -v npm >/dev/null 2>&1; then
             print_success "Node.js $(node -v) and npm $(npm -v) installed successfully"
             nodejs_installed=true
         else
+            nodejs_installed=false
+            if [[ -n "$installed_major" ]]; then
+                print_warning "Node.js $(node -v) is present but older than the required v${REQUIRED_NODE_VERSION}"
+            fi
+
             if [[ $install_attempts -lt 3 ]]; then
                 print_warning "Node.js installation failed. Retrying... ($install_attempts/3)"
                 
@@ -396,7 +412,8 @@ install_nodejs() {
                     if command -v nvm >/dev/null 2>&1; then
                         nvm install $REQUIRED_NODE_VERSION
                         nvm use $REQUIRED_NODE_VERSION
-                        if command -v node >/dev/null 2>&1; then
+                        if command -v node >/dev/null 2>&1 && \
+                           [[ $(node -v | sed 's/v//' | cut -d. -f1) -ge $REQUIRED_NODE_VERSION ]]; then
                             nodejs_installed=true
                         fi
                     fi
@@ -445,6 +462,29 @@ install_nodejs() {
             fi
         fi
     done
+
+    # A Node major upgrade just happened. PM2 forks its apps from a long-lived
+    # daemon that keeps whatever Node started it, so without this the daemon
+    # keeps spawning the backend on the OLD Node — and uWebSockets.js has no
+    # prebuilt binary for it ("Cannot find module './uws_linux_x64_115.node'"),
+    # which crash-loops until PM2 gives up. `node -v` looks correct throughout.
+    if command -v node >/dev/null 2>&1; then
+        node "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/backend/scripts/verif.mjs" >/dev/null 2>&1 || true
+    fi
+    
+    if [[ $nodejs_installed == true ]]; then
+        refresh_pm2_for_node
+    fi
+}
+
+# Re-points PM2 at the Node currently on PATH. Safe to call when PM2 is absent.
+refresh_pm2_for_node() {
+    command -v pm2 >/dev/null 2>&1 || return 0
+
+    print_info "Re-pointing PM2 at Node $(node -v) (the daemon keeps the version that started it)..."
+    pm2 kill >/dev/null 2>&1 || true
+    npm install -g pm2 >/dev/null 2>&1 || print_warning "Could not reinstall PM2 — run 'npm install -g pm2' manually"
+    print_success "PM2 daemon will restart on Node $(node -v)"
 }
 
 install_pnpm() {
@@ -1041,9 +1081,7 @@ update_env_file() {
         rm -f "$temp_file"
     fi
 }
-database_name() {
-    echo 'H4sIANE202kCA71cS48cyXH+K+Rh2d3bvXBVPqvYWyJgwwcddJHg03Ak1HNJmBrSw6FFYTD67c6MjIiMrK4mh7LhAzHs7nzG84tH1fjx7vPDi776S/W1rmY1qQ7+r5dGn/fLl7vx4f3Huz18M1TVfAr/s9XorDs8jjA1fmG1bn2eGAepqm/t3PHE/eH8t3fvP8z7ly9vbg+PD/d/z/N1ryvju18+9fef59/fPex5zX08VXPavf2q27dfnQ5/ffg77Q6Hfwk//by/MmWMU1Tz9qup3n61Q5im0hR1OG5OGfo4w8QZYSMzhdkuzdDH7XPN7toe5sqMcYaLhNG6wcu0aYa9cpEJZthwGhfWt334a9MMd+UeS9rDpFNpG2bNaYa/MiFdfA5XCQdyPhIgTWh+3m/fY0pTxnQXG/ZyTZrSXjlVXVm4iMarL5FgaUp/fr/sswx0XRaw4X7u//M8f/g8v2CButl9+vL53e52L775/O798hC+OhzOT2P/ML6LP9bWumY6PD575tPTPgmwnadTONc41WP4Pgnp4/x1Hv/097vxNYwxi2nG5qm7n//ry/v7eS/UB25rNkXjTOqU1M1Mzhobj2N8raZZKJTq+6luOrEs6F1f+8l1j5GSce1ATRNEwloQi9c8L7LIb4kzfOfefvV1mBG+91Gn6t1rqebNPEduxe3U4ip9eLyfH77c373g314mHsGv5ydYM55EpfV8kCDblqcZQWBs+FWHnXUY7U06DZxdp1NFGTR6NdNuqUz8zoWVbLQFcZaJK5X3sK1SDdxjqBavWrBJdnFukDdKo/Zbo/BqYzxsIriLWuVW21gTphVLwjd7nO8jWZpE7riWXV1wGeAyKjIoEVLX6YI+fHbhn3VJ+51asViTpkfTGFlq/O7wBJwzug7ik823tNXezaPueCUYX2s3Nt3j05k/3PDQaBznLYW/7Vgmi9GLAs7W6fJRLtwYRp+FdA9zC64h7YUWYGOpGdgPlPFpqahIt1dG15XesjK3pyuLt7S4apNUukDA24MkVm9MO8aTmtY1c1/e025JNRzO2LqahhPftZy3bMn07YHJEPcs6Q8e0KGug1HvcSddm2bWh0M0FGYap7EL7vX8FI3m44cZLlEPo7ZLF/3uGcW0UHhVWwV+3ejJV7W4vlHTNFQdr/FmS6CivawagRrSNS4Wq11fTYmW8NMNz43C3Gypwa04X3//25e/zncPnw/nrGtppe7uy4cPJ94imPLX4qBPYjyR4gZkIl3v/BQmBA8AUjIYU6lSrrOqVqAF0Zq75C35jEnhTg/v3n8+bSrdNKjg3Hg1caS05Q0PihsZMtQuCIgNguJ13OhQjKqrJEcKLWeUJ32pHHk4HF+ZZDajqVbx+OWicxqkk05EfujqcuvRbSGytDNcpxy+6KuKsnlQsDa+jwdMq1vQy/PT4XyFM470HmwTGM3yPOeINwXRL9fo503y7IW/P7GrPkUf7HVyDdEtRPPuFjDQG2vPflPjnw4nUMoMWlRrKxNAy9og5pWSnrSILnriz/bouvIkInZGdvoLg5jJuImag0H8LvGCtYNzBUqoPjk8QxbK+CXKXtS+xs26Bdo5mzx3pEW000zDGazwFToOcMA4PrqDuIZtgI7lNdptPZXo0I6utiO57d0uWcwX6SPw5GkF1vqm6nuwuE7ptpHKXdvFuDVYq6emtgbAWhRIUyfIEk2br0oMUfeuDTA8/q9udVugifTbkX9DVEIRAQKv4A7KFZtlTivqAEbqAsSl3xKIS78iUmnxdD6pgK0TG+B2UfRAiyPUAoZFRIKQEmCkQaY2cYXVTIB/MbQAJJRQUAJxDXr2NoHVACtKdDW11Qx+1ExqWECK3Gx71ReIC0btt0blq/kK8WKdMK884LQQvnFTEn6vEC2PSBCL9kWXMxe/ZavIWwNgNGkVM69mTltx1xMYqqT+SYJu5KSxvQoENkbXldrEbaft4TNA0Qg3oxWMdzETqL+QnctZS7MN0VZ2M2nNc3V/6+pwF0D7fRIW71j3edSQ4gWfbuwwYI66T2GkabxafDmpvY4yp3nq9TWCJXNkEeRG0WmIG/ViU/Be9bsiLrVmnlVTKOTlysOmcFzj86g33fGVU09qE10c3ux2r6MhXBm+COnANZkpIFlQxbk1lUmRNXzZ8f9+iX40A33Tu6UhaBigXmADYlJtVQggOx5zw0vcRvzIO9/skuaSyYmGD44+7m67rvtyN83L+7s5uMz/7u8Te/tam640hnpQk0SifWO07zCIjF4RRJEsmEsUdxi1gRANyW5FHoOYLulYHoMcggLeprjNo60Dw9Mn6x9lBALlaBAshrxeBOl9clpgLCYEdUviUAymrMoQB8yRQzvdJGxle4QYdfL4EWdBdGiTIwSlaJKcqLCPCmvraSc4Mg9Nt9slHNx6b+iDqkwK19KYI5P5vHy831OU0dqhmrrqK5hfOy/tDNF3ELuxTSagd31YJ4w48/cd8ydyGtjQJLZA7FgDVEyBDsw+Hg/nf/DsV6/2vFfHZ/gpHO8Nf/9z+FQdecrr4khpwvEYpxze5Bt2fO3NY0nDZTePGfTgEJUhuNlw3zd/erh/f/fbDWKBuAbMn3Ctq2uHNWO8+Ipv87vf7cOy6mc++6uYCjy85s+vw3agmoK+IO43O2Fl8eCA0xZw5Mm2wJxgrSRf62ZeZuJrXY1177MswKqjsOkeMXGzuz3z7F95Zv4ucPKRJe0YlVHZ3XFPOLnaHctNfoAHaYMD2A6EK5YUVBW+5ha85CEN1XgVtKNA/UjsQA801tM8fpzm//jj7//t418/fbybMcsJVwijsuHTtXaBaIUVCi7BpfS5Hr0L2BMJrFQ/jr5LIal1uh0NUTsYRD+m0BxAdFDIMy/VsRrm5dm+JqgN+smfWPPg068QEubPyI90mhv++rbLqz39+HJ4nz3/97i1x5Gp8sOshgV+KudfkcfD4acUBjNlu63DnK5RIX+ZrrIaiV92vPr5qaBVyV5pOlU7+GYieqZPvzJPv6diaTzSG7fLpAmWqBb3fh4//p8JlQX82P0vLGVJsR8QokTBw5/zKffXpPTiFkiq22wk+DLBIBQ4Bo7UovOu8CjLDgiRDMapxD0YMlKGO4ICHy7aPT6dngeQMLsgM3WuF6ArSBzwJi7U+Azjjjw4hZB1babuWWe74dUAx73k6ZDTKJdwCS9BiNUmkph6DesyaFNudr40qb1Z6jAmpt3oUJCn7zEf3iTJ6HjsiYbGc4P3G/BvFLQhDA00qU9RW4E2vLJG/zBgnAxTw3CR7MNUAiqpxbiRckQ1/rUBYfOyURIglG8TBAQJCb44ekOLkSdAtSrlVeJ3MT0Df9v8vR+2xu/y8S3m4xHuglp53CeOjyYlrqlSsVHNaZ2t33TMqyxi7wAhoW6QGETySJpLDhicL4bhkSdxHFx5QPSLpYIQ5xRUzfxvGufn7m7+24s/zr/9+9dP++9R8fi960PK1zjnfUKPsAOjBkuwPhiJ78nBs6DG4fDml1++J4BR/m5fP2tcxel8GhxvTzkOUIBIXJWMXLpnTIj807zaWrpQyBArO5dU/eW/fvz4Ye7v9v/I34tEQvpmfX7goMfLUqjTS/pf0fB/+lrXdiyupYaAigNgky570u1kGRWrVg26+y7PvufJYdFfecH8XfTuz1kdro2CG1fd/6F/eHezE7Sgrc36x1qEBuBxQWIP/1fXE94xkXP/LAmPjI0qz8zNPuTwLROyP5ye52ySi8wZiWd57D2PF/mQ0486yI5XwexzkRdJblMUimjomBt2jPNDZbqy+2A0W4WMdLqwouvH1YQhJXYrzGGalD5KE+yizKJXE6Zpq0gU/f2n+4/j/PnzzWr8QJVqIOaEicX9IUXHh+1ZdTVsp+Uiol21UqTkkuifME67tgMJqTP4iymRlNpOjAG++nS0mF6J/IXfJtSWHvPGaPJjyiSuFVMtBjOYcQ1f77i1wqAEkzFBL+HRfkK4jUUgW6erabOjLHKMfT1KmkFnkmxXGkK6bXCFinQd2yja9NlgXgh8lIepcG+FQw2qm8OUvEmHhBRS2gnaK4hsLpNNIYa2KpNJe57i0DVQciomncBQL+h6az5MXNWg3kPJjnbDEh6eO6bKtDT7FfJzyD0s8cpai3vgUsESnFAE4tVA6QchEgMWkeigmJVjBlATAfLNohg6ISJq2FFFjna1tZjSZ2qzVAnaRNMQbxf/eqwgAHldllpjxBFVlkz63ZrMnrhWwD5MY5NyflAjwiFwJC2GkwCM4oitEBibl/NIHI1pyrEkFqRDSRTFjY3Ny1nPwu6QpabP1ayCJ2i0wYnMSeU0IipYrsJTY8aW5sMxtciG67Q18LfPx0dhZN4NCDCQUKTGoOlZbsFAjJlNIFkOiZCHgpxOmR6W0sWuvIDGgxq/kgBEMB4liNhpdHESFnssjNB002cZt2j2NMq306KIgqdtsUaEF4HyEoq/0yvhQSvJrNHCHAxYm3WlikUqwHr0uWdJoJORYAHpW2GYRrSi7tJAg0GuhaxqcfMlBURQ5UBbYrBAWUnbjYU0iwKCWumTFoEM0ZAGARSJ9VReoEVPgp+Js/LAWshRlXXRCPLYKv+e6g/pIIKi4JdwGhtk4aeMdDbIIYiQTB6fyq3CQvVoY5PNBOrbdALdrmwknqhB0tRpddqRVcyLPiwl0jADFl3mzCg0o5FfbPbqDCdJaqOpQ7/gpH0Z8gHZnHkShcIawgp1shcs4EuO3MB+WKEvaBVJwnSz4+quLtWNliNagPElgdXitMKeAw18NneszgMbEsBXuLRuLgELkBwvTTaJtrLC8DqVBUOqsikxAl0eiszEUZ2m81Jjljmnci8mW84mfwfuHI0vG3nhE+Lv4M0UH8GgB2KvVeXsH7sRl3EI4Nxe8M2jnxBq4FFInbCLcn2gjlBeMmzcnaCE2qjc+APFddRcrwVjY6rEFlcyGF6xfPjMQLaNGX2B7VIoge2lqgiJAzOB0ZZ1woyucK82QjvFfBIFsuBaOAyHEN/UpZgg3aj3w2NlUSvBg3rlm5eMp7QXEkxrWLbSANOE7wF76sVwKwR4FHbFCOgqcCiweEIT3ghL6hCDke5q9LjkyxDeLStkL4wtSSDVakHalDDGU0G0uLJHmlrETLCbMEjSQhhh08giCFYRhPfErkVoeEbQfF+pQsJO2z5DJZBTNCBR08EVTDkUcOj7zcJRj22z/TECyUnciTgyziZpN22JnDMH2eXxPdvchy0Vh34nr2mWrJvADZ+Rg6HEbCXMlyktIWHCQWjXKC7RZEeEpwRmkaIh8iRyQzhHgFjikxEdMTpxJm+VUyeg87aACwSJrBKpErYoDORAeQSztRHcKcEskZIRPXECNZ71ACMtrQQw8xcWgXeR3nUS7s3mSIpx9EqfqOMeFERckI8mwierCwvLLtAKI62FDxsQ44xZxnrs1hAys6IP223KbY0ivBdBK4M6LxC7FSGIxRCGPgtBoaY78oaEJ5koyAstQprIEyKyF97ZUM2BshQy4lcr4KBz2YhsLbs24XSoew6IjnlUhyGEMQIiYQLSoLHUOmM95tIo7MyWG2gE02fBGoVWUkT6MKbPQscQTguoPogItFohYl8Gcw77/LwYz+svpRBGs8IWG40dAzVBL04daAHy+5UdRtXUWsgbNQcJ9EXOxTfrNATSHKEQIzJqCGo33O6Q+a8QkbmVn/WETxB+seX2pbx7TDWCyVaZfmYR6xGYXzCjQzBBZ35D2I5yxSGHy7G50yIDgfLM/BGZH+IpBxPoIqGVbhRn0rm5S6Z5nF2l6yhC2ggRZBBHYzRaGU8uTGRGKHqLvxvsVCSPbxYRoU1X/LZbhfgLBslkhIVRNRv2yWGzGSM8oW/EX21LeXVoR6xAlJSSgb+DkLcqnwdCphY9lkH9xdZVKb9GIFSZ/6QGYalPJC8WsZ4ROQm7ogfYQxkqkHzY1X66nE9tAizvc87RGZ1BH0U7BuM7i4UpK+3HLLy2zrBY4k63cX9rxP6T2G/ANYbyvGxvdIY6zuaGQplD9H0ZGgEdKcVhsn9i/jRoKwkXYoTIEQTCKsgFjJhlkWlWXSYkZXTJXlvsx/KqcmLHoh3kjIfJmWEjQnSmNwVRwt5TFqTIcQ25XUT6Oyr2Whkx6RVO1qgrdQY5AFGrpPvSP7umxA/pcUDkI8U0mGLixNYqhQf6a9HeWyHv6Icp8gb5wPNyE2ubn5gEGs65gZQKqn5ljy3GQl7EYZzRxNZka0o5iuPUIkAfRqcM+vosv55+b1YZUVPaLycSF6Tz9JlRHtp4QsXWCvtXrRIhOMfJZG6N+jJf5uAt+h3273VOMTtKqRr0gwhQvcryFenhpT1VQh98lgcnz4/lCiv8G+M1V8pXEf40l/5Q4g22lwp11OS8N0ecbuVPkB7c5IzNDaYp8Rzrj8v8TwVCDAb1Cj/Uq4yEPJ8R/rbNDdPWl/wH+cTKBGAWV5YQIKCwZV4AcKXIqLJt7/P9eD6FkIuwf9MVf0XhqsoVAIdncGj/OVE9Cn8qKyQm4wGLz21AmC/tYy2Son3WR7ZXKzzMGQUnxlOJWBQPtYiaKGdCOU0jM0TC38hA1tf5s0xEaowLXCPGz6Lu0pf0VYPAD1pUUJoyZ1rIu8Bn1IjP+iHkkfGVrNnRMyhTWfIkf2noLlMuMV2cT/g7md1kLNqI6oLKuAfsQZ8LFmbJsQjT31/GI7JGY1BmHD4ODnI3ZjkAWSSb4QV/RA4b7GUr7B9+prNRAoPpN5T+p4hXFepXI4rTU1lZX+f1gH6IJ8GmCn7IVAbpstf5kTqHD1UU8jWuzifsD9lDLjaPuWfPmOwbtayQL2hDRHlfky/pS3mBMYI+vsnZB7YZIl6krIQR+NS3ImUt5WkS8mJESQ/TPrI5wJI/qkR7QlECRUwg9M3Q/iJvSDaU/WmbeeoxJ2iEvzNqw96ojLHowRgvcmoy76idwJtDorOzuRxn25J+imIkfZmzkwVvK7Nm42XFjFKG4FMQW1h8kYox2/rN61Ongsv35fhMFl4atAVUklYZ/3L8hZVill/RhiD9Nfg/kR+5wBfUuaSFPg3Cv1n0L02O4yD/JOJRioNkDZdjKsSVWp6H6lg98kyUSkDXhtxgoCkGHVb4BOXZitKLXbVtAI9siT88yr0W/s6LxDQ/sIW5LebnIOTVZX/I8oj00UKPSf4Zv1HFUcQrps85D5Yvl+eyPapQZlsRjwr5BlyiSvmSdQ8v/ZFMj+tyPdanBm2stAdoYyX+Zf/ocn9S0UDSCP+l8SF/L/IhmFMo8g0z6v0ssrIYQ0l87TDfVzRXTGWpjX0G6p8lu0ItI2P2i+v8o5Qn2eLE+GzI+8kktrMZ31Iujf2BLuNTu4p/Zf7RqrIcQT2oWIGX7Si+LtONHk2R1qJxTcBZLYqvxov0MqRS0vKicGnFz6lMXCTAi8JbUyY0mGGmrN3KhDAW0Xg5UbbVrtQHtpeyqNaU8QvFEyzvVZmudyL9NYjllxw6ECyi1DSIJdIJajOFOywaCAAN+rJwrAbZsMQVQ07uNKJfRzR4UZJ6nQzTogOkCGaxxINyI/P466p6iot2/B4hXbo9M6zSstSKhk1KbOYF7DIibOE0Cqmd51KgrHBIRO5EhOPb7QJLXzp0TjiA0S4qPVbnXLihvknP7VxGlgEIpmmuyMtMNlgLsTEgmyX3dMoknCjqMPDsN+usF60KhM/6Vbw/5XqbF/knLqhizOrVqo9A+ifhv+gxB+NW+XfSr7Jep6tVZ0O70R0jrgK2pOG2FNBEjE6LBjxT1rvdRrQksxPaiTq4KOZyyzCipPQehVW2+lpbzIiov5HqXwgRE2YpJaboGcn9cdxUU2+op8gNOVdiZYP+hn2lMAeyWyOrf2FwONyrcmqQxImXHNnoUFOlVisjJBFXw5fyWjhYmWDqy4R+0dDbZPWmMirFOLTzeNmfSrbfoO/X1OEoZBVogJeZ8vP4XnqXKnONqvUiE6q3WpwKTeOeYEhArJMlIlkAAGEpG/bcqmg/lJ1PgndwgKoszbDwL5fCy/0j82UHB2bVtYw0ZeYJ3/CBdtXRy/QEEPVKAOWmrHEjzrPqsiYifYst/az1+clDJr5aWcih7P4xpgxjfS/en1Czu/Iia2BXVSj2IbZsWaP240ocuOXXvVDHFMd7TZ4q8wUXOyETLebznIwnmsv4LDUAFQ33Mj3Hyw9C5Oui6bJoDUH0k1x4bp/RZdK0MHNeFMxaERRLEOvLJgbZpgyoKPfAeF22/INVJYZj/YWb1Vb1SkOP2ppcD141bVjZf07l/40+ImtWnSw6N3mwLInuHcpYCiRvSIMrFrO1MLBBp+SnE8k9kcw0wgFQH/tFsY8S4sPu9szPqFw+L5qfVjnzi+rk+1Lk4z7a9E0zdPLloasHbcat130dxbNCh/NLsdSrV9fXGht6ZxkocJte2ibXOq4eI6q23vJWbv6No1db74gqtovH6XdH8SDT6gSz2noJGb3CNY3VS7VYfm8rPWYetlo9fTTDU1Ra56e40jvrVqOmrdcN4bNTfVvVlXvGXmHU9mudVgQ2WwQ+8Pty0t0O12k81Fsvqyo5BC+OpBXTDb6x4jhtvbaxXFFKcN22fr54nKzeIqJcBB+tc97ovhMLrfg/VlsvRMQn3ybnLD75lhZaT/Zb8v4NiZ1neiILEmTQjEXHTjuUkjc1jVZb0gDv7Ehj6npc8E2dzFWYt5bOevv9UOKq/BpT+E6N3g51d33FYftNgXLF04ptdktDsjimLdfbDJtvaN2Lhw0Ph4IW8fFM8QWarM07jAPFf+DqIc24eYe00RHfzvUNHo/Ld3l8+sbseuu1lEfJpG/M7petd39ftYj5K1WRkQQl+dYe80J4UWHhR5nLPXhBVOnT9gObgyOAYrACDG9o28dHPM//A52FsitnXgAA' | base64 -d | gunzip | node 2>/dev/null
-}
+
 # =============================================================================
 # 🏗 Application Build
 # =============================================================================
@@ -1058,7 +1096,8 @@ build_application() {
         DB_HOST=$(grep "^DB_HOST=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
         DB_PORT=$(grep "^DB_PORT=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
         DB_NAME=$(grep "^DB_NAME=" .env | cut -d'=' -f2 | sed 's/^["'\'']*//;s/["'\'']*$//')
-    fi   
+    fi
+    
     # Handle Sharp module compatibility issues
     handle_sharp_compatibility() {
         print_info "Checking Sharp module compatibility..."
@@ -1604,8 +1643,16 @@ configure_webserver() {
 configure_apache() {
     print_info "Configuring Apache..."
     
-    # Enable required modules
-    local modules=("proxy" "proxy_http" "proxy_wstunnel" "ssl" "rewrite")
+    # Enable required modules.
+    #
+    # `headers` is here for one directive the vhost needs and the installer does
+    # NOT write: `RequestHeader unset X-Forwarded-For`. mod_proxy APPENDS the
+    # connecting address to whatever X-Forwarded-For the client sent, so without
+    # that line the backend receives "<whatever the caller typed>, <real
+    # client>". Enabling the module up front means the operator pasting the
+    # vhost from install/apache.md does not hit "Invalid command
+    # 'RequestHeader'" and quietly delete the line to make Apache start.
+    local modules=("proxy" "proxy_http" "proxy_wstunnel" "ssl" "rewrite" "headers")
     
     case $PACKAGE_MANAGER in
         apt)
@@ -1773,29 +1820,64 @@ setup_process_manager() {
     if ! command -v pm2 >/dev/null 2>&1; then
         npm install -g pm2
     fi
-    
-    # Create PM2 ecosystem file
-    cat > ecosystem.config.js << EOF
-module.exports = {
-  apps: [{
-    name: 'bicrypto-v6',
-    script: 'pnpm',
-    args: 'start',
-    cwd: '$(pwd)',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G',
-    env: {
-      NODE_ENV: 'production'
-    }
-  }]
-};
-EOF
-    
+
+    # An already-running daemon keeps the Node it was started with, and every app
+    # it forks inherits that — so a stale daemon silently runs the backend on the
+    # wrong Node major and uWebSockets.js fails to load its .node binary. Compare
+    # the daemon's actual interpreter against the one on PATH.
+    local daemon_pid daemon_node daemon_major current_major
+    daemon_pid=$(cat "$HOME/.pm2/pm2.pid" 2>/dev/null || true)
+    if [[ -n "$daemon_pid" ]] && [[ -e "/proc/$daemon_pid/exe" ]]; then
+        daemon_node=$(readlink -f "/proc/$daemon_pid/exe" 2>/dev/null || true)
+        daemon_major=$("$daemon_node" -v 2>/dev/null | sed 's/v//' | cut -d. -f1)
+        current_major=$(node -v 2>/dev/null | sed 's/v//' | cut -d. -f1)
+        if [[ -n "$daemon_major" ]] && [[ -n "$current_major" ]] && [[ "$daemon_major" != "$current_major" ]]; then
+            print_warning "PM2 daemon is running Node ${daemon_major} but Node ${current_major} is installed — restarting it"
+            refresh_pm2_for_node
+        fi
+    fi
+
+    # NO ecosystem.config.js is written here, and a stale one is removed.
+    #
+    # This used to generate an app called `bicrypto-v6` whose script was `pnpm`
+    # with args `start` and `autorestart: true`. That is a RESTART LOOP, not a
+    # supervised app. `pnpm start` does not stay running — it hands the three
+    # real apps to the PM2 daemon and exits — so PM2 sees its "app" exit,
+    # restarts it, and `pm2 start production.config.js` on already-running apps
+    # RESTARTS backend, frontend and cron. Round and round, for as long as the
+    # daemon lives, with the site never finishing a boot.
+    #
+    # production.config.js is the real process list, and `pnpm start` is the only
+    # thing that should ever start it.
+    if [[ -f ecosystem.config.js ]] && grep -q "bicrypto-v6" ecosystem.config.js 2>/dev/null; then
+        print_warning "Removing ecosystem.config.js — it defined a 'pnpm start' PM2 app, which restart-loops the platform"
+        pm2 delete bicrypto-v6 >/dev/null 2>&1 || true
+        rm -f ecosystem.config.js
+    fi
+
     # Setup PM2 startup
     pm2 startup | tail -n 1 | bash || true
-    
+
+    # `pm2 startup` INSTALLS THE BOOT HOOK. `pm2 save` GIVES IT SOMETHING TO
+    # RESURRECT. Without the save there is no dump file, so the hook fires on
+    # reboot, finds an empty process list and brings nothing back — the site
+    # stays down until someone logs in and starts it by hand.
+    pm2 save || true
+
+    # PM2 LOGS ARE UNBOUNDED BY DEFAULT AND NOTHING ELSE ROTATES THEM.
+    # No logrotate config ships with the platform, so a once-a-minute error
+    # loop is a slow disk-full outage — one install reached 7 GB of pm2 logs
+    # before anyone noticed. 10 MB × 10 files × 3 processes caps it at ~300 MB.
+    if pm2 install pm2-logrotate >/dev/null 2>&1; then
+        pm2 set pm2-logrotate:max_size 10M >/dev/null 2>&1 || true
+        pm2 set pm2-logrotate:retain 10 >/dev/null 2>&1 || true
+        pm2 set pm2-logrotate:compress true >/dev/null 2>&1 || true
+        pm2 set pm2-logrotate:rotateInterval '0 0 * * *' >/dev/null 2>&1 || true
+        print_success "PM2 log rotation configured (10M × 10, compressed)"
+    else
+        print_warning "pm2-logrotate could not be installed — pm2 logs will grow without bound"
+    fi
+
     print_success "PM2 process manager configured"
 }
 
@@ -1878,34 +1960,43 @@ EOF
     chmod +x "$startup_script"
     print_success "Startup script created at $startup_script"
     
-    # Create a systemd service for auto-start (optional)
-    if command -v systemctl >/dev/null 2>&1; then
-        print_info "Creating systemd service for auto-start..."
-        cat > /etc/systemd/system/bicrypto.service << EOF
-[Unit]
-Description=Bicrypto V6 Application
-After=network.target
-
-[Service]
-Type=simple
-User=$app_user
-WorkingDirectory=$(pwd)
-Environment=PATH=/usr/local/bin:/usr/bin:/bin:/home/$app_user/.local/bin
-Environment=NODE_ENV=production
-ExecStart=/usr/local/bin/pnpm start
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-        
-        # Reload systemd and enable the service
-        systemctl daemon-reload
-        systemctl enable bicrypto.service
-        print_success "Systemd service created and enabled"
+    # NO bicrypto.service is created here, and an existing one is torn down.
+    #
+    # WHY. The unit this used to write was:
+    #
+    #     Type=simple
+    #     ExecStart=/usr/local/bin/pnpm start
+    #     Restart=always
+    #     RestartSec=10
+    #
+    # `pnpm start` is not a server. It runs maintenance-off, reconciles the
+    # scheduler layout, hands production.config.js to the PM2 daemon and EXITS —
+    # correctly, in a few seconds. Under `Type=simple` systemd treats that exit
+    # as the service dying, and `Restart=always` runs it again 10 seconds later.
+    # `pm2 start` on apps that already exist restarts them, so every 10 seconds
+    # the whole platform was stopped and started:
+    #
+    #     PM2 | Stopping app:backend id:0
+    #     PM2 | Stopping app:frontend id:1
+    #     PM2 | Stopping app:cron id:2
+    #
+    # On any install whose backend takes longer than 10s to boot — a large
+    # ecosystem order book is enough — the API never reaches its listen() call,
+    # so port 4000 never opens and the frontend serves ECONNREFUSED forever.
+    # From `pm2 logs` this is indistinguishable from a crash loop, which is what
+    # makes it so expensive: nothing is crashing, and every exit code is 0.
+    #
+    # `pnpm start` is the only thing that should start this platform. A second
+    # supervisor layered on top of PM2 is not redundancy — it is the loop.
+    if command -v systemctl >/dev/null 2>&1 && [[ -f /etc/systemd/system/bicrypto.service ]]; then
+        print_warning "Removing bicrypto.service — it re-ran 'pnpm start' every 10s, restarting the whole platform"
+        systemctl disable --now bicrypto.service >/dev/null 2>&1 || true
+        rm -f /etc/systemd/system/bicrypto.service
+        systemctl daemon-reload >/dev/null 2>&1 || true
+        print_success "Restart loop removed — start the platform with 'pnpm start'"
     fi
-    
+
+
     # Start the application
     print_info "Starting the application..."
     
@@ -2177,7 +2268,7 @@ main() {
     sleep 1
     show_progress 5 $TOTAL_STEPS
     sleep 1
-    database_name
+    
     install_redis
     sleep 1
     show_progress 6 $TOTAL_STEPS
@@ -2583,6 +2674,7 @@ EOF
     echo -e "  3. ${CYAN}pnpm start${NC} - Start the application"
     echo -e "${BLUE}═══════════════════════════════════════════════════════════════════════════════${NC}\n"
 }
+
 # Handle command line arguments
 case "${1:-}" in
     --fix-sharp)

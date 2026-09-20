@@ -1,0 +1,497 @@
+{
+  "name": "Tanzania",
+  "iso2": "TZ",
+  "iso3": "TZA",
+  "phonecode": "255",
+  "states": [
+    {
+      "name": "Arusha",
+      "code": "01",
+      "cities": [
+        "Arusha",
+        "Kingori",
+        "Kiratu",
+        "Longido",
+        "Mbuguni",
+        "Merelani",
+        "Meru",
+        "Monduli",
+        "Mto wa Mbu",
+        "Namanga",
+        "Ngorongoro",
+        "Nkoaranga",
+        "Poli",
+        "Usa River"
+      ]
+    },
+    {
+      "name": "Dar es Salaam",
+      "code": "02",
+      "cities": [
+        "Dar es Salaam",
+        "Ilala",
+        "Kigamboni",
+        "Kinondoni",
+        "Magomeni",
+        "Temeke",
+        "Ubungo"
+      ]
+    },
+    {
+      "name": "Dodoma",
+      "code": "03",
+      "cities": [
+        "Dodoma",
+        "Kibakwe",
+        "Kisasa",
+        "Kondoa",
+        "Kongwa",
+        "Mpwapwa",
+        "Msanga"
+      ]
+    },
+    {
+      "name": "Geita",
+      "code": "27",
+      "cities": [
+        "Buseresere",
+        "Chato",
+        "Geita",
+        "Kasamwa",
+        "Katoro",
+        "Masumbwe",
+        "Ushirombo",
+        "Uyovu"
+      ]
+    },
+    {
+      "name": "Iringa",
+      "code": "04",
+      "cities": [
+        "Ilula",
+        "Iringa",
+        "Izazi",
+        "Mafinga",
+        "Makungu",
+        "Malangali"
+      ]
+    },
+    {
+      "name": "Kagera",
+      "code": "05",
+      "cities": [
+        "Biharamulo",
+        "Bugarama",
+        "Bugene",
+        "Bukoba",
+        "Kabanga",
+        "Kamachumu",
+        "Katerero",
+        "Katoro",
+        "Kyaka",
+        "Ngara",
+        "Nshamba",
+        "Nsunga",
+        "Nyakahanga",
+        "Rulenge"
+      ]
+    },
+    {
+      "name": "Katavi",
+      "code": "28",
+      "cities": [
+        "Inyonga",
+        "Karema",
+        "Mpanda",
+        "Usevia"
+      ]
+    },
+    {
+      "name": "Kigoma",
+      "code": "08",
+      "cities": [
+        "Kakonko",
+        "Kasulu",
+        "Kibondo",
+        "Kigoma",
+        "Mabamba",
+        "Mwandiga",
+        "Nguruka",
+        "Uvinza"
+      ]
+    },
+    {
+      "name": "Kilimanjaro",
+      "code": "09",
+      "cities": [
+        "Hedaru",
+        "Machame",
+        "Marangu",
+        "Moshi",
+        "Same"
+      ]
+    },
+    {
+      "name": "Lindi",
+      "code": "12",
+      "cities": [
+        "Lindi",
+        "Mbekenyera",
+        "Mingoyo",
+        "Mtama",
+        "Nachingwea",
+        "Nyangao",
+        "Ruangwa"
+      ]
+    },
+    {
+      "name": "Manyara",
+      "code": "26",
+      "cities": [
+        "Babati",
+        "Bashanet",
+        "Basotu",
+        "Dareda",
+        "Dongobesh",
+        "Endasak",
+        "Galappo",
+        "Katesh",
+        "Kibaya",
+        "Kirya",
+        "Magugu",
+        "Mbulu",
+        "Naberera",
+        "Nangwa"
+      ]
+    },
+    {
+      "name": "Mara",
+      "code": "13",
+      "cities": [
+        "Bukonyo",
+        "Butiama",
+        "Issenye",
+        "Kibara",
+        "Mugango",
+        "Mugumu",
+        "Muriti",
+        "Musoma",
+        "Nakatunguru",
+        "Nansio",
+        "Nyamuswa",
+        "Sirari"
+      ]
+    },
+    {
+      "name": "Mbeya",
+      "code": "14",
+      "cities": [
+        "Chimala",
+        "Ibaba",
+        "Ikama",
+        "Ikinga",
+        "Ikolo",
+        "Ikuti",
+        "Ilembo",
+        "Ipinda",
+        "Kabula",
+        "Kahe Tanzania",
+        "Kandete",
+        "Katumba",
+        "Kihurio",
+        "Kisiwani",
+        "Kiwira",
+        "Kwakoa",
+        "Lembeni",
+        "Lupata",
+        "Lusungo",
+        "Machame",
+        "Makanya",
+        "Marangu",
+        "Masukulu",
+        "Mbeya",
+        "Mlowo",
+        "Moshi",
+        "Mpuguso",
+        "Mwansanga",
+        "Mwaya",
+        "Mwembe",
+        "Same",
+        "Tukuyu",
+        "Tunduma",
+        "Ugweno",
+        "Ulanga"
+      ]
+    },
+    {
+      "name": "Morogoro",
+      "code": "16",
+      "cities": [
+        "Geiro",
+        "Ifakara",
+        "Kidatu",
+        "Kidodi",
+        "Kilosa",
+        "Kimamba",
+        "Kisanga",
+        "Lupiro",
+        "Magole",
+        "Mahenge",
+        "Malinyi",
+        "Mikumi",
+        "Mlimba",
+        "Morogoro",
+        "Msowero",
+        "Mtimbira",
+        "Mvomero",
+        "Ngerengere"
+      ]
+    },
+    {
+      "name": "Mtwara",
+      "code": "17",
+      "cities": [
+        "Chiungutwa",
+        "Kitama",
+        "Kitangari",
+        "Luchingu",
+        "Lukuledi",
+        "Lulindi",
+        "Madimba",
+        "Mahuta",
+        "Masasi",
+        "Masuguru",
+        "Mtwara",
+        "Namalenga",
+        "Namikupa",
+        "Nanganga",
+        "Nangomba",
+        "Nanhyanga",
+        "Nanyamba",
+        "Newala Kisimani",
+        "Tandahimba"
+      ]
+    },
+    {
+      "name": "Mwanza",
+      "code": "18",
+      "cities": [
+        "Ilemela",
+        "Kihangara",
+        "Malya",
+        "Misasi",
+        "Misungwi",
+        "Mwanza",
+        "Ngudu",
+        "Nyanguge",
+        "Usagara"
+      ]
+    },
+    {
+      "name": "Njombe",
+      "code": "29",
+      "cities": [
+        "Ilembula",
+        "Makumbako",
+        "Manda",
+        "Matamba",
+        "Mlangali",
+        "Mtwango",
+        "Njombe"
+      ]
+    },
+    {
+      "name": "Pemba North",
+      "code": "06",
+      "cities": [
+        "Konde",
+        "Micheweni",
+        "Wete"
+      ]
+    },
+    {
+      "name": "Pemba South",
+      "code": "10",
+      "cities": [
+        "Chake Chake",
+        "Mtambile",
+        "Uwelini"
+      ]
+    },
+    {
+      "name": "Pwani",
+      "code": "19",
+      "cities": [
+        "Bagamoyo",
+        "Bungu",
+        "Chalinze",
+        "Ikwiriri",
+        "Kibaha",
+        "Kibiti",
+        "Kilindoni",
+        "Kisarawe",
+        "Lugoba",
+        "Maneromango",
+        "Mbumi",
+        "Mkuranga",
+        "Mlandizi",
+        "Mvomero",
+        "Utete",
+        "Vikindu"
+      ]
+    },
+    {
+      "name": "Rukwa",
+      "code": "20",
+      "cities": [
+        "Chala",
+        "Kirando",
+        "Laela",
+        "Matai",
+        "Namanyere",
+        "Nkove",
+        "Sumbawanga"
+      ]
+    },
+    {
+      "name": "Ruvuma",
+      "code": "21",
+      "cities": [
+        "Kigonsera",
+        "Liuli",
+        "Mahanje",
+        "Maposeni",
+        "Matiri",
+        "Mbamba Bay",
+        "Mbinga",
+        "Songea",
+        "Tingi"
+      ]
+    },
+    {
+      "name": "Shinyanga",
+      "code": "22",
+      "cities": [
+        "Isaka",
+        "Kahama",
+        "Kishapu",
+        "Mhango",
+        "Mwadui",
+        "Old Shinyanga",
+        "Shinyanga",
+        "Songwa",
+        "Tinde"
+      ]
+    },
+    {
+      "name": "Simiyu",
+      "code": "30",
+      "cities": [
+        "Bariadi",
+        "Kisesa",
+        "Lalago",
+        "Malampaka",
+        "Maswa",
+        "Matonga",
+        "Nyakabindi",
+        "Nyalikungu",
+        "Somanda"
+      ]
+    },
+    {
+      "name": "Singida",
+      "code": "23",
+      "cities": [
+        "Igugunu",
+        "Ikungi",
+        "Ilongero",
+        "Itigi",
+        "Kilimatinde",
+        "Kintinku",
+        "Kiomboi",
+        "Mgandu",
+        "Mtinko",
+        "Mungaa",
+        "Ndago",
+        "Puma",
+        "Sepuka",
+        "Shelui",
+        "Singida"
+      ]
+    },
+    {
+      "name": "Songwe",
+      "code": "31",
+      "cities": [
+        "Ileje",
+        "Mbozi",
+        "Mkwajuni",
+        "Mlowo",
+        "Tunduma",
+        "Vwawa"
+      ]
+    },
+    {
+      "name": "Tabora",
+      "code": "24",
+      "cities": [
+        "Bukene",
+        "Igurubi",
+        "Kaliua",
+        "Mabama",
+        "Sikonge",
+        "Tabora",
+        "Tumbi",
+        "Usoke"
+      ]
+    },
+    {
+      "name": "Tanga",
+      "code": "25",
+      "cities": [
+        "Chanika",
+        "Lushoto",
+        "Magomeni",
+        "Majengo",
+        "Makuyuni",
+        "Maramba",
+        "Matui",
+        "Mazinde",
+        "Mlalo",
+        "Muheza",
+        "Mwanga",
+        "Pangani",
+        "Soni",
+        "Tanga"
+      ]
+    },
+    {
+      "name": "Zanzibar North",
+      "code": "07",
+      "cities": [
+        "Gamba",
+        "Kijini",
+        "Kiwengwa",
+        "Mkokotoni",
+        "Nungwi"
+      ]
+    },
+    {
+      "name": "Zanzibar South",
+      "code": "11",
+      "cities": [
+        "Koani",
+        "Mahonda",
+        "Nganane",
+        "Sokoni"
+      ]
+    },
+    {
+      "name": "Zanzibar West",
+      "code": "15",
+      "cities": [
+        "Zanzibar"
+      ]
+    }
+  ]
+}

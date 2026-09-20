@@ -1,0 +1,140 @@
+{
+  "name": "Mauritania",
+  "iso2": "MR",
+  "iso3": "MRT",
+  "phonecode": "222",
+  "states": [
+    {
+      "name": "Adrar",
+      "code": "07",
+      "cities": [
+        "Atar",
+        "Azougui",
+        "Chingueṭṭi",
+        "Ksar el Khali"
+      ]
+    },
+    {
+      "name": "Assaba",
+      "code": "03",
+      "cities": [
+        "Barkéwol",
+        "Kiffa"
+      ]
+    },
+    {
+      "name": "Brakna",
+      "code": "05",
+      "cities": [
+        "’Elb el Jmel",
+        "Aleg",
+        "Bofal",
+        "Sori Malé"
+      ]
+    },
+    {
+      "name": "Dakhlet Nouadhibou",
+      "code": "08",
+      "cities": [
+        "Cansado",
+        "Iouik",
+        "Nouadhibou"
+      ]
+    },
+    {
+      "name": "Gorgol",
+      "code": "04",
+      "cities": [
+        "Kaédi"
+      ]
+    },
+    {
+      "name": "Guidimaka",
+      "code": "10",
+      "cities": [
+        "Sélibaby"
+      ]
+    },
+    {
+      "name": "Hodh Ech Chargui",
+      "code": "01",
+      "cities": [
+        "Diade",
+        "Kataouane",
+        "Néma",
+        "Timbedra"
+      ]
+    },
+    {
+      "name": "Hodh El Gharbi",
+      "code": "02",
+      "cities": [
+        "Aioun",
+        "Ayoun el Atrous",
+        "Togba"
+      ]
+    },
+    {
+      "name": "Inchiri",
+      "code": "12",
+      "cities": [
+        "Akjoujt"
+      ]
+    },
+    {
+      "name": "Nouakchott-Nord",
+      "code": "14",
+      "cities": [
+        "Dar-Naim",
+        "Teyarett",
+        "Toujouonine"
+      ]
+    },
+    {
+      "name": "Nouakchott-Ouest",
+      "code": "13",
+      "cities": [
+        "Ksar",
+        "Sebkha",
+        "Tevragh-Zeina"
+      ]
+    },
+    {
+      "name": "Nouakchott-Sud",
+      "code": "15",
+      "cities": [
+        "Arafat",
+        "Riyad"
+      ]
+    },
+    {
+      "name": "Tagant",
+      "code": "09",
+      "cities": [
+        "Moudjeria",
+        "Tichit",
+        "Tijigja"
+      ]
+    },
+    {
+      "name": "Tiris Zemmour",
+      "code": "11",
+      "cities": [
+        "Ain Ben Tili",
+        "Chegga",
+        "Fderîck",
+        "Zouérat",
+        "Zouerate"
+      ]
+    },
+    {
+      "name": "Trarza",
+      "code": "06",
+      "cities": [
+        "Legat",
+        "Rosso",
+        "Tékane"
+      ]
+    }
+  ]
+}

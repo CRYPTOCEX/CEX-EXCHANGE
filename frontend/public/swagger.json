@@ -1,0 +1,4324 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Documentation",
+    "version": "1.0.0",
+    "description": "This is the API documentation for the site, powered by Mash Server."
+  },
+  "paths": {
+    "/api/affiliate/condition": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/network": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/referral/analysis": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/referral": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/referral/node": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/referral/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/reward": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/reward/{id}/claim": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/affiliate/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/investment/log": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/investment/log/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/investment/plan": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/feedback": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/greeting": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/human": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/operation/pending": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/operation/{id}": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/session/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/suggest": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ai/support/suggest/{id}": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/analytics": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/follow": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/allocation": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/allocation/{allocationId}/add-funds": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/allocation/{allocationId}/remove-funds": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/pause": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/resume": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/follower/{id}/stop": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/apply": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/eligibility": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/market/{symbol}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/market/{symbol}/toggle": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/me": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/leader/{id}/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/trade": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/trade/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/copy-trading/transaction": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/approval": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/chain": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/chart": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/pair": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/price": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/quote": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/settings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/swap": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/swap/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/swap/{id}/refresh": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/token": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/token/{chainId}/{address}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/wallet/backup": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/wallet/ton/prepare": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/wallet/ton/send": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/dex/wallet/vault": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/cart/checkout": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/category": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/category/{slug}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/category/{slug}/product": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/discount/validate": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/discount/{productId}": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/download/{orderItemId}/file": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/download/{orderItemId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/order/product/{productId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/order/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/order/{id}/track": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/product": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/product/{slug}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/review/{productId}": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/shipping": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/wishlist": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecommerce/wishlist/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/chart": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/deposit/unlock": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/market/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/order/all": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/order/oco": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/token": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/token/{currency}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/wallet": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/wallet/{currency}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/wallet/{id}/transfer": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/withdraw": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ecosystem/withdraw/max": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/category": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/question": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/search": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/{id}/feedback": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/faq/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/account": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/account/{id}/deposit": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/account/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/account/{id}/signal": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/account/{id}/withdraw": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/duration": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/investment/active": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/investment": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/investment/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/investment/{id}/status": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/overview": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/plan": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/plan/{id}/duration": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/plan/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/signal": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex/transaction": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/account": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/account/{id}/deposit": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/account/{id}/risk-ack": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/account/{id}/withdraw": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/calendar": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/chart": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/deal": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/news": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/position": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/position/{id}/close": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/position/{id}": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/forex-trading/ticker/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/chart": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/funding": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/market/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/order/all": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/position": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/position/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/futures/ticker": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/api-key": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/api-key/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/api-key/{id}/rotate": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/balance": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/checkout/{paymentIntentId}/cancel": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/checkout/{paymentIntentId}/confirm": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/checkout/{paymentIntentId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/checkout/{paymentIntentId}/wallets": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/merchant": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/payment": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/payment/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/payment/{id}/refund": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/payout": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/payout/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/settings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/payment/create": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/payment/{id}/cancel": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/payment/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/refund": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/refund/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/gateway/v1/validate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/account": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/connector": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/console": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/console/panic": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/exchange-info": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys/{id}/audit": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys/{id}/disable": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys/{id}/enable": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/keys/{id}/rotate": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/order": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/orderbook/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/exchange-info": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/funding-rate/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/leverage": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/order": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/orderbook/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/perpetual/positions": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/ping": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/setup": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/strategy": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/strategy/{id}/yaml": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/ticker/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/time": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/hb/trades/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/blockchain": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/investor": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/launch": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/launch/plan": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/performance": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/stat": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/plan": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/release": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/release/{transactionId}": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/roadmap": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/roadmap/{roadmapId}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/team": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/team/{teamId}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/vesting": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/token/{id}/vesting/{releaseId}": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/update": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/creator/update/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/offer/featured": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/offer": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/offer/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/offer/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/plan": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/portfolio": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/portfolio/investments": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/portfolio/performance": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/refund/eligibility/{offeringId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/refund/process": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/token/type": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/transaction": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/transaction/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/ico/vesting": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/activity": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/activity/recent": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/approval/batch": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/bid": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/deploy": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/settle": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/{id}/bid": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/auction/{id}/settle": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/bid": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/category": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/category/options": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/chains": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/chains/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/check-duplicate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/collection": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/collection/list": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/collection/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/collection/{id}/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/contract/deploy": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/contract/deployed": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/analytics": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/dashboard": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/overview": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/profile": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/creator/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/favorite": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/featured/tokens": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/gas/estimate": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/listing/batch": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/listing": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/listing/{id}/buy": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/listing/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/balance": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/config": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/contract": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/deploy": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/info": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/pause": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/unpause": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/whitelist": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/marketplace/withdraw": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/metadata/{collectionId}/{tokenId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/offer": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/offer/{id}/accept": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/offer/{id}/confirm": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/offer/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/offer/{id}/reject": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/onboarding/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/social/follow": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/social/follow/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token/batch-mint": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token/mint-web3": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token/{id}/approval": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/token/{id}/transfer": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/top/creators": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/trending/collections": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/nft/user/dashboard": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/cryptocurrencies": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/dashboard/activity": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/dashboard": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/dashboard/portfolio": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/dashboard/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/dashboard/transaction": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/guided-matching": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/location": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/board": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/highlight": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/locale": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/picks": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/top": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/market/traders": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/forecast": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/popularity": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/price-currencies": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/user": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/offer/{id}/initiate-trade": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/payment-method": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/payment-method/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/payment-rail": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/history": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/cancel": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/confirm": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/dispute/appeal": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/dispute/evidence": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/dispute": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/message/attachment/{file}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/message": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/message/upload": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/release": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trade/{id}/review": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trader/blocked": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trader/{id}/block": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trader/{id}/follow": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trader/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/trader/{id}/report": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/verification": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/verification/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/p2p/wallet/balances": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/calculate-rewards": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/landing": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/pool": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/pool/{id}/analytics": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/pool/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position/{id}/claim": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position/{id}/earnings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position/{id}/unstake": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/position/{id}/withdraw": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/real/disclosure/{poolId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/real/quote": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/settings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/statements": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/statements/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/user/earnings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/staking/user/summary": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/allocation": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/kill-all": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/allocation/add": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/allocation/remove": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/chart-state": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/close-position": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/orders": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/pause": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/resume": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/start": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/stop": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/bot/{id}/trades": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/purchases": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/seller/dashboard": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}/create-bot": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}/purchase": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}/review": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}/reviews": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/marketplace/strategy/{id}/submit": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/markets": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/paper-account": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/paper-account/reset": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/strategy": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/strategy/templates": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/strategy/validate": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/strategy-schema": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/trade": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/trading-bot/trade/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/csrf": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/delete/confirm": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/delete": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/login/flutter": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/login/google": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/login/nonce": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/login/wallet": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/generate": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/login": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/resend": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/save": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/toggle": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/otp/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/pow/challenge": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/register/google": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/reset": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/role": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/verify/email": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/verify/resend": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/auth/verify/reset": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/all": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/manage": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/manage/status": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/manage/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/manage/{id}/status": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/top": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/author/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/category": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/category/options": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/category/{slug}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/comment": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/comment/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/comment/{postId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/post": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/post/{slug}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/tag": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/tag/options": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/blog/tag/{slug}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/chrome": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/default-page/{pageId}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/landing-stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/page": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/page/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/content/slider": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/alert": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/alert/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/duration": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/health": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/leaderboard": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/leaderboard/me": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/order/last": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/binary/settings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/chart": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/currency": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/currency/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/market": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/market/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/news": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/order/capabilities": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/order": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/order/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/orderbook/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/ticker": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/ticker/{currency}/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/trading/analytics": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/trading/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/exchange/watchlist": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/price": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/rate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/rates": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/valid": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/{type}/{code}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/currency/{type}/{code}/{method}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/2checkout": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/2checkout/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/2checkout/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/2checkout/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/adyen": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/adyen/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/adyen/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/adyen/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/authorizenet": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/authorizenet/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/authorizenet/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/authorizenet/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/dlocal": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/dlocal/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/dlocal/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/dlocal/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/eway": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/eway/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/eway/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/eway/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/ipay88": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/ipay88/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/ipay88/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/ipay88/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/klarna": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/klarna/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/klarna/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/klarna/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/mollie": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/mollie/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/mollie/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/mollie/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payfast": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payfast/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payfast/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payfast/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paypal/details": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paypal": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paypal/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paypal/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paysafe": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paysafe/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paysafe/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paysafe/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paystack": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paystack/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paystack/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paystack/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paytm": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paytm/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paytm/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/paytm/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payu": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payu/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payu/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/payu/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/stripe": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/stripe/verified": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/stripe/verify-intent": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/stripe/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/stripe/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/transfi/iban": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/transfi": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/transfi/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/transfi/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/fiat/transfi/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/spot/cancel": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/spot": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/spot/intent": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/deposit/spot/intent/{id}/cancel": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/exchange-rate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment/plan": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment/plan/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment/user": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/investment/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/ramp/transfi/offramp": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/ramp/transfi/onramp": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transaction": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transaction/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transfer": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transfer/validate": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transfer/verification": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/transfer/verification/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/options": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/stats": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/symbol": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/transfer-options": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/{type}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/wallet/{type}/{currency}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/withdraw/fiat": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/withdraw/fiat/transfi/webhook": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/withdraw/spot": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/withdraw/verification": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/finance/withdraw/verification/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/geo/status": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/health": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/news/article/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/news": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/orderbook/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/pairs": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/referrer/{refCode}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/summary": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/ticker": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/tickers": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/public/trades/{pair}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/search": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/upload/heic": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/upload": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/upload/kyc-document": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/account/delete": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/activity": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/analysis": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/api-key": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/api-key/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/chart-workspace": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/kyc/application": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/kyc/application/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/kyc/document/{userId}/{file}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/kyc/level": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/kyc/level/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/media": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/modules": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification/device-token": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification/mark-all-read": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification/{id}/read": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/notification/{id}/unread": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/phone/send": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/phone/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/otp": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/otp/secret": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/otp/status": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/otp/verify": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/password/code": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/password": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/password/setup-link": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/transfer-pin": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/username": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/verify-email": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/wallet/connect": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/profile/wallet/disconnect": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/push/subscribe": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/push/test-direct": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/push/test": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/push/unsubscribe": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/push/vapid-key": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/report": {
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/session": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/session/{id}": {
+      "del": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/chat": {
+      "del": {
+        "responses": {},
+        "security": []
+      },
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/ticket": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/ticket/stat": {
+      "get": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/ticket/{id}/close": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/ticket/{id}": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/support/ticket/{id}/review": {
+      "put": {
+        "responses": {},
+        "security": []
+      }
+    },
+    "/api/user/unsubscribe": {
+      "get": {
+        "responses": {},
+        "security": []
+      },
+      "post": {
+        "responses": {},
+        "security": []
+      }
+    }
+  },
+  "components": {
+    "schemas": {},
+    "responses": {},
+    "parameters": {},
+    "requestBodies": {},
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-KEY"
+      }
+    }
+  },
+  "tags": []
+}

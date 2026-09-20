@@ -1,0 +1,9 @@
+{
+  "name": "accounts",
+  "version": "0.0.0-stub",
+  "private": true,
+  "description": "Local stub for @wagmi/core's optional 'accounts' peer dep",
+  "main": "./index.js",
+  "module": "./index.js",
+  "type": "module"
+}

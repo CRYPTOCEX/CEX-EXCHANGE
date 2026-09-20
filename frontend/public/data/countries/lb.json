@@ -1,0 +1,82 @@
+{
+  "name": "Lebanon",
+  "iso2": "LB",
+  "iso3": "LBN",
+  "phonecode": "961",
+  "states": [
+    {
+      "name": "Akkar",
+      "code": "AK",
+      "cities": [
+        "Caza de Aakkar"
+      ]
+    },
+    {
+      "name": "Baalbek-Hermel",
+      "code": "BH",
+      "cities": [
+        "Baalbek",
+        "Caza de Baalbek"
+      ]
+    },
+    {
+      "name": "Beirut",
+      "code": "BA",
+      "cities": [
+        "Beirut",
+        "Ra’s Bayrūt"
+      ]
+    },
+    {
+      "name": "Beqaa",
+      "code": "BI",
+      "cities": [
+        "Aanjar",
+        "Zahlé"
+      ]
+    },
+    {
+      "name": "Mount Lebanon",
+      "code": "JL",
+      "cities": [
+        "Baabda",
+        "Bhamdoun",
+        "Bhamdoûn el Mhatta",
+        "Caza de Baabda",
+        "Jbaïl",
+        "Jounieh"
+      ]
+    },
+    {
+      "name": "Nabatieh",
+      "code": "NA",
+      "cities": [
+        "Ain Ebel",
+        "Caza de Bent Jbaïl",
+        "Caza de Nabatîyé",
+        "Habboûch",
+        "Marjayoûn",
+        "Nabatîyé et Tahta"
+      ]
+    },
+    {
+      "name": "North",
+      "code": "AS",
+      "cities": [
+        "Batroûn",
+        "Bcharré",
+        "Tripoli"
+      ]
+    },
+    {
+      "name": "South",
+      "code": "JA",
+      "cities": [
+        "En Nâqoûra",
+        "Ghazieh",
+        "Sidon",
+        "Tyre"
+      ]
+    }
+  ]
+}

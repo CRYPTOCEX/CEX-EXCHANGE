@@ -1,0 +1,172 @@
+{
+  "name": "Botswana",
+  "iso2": "BW",
+  "iso3": "BWA",
+  "phonecode": "267",
+  "states": [
+    {
+      "name": "Central",
+      "code": "CE",
+      "cities": [
+        "Gobojango",
+        "Gweta",
+        "Kalamare",
+        "Letlhakane",
+        "Letsheng",
+        "Maapi",
+        "Machaneng",
+        "Mahalapye",
+        "Makobeng",
+        "Makwata",
+        "Mathakola",
+        "Mathambgwane",
+        "Mathathane",
+        "Maunatlala",
+        "Mogapi",
+        "Moijabana",
+        "Mookane",
+        "Mopipi",
+        "Mosetse",
+        "Nata",
+        "Orapa",
+        "Palapye",
+        "Pilikwe",
+        "Rakops",
+        "Ramokgonami",
+        "Ratholo",
+        "Sefophe",
+        "Serowe",
+        "Sua",
+        "Tamasane",
+        "Tobane",
+        "Tonota"
+      ]
+    },
+    {
+      "name": "Chobe",
+      "code": "CH",
+      "cities": []
+    },
+    {
+      "name": "Francistown",
+      "code": "FR",
+      "cities": []
+    },
+    {
+      "name": "Gaborone",
+      "code": "GA",
+      "cities": []
+    },
+    {
+      "name": "Ghanzi",
+      "code": "GH",
+      "cities": [
+        "Dekar",
+        "Ghanzi"
+      ]
+    },
+    {
+      "name": "Jwaneng",
+      "code": "JW",
+      "cities": []
+    },
+    {
+      "name": "Kgalagadi",
+      "code": "KG",
+      "cities": [
+        "Hukuntsi",
+        "Kang",
+        "Lehututu",
+        "Manyana",
+        "Tshabong",
+        "Werda"
+      ]
+    },
+    {
+      "name": "Kgatleng",
+      "code": "KL",
+      "cities": [
+        "Bokaa",
+        "Mmathubudukwane",
+        "Mochudi",
+        "Pilane"
+      ]
+    },
+    {
+      "name": "Kweneng",
+      "code": "KW",
+      "cities": [
+        "Botlhapatlou",
+        "Dutlwe",
+        "Gabane",
+        "Gaphatshwe",
+        "Khudumelapye",
+        "Lenchwe Le Tau",
+        "Letlhakeng",
+        "Metsemotlhaba",
+        "Mmopone",
+        "Mogoditshane",
+        "Molepolole",
+        "Nkoyaphiri",
+        "Thamaga"
+      ]
+    },
+    {
+      "name": "Lobatse",
+      "code": "LO",
+      "cities": []
+    },
+    {
+      "name": "North-East",
+      "code": "NE",
+      "cities": [
+        "Dukwe",
+        "Makaleng",
+        "Masunga",
+        "Sebina"
+      ]
+    },
+    {
+      "name": "North-West",
+      "code": "NW",
+      "cities": [
+        "Maun",
+        "Nokaneng",
+        "Pandamatenga",
+        "Sehithwa",
+        "Shakawe"
+      ]
+    },
+    {
+      "name": "Selibe Phikwe",
+      "code": "SP",
+      "cities": []
+    },
+    {
+      "name": "South-East",
+      "code": "SE",
+      "cities": [
+        "Gaborone",
+        "Janeng",
+        "Kopong",
+        "Otse",
+        "Ramotswa"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "SO",
+      "cities": [
+        "Kanye",
+        "Khakhea",
+        "Mosopa",
+        "Sekoma"
+      ]
+    },
+    {
+      "name": "Sowa Town",
+      "code": "ST",
+      "cities": []
+    }
+  ]
+}

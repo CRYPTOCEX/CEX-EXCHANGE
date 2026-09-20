@@ -1,0 +1,66 @@
+{
+  "name": "Aruba",
+  "iso2": "AW",
+  "iso3": "ABW",
+  "phonecode": "297",
+  "states": [
+    {
+      "name": "Noord",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "Oranjestad",
+      "code": "09",
+      "cities": [
+        "Alto Vista",
+        "Moco",
+        "Noord",
+        "Oranjestad",
+        "Palm Beach",
+        "Paradera",
+        "Pos Chiquito",
+        "San Nicolas",
+        "Santa Cruz",
+        "Savaneta",
+        "Tanki Leendert",
+        "Washington"
+      ]
+    },
+    {
+      "name": "Oranjestad East",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Oranjestad West",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Paradera",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "San Nicolaas Noord",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "San Nicolaas Zuid",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Santa Cruz",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Savaneta",
+      "code": "08",
+      "cities": []
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "Gabon",
+  "iso2": "GA",
+  "iso3": "GAB",
+  "phonecode": "241",
+  "states": [
+    {
+      "name": "Estuaire",
+      "code": "1",
+      "cities": [
+        "Cocobeach",
+        "Libreville",
+        "Ntoum"
+      ]
+    },
+    {
+      "name": "Haut-Ogooué",
+      "code": "2",
+      "cities": [
+        "Franceville",
+        "Lékoni",
+        "Moanda",
+        "Mounana",
+        "Okondja"
+      ]
+    },
+    {
+      "name": "Moyen-Ogooué",
+      "code": "3",
+      "cities": [
+        "Lambaréné",
+        "Ndjolé"
+      ]
+    },
+    {
+      "name": "Ngounié",
+      "code": "4",
+      "cities": [
+        "Fougamou",
+        "Mbigou",
+        "Mimongo",
+        "Mouila",
+        "Ndendé"
+      ]
+    },
+    {
+      "name": "Nyanga",
+      "code": "5",
+      "cities": [
+        "Mayumba",
+        "Tchibanga"
+      ]
+    },
+    {
+      "name": "Ogooué-Ivindo",
+      "code": "6",
+      "cities": [
+        "Booué",
+        "Makokou",
+        "Zadie"
+      ]
+    },
+    {
+      "name": "Ogooué-Lolo",
+      "code": "7",
+      "cities": [
+        "Koulamoutou",
+        "Lastoursville"
+      ]
+    },
+    {
+      "name": "Ogooué-Maritime",
+      "code": "8",
+      "cities": [
+        "Gamba",
+        "Omboué",
+        "Port-Gentil"
+      ]
+    },
+    {
+      "name": "Woleu-Ntem",
+      "code": "9",
+      "cities": [
+        "Bitam",
+        "Mitzic",
+        "Oyem"
+      ]
+    }
+  ]
+}

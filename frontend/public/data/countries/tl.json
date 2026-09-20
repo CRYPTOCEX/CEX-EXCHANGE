@@ -1,0 +1,141 @@
+{
+  "name": "Timor-Leste",
+  "iso2": "TL",
+  "iso3": "TLS",
+  "phonecode": "670",
+  "states": [
+    {
+      "name": "Aileu",
+      "code": "AL",
+      "cities": [
+        "Aileu",
+        "Lequidoe",
+        "Remexio"
+      ]
+    },
+    {
+      "name": "Ainaro",
+      "code": "AN",
+      "cities": [
+        "Ainaro",
+        "Hato-Udo"
+      ]
+    },
+    {
+      "name": "Baucau",
+      "code": "BA",
+      "cities": [
+        "Baguia",
+        "Baucau",
+        "Baukau",
+        "Laga",
+        "Quelicai",
+        "Vemasse",
+        "Venilale"
+      ]
+    },
+    {
+      "name": "Bobonaro",
+      "code": "BO",
+      "cities": [
+        "Maliana"
+      ]
+    },
+    {
+      "name": "Cova Lima",
+      "code": "CO",
+      "cities": [
+        "Fatumean",
+        "Fohorem",
+        "Maucatar",
+        "Suai",
+        "Tilomar"
+      ]
+    },
+    {
+      "name": "Dili",
+      "code": "DI",
+      "cities": [
+        "Atauro Island",
+        "Cristo Rei",
+        "Dili",
+        "Metinaro"
+      ]
+    },
+    {
+      "name": "Ermera",
+      "code": "ER",
+      "cities": [
+        "Ermera Villa",
+        "Gleno",
+        "Hatulia",
+        "Letefoho",
+        "Railaco"
+      ]
+    },
+    {
+      "name": "Lautém",
+      "code": "LA",
+      "cities": [
+        "Iliomar",
+        "Lautem",
+        "Lospalos",
+        "Luro",
+        "Tutuala"
+      ]
+    },
+    {
+      "name": "Liquiçá",
+      "code": "LI",
+      "cities": [
+        "Bazartete",
+        "Likisá",
+        "Maubara"
+      ]
+    },
+    {
+      "name": "Manatuto",
+      "code": "MT",
+      "cities": [
+        "Barique",
+        "Laclo",
+        "Laclubar",
+        "Manatuto",
+        "Manatutu",
+        "Soibada"
+      ]
+    },
+    {
+      "name": "Manufahi",
+      "code": "MF",
+      "cities": [
+        "Alas",
+        "Fatuberliu",
+        "Same",
+        "Turiscai"
+      ]
+    },
+    {
+      "name": "Oecusse",
+      "code": "OE",
+      "cities": [
+        "Citrana",
+        "Nitibe",
+        "Oe Silo",
+        "Pante Macassar",
+        "Passabe"
+      ]
+    },
+    {
+      "name": "Viqueque",
+      "code": "VI",
+      "cities": [
+        "Lacluta",
+        "Ossu",
+        "Uatocarabau",
+        "Uatolari",
+        "Viqueque"
+      ]
+    }
+  ]
+}

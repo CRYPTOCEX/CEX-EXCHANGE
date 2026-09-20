@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="AI Support Agent">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ty{0%,100%{transform:translateY(0);opacity:.45}50%{transform:translateY(-4px);opacity:1}}
+@keyframes be{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.abe{transform-box:fill-box;transform-origin:center;animation:be 6s ease-in-out infinite}
+.d1{transform-box:fill-box;animation:ty 1.3s ease-in-out infinite}
+.d2{transform-box:fill-box;animation:ty 1.3s ease-in-out .18s infinite}
+.d3{transform-box:fill-box;animation:ty 1.3s ease-in-out .36s infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.abe,.d1,.d2,.d3{animation:none}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#101018"/>
+    <stop offset="1" stop-color="#0a0a10"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#6366f1"/>
+    <stop offset="1" stop-color="#8b5cf6"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#6366f1" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#ffffff" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="596" y="105" width="560" height="460" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="590" y="95" width="560" height="460" rx="18" fill="#14141d" fill-opacity="0.94" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="590" y="95" width="560" height="46" rx="18" fill="#ffffff" fill-opacity="0.03"/>
+  <line x1="590" y1="141" x2="1150" y2="141" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="614" cy="118" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="633" cy="118" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="652" cy="118" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="670" y="125" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff" fill-opacity="0.55">Support Inbox</text>
+</g>
+
+<g class="af">
+  <rect x="622" y="171" width="76" height="76" rx="20" fill="url(#acc)" class="abe"/>
+  <rect x="640" y="196" width="40" height="28" rx="9" fill="none" stroke="#ffffff" stroke-width="2.6" stroke-opacity="0.95"/>
+  <circle cx="652" cy="210" r="3.4" fill="#ffffff"/>
+  <circle cx="668" cy="210" r="3.4" fill="#ffffff"/>
+  <path d="M660 196 v-8" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-opacity="0.95"/>
+  <circle cx="660" cy="185" r="3.2" fill="#ffffff"/>
+</g>
+
+<text x="722" y="212" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="46" font-weight="800" fill="#34d399">73%</text>
+<text x="722" y="240" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" fill="#ffffff" fill-opacity="0.6">resolved without a human</text>
+<circle class="ab" cx="1122" cy="196" r="5" fill="#34d399"/>
+<text x="1062" y="202" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ffffff" fill-opacity="0.55">LIVE</text>
+
+<g>
+  <rect x="622" y="278" width="286" height="52" rx="14" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.08"/>
+  <rect x="640" y="295" width="180" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.4"/>
+  <rect x="640" y="310" width="126" height="6" rx="3" fill="#ffffff" fill-opacity="0.22"/>
+</g>
+
+<g>
+  <rect x="738" y="346" width="386" height="76" rx="14" fill="#6366f1" fill-opacity="0.16" stroke="#6366f1" stroke-opacity="0.45"/>
+  <rect x="758" y="366" width="286" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.72"/>
+  <rect x="758" y="382" width="232" height="7" rx="3.5" fill="#ffffff" fill-opacity="0.5"/>
+  <g>
+    <rect x="758" y="398" width="92" height="16" rx="8" fill="#8b5cf6" fill-opacity="0.32"/>
+    <circle cx="769" cy="406" r="3.2" fill="#ffffff" fill-opacity="0.85"/>
+    <rect x="778" y="403" width="60" height="6" rx="3" fill="#ffffff" fill-opacity="0.6"/>
+  </g>
+  <g>
+    <rect x="860" y="398" width="76" height="16" rx="8" fill="#8b5cf6" fill-opacity="0.32"/>
+    <circle cx="871" cy="406" r="3.2" fill="#ffffff" fill-opacity="0.85"/>
+    <rect x="880" y="403" width="44" height="6" rx="3" fill="#ffffff" fill-opacity="0.6"/>
+  </g>
+</g>
+
+<g>
+  <rect x="622" y="346" width="86" height="34" rx="17" fill="#ffffff" fill-opacity="0.05" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle class="d1" cx="644" cy="363" r="4.2" fill="#6366f1"/>
+  <circle class="d2" cx="660" cy="363" r="4.2" fill="#7c6ff2"/>
+  <circle class="d3" cx="676" cy="363" r="4.2" fill="#8b5cf6"/>
+</g>
+
+<g>
+  <rect x="622" y="466" width="152" height="60" rx="14" fill="#14141d" stroke="#6366f1" stroke-opacity="0.4" stroke-width="2"/>
+  <text x="698" y="492" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff" fill-opacity="0.9">Tickets</text>
+  <text x="698" y="514" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#ffffff" fill-opacity="0.5">Answered 24/7</text>
+</g>
+<g>
+  <rect x="794" y="466" width="152" height="60" rx="14" fill="url(#acc)" fill-opacity="0.9"/>
+  <text x="870" y="492" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff">Live chat</text>
+  <text x="870" y="514" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#ffffff" fill-opacity="0.8">Replies in seconds</text>
+</g>
+<g>
+  <rect x="966" y="466" width="152" height="60" rx="14" fill="#14141d" stroke="#fbbf24" stroke-opacity="0.4" stroke-width="2"/>
+  <text x="1042" y="492" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#ffffff" fill-opacity="0.9">Escalation</text>
+  <text x="1042" y="514" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="13" text-anchor="middle" fill="#ffffff" fill-opacity="0.5">Money to a human</text>
+</g>
+</g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" text-anchor="middle" fill="#ffffff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#ffffff" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="80.5" height="31.5" rx="15.75" fill="#8b5cf6" fill-opacity="0.15" stroke="#8b5cf6" stroke-opacity="0.4"/>
+  <text x="104.25" y="227.6" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#8b5cf6">ADDON</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" letter-spacing="-2" fill="#ffffff">AI Support</text>
+<text x="64" y="374" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" letter-spacing="-2" fill="#ffffff">Agent</text>
+<text x="64" y="430" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">Answers most tickets instantly,</text>
+<text x="64" y="468" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">so your team only sees the rest.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#ffffff" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

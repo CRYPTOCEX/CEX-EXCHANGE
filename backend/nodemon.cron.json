@@ -1,0 +1,21 @@
+{
+  "//": "The CRON tier (CRON_MODE=only, :4001). Identical to nodemon.json except for the sentinel: this one watches dev-restart.cron.json, so an HTTP route or WebSocket change no longer restarts the scheduler mid-job. src is deliberately NOT watched — src/utils/dev/hot-reload.ts swaps what it can in place and touches THIS role's sentinel when it cannot, deciding with src/utils/dev/restart-scope.ts whether the change is even ours. The sentinel must exist before nodemon starts (it resolves its watch list once and silently drops missing entries): backend/scripts/ensure-dev-sentinel.mjs creates all three from predev.",
+  "watch": [
+    "index.ts",
+    "thread.ts",
+    "module-alias-setup.ts",
+    "models",
+    "dev-restart.cron.json",
+    "../.env"
+  ],
+  "ignore": ["node_modules/**", "dist/**", "storage/**", "data/**", ".types-hash", ".sync-hash"],
+  "ext": "ts,json,env",
+  "delay": 300,
+  "exec": "tsx --tsconfig tsconfig.json -r tsconfig-paths/register -r module-alias/register index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo '[CRON] restarting...'"
+  }
+}

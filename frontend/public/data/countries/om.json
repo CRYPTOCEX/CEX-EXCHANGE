@@ -1,0 +1,101 @@
+{
+  "name": "Oman",
+  "iso2": "OM",
+  "iso3": "OMN",
+  "phonecode": "968",
+  "states": [
+    {
+      "name": "Ad Dakhiliyah",
+      "code": "DA",
+      "cities": [
+        "Adam",
+        "Bahlā’",
+        "Bidbid",
+        "Izkī",
+        "Nizwá",
+        "Sufālat Samā’il"
+      ]
+    },
+    {
+      "name": "Ad Dhahirah",
+      "code": "ZA",
+      "cities": [
+        "‘Ibrī",
+        "Yanqul"
+      ]
+    },
+    {
+      "name": "Al Batinah North",
+      "code": "BS",
+      "cities": [
+        "Al Khābūrah",
+        "As Suwayq",
+        "Liwá",
+        "Şaḩam",
+        "Shināş",
+        "Sohar"
+      ]
+    },
+    {
+      "name": "Al Batinah South",
+      "code": "BJ",
+      "cities": [
+        "Barkā’",
+        "Bayt al ‘Awābī",
+        "Oman Smart Future City",
+        "Rustaq"
+      ]
+    },
+    {
+      "name": "Al Buraimi",
+      "code": "BU",
+      "cities": [
+        "Al Buraymī"
+      ]
+    },
+    {
+      "name": "Al Wusta",
+      "code": "WU",
+      "cities": [
+        "Haymā’"
+      ]
+    },
+    {
+      "name": "Ash Sharqiyah North",
+      "code": "SS",
+      "cities": []
+    },
+    {
+      "name": "Ash Sharqiyah South",
+      "code": "SJ",
+      "cities": [
+        "Sur"
+      ]
+    },
+    {
+      "name": "Dhofar",
+      "code": "ZU",
+      "cities": [
+        "Şalālah"
+      ]
+    },
+    {
+      "name": "Musandam",
+      "code": "MU",
+      "cities": [
+        "Dib Dibba",
+        "Khasab",
+        "Madḩā’ al Jadīdah"
+      ]
+    },
+    {
+      "name": "Muscat",
+      "code": "MA",
+      "cities": [
+        "Bawshar",
+        "Muscat",
+        "Seeb"
+      ]
+    }
+  ]
+}

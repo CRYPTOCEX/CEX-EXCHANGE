@@ -1,0 +1,3184 @@
+/* Cascade layer order. MUST stay the first rule in the file — a @layer
+   statement is one of the few things allowed before @import, and the first
+   statement wins.
+
+   Phase 0 put the nine files in styles/ into a `legacy` layer so a Tailwind
+   utility in JSX would beat them; Phase 8b folded the survivors into this file
+   and deleted the layer. Everything that came out of styles/ now lives in a
+   `@layer base` block further down — the SAME relative position `legacy` held
+   against `components`/`utilities`, which is the point: those rules must keep
+   losing to a utility in a className, or the migration regresses.
+
+   Anything written UNLAYERED in this file (everything below the base blocks)
+   outranks every layer, including Tailwind utilities. That is deliberate for
+   third-party widget overrides and it is why nothing from styles/ was moved
+   there. See frontend/DESIGN-SYSTEM.md §6.
+
+   There was briefly a fifth layer here, `admin-theme`, for the design
+   manager's saved overrides. It is GONE, and the reason is worth keeping: a
+   layer's priority is fixed by where it is FIRST DECLARED, and this order
+   statement lives inside the linked stylesheet. A `@layer admin-theme` block
+   that reached the parser before this link therefore registered the layer
+   FIRST — making it the lowest-priority layer instead of the highest, and the
+   saved theme completely inert. Measured: injected at head index 0, 1 or 2 the
+   theme did nothing at all. It only worked in practice because React happens to
+   flush the stylesheet link ahead of a `precedence="high"` style.
+
+   The theme is emitted UNLAYERED instead (see lib/design-theme.ts), which beats
+   every layer whatever the source order, so the ordering dependency is gone
+   rather than merely satisfied. The one thing the layer bought — reduced motion
+   outranking the owner's chosen speed — is now handled by specificity, with
+   `html:root` on the `prefers-reduced-motion` rule near the bottom of this
+   file. */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss";
+
+@plugin 'tailwindcss-animate';
+
+/* @tailwindcss/typography — the `prose` classes.
+   MEASURED 2026-07-30: this line did not exist, and the package has been a
+   dependency the whole time. In Tailwind v4 a plugin emits NOTHING until it is
+   registered from CSS (v3's `plugins: []` in tailwind.config.js is gone), so
+   every `prose`, `prose-lg`, `prose-invert` and `prose-headings:*` in the tree
+   — 25 call sites across the blog, FAQ, staking, ICO, ecommerce, the legal
+   template wizard, the markdown renderer and four admin surfaces — compiled to
+   nothing at all.
+
+   That is not a "slightly plainer" failure, it is a total one, because
+   preflight has ALREADY run: it resets h1-h6 to `font-size: inherit;
+   font-weight: inherit`, drops every margin, and removes list markers. With no
+   `prose` rules to put any of it back, an article's <h1>, <h2> and <p> all
+   render at 16px/400 with 0 margin — literally indistinguishable, in one
+   unbroken wall of text. Verified on /en/blog/understanding-bitcoin before this
+   line landed: every child of `.prose` reported the identical computed
+   fontSize, fontWeight and margin.
+
+   The `--tw-prose-*` remapping that binds this to our tokens is further down,
+   next to the base layers. */
+@plugin '@tailwindcss/typography';
+
+/* JetBrains Mono is self-hosted via next/font in app/[locale]/layout.tsx and
+   exposed as --font-jetbrains-mono. It used to be a blocking @import from
+   fonts.googleapis.com on every page load. */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Registers the `xs:` variant.
+     18 sites across notifications, the affiliate dashboard and the affiliate
+     referral page were already written against `xs:` — but it was never a
+     registered breakpoint, so every one of them compiled to nothing. That is
+     not a cosmetic miss: `hidden xs:inline` paired with `xs:hidden` means the
+     full label NEVER rendered and the abbreviated one ALWAYS did, and
+     `grid-cols-1 xs:grid-cols-2 lg:grid-cols-4` collapsed to a single column
+     from 0 all the way to `lg`. Registering the breakpoint the authors assumed
+     is a smaller, more faithful fix than rewriting 18 call sites to `sm:`
+     (640px), which would move every one of those transitions 160px later.
+     30rem = 480px, the conventional `xs`. */
+  --breakpoint-xs: 30rem;
+
+  /* ==========================================================================
+     HEADER HEIGHT — one number, so a navbar variant can change it.
+     ==========================================================================
+     `site-header.tsx` is `fixed top-0`, so anything below it must be pushed
+     down by exactly the bar's height or it renders UNDERNEATH. Today that
+     relationship is written out as two literals that have to agree: `h-16` on
+     the bar, and `pt-24` (= 64px bar + 32px breathing room) in `PageShell`'s
+     clearance variant and in `HeroSection`. Nothing connects them.
+
+     That is fine while there is exactly one navbar. It stops being fine the
+     moment an admin can PICK one: a compact 56px bar leaves a 40px gap, a
+     two-row 96px bar hides the first line of every page, and neither shows up
+     in a type check, a lint, or the design ratchet — you find out by looking at
+     all ~40 page templates.
+
+     So the height becomes a variable and the clearance is DERIVED from it.
+     `--spacing-header` / `--spacing-header-clear` are Tailwind theme keys, which
+     means `h-header` and `pt-header-clear` are real utilities. Verified against
+     the compiled stylesheet that a named theme key emits a `var()` reference
+     (`.text-chart-1 { color: var(--color-chart-1) }`) rather than an inlined
+     value — that is what makes a runtime override work, and it is the whole
+     mechanism, so it was checked rather than assumed.
+
+     A variant overrides `--header-height` (see `lib/chrome/variants.ts`); every
+     clearance in the app follows without touching a single page. */
+  --spacing-header: var(--header-height);
+  --spacing-header-clear: calc(var(--header-height) + 2rem);
+
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  /* Obsidian additions — see frontend/DESIGN-SYSTEM.md.
+     Tailwind v4 tree-shakes @theme keys: a token emits NO CSS until some
+     utility references it, so absence from compiled output is not a bug. */
+  --color-surface-2: hsl(var(--surface-2));
+  --color-surface-3: hsl(var(--surface-3));
+  --color-subtle-foreground: hsl(var(--subtle-foreground));
+  --color-border-strong: hsl(var(--border-strong));
+
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  /* Tonal ink.
+     A "soft"/tonal chip is `bg-{tone}/10` + `text-{tone}` — the recipe ~940
+     hand-rolled badges already used. MEASURED 2026-07-29, it fails WCAG AA:
+     the 10% tint pulls the ground toward the ink, so light mode lands at
+     3.94-4.48 and dark destructive at 4.48. The earlier token tuning cleared
+     4.5 against the RAW ground, but a tonal chip's ink never sits on the raw
+     ground — it sits on the tinted one, which is ~0.6 lower.
+
+     These are DERIVED, not authored, and that is the point: the admin design
+     panel will let a site owner set --primary to anything, and a hand-picked
+     ink would only be correct for the shipped palette. Mixing toward
+     --foreground darkens on a light theme and lightens on a dark one
+     automatically, so the chip follows whatever the owner chooses.
+
+     88% is measured, not guessed: 90% is the largest ratio that clears 4.5 for
+     every tone in both themes (worst 4.59); 88% buys headroom (worst 4.72) at
+     negligible hue cost. It is a large improvement in robustness, NOT a
+     guarantee — a sufficiently pale custom brand colour can still fail, which
+     is why the design panel needs its own contrast check.
+
+     THE 88% IS CALIBRATED FOR A /10 TINT, AND /10 IS THE CEILING.
+     That was left implicit above and it cost us: a later pass put the ink on
+     /20 grounds, and 48 chips shipped below AA before anyone re-measured. The
+     ink is a fixed colour; the tint is what moves the ground under it, so
+     every extra 5% of tint spends ~0.3 of the ratio. Re-measured
+     2026-08-03, worst ground of the four light rungs (card / surface-2 /
+     background / surface-3), primary / success / warning / destructive:
+
+       /5   5.14 5.20 5.18 5.10      /20  4.19 4.25 4.27 4.05   <- fails
+       /10  4.81 4.87 4.87 4.73      /30  3.63 3.69 3.72 3.45   <- fails
+       /15  4.49 4.55 4.56 4.38          (info runs ~1.2 higher throughout
+                                          and is the only tone still clear
+                                          at /20 — do not generalise from it)
+
+     So: `bg-{tone}/10` + `text-{tone}-ink` is THE recipe, and the only tint
+     that clears AA on every light surface in the ramp. /15 is the ceiling for
+     a HOVER step — it clears on card, surface-2 and background, and is the
+     step `data-table/.../cells/badge.tsx` already uses — but primary and
+     destructive miss on surface-3 (4.49 / 4.38), so /15 is a transient state
+     only and never a resting tint. Anything at /20 or above must carry no
+     small text — an icon tile, a bare swatch, a progress fill. If a stronger
+     fill genuinely needs a label, use the solid pairing (`bg-{tone}` +
+     `text-{tone}-foreground`), which is contrast-checked by construction.
+     Dark mode has more room (/20 clears everywhere except surface-3) but the
+     class is shared across both themes, so the light ceiling is the ceiling. */
+  --color-primary-ink: color-mix(in oklab, hsl(var(--primary)) 88%, hsl(var(--foreground)));
+  --color-success-ink: color-mix(in oklab, hsl(var(--success)) 88%, hsl(var(--foreground)));
+  --color-warning-ink: color-mix(in oklab, hsl(var(--warning)) 88%, hsl(var(--foreground)));
+  --color-destructive-ink: color-mix(in oklab, hsl(var(--destructive)) 88%, hsl(var(--foreground)));
+  --color-info-ink: color-mix(in oklab, hsl(var(--info)) 88%, hsl(var(--foreground)));
+
+  /* price direction — distinct from success/destructive by design */
+  --color-up: hsl(var(--up));
+  --color-down: hsl(var(--down));
+
+  /* …and their tonal ink, which was missing.
+     The five tones above got `-ink` counterparts when the tonal-chip failure
+     was measured; `up`/`down` were registered here as plain colours in the same
+     pass and did not, so every `bg-up/10 text-up` chip in the app was left on
+     the half of the split the comment above calls out as failing. Measured over
+     `--surface-2` in light mode: `text-up` 4.39:1 and `text-down` 4.27:1 at
+     12px/600, against a 4.5 floor — on the buy/sell switch, where the tint and
+     the ink are the ONLY difference between the selected and unselected side.
+     Same derivation and same 88%, so an operator's palette swap follows them
+     exactly as it follows the other five: 5.26 / 5.11 light, 7.13 / 5.60 dark. */
+  --color-up-ink: color-mix(in oklab, hsl(var(--up)) 88%, hsl(var(--foreground)));
+  --color-down-ink: color-mix(in oklab, hsl(var(--down)) 88%, hsl(var(--foreground)));
+
+  /* Scrims. `--overlay` is dark in BOTH themes on purpose: anything laid over
+     a photograph or behind a modal has to darken it regardless of the page
+     theme, so it must not follow `--background`. It was declared in :root and
+     .dark from the start but never registered here, which means `bg-overlay/60`
+     compiled to nothing and painted a fully TRANSPARENT scrim — the failure
+     mode this block's own comment warns about, two tokens above. */
+  --color-overlay: hsl(var(--overlay));
+  --color-overlay-foreground: hsl(var(--overlay-foreground));
+  --color-shadow: hsl(var(--shadow));
+
+  /* Sidebar.
+     `components/ui/sidebar.tsx` is the stock shadcn sidebar and styles itself
+     entirely through a `--sidebar-*` token set — `bg-sidebar`,
+     `text-sidebar-foreground`, `hover:bg-sidebar-accent`, `ring-sidebar-ring`,
+     `border-sidebar-border`. That set was never defined here, so every one of
+     those utilities compiled to NOTHING: the sidebar had no surface, no hover
+     feedback on menu items, no focus ring and no divider colour, and fell back
+     to whatever it inherited.
+
+     They are declared as aliases of existing tokens rather than new colours, so
+     the sidebar follows both themes for free and cannot drift from the panels
+     around it — a sidebar is a panel, so `--card` is the correct surface. */
+  --color-sidebar: hsl(var(--card));
+  --color-sidebar-foreground: hsl(var(--card-foreground));
+  --color-sidebar-accent: hsl(var(--accent));
+  --color-sidebar-accent-foreground: hsl(var(--accent-foreground));
+  --color-sidebar-border: hsl(var(--border));
+  --color-sidebar-ring: hsl(var(--ring));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-6: hsl(var(--chart-6));
+
+  /* Radius ramp.
+     ------------------------------------------------------------------
+     Every step is derived from `--radius` so the ramp stays continuous
+     whatever the anchor is set to. It previously was not, and that is the
+     single reason 165 distinct card shapes exist in this codebase.
+
+     `--radius` was lowered to 0.25rem for Obsidian, but the three steps
+     below were left on shadcn's `calc(--radius - Npx)` formula, which
+     assumes the stock 0.5rem. At 0.25rem that formula collapses:
+
+         sm = calc(4px - 4px) = 0px   <- rendered literally square
+         md = calc(4px - 2px) = 2px
+         lg = 4px
+
+     and `xl`/`2xl`/`3xl` were never declared at all, so they fell through
+     to Tailwind's defaults of 12px / 16px / 24px. The scale was therefore
+     0, 2, 4, 12, 16, 24 — a 3x cliff between `lg` and `xl` with nothing in
+     between. Authors reached past `rounded-lg` (which looks square at 4px)
+     for `rounded-xl`, and 2,106 surfaces ended up above the cliff, outside
+     the "4px radii" the design system claims to be.
+
+     Anchoring the whole ramp fixes those 2,106 surfaces without editing a
+     single component. `lg` deliberately does not move: it is the declared
+     card radius, the token the spec names, and the most-used of the seven
+     (2,257 call sites). */
+  --radius-xs: calc(var(--radius) / 4); /*  1px */
+  --radius-sm: calc(var(--radius) / 2); /*  2px */
+  --radius-md: calc(var(--radius) * 0.75); /*  3px */
+  --radius-lg: var(--radius); /*  4px — the card radius */
+  --radius-xl: calc(var(--radius) * 1.5); /*  6px */
+  --radius-2xl: calc(var(--radius) * 2); /*  8px */
+  --radius-3xl: calc(var(--radius) * 3); /* 12px */
+  --radius-4xl: calc(var(--radius) * 4); /* 16px */
+
+  /* ------------------------------------------------------------------------
+     TYPOGRAPHY
+
+     Until now `@theme` registered 51 colour tokens and a radius ramp — and
+     nothing else. So a design-management panel could change hue and corner
+     rounding but not the typeface, which is the second-largest identity lever
+     a site owner has.
+
+     Worse, the app was PAYING for a typeface it never used: `layout.tsx` loads
+     Geist Sans and Geist Mono through next/font, nothing in source referenced
+     `--font-geist-sans`, and the whole app rendered in Tailwind's built-in
+     system stack. Two families downloaded on every page load, never painted.
+
+     Registering `--font-sans` here makes Tailwind's own preflight use it, so
+     the app picks up Geist and `font-sans` resolves to the same thing. The
+     `var(--font-geist-sans, ...)` fallback matters: if the next/font class is
+     ever missing, a bare `var()` with no fallback invalidates the WHOLE
+     declaration and the property computes to empty (this exact trap cost a
+     round-trip on `--tp-font-sans`).
+
+     An admin panel changes the platform typeface by writing these two.
+     ------------------------------------------------------------------------ */
+  --font-sans: var(--font-geist-sans, ui-sans-serif), ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono, ui-monospace), "JetBrains Mono",
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+  /* ------------------------------------------------------------------------
+     ELEVATION
+
+     `--shadow` (the COLOUR) already existed, but nothing used it: every one of
+     the ~1432 `shadow-*` utilities in the app was painting Tailwind's built-in
+     `rgb(0 0 0 / N)`, which an admin panel cannot reach. Measured in-browser
+     before writing this — `shadow-lg` computed to
+     `rgba(0,0,0,0.1) 0px 10px 15px -3px, rgba(0,0,0,0.1) 0px 4px 6px -4px`.
+
+     These are those exact geometries with the literal black swapped for the
+     token. `--shadow` is `0 0% 0%` in both themes, so today's rendering is
+     unchanged; the difference is that elevation is now themeable.
+
+     `shadow-xs` is deliberately absent: it computes to `none` in this Tailwind
+     build, and the app has 0 uses of it.
+     ------------------------------------------------------------------------ */
+  --shadow-2xs: 0 1px 0 0 hsl(var(--shadow) / 0.05);
+  --shadow-sm: 0 1px 3px 0 hsl(var(--shadow) / 0.1),
+    0 1px 2px -1px hsl(var(--shadow) / 0.1);
+  --shadow-md: 0 4px 6px -1px hsl(var(--shadow) / 0.1),
+    0 2px 4px -2px hsl(var(--shadow) / 0.1);
+  --shadow-lg: 0 10px 15px -3px hsl(var(--shadow) / 0.1),
+    0 4px 6px -4px hsl(var(--shadow) / 0.1);
+  --shadow-xl: 0 20px 25px -5px hsl(var(--shadow) / 0.1),
+    0 8px 10px -6px hsl(var(--shadow) / 0.1);
+  --shadow-2xl: 0 25px 50px -12px hsl(var(--shadow) / 0.25);
+  --inset-shadow-sm: inset 0 2px 4px 0 hsl(var(--shadow) / 0.05);
+
+  /* `drop-shadow-*` is a SECOND elevation namespace, and it was missed when the
+     first was tokenised. Tailwind's own defaults are literal — `--drop-shadow-lg:
+     0 4px 4px rgb(0 0 0 / 0.15)` — so eleven sites, nearly all of them blog hero
+     headings sitting on a photograph, painted a black that `--shadow` could not
+     reach and that the design manager's Elevation control did not move.
+
+     Same alpha ladder as the box-shadow ramp above, so the two namespaces stay in
+     step. `drop-shadow` filters a rendered ALPHA MASK rather than a box, so it is
+     the correct utility on text and on transparent PNG/SVG art — the sites are
+     not wrong to use it, they were only wrong to get an untokenised value. */
+  --drop-shadow-xs: 0 1px 1px hsl(var(--shadow) / 0.05);
+  --drop-shadow-sm: 0 1px 2px hsl(var(--shadow) / 0.15);
+  --drop-shadow-md: 0 3px 3px hsl(var(--shadow) / 0.12);
+  --drop-shadow-lg: 0 4px 4px hsl(var(--shadow) / 0.15);
+  --drop-shadow-xl: 0 9px 7px hsl(var(--shadow) / 0.1);
+  --drop-shadow-2xl: 0 25px 25px hsl(var(--shadow) / 0.15);
+
+  /* ------------------------------------------------------------------------
+     STACKING ORDER — the ladder, written down.
+
+     Tailwind ships z-0/10/20/30/40/50 and nothing above. Everything this app
+     needed above a Radix overlay was therefore a private guess, and the census
+     found FOURTEEN of them: z-[60], z-[61], z-[70], z-[75], z-[80], z-[100],
+     z-[110], z-[120], z-[200], z-[997], z-[998], z-[999], z-[1000], z-[9999]
+     across 37 sites in 17 files. Nothing arbitrated them, so the only way to win
+     against a z-[999] you did not know about was z-[9999] — which is exactly the
+     escalation the numbers record. It is also how a dialog ends up under a
+     header: not by anyone being careless, but by two authors each picking a
+     number that was right in the file they could see.
+
+     EVERY VALUE BELOW IS THE ONE THAT ALREADY SHIPPED. This ladder renames, it
+     does not re-order, so no surface moves relative to any other. The single
+     exception is the sidebar panel, which was 61 against the mobile menu's 70
+     for the same job; nothing occupies 62-69, so folding them is provably inert.
+
+     Two ties are preserved rather than fixed, because fixing them is a design
+     decision and not a rename:
+       - `--z-toast` ties with `--z-overlay-scrim`. A toast arguably belongs above
+         a dialog; today it does not.
+       - `--z-tour-*` sits above `--z-modal`, so a tour can cover a modal.
+
+     Adding a NEW number instead of a name here is the regression this exists to
+     stop, and `design:check` counts it (`--list z-scale`).
+
+     `--z-rail-docked` is BELOW the site header's own 50 on purpose, and it is
+     the one rung whose value is an argument rather than a convention. Pinned,
+     the assistant is furniture: the page has been narrowed around it, so there
+     is nothing underneath for it to cover and nothing to win a fight with.
+     What it must NOT do is win one — the navbar's own dropdowns open downward
+     into that column, and a docked panel stacked above them would eat the user
+     menu. Floating, the same panel uses `--z-tour-rail` and covers everything,
+     which is correct for something with no gutter of its own.
+     ------------------------------------------------------------------------ */
+  --z-rail-docked: 40;        /* the PINNED admin assistant — furniture, under the navbar */
+  --z-scrim: 60;              /* a scrim over the page, beneath its own panel */
+  --z-drawer: 70;             /* slide-in panel: sidebar, mobile menu */
+  --z-popover-elevated: 75;   /* a popover that must clear a dialog */
+  --z-select-elevated: 80;    /* a select inside that popover */
+  --z-overlay-scrim: 100;     /* full-screen overlay ground */
+  --z-toast: 100;             /* ties with the scrim above — see the note */
+  --z-overlay: 110;           /* that overlay's panel */
+  --z-overlay-control: 120;   /* a control pinned over the panel */
+  --z-modal: 200;             /* a modal that must clear the overlay layer */
+  --z-tour-rail: 997;         /* guided-tour launcher rail */
+  --z-tour-scrim: 998;
+  --z-tour-content: 999;      /* spotlight callout */
+  --z-tour-modal: 1000;
+  --z-top: 9999;              /* last resort. Nothing may be added above this. */
+
+  /* ------------------------------------------------------------------------
+     APPKIT COMES DOWN INTO THIS LADDER RATHER THAN SITTING ABOVE IT.
+
+     `<w3m-modal>` ships `z-index: 2147483647` — the maximum 32-bit signed
+     integer — so anything Reown renders covers every panel this product owns,
+     and nothing in the ladder can legitimately climb over it. That broke the
+     in-house wallet's connect flow: AppKit's "Continue in <wallet>" waiting
+     screen sat on top of the very approval dialog it was waiting for, and the
+     connection timed out with both dialogs open.
+
+     `--w3m-z-index` is AppKit's own supported override. At `--z-overlay` it
+     sits where a full-screen overlay belongs: above the site header and above
+     an ordinary Radix dialog at z-50 (so wallet login, which opens AppKit from
+     a dialog, is unaffected), and below `--z-modal`, which is where the
+     wallet's consent sheets live — "a modal that must clear the overlay layer",
+     exactly as this line already describes.
+
+     Do not raise this. Raising it re-hides the approval dialog and the symptom
+     is a connect that hangs rather than anything that looks like a z-index bug.
+     ------------------------------------------------------------------------ */
+  --w3m-z-index: 110;
+
+  /* ------------------------------------------------------------------------
+     THE PINNED ADMIN ASSISTANT'S GUTTER
+
+     A mechanism, not a design token — which is why it lives here beside the
+     z-scale rather than in `:root`. Everything a bare `:root` declares has to
+     be described in `lib/design-theme.ts` and becomes editable from the admin
+     design panel, and neither of these should be: `--assistant-rail` is written
+     programmatically (it is 0 or the width, nothing else), and an operator who
+     set it by hand would indent every page on the platform, permanently, from a
+     screen about colours.
+
+     `--assistant-rail-width` is the panel's width, declared ONCE. The rail reads
+     it and so does the gutter, so the two cannot disagree — a literal on either
+     side would show as a stripe of page peeking out beside the panel, or as
+     content hidden underneath it, the moment one of them moved.
+
+     `--assistant-rail` is how much width the page actually gives up: `0px` for
+     everybody who has not pinned it, which is why the default costs nothing. The
+     rules that switch it are at the foot of this file, with the reasoning.
+     ------------------------------------------------------------------------ */
+  --assistant-rail-width: min(26rem, 100vw);
+  --assistant-rail: 0px;
+
+  /* ------------------------------------------------------------------------
+     MOTION
+
+     The last axis `@theme` did not own. Colour, radius, typeface and elevation
+     are all themeable now; speed and easing were not, and a "snappy vs relaxed"
+     interface is as much a part of a site's identity as its accent hue.
+
+     Two halves:
+
+     1. EASING. Tailwind hardcodes `--ease-in/out/in-out` as literal
+        cubic-beziers in its own theme.css, so `ease-out` compiled to a constant
+        an admin panel could never reach. Re-declaring them here as `var()`
+        references makes Tailwind emit `--tw-ease: var(--ease-out)` and resolve
+        it at RUNTIME against `:root` — the same indirection that makes the
+        colour tokens work. The fallbacks are not decoration: a bare `var()`
+        whose target is undefined makes the WHOLE declaration
+        guaranteed-invalid, and the property computes to empty rather than
+        falling back (this exact trap cost a round-trip on `--tp-font-sans`).
+        The literals are Tailwind's own defaults, so today's curves are
+        unchanged.
+
+     2. DURATION. `--default-transition-duration` is what a bare `transition`
+        uses when no `duration-*` accompanies it — 150ms, and the app leans on
+        it heavily. Scaling it here means the naked `transition` obeys the same
+        speed lever as the explicit utilities.
+     ------------------------------------------------------------------------ */
+  --ease-in: var(--motion-ease-in, cubic-bezier(0.4, 0, 1, 1));
+  --ease-out: var(--motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+  --ease-in-out: var(--motion-ease, cubic-bezier(0.4, 0, 0.2, 1));
+  --default-transition-timing-function: var(
+    --motion-ease,
+    cubic-bezier(0.4, 0, 0.2, 1)
+  );
+  --default-transition-duration: calc(150ms * var(--motion-scale, 1));
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/* ==========================================================================
+   DESIGN TOKENS — "Obsidian"
+   Cold, blue-biased near-black. Single azure accent. 4px radii.
+   Spec and migration plan: frontend/DESIGN-SYSTEM.md
+
+   Two rules that this block exists to enforce:
+     - --primary is the SAME hue in both themes. It was white in dark, which
+       made bg-primary change identity with the theme and is why ~43k
+       hardcoded palette classes exist.
+     - --card is one step lighter than --background in BOTH themes, so cards
+       have real elevation and nobody needs a gradient to make one visible.
+
+   --up / --down are price direction (R1) and are deliberately separate from
+   --success / --destructive, which are operation status (R2). They currently
+   share values; they are separate tokens so they can diverge without a
+   find-and-replace across the codebase.
+   ========================================================================== */
+@layer base {
+  :root {
+    /* The site header's own height. A navbar variant overrides this ONE value
+       and every clearance in the app follows — see the note in `@theme`. */
+    --header-height: 4rem;
+
+    /* surface ramp */
+    --background: 214 41.2% 96.7%;
+    --foreground: 218 52.4% 8.2%;
+    --card: 0 0% 100%;
+    --card-foreground: 218 52.4% 8.2%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 218 52.4% 8.2%;
+    /* `--surface-2` was `0 0% 100%` — byte-identical to `--card`, so it was a
+       DEAD RUNG in light mode: `bg-surface-2` on a card ground painted nothing,
+       and `hover:bg-surface-2` on a `bg-card` element was a hover state that
+       could not be seen. 519 sites use it. The dark ramp has four distinct steps
+       (3.5 / 6.7 / 9.6 / 12.7); light had three, and was not even monotonic —
+       `--surface-3` at 95.1% is DARKER than `--background` at 96.7%.
+       98.4% sits between card and background, so the light ramp now reads
+       card 100 > surface-2 98.4 > background 96.7 > surface-3 95.1 (inset). */
+    --surface-2: 213 42.0% 98.4%;
+    --surface-3: 213 44.0% 95.1%;
+
+    /* brand + interaction */
+    --primary: 216 83.6% 48.4%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 44.0% 95.1%;
+    --secondary-foreground: 218 52.4% 8.2%;
+    --accent: 213 44.0% 95.1%;
+    --accent-foreground: 218 52.4% 8.2%;
+    --ring: 216 83.6% 52.2%;
+
+    /* ink */
+    --muted: 213 44.0% 95.1%;
+    --muted-foreground: 216 18.4% 40.4%;
+    --subtle-foreground: 213 16.0% 44.1%;
+
+    /* status (R2) — always shipped with an icon or label, never colour alone */
+    --destructive: 354 67.7% 48.8%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 83.8% 26.4%;
+    --success-foreground: 0 0% 100%;
+    --warning: 36 71.0% 33.9%;
+    --warning-foreground: 0 0% 100%;
+    /* Info is a DISTINCT hue from --primary, not an alias of it.
+       They were byte-identical, so a static notice and a button wore the
+       same colour: the accent means "click this", info means "read this".
+       Validated against the azure primary — normal-vision deltaE 17.8,
+       deutan 17.5, tritan 12.3, and 5.8:1 as text on its own bg-info/10. */
+    --info: 192 85.0% 26.0%;
+    --info-foreground: 0 0% 100%;
+
+    /* price direction (R1) */
+    --up: 160 83.8% 26.4%;
+    --down: 354 67.7% 48.8%;
+
+    /* structure */
+    --border: 213 34.6% 89.8%;
+    --border-strong: 212 29.2% 81.2%;
+    --input: 213 34.6% 89.8%;
+    --overlay: 218 52.4% 8.2%;
+    /* Ink that sits ON a scrim, a photograph or a video — the partner to
+       `--overlay`, and light in BOTH themes for the same reason `--overlay` is
+       dark in both: the ground it sits on is a darkened image, not the page.
+       Without it there was no token for this job, so 485 bare `text-white`
+       and a `bg-white/30` glass button hardcoded it — colours an admin theme
+       could never reach. */
+    --overlay-foreground: 0 0% 100%;
+    /* Shadow colour. 33 sites hardcoded `shadow-black/N` with no token behind
+       them, so an admin theme could not touch a single elevation. Black in both
+       themes for now, which makes the migration a pure no-op — but it is a knob
+       the design panel can turn, and a dark theme may well want a different
+       one, since a black shadow on a near-black ground reads as nothing. */
+    --shadow: 0 0% 0%;
+    --radius: 0.25rem;
+
+    /* ICON GEOMETRY.
+       Everything `--radius` reaches is a BOX. Icons are drawn, not boxed, so a
+       site set to square corners still shipped 355 lucide rects with a 2-unit
+       radius and round joins on every stroke: the interface went sharp and the
+       iconography stayed soft. These three carry the same decision into the
+       artwork. All three ship at exactly today's lucide values, so declaring
+       them changes nothing until an owner moves them.
+
+       `--icon-radius-scale` is a MULTIPLIER, not a radius, because lucide draws
+       with four different corner radii (1, 1.5, 2 and 3 user units) and those
+       proportions are part of the icon set's design. A flat value would have
+       collapsed all four onto one another. */
+    --icon-join: round;
+    --icon-cap: round;
+    --icon-radius-scale: 1;
+
+    /* MOTION.
+       Deliberately declared once, in `:root` only, and NOT mirrored in `.dark`:
+       a theme changes what the interface looks like, not how fast it moves.
+
+       `--motion-scale` is a multiplier on every `duration-*` and `delay-*`
+       utility (see the @utility overrides further down) and on the default
+       transition duration. 1 = today's timings exactly, so shipping this
+       changes nothing; 0.5 = twice as snappy; 1.5 = relaxed. That single number
+       is the whole speed lever, and it reaches all 792 `duration-*` call sites
+       without editing one of them — the same argument as the radius and shadow
+       ramps.
+
+       The three easings are Tailwind's own default cubic-beziers, copied
+       verbatim so `ease-in` / `ease-out` / `ease-in-out` render byte-identically
+       today. They are named by ROLE rather than by curve because that is what a
+       site owner actually chooses: `--motion-ease-out` is the entrance curve
+       (decelerate into place), `--motion-ease-in` the exit curve, and
+       `--motion-ease` the standard both-ends curve used by a bare
+       `transition`. */
+    --motion-scale: 1;
+    --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
+    /* categorical chart ramp — validated: OKLCH lightness band, chroma floor,
+       CVD separation (worst adjacent ΔE 8.1 deutan), contrast >= 3:1 on white */
+    --chart-1: 220 60.2% 51.8%;
+    --chart-2: 40 100.0% 29.8%;
+    --chart-3: 159 100.0% 26.5%;
+    --chart-4: 270 43.1% 53.1%;
+    --chart-5: 356 49.4% 49.6%;
+    --chart-6: 197 100.0% 33.5%;
+
+    /* ======================================================================
+       COMPONENT GEOMETRY — see plans/COMPONENT-SYSTEM.md
+       ======================================================================
+       The 45 tokens above are global PRIMITIVES: colour, one radius, one
+       speed. They cannot express "make the tables denser" or "flatten the
+       cards", because component geometry was written as literal Tailwind —
+       `h-12 px-4` in the datatable header, a seven-row CVA size table in
+       Button. An owner could recolour the product but not re-proportion it.
+
+       Every token below ships at EXACTLY the value it replaces, so declaring
+       them is a no-op until an owner moves one. Like `--radius`, they are not
+       mirrored in `.dark`: a theme changes what the interface looks like, not
+       its geometry.
+
+       SCALE vs LENGTH is a deliberate split. A component that already has a
+       size axis (Card's p-4/p-6, Button's seven heights) gets a MULTIPLIER, so
+       the ramp survives — a flat length would collapse all of it onto one
+       value. The same argument as `--icon-radius-scale`. A length is only used
+       where today's value is a single hardcoded constant. */
+
+    /* DataTable. The header is `h-12`; a BODY row is not — it has no height at
+       all today, it is `py-3` plus a 20px line, so 2.75rem is what it measures
+       and 2.75rem is what ships here. Declaring the two as one value would have
+       silently made every table 4px taller the moment this landed, which is
+       precisely the no-op-by-default rule this layer is built on.
+
+       Striping ships OFF (0) because the shipped table separates rows with
+       space, not a fill — turning it on is an owner's choice. */
+    --table-row-height: 2.75rem;
+    --table-header-height: 3rem;
+    --table-cell-padding-x: 1rem;
+    --table-font-scale: 1;
+    --table-header-weight: 500;
+    /* BOTH ship at zero because the shipped table draws NEITHER. Rows are
+       separated by an `h-2` spacer row and carry `border-0`; there is no zebra
+       fill anywhere. Declaring these at 1px and 0.5 "because tables usually
+       have them" would have redesigned every table in the product on the
+       commit that introduced a density slider. They are here so an owner can
+       ASK for lines or stripes, not so the system assumes they wanted them. */
+    --table-row-border-width: 0px;
+    --table-stripe-opacity: 0;
+    --table-hover-opacity: 1;
+    --table-radius-scale: 1;
+
+    /* Controls — Button, Input, Select, Badge. All multipliers: these
+       components carry size ramps that must keep their proportions.
+       `--badge-radius-scale` is separate from the rest because pill-vs-square
+       badges is an identity choice an owner makes independently of buttons. */
+    --control-height-scale: 1;
+    --control-padding-scale: 1;
+    --control-radius-scale: 1;
+    --control-font-weight: 500;
+    --control-border-width: 1px;
+    --badge-radius-scale: 1;
+
+    /* Card. `--card-shadow-strength: 0` is the flat look, and it is the reason
+       this is a scale and not a shadow colour — `--shadow` above is already
+       the colour, and an owner wanting "flat" means presence, not hue. */
+    --card-padding-scale: 1;
+    --card-border-width: 1px;
+    --card-shadow-strength: 1;
+
+    /* Forms and dialogs. Dialog is `p-6` with a `bg-overlay/80` scrim.
+
+       `--field-gap` is 1.25rem because that is `gap-y-5`, the vertical rhythm
+       the real form grids use — NOT the dialog's `gap-4`, which spaces the
+       header/body/footer sections and is a different decision. Pointing one
+       token at both would have made "field spacing" quietly reflow every
+       dialog's furniture too. The dialog keeps its literal `gap-4`. */
+    --field-gap: 1.25rem;
+    --field-label-weight: 500;
+    --dialog-padding: 1.5rem;
+    --dialog-overlay-opacity: 1;
+
+    /* Charts and KPI tiles. Shape only — the categorical COLOUR ramp is
+       `--chart-1`..`--chart-6` above, and it stays there because it is
+       validated for CVD separation and contrast. Mixing a stroke width into
+       that group would put an unvalidatable value inside a validated set.
+
+       There is deliberately NO bar-corner token. Recharts bakes a bar's radius
+       into the `d` of a `<path>` at render time, so no CSS property can reach
+       it — it would need the chart to re-render from a value read out of
+       `getComputedStyle`, which the live preview (which writes custom
+       properties straight onto the frame's root) would not trigger. A control
+       that works on reload but not while you drag it is worse than no control,
+       so it is not offered. */
+    --chart-line-width: 2px;
+    --chart-grid-opacity: 1;
+    --chart-point-radius: 3px;
+    --kpi-padding-scale: 1;
+    --kpi-value-scale: 1;
+  }
+
+  .dark {
+    /* surface ramp */
+    --background: 220 33.3% 3.5%;
+    --foreground: 212 35.1% 92.7%;
+    --card: 216 29.4% 6.7%;
+    --card-foreground: 212 35.1% 92.7%;
+    --popover: 212 26.5% 9.6%;
+    --popover-foreground: 212 35.1% 92.7%;
+    --surface-2: 212 26.5% 9.6%;
+    --surface-3: 212 26.2% 12.7%;
+
+    /* brand + interaction */
+    --primary: 218 100% 64.9%;
+    --primary-foreground: 218 50.0% 3.1%;
+    --secondary: 212 26.2% 12.7%;
+    --secondary-foreground: 212 35.1% 92.7%;
+    --accent: 212 26.2% 12.7%;
+    --accent-foreground: 212 35.1% 92.7%;
+    --ring: 218 100% 64.9%;
+
+    /* ink */
+    --muted: 212 26.2% 12.7%;
+    --muted-foreground: 215 16.2% 64.9%;
+    --subtle-foreground: 213 13.2% 53.9%;
+
+    /* status (R2) */
+    --destructive: 354 83.2% 64.9%;
+    --destructive-foreground: 218 50.0% 3.1%;
+    --success: 159 67.0% 45.1%;
+    --success-foreground: 218 50.0% 3.1%;
+    --warning: 39 76.4% 56.9%;
+    --warning-foreground: 218 50.0% 3.1%;
+    /* Same hue family as light so the token reads as one colour across
+       themes. normal-vision deltaE 16.5 / deutan 16.0 / tritan 13.1 vs primary. */
+    --info: 192 90.0% 55.0%;
+    --info-foreground: 218 50.0% 3.1%;
+
+    /* price direction (R1) */
+    --up: 159 67.0% 45.1%;
+    --down: 354 83.2% 64.9%;
+
+    /* structure */
+    --border: 213 24.3% 14.5%;
+    --border-strong: 213 22.2% 21.2%;
+    --input: 213 24.3% 14.5%;
+    --overlay: 220 33.3% 3.5%;
+    /* Same value as light on purpose — see the note in `:root`. */
+    --overlay-foreground: 0 0% 100%;
+    --shadow: 0 0% 0%;
+    /* `--radius` is NOT redeclared here. It used to be, with the identical
+       value, which made corner rounding look theme-dependent to anything
+       reading the token set — including the admin design manager, which would
+       have offered a pointless "radius (dark)" control. Geometry does not
+       change with the colour scheme. `--shadow` above stays paired because it
+       genuinely can: a black shadow on a near-black ground reads as nothing. */
+
+    /* categorical chart ramp — validated against surface #0C1016:
+       lightness band, chroma floor, CVD separation (worst adjacent ΔE 9.1
+       deutan), contrast >= 3:1 */
+    --chart-1: 219 74.4% 60.2%;
+    --chart-2: 41 100.0% 35.1%;
+    --chart-3: 159 100.0% 31.2%;
+    --chart-4: 270 53.8% 61.8%;
+    --chart-5: 357 60.2% 58.6%;
+    --chart-6: 189 100.0% 34.3%;
+  }
+}
+
+/* ==========================================================================
+   COMPONENT GEOMETRY THAT A UTILITY CANNOT EXPRESS
+   ==========================================================================
+   plans/COMPONENT-SYSTEM.md. Most of the component tokens are consumed as
+   arbitrary-value classes at the call site — `h-[var(--table-row-height)]` and
+   friends — because that keeps the change surgical and keeps Tailwind's own
+   conflict resolution working. What lands here is the remainder, and each one
+   is here for a stated reason rather than by preference:
+
+     FONT SIZE / WEIGHT — `text-` and `font-` are ambiguous Tailwind prefixes
+       (size vs colour, family vs weight). Disambiguating needs a type hint
+       used nowhere else in this codebase, and a hint that fails to compile
+       yields a class that never reaches the browser. `design:debt` catches
+       dead COLOUR classes; it does not catch dead length ones.
+
+     STRIPING — needs row parity, and parity is not a utility.
+
+     HOVER / SEPARATOR STRENGTH — need a computed alpha and a computed width
+       off a token, i.e. `calc()` inside a colour function.
+
+   WHY `@layer components` AND NOT UNLAYERED. Unlayered rules in this file beat
+   every Tailwind utility (see the layer note at the top), which would mean no
+   call site could ever override a table's own geometry again. Losing to a
+   utility is the correct relationship here. The price is that any competing
+   utility has to be REMOVED from the component rather than merely overridden,
+   which is why `hover:bg-primary/5`, `font-medium` and `border-none` are gone
+   from the datatable — each one silently pinned the token it fought.
+   ========================================================================== */
+@layer components {
+  /* Body text. Line height scales with the size, or a denser table gets tight
+     rows with the same tall line boxes and the density control does half of
+     what it says. */
+  [data-dt-frame] table tbody td {
+    font-size: calc(0.875rem * var(--table-font-scale));
+    line-height: calc(1.25rem * var(--table-font-scale));
+  }
+
+  /* Header labels. Declared on the CHILD, not the `<th>`: both `TableHead` and
+     `Button` carry their own `font-medium`, and an inherited value always loses
+     to a direct one — so targeting the element the text is actually in is what
+     makes this reachable at all. */
+  [data-dt-frame] table thead th :is(span, div) {
+    font-weight: var(--table-header-weight);
+  }
+  /* The sorted column reads one step heavier than whatever the owner chose,
+     rather than a fixed `font-semibold` that would sit BELOW a 700 header and
+     invert the emphasis. `min()` keeps it legal if a theme imports 900. */
+  [data-dt-frame] table thead th[data-sorted] :is(span, div) {
+    font-weight: min(900, calc(var(--table-header-weight) + 100));
+  }
+
+  /* Zebra fill. Ships fully transparent (`--table-stripe-opacity: 0`), so this
+     rule paints nothing until an owner asks for it. Parity comes from
+     `data-dt-row`, which counts DATA rows — see the note in rows/index.tsx. */
+  [data-dt-frame] table tbody tr[data-dt-row="odd"] {
+    background-color: hsl(var(--muted) / calc(0.6 * var(--table-stripe-opacity)));
+  }
+
+  /* Hover, after the stripe so it wins on an odd row. Row SELECTION stays a
+     utility (`bg-primary/10`) and therefore outranks both, which is the order
+     that reads correctly: selected beats hovered beats striped. */
+  [data-dt-frame] table tbody tr[data-dt-row]:hover {
+    background-color: hsl(var(--primary) / calc(0.05 * var(--table-hover-opacity)));
+  }
+
+  /* Row separator. 0px by default — the shipped table separates rows with an
+     `h-2` spacer instead — so this draws nothing until asked. */
+  [data-dt-frame] table tbody tr[data-dt-row] > td {
+    border-bottom: var(--table-row-border-width) solid hsl(var(--border));
+  }
+
+  /* ------------------------------------------------------------------------
+     CHARTS
+     ------------------------------------------------------------------------
+     Recharts takes its geometry as JS PROPS — `strokeWidth={2}`, `r: 3` — and
+     renders them as SVG presentation attributes. A presentation attribute is
+     the weakest thing in the cascade: any CSS declaration beats it. That is
+     what makes these tokens reachable at all without touching a chart
+     component or re-rendering one, and it is why the live preview can show a
+     stroke change as the slider moves.
+
+     What it does NOT reach is a bar's corner radius, which Recharts bakes into
+     the path data itself. There is no token for it — see globals.css `:root`.
+     ------------------------------------------------------------------------ */
+  .recharts-line-curve,
+  .recharts-area-curve {
+    stroke-width: var(--chart-line-width);
+  }
+
+  /* A sparkline is a deliberately finer line than a full chart (1.5 against 2),
+     because it sits inside a row or a tile rather than in a chart panel. Scaled
+     rather than pinned, so it keeps that relationship at any setting instead of
+     snapping to the same weight as everything else. */
+  [data-chart-spark] .recharts-area-curve,
+  [data-chart-spark] .recharts-line-curve {
+    stroke-width: calc(var(--chart-line-width) * 0.75);
+  }
+
+  /* `chartGrid` ships `opacity: 0.4`; the token multiplies it, so 0 is "no grid"
+     and 1 is exactly what the chart kit already draws. */
+  .recharts-cartesian-grid line {
+    opacity: calc(0.4 * var(--chart-grid-opacity));
+  }
+
+  /* `r` is a real CSS property on SVG geometry in every engine this product
+     supports, so a plotted dot is stylable without touching the chart. The
+     ACTIVE dot keeps its one-pixel lead over the plotted one — that difference
+     is how a hovered point reads as hovered, and pinning both to one value
+     would quietly remove the affordance. */
+  .recharts-dot {
+    r: var(--chart-point-radius);
+  }
+  .recharts-active-dot .recharts-dot {
+    r: calc(var(--chart-point-radius) + 1px);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* Keyboard focus fallback.
+     MEASURED 2026-07-29: 697 of 729 raw `<button>` elements (95%, across 259
+     files) carry NO focus style at all — no `focus:`, no `focus-visible:`. They
+     are hand-rolled controls in the chart engine, the binary and trade/pro
+     panels and the checkout skins, where the canonical <Button> was never
+     adopted. A keyboard user simply cannot see where they are.
+
+     `:where()` has ZERO specificity, so this is a pure fallback: any component
+     that styles its own focus — every Radix primitive and <Button>, which pair
+     `outline-hidden` with a ring — overrides it completely and does NOT get a
+     double ring. Rewriting 259 files would have been far more churn and risk
+     for the same result.
+
+     `outline` (not a ring) is deliberate: it follows the element's border box
+     without needing a stacking context, so it works on the inline, absolutely
+     positioned and overflow-clipped controls these tend to be. */
+  :where(button, [role="button"], summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Pointer affordance fallback. DO NOT DELETE AS REDUNDANT.
+     Tailwind v3's Preflight shipped `button, [role="button"] { cursor: pointer }`
+     and `:disabled { cursor: default }`. Tailwind v4's Preflight DELETED both —
+     verify with `grep -n cursor node_modules/tailwindcss/preflight.css`, which
+     returns exactly one COMMENT (about Safari's number-input spin buttons) and
+     zero declarations. The v4 upgrade guide describes this as "buttons now use
+     `cursor: default`". Nothing else in this app puts it back, so every
+     hand-rolled control fell back to the UA arrow.
+
+     Blast radius, measured: 560 of 778 raw `<button>` openings across the tree
+     carry no `cursor-*` class. The canonical <Button> is NOT affected — its cva
+     base string has carried `cursor-pointer` since the initial commit — so what
+     broke is the same population as the focus fallback above: the chart engine,
+     the trade/binary panels, the checkout skins and the finance hero, where
+     <Button> was never adopted. /trade/pro had already been patched by hand
+     (trade/pro/styles/trading-pro.css, `.tp-workspace button:not(:disabled)`);
+     this generalises that one subtree's rule to the app. That scoped rule is
+     unlayered, so it still wins over this one and agrees with it.
+
+     `:where()` keeps specificity at ZERO, exactly like the focus fallback, and
+     `base` loses to `utilities` — so `cursor-crosshair` in the chart engine,
+     `cursor-grab`/`active:cursor-grabbing` on drag handles, `cursor-default` and
+     `cursor-not-allowed` in a className all still win. This rule MUST stay
+     inside `@layer base`: written unlayered (see the layer note at the top of
+     this file) it would outrank the utilities layer and kill every one of them.
+
+     The disabled guards are load-bearing, because v4 dropped `:disabled {
+     cursor: default }` too: ~100 raw `<button disabled>` sites have no
+     `pointer-events-none`, so without `:not(:disabled)` they would advertise
+     themselves as clickable. `[role="button"]` can never match `:disabled`,
+     hence the `aria-disabled` half — which is also the state <Button> sets on
+     its `asChild` anchor path. */
+  :where(
+    button:not(:disabled):not([aria-disabled="true"]),
+    [role="button"]:not([aria-disabled="true"]),
+    summary
+  ) {
+    cursor: pointer;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply scroll-smooth;
+    /**
+     * framer-motion's useScroll({ target }) defaults its scroll container to
+     * document.scrollingElement (<html>) and measures the target by walking the
+     * offsetParent chain up to that container. A static <html> is never in that
+     * chain, so the walk bails at <body> and motion logs:
+     *   "Please ensure that the container has a non-static position..."
+     * Positioning <html> puts it back in the chain (offsetParent of <body>),
+     * which is what motion asks for and silences the dev warning.
+     */
+    position: relative;
+  }
+  .avatarGroup > span {
+    @apply hover:-translate-y-1 hover:relative hover:z-10 transition-transform;
+  }
+
+  /* ------------------------------------------------------------------------
+     ONE WORKSPACE GROUND PER DOCUMENT.
+
+     `components/layout/workspace-ground.tsx` is `fixed inset-0 -z-10` and is
+     drawn by TWO kinds of owner now: a route-tree layout (p2p, support, the AI
+     support console) and the DataTable hero, which draws its own so that ~120
+     table pages scattered across thirty route trees get the ground without
+     thirty layout edits. Roughly a dozen pages are under both.
+
+     Both painting is not a crash — the element opens with an opaque
+     `bg-background` — but the three translucent layers composite: the hairline
+     grid goes 40% over 40%, so exactly the tables inside those addons would
+     draw heavier grid lines than every other page beside them.
+
+     Two selectors, because the second ground can be either a DESCENDANT of a
+     later sibling (the layout draws it, then `<main>` holds the page that draws
+     its own — the shape every one of these layouts has) or a plain later
+     SIBLING (one page mounting two hero DataTables). The key compound is the
+     bare attribute, which matches at most a handful of elements in the
+     document, so the descendant combinator costs nothing to evaluate.
+
+     `display: none` and not `opacity: 0`: a hidden ground must not composite
+     at all, and it must not keep a `fixed` layer alive for the compositor.
+     ------------------------------------------------------------------------ */
+  [data-workspace-ground] ~ [data-workspace-ground],
+  [data-workspace-ground] ~ * [data-workspace-ground] {
+    display: none;
+  }
+
+  /* ------------------------------------------------------------------------
+     SVG CORNER TREATMENT — the radius decision, carried into the artwork.
+
+     Two mechanisms, both measured in a real browser rather than assumed
+     (scratchpad/svg-geometry-probe.js, pixel-diffed against an unstyled
+     control):
+
+     1. `stroke-linejoin` / `stroke-linecap` reach every icon because lucide
+        writes them as PRESENTATION ATTRIBUTES — `stroke-linecap="round"
+        stroke-linejoin="round"`, straight off lucide-react's
+        `defaultAttributes`. Presentation attributes are inserted at the very
+        START of the author origin, so ANY author rule beats them; the probe
+        confirms it holds even at `:where()` specificity 0. They also INHERIT,
+        so one declaration on `<svg>` reaches every path inside it.
+
+     2. `rx` / `ry` are SVG2 geometry PROPERTIES, not merely attributes, so CSS
+        sets them and the attribute loses the same way. `calc()` and `var()`
+        both work there — the probe drove the whole thing through a custom
+        property to be sure.
+
+     WHY THE RADII ARE KEYED ONE BY ONE
+     Scaling rather than replacing keeps lucide's four radii in ratio (see the
+     `--icon-radius-scale` note in `:root`). Keying each rule on the attribute
+     value it is scaling is the only way to do that in CSS: `calc()` cannot read
+     an attribute, and `attr()` with a type is too new to rely on.
+
+     WHY IT STOPS AT 3
+     A radius of 5 units and up on an 18-unit rect is 28% of the side — that is
+     a pill or a circle, i.e. the SHAPE, not a corner treatment. `rx="9"` is how
+     lucide draws a round tag; squaring it would change what the icon depicts.
+     The landing art's `rx="320"` is the same argument at a different size. The
+     four scaled values still cover 355 of lucide's 366 rects.
+
+     The child selectors exist for hand-authored inline SVG, which puts
+     `strokeLinecap` on the <path> rather than the root. Matching only
+     `="round"` means a mark that deliberately asked for a butt or square end
+     keeps it — this follows the ones that opted into softness, nothing else.
+     ------------------------------------------------------------------------ */
+  svg,
+  svg [stroke-linejoin="round"] {
+    stroke-linejoin: var(--icon-join);
+  }
+  svg,
+  svg [stroke-linecap="round"] {
+    stroke-linecap: var(--icon-cap);
+  }
+
+  svg rect[rx="1"] { rx: calc(1px * var(--icon-radius-scale)); }
+  svg rect[rx="1.5"] { rx: calc(1.5px * var(--icon-radius-scale)); }
+  svg rect[rx="2"] { rx: calc(2px * var(--icon-radius-scale)); }
+  svg rect[rx="3"] { rx: calc(3px * var(--icon-radius-scale)); }
+  svg rect[ry="1"] { ry: calc(1px * var(--icon-radius-scale)); }
+  svg rect[ry="2"] { ry: calc(2px * var(--icon-radius-scale)); }
+  svg rect[ry="3"] { ry: calc(3px * var(--icon-radius-scale)); }
+}
+
+/* Utility: Container */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (min-width: 640px) {
+    max-width: 640px;
+  }
+  @media (min-width: 768px) {
+    max-width: 768px;
+  }
+  @media (min-width: 1024px) {
+    max-width: 1024px;
+  }
+  @media (min-width: 1280px) {
+    max-width: 1280px;
+  }
+  @media (min-width: 1392px) {
+    max-width: 1392px;
+  }
+}
+
+/* ==========================================================================
+   MOTION SCALE — `duration-*` and `delay-*` overrides
+   ==========================================================================
+   Tailwind has no `--duration-*` theme namespace (verified against 4.3.3):
+   `duration-300` is a bare-value utility that compiles to a literal `300ms`,
+   so registering a token could not reach it. Redefining the functional utility
+   is the only hook, and it is a good one — 792 `duration-*` and 16 `delay-*`
+   call sites become themeable without touching a single component.
+
+   How this composes rather than conflicts: Tailwind merges a custom `@utility`
+   into the SAME rule as the core one it shadows, with these declarations last,
+   so they win on source order without `!important`. Verified by compiling
+   against this exact Tailwind version — `duration-initial` (which matches no
+   `--value()` type here) keeps the core behaviour untouched, while
+   `duration-300`, `duration-[350ms]`, `duration-(--x)` and variant forms like
+   `hover:duration-500` all pick up the scale.
+
+   Both channels are written on purpose. `--tw-duration` is what a bare
+   `transition` reads; `transition-duration` is what the utility applies on its
+   own. Setting only one leaves the other unscaled depending on which classes
+   happen to be present.
+
+   The two-line pattern per property is Tailwind's documented way of handling
+   several value types: a declaration whose `--value()` does not resolve is
+   dropped, so exactly one of each pair survives.
+
+   `* 1ms` converts the bare integer to a time; the arbitrary/custom-property
+   form already carries its own unit and must not be multiplied again. */
+@utility duration-* {
+  --tw-duration: calc(--value(integer) * 1ms * var(--motion-scale, 1));
+  transition-duration: calc(--value(integer) * 1ms * var(--motion-scale, 1));
+  --tw-duration: calc(--value([duration], [*]) * var(--motion-scale, 1));
+  transition-duration: calc(--value([duration], [*]) * var(--motion-scale, 1));
+}
+
+/* Delays scale with the same lever, and they have to: a staggered reveal whose
+   durations halve but whose offsets do not stops reading as one gesture. */
+@utility delay-* {
+  transition-delay: calc(--value(integer) * 1ms * var(--motion-scale, 1));
+  transition-delay: calc(--value([duration], [*]) * var(--motion-scale, 1));
+}
+
+/* `animate-delay-*` — the utility Tailwind does not ship, and the reason 14
+   decorative blobs were never actually staggered.
+   -------------------------------------------------------------------------
+   `delay-1000` sets `transition-delay`, NOT `animation-delay`. Fourteen sites
+   wrote `animate-pulse delay-1000` intending to offset one pulse against
+   another; because the elements carry no transition at all, the class did
+   nothing and every blob pulsed in lockstep. That is a dead class in the same
+   family the design gate already hunts — it compiles, it just cannot affect
+   anything on the element it is written on.
+
+   This file already had `.panel-delay-100/200` doing exactly this job for the
+   trade panels, hardcoded and available to two call sites. Generalising it is
+   the smaller fix, and it inherits the motion scale for free. */
+@utility animate-delay-* {
+  animation-delay: calc(--value(integer) * 1ms * var(--motion-scale, 1));
+  animation-delay: calc(--value([duration], [*]) * var(--motion-scale, 1));
+}
+
+/* Mobile viewport and safe area utilities */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@utility pb-safe-or-2 {
+  padding-bottom: max(env(safe-area-inset-bottom, 0), 0.5rem);
+}
+
+@utility h-screen-safe {
+  height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
+}
+
+@utility min-h-screen-safe {
+  min-height: calc(100vh - env(safe-area-inset-top, 0) - env(safe-area-inset-bottom, 0));
+}
+
+/* Mobile viewport height using CSS custom property */
+@utility h-screen-mobile {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+@utility min-h-screen-mobile {
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+@keyframes slideDownAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideLeftAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes slideUpAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slideRightAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================================================
+   CONSOLIDATED FROM styles/*.css — Phase 8b, 2026-07-29
+   The nine files (2,472 lines) that used to be @imported here into a `legacy`
+   layer. What survived is below; the layer is gone and so are the files.
+
+   Three whole files were deleted outright because nothing in the tree
+   referenced a single selector in them:
+     styles/variables.css  --header-height / --footer-height / --color-win /
+                           --color-loss — zero readers
+     styles/mobile.css     .no-select .touch-target .mobile-footer .mobile-btn
+                           .tab-transition .slide-in-right .modal-* — zero
+     styles/builder.css    .parallax* .glow .text-glow .btn-hover-effect
+                           .gradient-animate — the matches were all enum VALUES
+                           ("hoverEffect: glow", scrollEffectType "parallax"),
+                           never class names
+
+   This block stays in `@layer base` on purpose. It sits exactly where `legacy`
+   sat relative to `components`/`utilities`, so a Tailwind class in JSX still
+   wins. Moving any of it out of a layer would silently promote it above every
+   utility in the app.
+   ========================================================================== */
+@layer base {
+  /* ------------------------------------------------------------------
+     Theme transition — was styles/theme.css.
+     Applies only while <html> carries .theme-transition, which the theme
+     toggle adds for the length of the switch and then removes. :where()
+     keeps specificity at 0 so nothing has to fight it.
+     ------------------------------------------------------------------ */
+  @media (prefers-reduced-motion: no-preference) {
+    html.theme-transition
+      :where(*:not(canvas):not(svg):not([data-no-transition])) {
+      transition:
+        background-color 0.25s ease,
+        border-color 0.25s ease,
+        color 0.18s ease;
+    }
+  }
+
+  /* Native <option> is not stylable by a utility class, so it needs a rule.
+     Was `.dark select option { background:#27272a; color:#e4e4e7 }` plus an
+     @-moz-document twin — a hardcoded pair behind a theme fork, which meant
+     light mode got the platform default and dark got a zinc that matched
+     nothing else. One token rule covers both themes. */
+  select option {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+  }
+
+  /* ------------------------------------------------------------------
+     Scrollbars — was styles/trading.css and styles/utilities.css.
+     `.scrollbar-thin` is NOT repeated here: this file already defines it
+     unlayered further down, and unlayered beat the legacy copy, so the
+     legacy 4px width had never applied.
+     ------------------------------------------------------------------ */
+  .scrollbar-hide,
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar,
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  /* Text — was styles/utilities.css */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* The collapsed trade panels write their title up the side. */
+  .vertical-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    text-orientation: mixed;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ------------------------------------------------------------------
+     Terminal typography — was styles/chart.css.
+     JetBrains Mono is self-hosted by next/font and exposed as
+     --font-jetbrains-mono. The var goes first so the size-adjusted fallback
+     face is used during swap; the bare name after it covers any subtree
+     outside <body>, where the variable is not in scope.
+
+     Everything else that file carried — .bg-chart-*, .text-chart-primary/
+     secondary/muted/dim/disabled, .border-chart-*, .rounded-chart-*,
+     .transition-chart-*, .ease-chart, .text/bg/border-bullish|bearish|alert,
+     .chart-container, .chart-canvas, .chart-crosshair*, .chart-tooltip,
+     .chart-candle-*, .chart-volume-bar, .chart-loading*, .trading-button-
+     rise/fall, .progress-bar, .value-change — matched nothing in app/,
+     components/ or the chart engine (source or dist) and is deleted. Only the
+     size scale below is actually compiled against.
+     ------------------------------------------------------------------ */
+  .font-trading {
+    font-family:
+      var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, SFMono-Regular,
+      "SF Mono", Menlo, Monaco, Consolas, monospace;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .price-display,
+  .amount-display,
+  .timer-display,
+  .percent-display {
+    font-family:
+      var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .price-display {
+    letter-spacing: -0.02em;
+  }
+  .amount-display {
+    font-weight: 600;
+  }
+  .timer-display {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /*
+    THE CHART IS AN INSTRUMENT, NOT A DOCUMENT.
+
+    Every surface in the chart engine is drag-driven — panning, scaling both
+    axes, drawing, resizing panes, dragging alert lines — and a drag that starts
+    on a label selects text instead of doing the thing the pointer is on. It
+    leaves the whole panel highlighted blue, it fights the gesture, and on the
+    alert ticket it made a double-click anywhere near the axis paint the card.
+    None of this text is content: it is instrument markings.
+
+    Scoped to the engine's root (`data-chart-engine`, set in its index.tsx), so
+    it cannot leak into the surrounding page. The drawing toolbar portals, but
+    into an element inside that root, so it is covered too.
+
+    Form controls are the exception and have to be: a field you cannot select
+    inside is a field you cannot edit.
+  */
+  [data-chart-engine] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  [data-chart-engine] input,
+  [data-chart-engine] textarea,
+  [data-chart-engine] select,
+  [data-chart-engine] [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .text-chart-2xs { font-size: 9px;  line-height: 1.2; }
+  .text-chart-xs  { font-size: 10px; line-height: 1.3; }
+  .text-chart-sm  { font-size: 11px; line-height: 1.4; }
+  .text-chart-base{ font-size: 12px; line-height: 1.5; }
+  .text-chart-md  { font-size: 13px; line-height: 1.5; }
+  .text-chart-lg  { font-size: 14px; line-height: 1.5; }
+  .text-chart-xl  { font-size: 16px; line-height: 1.4; }
+  .text-chart-2xl { font-size: 18px; line-height: 1.3; }
+
+  /* Canvas-backed charts: no inherited border, no baseline gap. */
+  canvas {
+    display: block;
+    border: none !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Let the chart panel take the space a collapsed sibling gives up. The
+     `:has(.panel-collapsed)` twin that used to sit beside this is gone:
+     `panel-collapsed` is only ever a CustomEvent NAME, never a class. */
+  .panel-group [data-panel-id="chart"] {
+    transition:
+      height 0.3s ease-in-out,
+      flex-grow 0.3s ease-in-out;
+  }
+
+  /* ------------------------------------------------------------------
+     Trade-terminal panels — was styles/panels.css.
+
+     Deleted from that file, all verified against the whole tree:
+       .collapsed-panel*  (~110 lines) — CollapsedPanel renders Tailwind
+         classes and a data-collapsed-side attribute; it has never emitted
+         the class. The [data-collapsed-side] and [aria-label="Expand Orders
+         panel"] rules went with it: they restated bg-surface-2 /
+         text-muted-foreground / border-border, which the component already
+         sets as utilities, i.e. one layer higher.
+       .panel-group-collapsed / .panel-group-expanded — CustomEvent names.
+       .resize-handle* — ResizeHandle emits Tailwind classes, not this.
+       .panel:hover … — no component emits a bare `panel` class.
+       .panel-collapse-button-{left,right,top,bottom}, .panel-collapse-tooltip,
+       .collapse-tooltip, .tooltip-{left,right,top,bottom} (both copies),
+       .panel-transition, .panel-hover-effect, .side-collapsed,
+       .panel-collapsing, .user-select-none, .panel-collapsed.
+
+     The `!important` on the opacity reset is also gone: every rule that
+     reveals a button is more specific than the rule that hides it, so the
+     cascade already decided this without help.
+     ------------------------------------------------------------------ */
+  .panel-collapse-button {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      opacity 0.2s ease;
+  }
+  .panel-collapse-button:hover {
+    background-color: hsl(var(--surface-3));
+    color: hsl(var(--foreground));
+  }
+
+  [data-collapsed="false"]:hover .panel-collapse-button,
+  [data-panel-id]:hover > .panel-collapse-button,
+  .panel-group:hover .panel-group-collapse-button,
+  .panel-group-collapse-button:hover {
+    opacity: 1;
+  }
+
+  /* Only the hovered group's own button, and only at 0.7 until it is itself
+     hovered (the rule above). `group-<id>` is built at runtime in
+     collapse-button.tsx, which is why these four are not dead. */
+  .panel-group[data-group-id="left"][data-hovered="true"]
+    > .panel-group-collapse-button.group-left,
+  .panel-group[data-group-id="right"][data-hovered="true"]
+    > .panel-group-collapse-button.group-right,
+  .panel-group[data-group-id="top"][data-hovered="true"]
+    > .panel-group-collapse-button.group-top,
+  .panel-group[data-group-id="bottom"][data-hovered="true"]
+    > .panel-group-collapse-button.group-bottom {
+    opacity: 0.7;
+  }
+
+  /* Unified collapse buttons. The component sets bg-surface-3/80 and
+     hover:bg-surface-3 itself, one layer up, so the background declarations
+     this rule used to carry never painted — only the hairline and the ink do. */
+  .collapse-button {
+    position: absolute;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s ease;
+    border-color: hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+  }
+  .collapse-button:hover {
+    color: hsl(var(--foreground));
+  }
+
+  /* Both buttons start hidden and only opacity animates. This must come AFTER
+     `.collapse-button`'s `transition: all` — the two elements are the same
+     element in practice (CollapseButton emits both class sets) and the last
+     equal-specificity declaration wins. */
+  .panel-collapse-button,
+  .panel-group-collapse-button {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .collapse-button-left {
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    width: 14px;
+    height: 36px;
+  }
+  .collapse-button-right {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    width: 14px;
+    height: 36px;
+  }
+  .collapse-button-top {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    width: 36px;
+    height: 14px;
+  }
+  .collapse-button-bottom {
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 1px solid;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    width: 36px;
+    height: 14px;
+  }
+
+  .panel-expanding {
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .panel-resizing {
+    transition: transform 0.1s ease-out;
+  }
+  .panel-animate-in,
+  .panel-resizing,
+  [data-collapsed="true"],
+  [data-collapsed="false"] {
+    will-change: transform, opacity;
+  }
+
+  /* ------------------------------------------------------------------
+     Animation — was styles/animations.css (903 lines, ~120 survive).
+
+     KEYFRAME COLLISION, deliberately left as it was. `slideUp` and
+     `slideDown` are defined TWICE in this file: the pair below (transform +
+     opacity, what the page-builder's animation picker means) and a second
+     pair further down, unlayered, that drives Radix `.CollapsibleContent`
+     by height. Unlayered wins, so the height pair is what actually runs
+     today and a builder element set to "Slide Up" animates its height
+     instead. Consolidating did not change which one wins — fixing it is a
+     rename with a behavioural blast radius on published pages, and it wants
+     a decision rather than a side effect of this cleanup.
+
+     The 18 names the page-builder can apply (fadeIn, slideUp, slideDown,
+     slideLeft, slideRight, zoomIn, zoomOut, flipX, flipY, bounce, pulse,
+     shake, swing, tada, wobble, jello, heartBeat, rubberBand) are set as a
+     runtime `style.animationName` by renderers/elements/utils.tsx, which
+     also renders PUBLIC pages (app/[locale]/page.tsx and [pageId]/page.tsx).
+     They are not reachable by grep and they are not dead.
+     admin/builder/styles/global.css holds a second copy, but that file is
+     only loaded inside the builder, so these are the live ones.
+
+     Deleted: fadeOut, slideIn, slideOut, slideIn{Left,Right,Top,Bottom},
+     marquee, row-appear, pulse-glow, glow-pulse, bounce-subtle, float,
+     spin-slow, border-glow, panel-collapse, panel-expand, panel-fade-in,
+     panel-slide-in-right, flash-{green,red}{,-dark,-light} and every class
+     that referenced them, plus .hover-gradient-transition,
+     .text-gradient-hover, .gradient-border-hover, .order-card-*,
+     .slide-panel-*, .animate-{marquee,float,spin-slow,pulse-glow,glow-pulse,
+     border-glow,bounce-subtle,fadeIn,slideIn,flash-green,flash-red}.
+     ------------------------------------------------------------------ */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slideDown {
+    from { transform: translateY(-30px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slideLeft {
+    from { transform: translateX(30px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideRight {
+    from { transform: translateX(-30px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes zoomIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes zoomOut {
+    from { transform: scale(1.5); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+  @keyframes zoomIn95 {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes flipX {
+    from { transform: perspective(400px) rotateX(90deg); opacity: 0; }
+    to   { transform: perspective(400px) rotateX(0); opacity: 1; }
+  }
+  @keyframes flipY {
+    from { transform: perspective(400px) rotateY(90deg); opacity: 0; }
+    to   { transform: perspective(400px) rotateY(0); opacity: 1; }
+  }
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-20px); }
+    60% { transform: translateY(-10px); }
+  }
+  @keyframes pulse {
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+  }
+  @keyframes swing {
+    20%  { transform: rotate(15deg); }
+    40%  { transform: rotate(-10deg); }
+    60%  { transform: rotate(5deg); }
+    80%  { transform: rotate(-5deg); }
+    100% { transform: rotate(0); }
+  }
+  @keyframes tada {
+    0% { transform: scale(1); }
+    10%, 20% { transform: scale(0.9) rotate(-3deg); }
+    30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+    40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+    100% { transform: scale(1) rotate(0); }
+  }
+  @keyframes wobble {
+    0%   { transform: translateX(0%); }
+    15%  { transform: translateX(-25%) rotate(-5deg); }
+    30%  { transform: translateX(20%) rotate(3deg); }
+    45%  { transform: translateX(-15%) rotate(-3deg); }
+    60%  { transform: translateX(10%) rotate(2deg); }
+    75%  { transform: translateX(-5%) rotate(-1deg); }
+    100% { transform: translateX(0%); }
+  }
+  @keyframes jello {
+    0%, 11.1%, 100% { transform: none; }
+    22.2% { transform: skewX(-12.5deg) skewY(-12.5deg); }
+    33.3% { transform: skewX(6.25deg) skewY(6.25deg); }
+    44.4% { transform: skewX(-3.125deg) skewY(-3.125deg); }
+    55.5% { transform: skewX(1.5625deg) skewY(1.5625deg); }
+    66.6% { transform: skewX(-0.78125deg) skewY(-0.78125deg); }
+    77.7% { transform: skewX(0.390625deg) skewY(0.390625deg); }
+    88.8% { transform: skewX(-0.1953125deg) skewY(-0.1953125deg); }
+  }
+  @keyframes heartBeat {
+    0%  { transform: scale(1); }
+    14% { transform: scale(1.3); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.3); }
+    70% { transform: scale(1); }
+  }
+  @keyframes rubberBand {
+    0%   { transform: scale(1); }
+    30%  { transform: scaleX(1.25) scaleY(0.75); }
+    40%  { transform: scaleX(0.75) scaleY(1.25); }
+    50%  { transform: scaleX(1.15) scaleY(0.85); }
+    65%  { transform: scaleX(0.95) scaleY(1.05); }
+    75%  { transform: scaleX(1.05) scaleY(0.95); }
+    100% { transform: scale(1); }
+  }
+
+  /* Looping image grid (page-builder "animated image grid" element). */
+  @keyframes grid-slideUp {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+  }
+  @keyframes grid-slideDown {
+    0%   { transform: translateY(-50%); }
+    100% { transform: translateY(0); }
+  }
+  .animate-slide-up        { animation: grid-slideUp 30s linear infinite; }
+  .animate-slide-down      { animation: grid-slideDown 30s linear infinite; }
+  .animate-slide-up-slow   { animation: grid-slideUp 45s linear infinite; }
+  .animate-slide-down-slow { animation: grid-slideDown 45s linear infinite; }
+  .animate-slide-up-fast   { animation: grid-slideUp 20s linear infinite; }
+  .animate-slide-down-fast { animation: grid-slideDown 20s linear infinite; }
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.08),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes gradient-x {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .animate-gradient-x {
+    background-size: 200% 200%;
+    animation: gradient-x 3s ease infinite;
+  }
+
+  /* Trade-terminal panel entrances (trading-layout.tsx). */
+  @keyframes panel-slide-in-left {
+    from { transform: translateX(-20px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes panel-slide-in-top {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes panel-slide-in-bottom {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  .panel-animate-in {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: both;
+  }
+  .panel-slide-in-left   { animation-name: panel-slide-in-left; }
+  .panel-slide-in-top    { animation-name: panel-slide-in-top; }
+  .panel-slide-in-bottom { animation-name: panel-slide-in-bottom; }
+  .panel-delay-100 { animation-delay: 100ms; }
+  .panel-delay-200 { animation-delay: 200ms; }
+
+  /* Page-builder hover effects. `hover-${settings.hoverEffect}` is built at
+     runtime in renderers/elements/utils.tsx, so these four never appear as a
+     literal anywhere and are invisible to a class scanner.
+     The glow was a hardcoded violet rgba() — the last off-token paint in
+     styles/; it is the brand accent now, which is also what it means. */
+  .hover-elevate {
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .hover-elevate:hover {
+    transform: translateY(calc(-4px * var(--hover-intensity, 1)));
+    /* `rgb(0 0 0 / 0.1)` until the CSS files were brought into the design gate.
+       A literal black is wrong twice over: it ignores `--shadow`, which is an
+       admin control ("Elevation" in the design manager), and on a 6.7%-lightness
+       dark ground a black shadow reads as nothing at all, so the lift this rule
+       promises was never delivered in the dark theme. */
+    box-shadow: 0 calc(10px * var(--hover-intensity, 1))
+      calc(20px * var(--hover-intensity, 1)) hsl(var(--shadow) / 0.1);
+  }
+  .hover-scale {
+    transition: transform 0.3s ease;
+  }
+  .hover-scale:hover {
+    transform: scale(calc(1 + (0.1 * var(--hover-intensity, 1))));
+  }
+  .hover-glow {
+    transition: box-shadow 0.3s ease;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 calc(15px * var(--hover-intensity, 1))
+      hsl(var(--primary) / calc(0.5 * var(--hover-intensity, 1)));
+  }
+  .hover-tilt {
+    transition: transform 0.3s ease;
+  }
+  .hover-tilt:hover {
+    transform: perspective(1000px) rotateX(calc(5deg * var(--hover-intensity, 1)))
+      rotateY(calc(5deg * var(--hover-intensity, 1)));
+  }
+
+  /* These two AUGMENT the tailwindcss-animate utilities of the same name —
+     they do not replace them. The plugin sits in `utilities` and wins every
+     declaration it makes (`animation-name: enter`, the --tw-enter-* vars), so
+     all these add is the timing/fill the plugin leaves unset and the zoom
+     origin. The `.fade-in` and `.duration-100` copies that used to sit beside
+     them were fully shadowed and are gone. Sharing a name with a plugin
+     utility is a trap; renaming means touching ~47 call sites, so it is
+     recorded here rather than done quietly. */
+  .animate-in {
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: both;
+  }
+  .zoom-in-95 {
+    transform-origin: top left;
+  }
+
+  /* styles/ shipped 903 lines of animation and not one reduced-motion
+     escape. Everything that loops, or that moves an element on entrance,
+     stops here. Transform-only hover effects are dropped to a no-op rather
+     than left half-animating. (No stroke-dasharray draw animation survives
+     the cull, so the "parks at full dashoffset, i.e. invisible" trap has no
+     site in this file — the only dasharray left was on a deleted rule.) */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-slide-up,
+    .animate-slide-down,
+    .animate-slide-up-slow,
+    .animate-slide-down-slow,
+    .animate-slide-up-fast,
+    .animate-slide-down-fast,
+    .animate-shimmer,
+    .animate-gradient-x,
+    .panel-animate-in,
+    .panel-slide-in-left,
+    .panel-slide-in-top,
+    .panel-slide-in-bottom {
+      animation: none;
+    }
+    .hover-elevate,
+    .hover-scale,
+    .hover-glow,
+    .hover-tilt {
+      transition: none;
+    }
+    .hover-elevate:hover,
+    .hover-scale:hover,
+    .hover-tilt:hover {
+      transform: none;
+    }
+    .panel-expanding,
+    .panel-resizing {
+      transition: none;
+    }
+
+    /* The page-builder applies its 18 animations as a runtime
+       `style.animationName`, and an inline style cannot be beaten by a
+       stylesheet without !important — which is the one place !important is
+       the correct tool. The attribute match is exact: React serialises the
+       other four inline animation props as `animation-delay` /
+       `animation-duration` / `animation-direction`, none of which contain
+       this substring, and the builder renderers are the only code in the
+       tree that sets `animationName` inline. */
+    [style*="animation-name"] {
+      animation: none !important;
+    }
+  }
+}
+
+/* Sticky header background */
+.has-sticky-header::after {
+  position: absolute;
+  z-index: -10;
+  --tw-backdrop-blur: blur(12px);
+  backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness)
+    var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale)
+    var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert)
+    var(--tw-backdrop-opacity) var(--tw-backdrop-saturate)
+    var(--tw-backdrop-sepia);
+  content: "";
+  /* Was rgba(var(--v-theme-background), …) — a Vuetify leftover that was never
+     defined in this app, so all three stops were invalid and the whole
+     gradient was dropped. The scrim has not rendered for as long as it has
+     been here. */
+  background: linear-gradient(
+    180deg,
+    hsl(var(--background) / 0.7) 44%,
+    hsl(var(--background) / 0.43) 73%,
+    hsl(var(--background) / 0)
+  );
+  background-repeat: repeat;
+  block-size: 5.5rem;
+  inset-block-start: -1.5rem;
+  inset-inline: 0;
+  -webkit-mask: linear-gradient(black, black 18%, transparent 100%);
+  mask: linear-gradient(black, black 18%, transparent 100%);
+}
+
+/* Collapsible content animations */
+.CollapsibleContent {
+  overflow: hidden;
+}
+.CollapsibleContent[data-state="open"] {
+  animation: collapsibleSlideDown 300ms ease-out;
+}
+.CollapsibleContent[data-state="closed"] {
+  animation: collapsibleSlideUp 300ms ease-out;
+}
+
+/* Input group styling */
+.input-group :not(:first-child) input {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+.input-group.merged :not(:first-child) input {
+  border-left-width: 0 !important;
+  padding-left: 0 !important;
+}
+.input-group :not(:last-child) input {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.input-group.merged :not(:last-child) input {
+  border-right-width: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* CKEditor adjustments */
+.ck .ck-editor__editable {
+  min-height: 245px !important;
+}
+
+/* Authentication page styles */
+.loginwrapper {
+  min-height: calc(var(--vh, 1vh) * 100);
+  flex-basis: 100%;
+}
+.loginwrapper .lg-inner-column {
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Progress bar animation */
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+/* Renamed from `slideDown`/`slideUp`, which COLLIDED with the page-builder's
+   pair of the same names. These two are unlayered and later in source, so they
+   won — meaning a builder element set to "Slide Up" animated its HEIGHT rather
+   than translating, and did it against a Radix variable that is undefined
+   outside a Collapsible. Only these two names are safe to change: the builder's
+   are persisted in published page content as `animationType`, so renaming those
+   would break every page already published. */
+@keyframes collapsibleSlideDown {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+@keyframes collapsibleSlideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+.animate-stripes {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Background blob animations - CPU efficient CSS animations */
+@keyframes blob-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.1);
+  }
+}
+@keyframes blob-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-40px, 30px) scale(1.2);
+  }
+}
+@keyframes blob-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(20px, -40px) scale(1.15);
+  }
+}
+@keyframes blob-4 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-30px, 20px) scale(1.1);
+  }
+}
+.animate-blob-1 {
+  animation: blob-1 20s ease-in-out infinite;
+}
+.animate-blob-2 {
+  animation: blob-2 25s ease-in-out infinite;
+  animation-delay: 5s;
+}
+.animate-blob-3 {
+  animation: blob-3 30s ease-in-out infinite;
+  animation-delay: 10s;
+}
+.animate-blob-4 {
+  animation: blob-4 22s ease-in-out infinite;
+  animation-delay: 7s;
+}
+
+/* Respect reduced motion preference.
+
+   This block is deliberately UNLAYERED. Unlayered CSS outranks every layer,
+   including `utilities` — which is where Tailwind's own `animate-*` utilities
+   live. The curated reduced-motion block up in the layered section cannot
+   touch them for exactly that reason, so anything shipped by Tailwind or by
+   the tailwindcss-animate plugin has to be stopped from here.
+
+   Scope note: `MotionConfig reducedMotion="user"` (components/motion) already
+   covers the 437 files that animate through framer-motion. It cannot cover
+   CSS animations, which is what everything below is. A browser check under
+   emulated reduce found `animate-ping` still running after the framer-motion
+   fix — this block is what closes that gap.
+
+   What is deliberately NOT stopped, and why:
+     - `animate-spin` (555 uses) is loading feedback. Freezing a spinner
+       mid-rotation removes the only signal that work is in progress.
+     - `animate-pulse` (438 uses) is skeleton placeholders and animates
+       opacity only. Opacity is the category reduced-motion permits — it is
+       not vestibular. Same reasoning framer-motion's "user" setting uses. */
+/* Reduced motion, the half nothing covered until now.
+   -------------------------------------------------
+   The blocks in this file stop ANIMATIONS, and `MotionConfig reducedMotion="user"`
+   in the motion provider stops framer-motion. Neither touches CSS TRANSITIONS,
+   and those are the bulk of the movement in this app: 792 `duration-*` sites
+   plus every bare `transition`. A user who asks the OS to reduce motion was
+   still getting all of it.
+
+   Collapsing the scale fixes all of them at once — which is the point of having
+   a scale at all.
+
+   0.01 rather than 0 is deliberate. A zero-duration transition does not run, so
+   it never fires `transitionend`, and any code awaiting that event would wait
+   forever. 0.01 keeps the event while making the longest transition in the app
+   (1000ms) finish in 10ms — imperceptible, but real.
+
+   `html:root` rather than `:root`, and that is load-bearing.
+   ---------------------------------------------------------
+   Being unlayered is no longer enough to win. The admin design manager's saved
+   theme is ALSO emitted unlayered (it had to be — relying on `@layer` ordering
+   turned out to be unsound; see lib/design-theme.ts), and it can set
+   `--motion-scale`. Two unlayered `:root` rules of equal specificity are decided
+   by source order, and the theme <style> is emitted after this stylesheet — so a
+   plain `:root` here would LOSE to the owner's chosen speed and reduced motion
+   would quietly stop working.
+
+   `html:root` is (0,1,1) against the theme's (0,1,0), so it wins regardless of
+   order. A visitor's stated accessibility preference outranks a site owner's
+   design choice; that is not negotiable, so it should not depend on which
+   stylesheet the browser happens to parse first. */
+@media (prefers-reduced-motion: reduce) {
+  html:root {
+    --motion-scale: 0.01;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob-1,
+  .animate-blob-2,
+  .animate-blob-3,
+  .animate-blob-4,
+  .animate-bounce,
+  .animate-shake,
+  .animate-on-scroll,
+  .animate-accordion-up,
+  .animate-accordion-down {
+    animation: none;
+  }
+
+  /* `animate-ping` is a decorative halo behind a status dot. Stopping the
+     animation alone is worse than leaving it: the keyframe ends at scale(2)
+     opacity(0), but the base state is scale(1) at the element's own
+     `opacity-75`, so a frozen ping renders as a solid disc covering the dot
+     it was meant to draw attention to. Hide it instead — the dot underneath
+     still carries the meaning. */
+  .animate-ping {
+    animation: none;
+    opacity: 0;
+  }
+
+  /* tailwindcss-animate builds `animate-in`/`animate-out` out of custom
+     properties rather than fixed keyframes, so zeroing the transform vars
+     removes the movement while leaving the opacity fade intact. Killing the
+     animation outright would be wrong here: these utilities carry
+     `animation-fill-mode: both`, so `animation: none` would strand elements
+     at their pre-enter opacity — i.e. invisible. */
+  .animate-in,
+  .animate-out {
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-rotate: 0;
+    --tw-exit-rotate: 0;
+  }
+}
+
+/* Page minimum height adjustments */
+.page-min-height {
+  min-height: calc(var(--vh, 1vh) * 100 - 117px);
+}
+.page-min-height-semibox {
+  min-height: calc(var(--vh, 1vh) * 100 - 200px);
+}
+.page-min-height-horizontal {
+  min-height: calc(var(--vh, 1vh) * 100 - 170px);
+}
+
+/* App height utility */
+.app-height {
+  height: calc(var(--vh, 1vh) * 100 - 11.1rem) !important;
+}
+@media (max-width: 768px) {
+  .app-height {
+    height: calc(var(--vh, 1vh) * 100 - 10.5rem) !important;
+  }
+}
+
+/* Semibox content wrapper adjustments */
+@media (min-width: 1280px) {
+  .semibox-content-wrapper {
+    margin-left: 56px;
+    margin-right: 56px;
+  }
+}
+
+/* Layout padding for bottom spacing */
+.layout-padding {
+  padding-bottom: 112px;
+}
+@media (min-width: 768px) {
+  .layout-padding {
+    padding-bottom: 37px;
+  }
+}
+
+/* Scrollbar styles */
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+}
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transparent;
+}
+
+/* RTL adjustments for react-select */
+html[dir="rtl"] .react-select .select__loading-indicator {
+  flex-direction: row-reverse;
+}
+
+/* Medium image zoom overlay */
+.react-medium-image-zoom-overlay {
+  z-index: 1000;
+}
+.react-medium-image-zoom-zoom-image {
+  cursor: zoom-out;
+}
+
+/* Thin scrollbar styles */
+.scrollbar-thin {
+  scrollbar-width: thin; /* Firefox */
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 0.375rem;
+  height: 0.375rem;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border-strong));
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}
+
+/* Documentation section hover effects */
+.documentation-section {
+  @apply transition-all duration-300 ease-in-out;
+}
+.documentation-section:hover {
+  @apply bg-accent/10;
+}
+.documentation-subsection {
+  @apply transition-all duration-300 ease-in-out;
+}
+.documentation-subsection:hover {
+  @apply bg-accent/5;
+}
+
+/* Base scrollbar styles for light mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+  border-radius: 9999px;
+}
+/* Every scrollbar in the product was a hardcoded zinc hex with a hand-written
+   `.dark` fork — 10 literals no admin colour panel could ever reach, and the
+   OLD zinc neutrals rather than Obsidian's blue-biased ones, so scrollbars were
+   subtly the wrong hue. Tokens already flip per theme, so the entire `.dark`
+   block below is deleted rather than translated. */
+::-webkit-scrollbar-track {
+  background-color: hsl(var(--surface-2));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border-strong));
+  border: 2px solid hsl(var(--surface-2));
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}
+
+/* Old React Quill editor styles - deprecated, kept for reference only */
+/* These styles are no longer needed as we now use WysiwygEditor */
+/* .quillEditor .ql-toolbar.ql-snow,
+.quillEditor .ql-container.ql-snow {
+  border: none !important;
+  border-radius: 0 !important;
+} */
+
+.bg-grid-white {
+  background-image:
+    linear-gradient(to right, hsl(var(--foreground) / 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(var(--foreground) / 0.08) 1px, transparent 1px);
+}
+
+/* Support Drawer Styles */
+.support-drawer-content {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  min-width: 90vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Target the Sheet component by data attribute */
+[data-sheet="true"] .support-drawer-content {
+  width: 90vw !important;
+  max-width: 90vw !important;
+  min-width: 90vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* Ensure the Sheet overlay and content take full height */
+[data-radix-dialog-overlay] {
+  height: 100vh !important;
+}
+
+[data-radix-dialog-content].support-drawer-content {
+  height: 100vh !important;
+  max-height: 100vh !important;
+}
+
+/* ==========================================================================
+   DataTable view dialog — floating layers opened from INSIDE it
+   ==========================================================================
+
+   The expanded row/card panel is a hand-rolled modal at z-110 with its
+   backdrop at z-100, both portaled to <body>. Every Radix floating layer is
+   ALSO portaled to <body> and ships at z-50, so a <Select>, dropdown, date
+   picker or nested Dialog opened from inside the panel became a body sibling
+   painting UNDERNEATH it — the menu opened, and the user saw nothing.
+
+   Scoped to the flag the dialog sets on <body> while it is open, so the normal
+   stacking order is untouched everywhere else. The overlay of a nested dialog
+   deliberately sits BELOW its own content but ABOVE the view panel, so the
+   nested dialog reads as the topmost layer.
+
+   `!important` on the popper wrapper is NOT decoration. Radix positions that
+   wrapper with a generated INLINE style that carries `z-index: 50`, and an
+   inline declaration outranks any selector no matter how specific — measured:
+   with a plain rule the wrapper still computed to 50 and the menu still opened
+   behind the panel. The two `[data-slot]` rules below need no such escape
+   because those z-indexes come from utility classes, not inline styles. */
+body[data-view-dialog-open] [data-radix-popper-content-wrapper] {
+  z-index: 130 !important;
+}
+
+body[data-view-dialog-open] [data-slot="dialog-overlay"],
+body[data-view-dialog-open] [data-slot="alert-dialog-overlay"] {
+  z-index: 140;
+}
+
+body[data-view-dialog-open] [data-slot="dialog-content"],
+body[data-view-dialog-open] [data-slot="alert-dialog-content"] {
+  z-index: 141;
+}
+
+/* Unauthorized Access Page Styles */
+.unauthorized-access-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: hsl(var(--background));
+}
+
+/* Reown AppKit Modal Z-Index Fix */
+/* Ensure wallet modal appears above auth modal and other UI elements */
+
+/* Reown AppKit uses appkit- prefix instead of w3m/wcm */
+appkit-modal,
+appkit-modal-overlay,
+[data-appkit-modal],
+[data-testid*="appkit-modal"] {
+  z-index: 2147483647 !important; /* Maximum z-index value */
+  position: fixed !important;
+}
+
+/* Legacy selectors for compatibility */
+w3m-modal,
+wcm-modal,
+[data-w3m-modal],
+[data-wcm-modal] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+}
+
+/* Reown AppKit specific components */
+appkit-w3m-modal,
+appkit-w3m-modal-overlay,
+appkit-w3m-modal-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* Web Components used by Reown */
+wui-flex,
+wui-modal,
+wui-overlay,
+wui-backdrop {
+  z-index: 2147483645 !important;
+}
+
+/* Shadow DOM host elements */
+:host(appkit-modal),
+:host(wui-modal) {
+  z-index: 2147483647 !important;
+}
+
+/* Ensure proper stacking for all modal-related elements */
+[class*="appkit-"],
+[class*="wui-"],
+[class*="w3m-"],
+[class*="wcm-"] {
+  position: relative;
+}
+
+/* Override any inline styles with maximum specificity */
+body > appkit-modal,
+body > w3m-modal,
+body > [data-testid*="modal"] {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+/* ==========================================================================
+   PROSE — binding @tailwindcss/typography to the design tokens
+   --------------------------------------------------------------------------
+   The plugin is registered at the top of this file. Out of the box it paints
+   long-form content from a HARDCODED gray ramp (body gray-700, headings
+   gray-900, pre-bg gray-800, ...) and expects `dark:prose-invert` to be hand-
+   applied at every call site to reach a second, equally hardcoded ramp. Both
+   halves fail the readiness test this design system is built around: a site
+   owner re-pointing --primary/--foreground from the admin design panel would
+   move the entire app EXCEPT its articles, and any call site that forgot
+   `dark:prose-invert` — several have — would render gray-900 headings on a
+   near-black ground.
+
+   So every `--tw-prose-*` slot is re-pointed at a token here, and the
+   `-invert-` twin is given the SAME value. That is not redundancy: it makes the
+   result independent of whether `prose-invert` is present and of which rule
+   wins, because both branches now resolve to the same token. `dark:prose-invert`
+   becomes a harmless no-op rather than something call sites must remember.
+
+   UNLAYERED on purpose, matching .legal-content and the vendor overrides below:
+   the plugin emits `.prose` into a Tailwind layer, and unlayered outranks every
+   layer whatever the source order (see the layer note at the top of this file).
+   Only custom properties are set, so a per-site utility like
+   `prose-headings:text-primary` still wins — it sets `color` directly on the
+   element, which no variable can override.
+
+   Body is DERIVED rather than authored: the plugin's tonal step between body
+   and headings is real typographic hierarchy worth keeping, but a hand-picked
+   "slightly softer than foreground" would only be correct for the shipped
+   palette. Mixing --foreground toward --muted-foreground reproduces the step
+   against whatever the owner chooses, in both schemes, for free.
+   ========================================================================== */
+.prose {
+  --tw-prose-body: color-mix(in oklab, hsl(var(--foreground)) 82%, hsl(var(--muted-foreground)));
+  --tw-prose-headings: hsl(var(--foreground));
+  --tw-prose-lead: hsl(var(--muted-foreground));
+  --tw-prose-links: hsl(var(--primary));
+  --tw-prose-bold: hsl(var(--foreground));
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quote-borders: hsl(var(--primary));
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-kbd: hsl(var(--foreground));
+  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-pre-code: hsl(var(--foreground));
+  --tw-prose-pre-bg: hsl(var(--muted));
+  --tw-prose-th-borders: hsl(var(--border-strong));
+  --tw-prose-td-borders: hsl(var(--border));
+
+  --tw-prose-invert-body: var(--tw-prose-body);
+  --tw-prose-invert-headings: var(--tw-prose-headings);
+  --tw-prose-invert-lead: var(--tw-prose-lead);
+  --tw-prose-invert-links: var(--tw-prose-links);
+  --tw-prose-invert-bold: var(--tw-prose-bold);
+  --tw-prose-invert-counters: var(--tw-prose-counters);
+  --tw-prose-invert-bullets: var(--tw-prose-bullets);
+  --tw-prose-invert-hr: var(--tw-prose-hr);
+  --tw-prose-invert-quotes: var(--tw-prose-quotes);
+  --tw-prose-invert-quote-borders: var(--tw-prose-quote-borders);
+  --tw-prose-invert-captions: var(--tw-prose-captions);
+  --tw-prose-invert-kbd: var(--tw-prose-kbd);
+  --tw-prose-invert-code: var(--tw-prose-code);
+  --tw-prose-invert-pre-code: var(--tw-prose-pre-code);
+  --tw-prose-invert-pre-bg: var(--tw-prose-pre-bg);
+  --tw-prose-invert-th-borders: var(--tw-prose-th-borders);
+  --tw-prose-invert-td-borders: var(--tw-prose-td-borders);
+}
+
+/* Element chrome the variable set cannot express.
+   The plugin gives inline <code> a COLOUR and nothing else, then wraps it in
+   literal backtick characters via ::before/::after — so a code span in a
+   published article reads as `like this`, backticks and all. Every call site in
+   this tree that cared already reached for `prose-code:bg-muted`; this makes
+   that the default and drops the backticks. */
+.prose :where(code):not(:where([class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"] *))::after {
+  content: none;
+}
+
+.prose :where(code):not(:where(pre *, [class~="not-prose"] *)) {
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  padding: 0.125em 0.375em;
+  font-weight: 500;
+}
+
+/* A code block on --muted is only a few percent off the page in light mode
+   (98.4% vs 95.1% lightness), so it needs an edge to read as a block at all.
+   The plugin draws none. */
+.prose :where(pre):not(:where([class~="not-prose"] *)) {
+  border: 1px solid hsl(var(--border));
+}
+
+/* The WYSIWYG wraps every inserted image in
+   `<figure class="wysiwyg-image" style="width: …; margin-left: …">`, and that
+   inline width is how the author's chosen size and alignment survive the round
+   trip (`data-size`/`data-align` are editor state only, and the sanitizer drops
+   them). Capping at 100% keeps a figure the author sized on a wide editor from
+   overflowing a narrower article column. */
+.prose :where(figure.wysiwyg-image) {
+  max-width: 100%;
+}
+
+/* ============================================
+   Legal Content Styles
+   Used for Privacy Policy, Terms, About pages
+   ============================================ */
+.legal-content {
+  /* Base text styling */
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+/* Headings */
+.legal-content h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: hsl(var(--foreground));
+}
+
+.legal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+}
+
+.legal-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--foreground));
+}
+
+/* Paragraphs */
+.legal-content p {
+  margin-bottom: 1rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.75;
+}
+
+/* Lists */
+.legal-content ul,
+.legal-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.legal-content ul {
+  list-style-type: disc;
+}
+
+.legal-content ol {
+  list-style-type: decimal;
+}
+
+.legal-content li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.legal-content li strong {
+  color: hsl(var(--foreground));
+}
+
+/* Links */
+.legal-content a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.legal-content a:hover {
+  text-decoration: underline;
+}
+
+/* Sections */
+.legal-content section {
+  margin-bottom: 2rem;
+}
+
+/* Info boxes and callouts */
+.legal-content .bg-blue-50,
+.legal-content .bg-blue-950\/30 {
+  background-color: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+.legal-content .bg-muted\/50 {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Strong text */
+.legal-content strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+/* Horizontal rules */
+.legal-content hr {
+  margin: 2rem 0;
+  border-color: hsl(var(--border));
+}
+
+/* Blockquotes */
+.legal-content blockquote {
+  border-left: 4px solid hsl(var(--primary) / 0.3);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Tables */
+.legal-content table {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  border-collapse: collapse;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.legal-content thead {
+  background-color: hsl(var(--muted));
+}
+
+.legal-content th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--foreground));
+}
+
+.legal-content tbody {
+  background-color: hsl(var(--card));
+}
+
+.legal-content td {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+}
+
+/* NO RADIUS OVERRIDE HERE — deliberately removed.
+   ---------------------------------------------------------------------------
+   This block used to force `.rounded-xl`, `.rounded-lg` and `.rounded-2xl` to a
+   flat 0.75rem inside legal content. Being unlayered, it outranked every
+   Tailwind utility, so all three rendered identically — at 0.75rem, which is
+   the `xl` step, not the `lg` the card contract asks for.
+
+   The effect was that a legal page's cards could not be given a radius: the
+   markup said one thing and the pixels said 0.75rem regardless, and the site's
+   `--radius` anchor — which moves 2,106 other surfaces together — stopped at
+   the edge of these documents. Normalising the template generator to
+   `rounded-lg` would have been a pure no-op with this rule in place.
+
+   Without it each class means what it says, so documents generated before the
+   normalisation keep their `xl` corners and new ones take `lg`, both honestly.
+   */
+
+.legal-content .bg-card {
+  background-color: hsl(var(--card));
+}
+
+.legal-content .border {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Ensure proper spacing for nested divs */
+.legal-content > div {
+  margin-bottom: 1.5rem;
+}
+
+/* Fix text color inheritance for dark mode */
+.dark .legal-content p,
+.dark .legal-content li,
+.dark .legal-content td {
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .legal-content h1,
+.dark .legal-content h2,
+.dark .legal-content h3,
+.dark .legal-content strong,
+.dark .legal-content th {
+  color: hsl(var(--foreground));
+}
+
+/* =================================================================
+   WYSIWYG Editor Styles
+   ================================================================= */
+
+/* Editor container */
+.wysiwyg-editor {
+  font-family: inherit;
+}
+
+/* Editable content area - inherits legal-content styles */
+.wysiwyg-content {
+  min-height: 200px;
+  cursor: text;
+}
+
+/* Placeholder styling */
+.wysiwyg-content.empty-editor:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Focus styling */
+.wysiwyg-content:focus {
+  outline: none;
+}
+
+/* Selection highlighting */
+.wysiwyg-content ::selection {
+  background-color: hsl(var(--primary) / 0.2);
+}
+
+/* Ensure images are responsive in editor */
+.wysiwyg-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Table styling in editor */
+.wysiwyg-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.wysiwyg-content th,
+.wysiwyg-content td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.wysiwyg-content th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.wysiwyg-content td {
+  background-color: hsl(var(--card));
+}
+
+/* Code blocks */
+.wysiwyg-content pre {
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875rem;
+}
+
+.wysiwyg-content code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  background-color: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.wysiwyg-content pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Horizontal rule */
+.wysiwyg-content hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5rem 0;
+}
+
+/* Link hover state in editor */
+.wysiwyg-content a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.wysiwyg-content a:hover {
+  text-decoration: underline;
+}
+
+/* Preview mode styles */
+.wysiwyg-preview {
+  /* Inherits from legal-content */
+}
+
+/* Ensure proper spacing for nested lists */
+.wysiwyg-content ul ul,
+.wysiwyg-content ol ol,
+.wysiwyg-content ul ol,
+.wysiwyg-content ol ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Blockquote styling */
+.wysiwyg-content blockquote {
+  border-left: 4px solid hsl(var(--primary) / 0.3);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.wysiwyg-content blockquote p {
+  margin-bottom: 0.5rem;
+}
+
+.wysiwyg-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Dark mode support for WYSIWYG editor */
+.dark .wysiwyg-editor {
+  background-color: hsl(var(--background));
+}
+
+.dark .wysiwyg-content {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .wysiwyg-content.empty-editor:empty::before {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.5;
+}
+
+.dark .wysiwyg-content ::selection {
+  background-color: hsl(var(--primary) / 0.3);
+}
+
+.dark .wysiwyg-content th {
+  background-color: hsl(var(--muted) / 0.8);
+}
+
+.dark .wysiwyg-content td {
+  background-color: hsl(var(--card));
+}
+
+.dark .wysiwyg-content pre,
+.dark .wysiwyg-content code {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .wysiwyg-content blockquote {
+  border-left-color: hsl(var(--primary) / 0.4);
+  background-color: hsl(var(--muted) / 0.2);
+}
+
+.dark .wysiwyg-preview {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* ==========================================================================
+   Third-party: react-medium-image-zoom
+   --------------------------------------------------------------------------
+   The package ships four hardcoded colours in its own stylesheet, so nothing
+   in it followed the theme and none of it was reachable by the admin design
+   panel. Found by the full-palette-swap readiness test: 16 classless
+   `[data-rmiz-btn-zoom]` buttons on the admin deposit-log and support pages
+   were the only non-grain signature that did not move.
+
+   The backdrop is the one that mattered. `[data-rmiz-modal-overlay="visible"]`
+   is an OPAQUE `#fff`, so zooming an image in dark mode flashed a full-screen
+   white sheet — and this component is what renders KYC documents, deposit
+   proofs and support attachments. `--background` keeps the vendor's opaque
+   intent while following the theme.
+
+   The zoom button is on-media chrome, so it takes the overlay pair rather than
+   the surface pair.
+   ========================================================================== */
+/* The `html` prefix is load-bearing, not decoration. The package's stylesheet
+   is a route chunk that Next loads AFTER globals.css, and its selectors are a
+   bare attribute — (0,1,0). An identical selector here would tie on
+   specificity and LOSE on source order, which is exactly what happened on the
+   first attempt (measured: the backdrop stayed `rgb(255,255,255)`). Adding the
+   element bumps these to (0,1,1) so they win regardless of order, without
+   reaching for `!important`. */
+html [data-rmiz-modal-overlay="visible"] {
+  background-color: hsl(var(--background));
+}
+
+html [data-rmiz-btn-zoom],
+html [data-rmiz-btn-unzoom] {
+  background-color: hsl(var(--overlay) / 0.7);
+  color: hsl(var(--overlay-foreground));
+  /* The same rule also carries `box-shadow: 0 0 1px #ffffff80` — a hardcoded
+     white halo. It survived the first override because that one only replaced
+     the two COLOUR declarations; it surfaced later, when the readiness probe
+     started comparing `box-shadow` as well. */
+  box-shadow: 0 0 1px hsl(var(--overlay-foreground) / 0.5);
+}
+
+html [data-rmiz-btn-zoom]:focus-visible,
+html [data-rmiz-btn-unzoom]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* SONNER — the toast SHADOW.
+   ---------------------------------------------------------------------------
+   `components/ui/sonner.tsx` already points sonner's fifteen colour custom
+   properties at the design tokens. It cannot fix the shadow, because sonner
+   hardcodes `box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1)` with no variable to
+   redirect — so every toast carried a literal black shadow that `--shadow` could
+   not reach, and the `group-[.toaster]:shadow-lg` class in that file was losing
+   to it. Measured by rethemeing the whole palette across 120 routes: 15 frozen
+   toast elements, all reporting exactly that geometry.
+
+   `:where(...)` gives sonner's own rules ZERO specificity, so a plain class would
+   normally win — the reason it does not is source order: sonner's stylesheet is
+   imported by the library and lands after Tailwind's layers. Hence an unlayered
+   rule here (unlayered outranks every layer), with the `html ` prefix kept for
+   consistency with the rmiz overrides above.
+
+   Geometry preserved exactly; only the colour is now a token. */
+html [data-sonner-toast][data-styled="true"] {
+  box-shadow: 0 4px 12px hsl(var(--shadow) / 0.1);
+}
+html [data-sonner-toast]:focus-visible {
+  box-shadow:
+    0 4px 12px hsl(var(--shadow) / 0.1),
+    0 0 0 2px hsl(var(--ring) / 0.5);
+}
+html [data-sonner-toast] [data-button]:focus-visible,
+html [data-sonner-toast] [data-close-button]:focus-visible {
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.6);
+}
+
+
+/* ===========================================================================
+   THE PINNED ADMIN ASSISTANT — A GUTTER, NOT AN OVERLAY
+   ===========================================================================
+   Unpinned, the assistant floats over the admin screen: nothing reflows, and
+   whatever is underneath it is covered. That is right for a glance and wrong
+   for working alongside — an administrator following a procedure has the panel
+   open for minutes at a time, and it sits on top of the very table they are
+   being walked through.
+
+   Pinned, the page gives up the width instead. One custom property does it, and
+   it is `0px` for everybody who has not asked, so the default costs nothing:
+   no class on any page, no wrapper, no layout change to inherit.
+
+   IT IS SET BEFORE FIRST PAINT. The attribute is written by a blocking script in
+   <head> (see `railBootScript` in app/[locale]/layout.tsx), the same technique —
+   and for the same measured reason — as the theme anti-FOUC script beside it. A
+   `useEffect` would run after hydration, so a reload would paint the full-width
+   layout and then snap it narrower, which is precisely the layout shift this is
+   supposed to avoid.
+
+   ONE WIDTH, DECLARED ONCE. Both properties are declared up in `@theme`, beside
+   the z-scale — they are mechanism rather than palette, and a bare `:root`
+   declaration would make them editable from the admin design panel, where
+   setting `--assistant-rail` by hand would indent every page on the platform. */
+:root[data-assistant-pinned="true"] {
+  --assistant-rail: var(--assistant-rail-width);
+}
+
+/* Normal flow content. `padding-inline-end` rather than `margin` so the page's
+   own background still paints across the full width — a margin would expose the
+   root background in the gutter as a seam beside the panel. */
+body {
+  padding-inline-end: var(--assistant-rail);
+}
+
+/* THE PANEL IS FULL HEIGHT AND THE WHOLE BAR NARROWS WITH THE PAGE.
+   -------------------------------------------------------------------------
+   Two arrangements were tried and this is the second. Docking the panel BELOW
+   the navbar left the top nav at full width and the panel starting under it,
+   which sounds tidier and is worse to look at: the panel got a hard horizontal
+   edge across the top of an otherwise continuous right-hand column, and it sat
+   against the page rather than in it — a rectangle cut out of the screen.
+
+   Running it full height removes the cut entirely. The bar narrows to the same
+   gutter the content does, so every horizontal edge in the layout stops at the
+   same place, which is what makes it read as one page with a column rather
+   than a page with something stuck to it.
+
+   THE BAR NARROWS ITSELF. A fixed element is positioned against the VIEWPORT, so
+   it ignores the padding on <body> — but rather than reach in from here with a
+   descendant rule, the header declares `right-[var(--assistant-rail)]` in its own
+   className. Same computed result and one less thing that can stop matching. */
+
+/* THE BAR GIVES UP 26rem, SO ITS OWN CONTENTS HAVE TO GIVE UP SOMETHING.
+   -------------------------------------------------------------------------
+   Narrowing the header without this is what pushes the nav items into each
+   other. Three things go, and they are chosen for the same reason: each is wide,
+   none is navigation, and every one of them is the second copy of something the
+   bar still has.
+
+     - THE LOGO. Pure identity, and the home button beside it already carries
+       the navigation the logotype would. Widest single item, cheapest to lose.
+     - THE SEARCH TRIGGER. `⌘K` still opens the palette, the shortcut is printed
+       on the control being removed, and the assistant now sitting beside it
+       answers the same "where is…" question in words.
+     - THE AREA SWITCH'S LABEL. It repeats its own icon.
+
+   The nav items themselves are never touched: they are the reason the bar
+   exists, and a bar that hides navigation to make room for a panel has the
+   priority backwards.
+
+   ALL OF IT IS CONDITIONAL ON THE PIN. An administrator who has not asked for
+   this keeps the bar exactly as it was, and unpinning puts every item back. */
+:root[data-assistant-pinned="true"] [data-navbar-logo],
+:root[data-assistant-pinned="true"] [data-navbar-logo-name],
+:root[data-assistant-pinned="true"] [data-area-switch-label],
+:root[data-assistant-pinned="true"] [data-command-trigger] {
+  display: none;
+}
+
+/* THE LOGO'S OTHER JOB SURVIVES IT.
+   -------------------------------------------------------------------------
+   The admin bar's logo is `href="/admin"` — on that bar it is not decoration,
+   it is the way back to the dashboard. Hiding it therefore removed a navigation
+   control, which goes unnoticed on the main admin bar (its menu carries a
+   Dashboard item) and strands you inside an addon: `/admin/p2p` scopes the menu
+   to P2P and is not the `extension` variant, so its built-in back button never
+   renders either.
+
+   The replacement is in the markup and hidden by default, because CSS cannot
+   add an element. It appears in the same rule that removes the logo, so the two
+   cannot both be absent — which is the failure this exists to make
+   unreachable. */
+:root[data-assistant-pinned="true"] [data-admin-home] {
+  display: inline-flex;
+}
+
+/* AND THE MENU MOVES UP TO THE EDGE IT NOW STARTS AT.
+   -------------------------------------------------------------------------
+   Hiding the logo hid its CONTENTS, not its slot. The reserved box stayed in
+   the flex row at zero width with a `gap-4` on either side of it, and the nav
+   kept the `ml-6` that had been clearing a logo — so the menu sat about 56px in
+   from nothing at all, which reads exactly as "something invisible is parked
+   there". Collapse the box and drop the margin. */
+:root[data-assistant-pinned="true"] [data-brand-box] {
+  display: none;
+}
+:root[data-assistant-pinned="true"] [data-admin-nav] {
+  margin-inline-start: 0;
+}
+
+/* THE PANEL'S TOP ROW TAKES THE BAR'S SURFACE WHEN THE PAGE SCROLLS.
+   -------------------------------------------------------------------------
+   Pinned, that row sits directly beside the navbar at the same top edge and the
+   same height, so the eye reads one strip across the screen. The bar goes from
+   transparent to a blurred wash the moment the page moves — and a strip whose
+   right-hand quarter stays clear while the rest of it frosts is not two
+   surfaces disagreeing, it is one surface visibly broken.
+
+   `data-page-scrolled` is written by the header's own scroll effect, which is
+   the single owner of that threshold. No second listener here, so the two
+   halves cannot change at different moments.
+
+   The bar's own treatment also carries a large shadow. That is deliberately NOT
+   copied: a shadow on a page-level surface is ratchet debt, and on a dark
+   ground it degrades to nothing anyway. The wash and the hairline are what
+   actually read. */
+:root[data-page-scrolled] [data-rail-header] {
+  /* The SAME expressions `bg-background/80` and `backdrop-blur-2xl` compile to,
+     rather than values that merely land in the same place. Measured side by
+     side the two rows agree exactly; written as an `hsl(... / 0.8)` they would
+     have agreed today and drifted the first time the palette moved to a wider
+     gamut, which is the kind of difference nobody looks for. */
+  background-color: color-mix(in oklab, hsl(var(--background)) 80%, transparent);
+  backdrop-filter: blur(var(--blur-2xl, 40px));
+}
+
+/* A FAILED PAGE KEEPS NEITHER THE PANEL NOR ITS GUTTER.
+   -------------------------------------------------------------------------
+   A Next error boundary replaces the segment, not the layout above it, and the
+   assistant is mounted above the router on purpose — so a page that throws left
+   the rail beside it, still holding 26rem and still drawing a skeleton next to
+   a 500. `data-page-error` is set by the shared error shell, which is the only
+   component that knows the boundary fired.
+
+   BOTH halves, and the second is the one that matters. Hiding the panel while
+   leaving the page indented for it is the worse version of the bug: a blank
+   column with nothing in it and no explanation. The gutter goes with it.
+
+   Placed after the pinning rules so it wins at equal specificity — the page
+   having failed outranks a preference about where a panel sits. */
+:root[data-page-error] {
+  --assistant-rail: 0px;
+}
+:root[data-page-error] [data-assistant-rail] {
+  display: none;
+}
+
+/* BELOW THE BREAKPOINT, PINNING FALLS BACK TO OVERLAYING.
+   The panel is 26rem. Pinning it on a 1024px screen leaves roughly 600px for an
+   admin table, and on a tablet it leaves nothing — so the preference is kept and
+   simply not honoured until there is room for it. Reverting to an overlay is the
+   degradation that still works; a squeezed page is not. */
+@media (max-width: 1279px) {
+  :root[data-assistant-pinned="true"] {
+    --assistant-rail: 0px;
+  }
+}
+
+/* An administrator who has asked for no motion still gets the gutter — it is
+   layout, not decoration — but not the transition into it. */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition: padding-inline-end 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   THE WALLET'S ONE ORCHESTRATED MOMENT.
+
+   The hero's total counts up (see `use-count-up.ts`) while the distribution bar
+   grows and the asset rows settle in. It runs once, on arrival, and nothing
+   else on that page moves — scattered effects read as decoration, a single
+   resolve reads as the page finishing its work, which is what is happening
+   while fifteen networks are summed.
+
+   `--motion-scale` collapses the duration under `prefers-reduced-motion`, the
+   same multiplier every `duration-*` utility already uses; the blanket
+   `animation: none` rule below this file's reduced-motion block covers the
+   rest. The transform is 4px, not 20 — this is a settle, not a slide.
+   --------------------------------------------------------------------------- */
+@keyframes wallet-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-wallet-row {
+  animation: wallet-row-in calc(280ms * var(--motion-scale, 1))
+    var(--motion-ease, cubic-bezier(0.4, 0, 0.2, 1)) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wallet-row {
+    animation: none;
+  }
+}

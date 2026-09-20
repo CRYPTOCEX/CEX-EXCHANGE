@@ -1,0 +1,230 @@
+{
+  "name": "Ethiopia",
+  "iso2": "ET",
+  "iso3": "ETH",
+  "phonecode": "251",
+  "states": [
+    {
+      "name": "Addis Ababa",
+      "code": "AA",
+      "cities": [
+        "Addis Ababa"
+      ]
+    },
+    {
+      "name": "Afar",
+      "code": "AF",
+      "cities": [
+        "Administrative Zone 2",
+        "Administrative Zone 3",
+        "Asaita",
+        "Āwash",
+        "Dubti",
+        "Gewanē",
+        "Semera"
+      ]
+    },
+    {
+      "name": "Amhara",
+      "code": "AM",
+      "cities": [
+        "Abomsa",
+        "Addiet Canna",
+        "Ādīs Zemen",
+        "Bahir Dar",
+        "Batī",
+        "Bichena",
+        "Burē",
+        "Dabat",
+        "Debark’",
+        "Debre Birhan",
+        "Debre Mark’os",
+        "Debre Sīna",
+        "Debre Tabor",
+        "Debre Werk’",
+        "Dejen",
+        "Desē",
+        "Finote Selam",
+        "Gondar",
+        "Kemisē",
+        "Kombolcha",
+        "Lalībela",
+        "North Shewa Zone",
+        "North Wollo Zone",
+        "Robīt",
+        "South Gondar Zone",
+        "South Wollo Zone",
+        "Wag Hemra Zone",
+        "Were Īlu",
+        "Werota"
+      ]
+    },
+    {
+      "name": "Benishangul-Gumuz",
+      "code": "BE",
+      "cities": [
+        "Asosa",
+        "Metekel"
+      ]
+    },
+    {
+      "name": "Dire Dawa",
+      "code": "DD",
+      "cities": [
+        "Dire Dawa"
+      ]
+    },
+    {
+      "name": "Gambela",
+      "code": "GA",
+      "cities": [
+        "Administrative Zone 1",
+        "Gambēla"
+      ]
+    },
+    {
+      "name": "Harari",
+      "code": "HA",
+      "cities": [
+        "Harar"
+      ]
+    },
+    {
+      "name": "Oromia",
+      "code": "OR",
+      "cities": [
+        "Ādīs ‘Alem",
+        "Āgaro",
+        "Arsi Zone",
+        "Āsasa",
+        "Āsbe Teferī",
+        "Bedelē",
+        "Bedēsa",
+        "Bishoftu",
+        "Deder",
+        "Dembī Dolo",
+        "Dodola",
+        "East Harerghe Zone",
+        "East Shewa Zone",
+        "East Wellega Zone",
+        "Fichē",
+        "Gebre Guracha",
+        "Gēdo",
+        "Gelemso",
+        "Genet",
+        "Gimbi",
+        "Ginir",
+        "Goba",
+        "Gorē",
+        "Guji Zone",
+        "Hāgere Hiywet",
+        "Hagere Maryam",
+        "Hīrna",
+        "Huruta",
+        "Illubabor Zone",
+        "Jimma",
+        "Jimma Zone",
+        "Kibre Mengist",
+        "Kofelē",
+        "Mēga",
+        "Mendī",
+        "Metahāra",
+        "Metu",
+        "Mojo",
+        "Nazrēt",
+        "Nejo",
+        "North Shewa Zone",
+        "Sebeta",
+        "Sendafa",
+        "Shakiso",
+        "Shambu",
+        "Shashemenē",
+        "Sirre",
+        "Tulu Bolo",
+        "Waliso",
+        "Wenjī",
+        "West Harerghe Zone",
+        "West Wellega Zone",
+        "Yabēlo",
+        "Ziway"
+      ]
+    },
+    {
+      "name": "Sidama",
+      "code": "SI",
+      "cities": [
+        "Dīla",
+        "Hāgere Selam",
+        "Hawassa",
+        "Leku",
+        "Sidama Zone",
+        "Wendo",
+        "Yirga ‘Alem"
+      ]
+    },
+    {
+      "name": "Somali",
+      "code": "SO",
+      "cities": [
+        "Afder Zone",
+        "Degehabur Zone",
+        "Gode Zone",
+        "Jijiga",
+        "Liben zone",
+        "Shinile Zone"
+      ]
+    },
+    {
+      "name": "Southern Nations, Nationalities, and Peoples",
+      "code": "SN",
+      "cities": [
+        "Alaba Special Wereda",
+        "Arba Minch",
+        "Āreka",
+        "Bako",
+        "Bodītī",
+        "Butajīra",
+        "Felege Neway",
+        "Gedeo Zone",
+        "Gīdolē",
+        "Guraghe Zone",
+        "Hadiya Zone",
+        "Hosa’ina",
+        "Jinka",
+        "K’olīto",
+        "Kembata Alaba Tembaro Zone",
+        "Konso",
+        "Lobuni",
+        "Sodo",
+        "Turmi",
+        "Wolayita Zone",
+        "Yem"
+      ]
+    },
+    {
+      "name": "Southwest Ethiopia Peoples",
+      "code": "SW",
+      "cities": [
+        "Bench Maji Zone",
+        "Bonga",
+        "Mīzan Teferī",
+        "Sheka Zone",
+        "Tippi"
+      ]
+    },
+    {
+      "name": "Tigray",
+      "code": "TI",
+      "cities": [
+        "Ādīgrat",
+        "Axum",
+        "Inda Silasē",
+        "Korem",
+        "Maych’ew",
+        "Mek'ele",
+        "Southeastern Tigray Zone",
+        "Southern Tigray Zone"
+      ]
+    }
+  ]
+}

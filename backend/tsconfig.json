@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "target": "ES2018",
+    "module": "CommonJS",
+    // TS7 removed node10 ("node"). "bundler" is the closest match to the old
+    // behaviour for this CJS tree: extensionless relative imports keep resolving,
+    // whereas node16/nodenext would additionally impose ESM/CJS interop rules this
+    // codebase does not satisfy. Emit is governed by `module`, which is unchanged,
+    // so dist output is unaffected.
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    // `incremental` is off under TS7: its declaration-emit path panics on this tree
+    // ("panic: Diagnostic emitted without context", transformers/declarations).
+    // It buys nothing now anyway — a full native check of this project is ~2s.
+    // TS7 flipped `strict` to default-on. This tree was written under strict:false,
+    // so it must be pinned explicitly or ~2000 pre-existing implicit-any/unknown
+    // errors surface. strictNullChecks stays on, exactly as before.
+    "strict": false,
+    "strictNullChecks": true,
+    "removeComments": true,
+    "paths": {
+      "@/*": ["./*"],
+      "@b/*": ["./src/*"],
+      "@db/*": ["./models/*"],
+      "@/types/*": ["./types/*"]
+    },
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "types": ["node","jest"]
+  },
+  "include": ["src/**/*.ts", "types/**/*.ts", "types/**/*.d.ts", "models/**/*.ts", "utils/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist", "../frontend/**/*", "../node_modules/**/*"]
+}

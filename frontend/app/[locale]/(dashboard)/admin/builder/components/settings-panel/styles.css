@@ -1,0 +1,44 @@
+.transition-height {
+  transition-property: height, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Custom tabs styles.
+
+   These were `#7c3aed` (violet-600) and three greys — a hardcoded light-mode
+   palette in a themed app, invisible to every gate because nothing read .css
+   files. Two things are true about them and both are worth recording:
+
+     - They are DEAD. `custom-tab-active` and `custom-tab-inactive` appear in no
+       className anywhere in the builder; only `transition-height` above is used.
+       So the wrong colours were never on screen.
+     - Dead is not a reason to leave them wrong. The next author to reach for a
+       tab style in this panel would have copied them, and then they would be on
+       screen. Tokenised rather than deleted because the rules are the panel's
+       documented tab treatment. */
+.custom-tab-active {
+  color: hsl(var(--primary));
+  border-bottom-color: hsl(var(--primary));
+}
+
+.custom-tab-inactive {
+  color: hsl(var(--muted-foreground));
+  border-bottom-color: transparent;
+}
+
+.custom-tab-inactive:hover {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--border));
+}
+
+/* Ensure content stays within the sidebar */
+.popover-content {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Fix for color picker popover */
+[data-radix-popper-content-wrapper] {
+  max-width: calc(100vw - 20px) !important;
+}

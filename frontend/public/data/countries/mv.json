@@ -1,0 +1,151 @@
+{
+  "name": "Maldives",
+  "iso2": "MV",
+  "iso3": "MDV",
+  "phonecode": "960",
+  "states": [
+    {
+      "name": "Addu",
+      "code": "01",
+      "cities": [
+        "Hithadhoo",
+        "Meedhoo"
+      ]
+    },
+    {
+      "name": "Alif Alif",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Alif Dhaal",
+      "code": "00",
+      "cities": [
+        "Mahibadhoo"
+      ]
+    },
+    {
+      "name": "Baa",
+      "code": "20",
+      "cities": []
+    },
+    {
+      "name": "Dhaalu",
+      "code": "17",
+      "cities": [
+        "Kudahuvadhoo"
+      ]
+    },
+    {
+      "name": "Faafu",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Gaafu Alif",
+      "code": "27",
+      "cities": [
+        "Viligili"
+      ]
+    },
+    {
+      "name": "Gaafu Dhaalu",
+      "code": "28",
+      "cities": [
+        "Thinadhoo"
+      ]
+    },
+    {
+      "name": "Gnaviyani",
+      "code": "29",
+      "cities": [
+        "Fuvahmulah"
+      ]
+    },
+    {
+      "name": "Haa Alif",
+      "code": "07",
+      "cities": [
+        "Dhidhdhoo"
+      ]
+    },
+    {
+      "name": "Haa Dhaalu",
+      "code": "23",
+      "cities": [
+        "Kulhudhuffushi"
+      ]
+    },
+    {
+      "name": "Kaafu",
+      "code": "26",
+      "cities": [
+        "Guraidhoo",
+        "Hulhumale",
+        "Maafushi",
+        "Male"
+      ]
+    },
+    {
+      "name": "Laamu",
+      "code": "05",
+      "cities": [
+        "Fonadhoo"
+      ]
+    },
+    {
+      "name": "Lhaviyani",
+      "code": "03",
+      "cities": [
+        "Naifaru"
+      ]
+    },
+    {
+      "name": "Malé",
+      "code": "MLE",
+      "cities": []
+    },
+    {
+      "name": "Meemu",
+      "code": "12",
+      "cities": [
+        "Muli"
+      ]
+    },
+    {
+      "name": "Noonu",
+      "code": "25",
+      "cities": [
+        "Manadhoo"
+      ]
+    },
+    {
+      "name": "Raa",
+      "code": "13",
+      "cities": [
+        "Ugoofaaru"
+      ]
+    },
+    {
+      "name": "Shaviyani",
+      "code": "24",
+      "cities": [
+        "Funadhoo"
+      ]
+    },
+    {
+      "name": "Thaa",
+      "code": "08",
+      "cities": [
+        "Veymandoo"
+      ]
+    },
+    {
+      "name": "Vaavu",
+      "code": "04",
+      "cities": [
+        "Felidhoo"
+      ]
+    }
+  ]
+}

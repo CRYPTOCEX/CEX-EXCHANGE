@@ -1,0 +1,223 @@
+{
+  "name": "Albania",
+  "iso2": "AL",
+  "iso3": "ALB",
+  "phonecode": "355",
+  "states": [
+    {
+      "name": "Berat",
+      "code": "01",
+      "cities": [
+        "Banaj",
+        "Bashkia Berat",
+        "Bashkia Kuçovë",
+        "Bashkia Poliçan",
+        "Bashkia Skrapar",
+        "Berat",
+        "Çorovodë",
+        "Kuçovë",
+        "Poliçan",
+        "Rrethi i Beratit",
+        "Rrethi i Kuçovës",
+        "Rrethi i Skraparit",
+        "Skrapar",
+        "Ura Vajgurore"
+      ]
+    },
+    {
+      "name": "Dibër",
+      "code": "09",
+      "cities": [
+        "Bashkia Bulqizë",
+        "Bashkia Klos",
+        "Bashkia Mat",
+        "Bulqizë",
+        "Burrel",
+        "Dibër",
+        "Klos",
+        "Mat",
+        "Peshkopi",
+        "Rrethi i Bulqizës",
+        "Rrethi i Dibrës",
+        "Rrethi i Matit",
+        "Ulëz"
+      ]
+    },
+    {
+      "name": "Durrës",
+      "code": "02",
+      "cities": [
+        "Bashkia Durrës",
+        "Bashkia Krujë",
+        "Bashkia Shijak",
+        "Durrës",
+        "Durrës District",
+        "Fushë-Krujë",
+        "Krujë",
+        "Rrethi i Krujës",
+        "Shijak",
+        "Sukth"
+      ]
+    },
+    {
+      "name": "Elbasan",
+      "code": "03",
+      "cities": [
+        "Gramsh",
+        "Librazhd",
+        "Peqin"
+      ]
+    },
+    {
+      "name": "Fier",
+      "code": "04",
+      "cities": [
+        "Ballsh",
+        "Bashkia Divjakë",
+        "Bashkia Fier",
+        "Bashkia Mallakastër",
+        "Bashkia Patos",
+        "Divjakë",
+        "Fier",
+        "Fier-Çifçi",
+        "Lushnjë",
+        "Mallakastër",
+        "Patos",
+        "Patos Fshat",
+        "Roskovec",
+        "Rrethi i Mallakastrës"
+      ]
+    },
+    {
+      "name": "Gjirokastër",
+      "code": "05",
+      "cities": [
+        "Bashkia Kelcyrë",
+        "Bashkia Libohovë",
+        "Bashkia Memaliaj",
+        "Bashkia Përmet",
+        "Bashkia Tepelenë",
+        "Dropull",
+        "Gjinkar",
+        "Gjirokastër",
+        "Këlcyrë",
+        "Lazarat",
+        "Libohovë",
+        "Memaliaj",
+        "Përmet",
+        "Tepelenë"
+      ]
+    },
+    {
+      "name": "Korçë",
+      "code": "06",
+      "cities": [
+        "Bashkia Devoll",
+        "Bashkia Kolonjë",
+        "Bashkia Maliq",
+        "Bilisht",
+        "Devoll",
+        "Ersekë",
+        "Kolonjë",
+        "Korçë",
+        "Leskovik",
+        "Libonik",
+        "Maliq",
+        "Mborje",
+        "Pogradec",
+        "Pustec",
+        "Rrethi i Devollit",
+        "Rrethi i Kolonjës",
+        "Velçan",
+        "Voskopojë"
+      ]
+    },
+    {
+      "name": "Kukës",
+      "code": "07",
+      "cities": [
+        "Bajram Curri",
+        "Krumë",
+        "Kukës",
+        "Rrethi i Hasit",
+        "Rrethi i Kukësit",
+        "Tropojë"
+      ]
+    },
+    {
+      "name": "Lezhë",
+      "code": "08",
+      "cities": [
+        "Bashkia Kurbin",
+        "Bashkia Lezhë",
+        "Bashkia Mirditë",
+        "Kurbin",
+        "Kurbnesh",
+        "Laç",
+        "Lezhë",
+        "Mamurras",
+        "Milot",
+        "Mirditë",
+        "Rrëshen",
+        "Rrethi i Kurbinit",
+        "Rubik",
+        "Shëngjin"
+      ]
+    },
+    {
+      "name": "Shkodër",
+      "code": "10",
+      "cities": [
+        "Bashkia Malësi e Madhe",
+        "Bashkia Pukë",
+        "Bashkia Vau i Dejës",
+        "Fushë-Arrëz",
+        "Koplik",
+        "Malësi e Madhe",
+        "Pukë",
+        "Rrethi i Malësia e Madhe",
+        "Rrethi i Shkodrës",
+        "Shkodër",
+        "Vau i Dejës",
+        "Vukatanë"
+      ]
+    },
+    {
+      "name": "Tirana",
+      "code": "11",
+      "cities": [
+        "Bashkia Kavajë",
+        "Bashkia Vorë",
+        "Kamëz",
+        "Kavajë",
+        "Krrabë",
+        "Rrethi i Kavajës",
+        "Rrethi i Tiranës",
+        "Rrogozhinë",
+        "Sinaballaj",
+        "Tirana",
+        "Vorë"
+      ]
+    },
+    {
+      "name": "Vlorë",
+      "code": "12",
+      "cities": [
+        "Bashkia Himarë",
+        "Bashkia Konispol",
+        "Bashkia Selenicë",
+        "Bashkia Vlorë",
+        "Delvinë",
+        "Finiq",
+        "Himarë",
+        "Konispol",
+        "Ksamil",
+        "Orikum",
+        "Rrethi i Delvinës",
+        "Sarandë",
+        "Selenicë",
+        "Vlorë"
+      ]
+    }
+  ]
+}

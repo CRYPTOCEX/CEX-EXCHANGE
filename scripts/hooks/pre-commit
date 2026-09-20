@@ -1,0 +1,36 @@
+#!/bin/sh
+# Runs the checks that must not wait for a push, over the STAGED files only.
+#
+# There is one check here and it is deliberately not "the gate". A pre-commit
+# hook competes with the developer's attention on every single commit, so it may
+# only contain things that are (a) fast enough to be invisible and (b) certain —
+# a check that is occasionally wrong here gets bypassed once and then always.
+#
+# WHY THIS ONE. `tsc` is the thing that catches a patch applied on top of itself
+# (TS2451, "Cannot redeclare block-scoped variable"), and `tsc` cannot run here:
+# the backend typecheck needs ~8 GB and minutes, which is why `gate --fast` and
+# the pre-push hook both exclude it. On 2026-08-12 that gap let a non-compiling
+# backend be committed — two sessions were editing one file and neither saw both
+# halves of the duplicated block. The parse-only check below finds exactly that
+# class in milliseconds.
+#
+# It does NOT replace the typecheck. Run `pnpm gate:full`, or
+# `cd backend && npx tsc -p tsconfig.json --noEmit`, before you push anything
+# that touched backend source — especially while more than one session is
+# editing the tree.
+#
+# Bypass (deliberately noisy, so it shows up in shell history):
+#   HOOK_SKIP=1 git commit ...
+if [ -n "$HOOK_SKIP" ]; then
+  echo "pre-commit: HOOK_SKIP set, skipping staged-file checks"
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)"
+
+node "$ROOT/tools/check-duplicate-declarations.mjs" --staged || {
+  echo ""
+  echo "pre-commit blocked: a staged file declares the same name twice in one scope."
+  echo "That does not compile. Delete the stale copy, or commit with: HOOK_SKIP=1 git commit"
+  exit 1
+}

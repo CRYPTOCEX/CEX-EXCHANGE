@@ -1,0 +1,5 @@
+email,firstName,lastName,password,phone,status,emailVerified,twoFactor,roleId,avatar,bio,address,city,country,zip,facebook,twitter,instagram,github,dribbble,gitlab
+john.doe@example.com,John,Doe,,+1234567890,ACTIVE,true,false,,,Software Developer,123 Main St,New York,USA,10001,https://facebook.com/johndoe,https://twitter.com/johndoe,,,https://github.com/johndoe,
+jane.smith@example.com,Jane,Smith,CustomPass123,+0987654321,ACTIVE,false,false,,,Marketing Manager,456 Oak Ave,Los Angeles,USA,90001,,,,,,
+bob.wilson@example.com,Bob,Wilson,,+1122334455,ACTIVE,true,true,,,Product Designer,789 Pine Rd,Chicago,USA,60601,,,https://instagram.com/bobwilson,,https://dribbble.com/bobwilson,
+alice.johnson@example.com,Alice,Johnson,SecurePass456,+5544332211,INACTIVE,false,false,,,Data Analyst,321 Elm St,Houston,USA,77001,https://facebook.com/alicej,,,,https://github.com/alicej,https://gitlab.com/alicej

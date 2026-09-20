@@ -1,0 +1,309 @@
+{
+  "name": "Uruguay",
+  "iso2": "UY",
+  "iso3": "URY",
+  "phonecode": "598",
+  "states": [
+    {
+      "name": "Artigas",
+      "code": "AR",
+      "cities": [
+        "Artigas",
+        "Baltasar Brum",
+        "Bella Unión",
+        "Las Piedras",
+        "Tomás Gomensoro"
+      ]
+    },
+    {
+      "name": "Canelones",
+      "code": "CA",
+      "cities": [
+        "Aguas Corrientes",
+        "Atlántida",
+        "Barra de Carrasco",
+        "Barros Blancos",
+        "Canelones",
+        "Colonia Nicolich",
+        "Empalme Olmos",
+        "Joaquín Suárez",
+        "Juanicó",
+        "La Floresta",
+        "La Paz",
+        "Las Piedras",
+        "Las Toscas",
+        "Los Cerrillos",
+        "Migues",
+        "Montes",
+        "Pando",
+        "Paso de Carrasco",
+        "Progreso",
+        "San Antonio",
+        "San Bautista",
+        "San Jacinto",
+        "San Ramón",
+        "Santa Lucía",
+        "Santa Rosa",
+        "Sauce",
+        "Soca",
+        "Tala",
+        "Toledo"
+      ]
+    },
+    {
+      "name": "Cerro Largo",
+      "code": "CL",
+      "cities": [
+        "Aceguá",
+        "Isidoro Noblía",
+        "Melo",
+        "Río Branco",
+        "Tupambaé"
+      ]
+    },
+    {
+      "name": "Colonia",
+      "code": "CO",
+      "cities": [
+        "Carmelo",
+        "Colonia del Sacramento",
+        "Florencio Sánchez",
+        "Juan L. Lacaze",
+        "Nueva Helvecia",
+        "Nueva Palmira",
+        "Ombúes de Lavalle",
+        "Rosario",
+        "Tarariras"
+      ]
+    },
+    {
+      "name": "Durazno",
+      "code": "DU",
+      "cities": [
+        "Blanquillo",
+        "Carlos Reyles",
+        "Durazno",
+        "La Paloma",
+        "Santa Bernardina",
+        "Sarandí del Yi",
+        "Villa del Carmen"
+      ]
+    },
+    {
+      "name": "Flores",
+      "code": "FS",
+      "cities": [
+        "Trinidad"
+      ]
+    },
+    {
+      "name": "Florida",
+      "code": "FD",
+      "cities": [
+        "25 de Agosto",
+        "25 de Mayo",
+        "Alejandro Gallinal",
+        "Cardal",
+        "Casupá",
+        "Florida",
+        "Sarandí Grande"
+      ]
+    },
+    {
+      "name": "Lavalleja",
+      "code": "LA",
+      "cities": [
+        "José Batlle y Ordóñez",
+        "José Pedro Varela",
+        "Mariscala",
+        "Minas",
+        "Solís de Mataojo"
+      ]
+    },
+    {
+      "name": "Maldonado",
+      "code": "MA",
+      "cities": [
+        "Aiguá",
+        "Maldonado",
+        "Pan de Azúcar",
+        "Piriápolis",
+        "Punta del Este",
+        "San Carlos"
+      ]
+    },
+    {
+      "name": "Montevideo",
+      "code": "MO",
+      "cities": [
+        "Aires Puros",
+        "Arroyo Seco",
+        "Atahualpa",
+        "Bañados de Carrasco",
+        "Barra de Carrasco",
+        "Barrio Sur",
+        "Bella Italia",
+        "Bella Vista",
+        "Belvedere",
+        "Buceo",
+        "Capurro",
+        "Carrasco",
+        "Carrasco Norte",
+        "Casabó",
+        "Casavalle",
+        "Centro",
+        "Cerrito",
+        "Cerro",
+        "Ciudad Vieja",
+        "Colón",
+        "Conciliación",
+        "Cordón",
+        "Flor de Maroñas",
+        "Goes",
+        "Ituzaingó",
+        "Jacinto Vera",
+        "Jardines del Hipódromo",
+        "La Blanqueada",
+        "La Comercial",
+        "La Figurita",
+        "La Teja",
+        "La Unión",
+        "Larrañaga",
+        "Las Acacias",
+        "Lezica",
+        "Malvín",
+        "Malvín Norte",
+        "Manga",
+        "Marconi",
+        "Maroñas",
+        "Melilla",
+        "Mercado Modelo",
+        "Montevideo",
+        "Nuevo París",
+        "Pajas Blancas",
+        "Palermo",
+        "Parque Batlle",
+        "Parque Rodó",
+        "Paso de la Arena",
+        "Paso Molino",
+        "Peñarol",
+        "Perez Castellanos",
+        "Piedras Blancas",
+        "Pocitos",
+        "Prado",
+        "Punta Carretas",
+        "Punta de Rieles",
+        "Punta Espinillo",
+        "Punta Gorda",
+        "Reducto",
+        "Santiago Vázquez",
+        "Sayago",
+        "Tres Cruces",
+        "Tres Ombues",
+        "Villa Española",
+        "Villa García",
+        "Villa Muñoz"
+      ]
+    },
+    {
+      "name": "Paysandú",
+      "code": "PA",
+      "cities": [
+        "Estación Porvenir",
+        "Guichón",
+        "Paysandú",
+        "Piedras Coloradas",
+        "Quebracho",
+        "San Félix"
+      ]
+    },
+    {
+      "name": "Río Negro",
+      "code": "RN",
+      "cities": [
+        "Fray Bentos",
+        "Nuevo Berlín",
+        "San Javier",
+        "Young"
+      ]
+    },
+    {
+      "name": "Rivera",
+      "code": "RV",
+      "cities": [
+        "Minas de Corrales",
+        "Rivera",
+        "Tranqueras",
+        "Vichadero"
+      ]
+    },
+    {
+      "name": "Rocha",
+      "code": "RO",
+      "cities": [
+        "Castillos",
+        "Cebollatí",
+        "Chui",
+        "Dieciocho de Julio",
+        "La Paloma",
+        "Lascano",
+        "Rocha",
+        "Velázquez"
+      ]
+    },
+    {
+      "name": "Salto",
+      "code": "SA",
+      "cities": [
+        "Belén",
+        "Salto",
+        "Villa Constitución"
+      ]
+    },
+    {
+      "name": "San José",
+      "code": "SJ",
+      "cities": [
+        "Delta del Tigre",
+        "Ecilda Paullier",
+        "Libertad",
+        "Puntas de Valdéz",
+        "Rafael Perazza",
+        "Rodríguez",
+        "San José de Mayo"
+      ]
+    },
+    {
+      "name": "Soriano",
+      "code": "SO",
+      "cities": [
+        "Cardona",
+        "Dolores",
+        "José Enrique Rodó",
+        "Mercedes",
+        "Palmitas",
+        "Santa Catalina",
+        "Villa Soriano"
+      ]
+    },
+    {
+      "name": "Tacuarembó",
+      "code": "TA",
+      "cities": [
+        "Curtina",
+        "Paso de los Toros",
+        "Tacuarembó"
+      ]
+    },
+    {
+      "name": "Treinta y Tres",
+      "code": "TT",
+      "cities": [
+        "Santa Clara de Olimar",
+        "Treinta y Tres",
+        "Vergara",
+        "Villa Sara"
+      ]
+    }
+  ]
+}

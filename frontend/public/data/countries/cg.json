@@ -1,0 +1,96 @@
+{
+  "name": "Congo",
+  "iso2": "CG",
+  "iso3": "COG",
+  "phonecode": "242",
+  "states": [
+    {
+      "name": "Bouenza",
+      "code": "11",
+      "cities": [
+        "Kayes",
+        "Madingou"
+      ]
+    },
+    {
+      "name": "Brazzaville",
+      "code": "BZV",
+      "cities": [
+        "Brazzaville"
+      ]
+    },
+    {
+      "name": "Cuvette",
+      "code": "8",
+      "cities": [
+        "Makoua",
+        "Owando"
+      ]
+    },
+    {
+      "name": "Cuvette-Ouest",
+      "code": "15",
+      "cities": [
+        "Ewo"
+      ]
+    },
+    {
+      "name": "Kouilou",
+      "code": "5",
+      "cities": []
+    },
+    {
+      "name": "Lékoumou",
+      "code": "2",
+      "cities": [
+        "Sibiti"
+      ]
+    },
+    {
+      "name": "Likouala",
+      "code": "7",
+      "cities": [
+        "Impfondo"
+      ]
+    },
+    {
+      "name": "Niari",
+      "code": "9",
+      "cities": [
+        "Dolisie",
+        "Mossendjo"
+      ]
+    },
+    {
+      "name": "Plateaux",
+      "code": "14",
+      "cities": [
+        "Djambala",
+        "Gamboma"
+      ]
+    },
+    {
+      "name": "Pointe-Noire",
+      "code": "16",
+      "cities": [
+        "Loandjili",
+        "Pointe-Noire"
+      ]
+    },
+    {
+      "name": "Pool",
+      "code": "12",
+      "cities": [
+        "Kinkala"
+      ]
+    },
+    {
+      "name": "Sangha",
+      "code": "13",
+      "cities": [
+        "Ouésso",
+        "Sémbé"
+      ]
+    }
+  ]
+}

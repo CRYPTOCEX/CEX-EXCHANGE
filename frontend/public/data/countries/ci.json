@@ -1,0 +1,186 @@
+{
+  "name": "Ivory Coast",
+  "iso2": "CI",
+  "iso3": "CIV",
+  "phonecode": "225",
+  "states": [
+    {
+      "name": "Abidjan",
+      "code": "AB",
+      "cities": [
+        "Abidjan",
+        "Abobo",
+        "Anyama",
+        "Bingerville"
+      ]
+    },
+    {
+      "name": "Bas-Sassandra",
+      "code": "BS",
+      "cities": [
+        "Gbôklé",
+        "Nawa",
+        "San-Pédro",
+        "Sassandra",
+        "Tabou"
+      ]
+    },
+    {
+      "name": "Comoé",
+      "code": "CM",
+      "cities": [
+        "Abengourou",
+        "Aboisso",
+        "Adiaké",
+        "Agnibilékrou",
+        "Ayamé",
+        "Bonoua",
+        "Grand-Bassam",
+        "Indénié-Djuablin",
+        "Sud-Comoé"
+      ]
+    },
+    {
+      "name": "Denguélé",
+      "code": "DN",
+      "cities": [
+        "Folon",
+        "Kabadougou",
+        "Odienné"
+      ]
+    },
+    {
+      "name": "Gôh-Djiboua",
+      "code": "GD",
+      "cities": [
+        "Divo",
+        "Gagnoa",
+        "Gôh",
+        "Guibéroua",
+        "Lakota",
+        "Lôh-Djiboua",
+        "Oumé"
+      ]
+    },
+    {
+      "name": "Lacs",
+      "code": "LC",
+      "cities": [
+        "Arrah",
+        "Bélier",
+        "Bocanda",
+        "Bongouanou",
+        "Daoukro",
+        "Dimbokro",
+        "Iffou",
+        "Moronou",
+        "N'Zi",
+        "Toumodi",
+        "Yamoussoukro"
+      ]
+    },
+    {
+      "name": "Lagunes",
+      "code": "LG",
+      "cities": [
+        "Adzopé",
+        "Affery",
+        "Agboville",
+        "Agnéby-Tiassa",
+        "Akoupé",
+        "Dabou",
+        "Grand-Lahou",
+        "Grands-Ponts",
+        "Tiassalé"
+      ]
+    },
+    {
+      "name": "Montagnes",
+      "code": "MG",
+      "cities": [
+        "Bangolo",
+        "Biankouma",
+        "Cavally",
+        "Danané",
+        "Duekoué",
+        "Guémon",
+        "Guiglo",
+        "Man",
+        "Tonkpi",
+        "Toulépleu Gueré"
+      ]
+    },
+    {
+      "name": "Sassandra-Marahoué",
+      "code": "SM",
+      "cities": [
+        "Bouaflé",
+        "Daloa",
+        "Haut-Sassandra",
+        "Issia",
+        "Marahoué",
+        "Vavoua",
+        "Zuénoula"
+      ]
+    },
+    {
+      "name": "Savanes",
+      "code": "SV",
+      "cities": [
+        "Bagoué",
+        "Boundiali",
+        "Ferkéssédougou",
+        "Kong",
+        "Korhogo",
+        "Ouangolodougou",
+        "Poro",
+        "Sinématiali",
+        "Tchologo",
+        "Tengrela"
+      ]
+    },
+    {
+      "name": "Vallée du Bandama",
+      "code": "VB",
+      "cities": [
+        "Béoumi",
+        "Botro",
+        "Bouaké",
+        "Dabakala",
+        "Gbêkê",
+        "Hambol",
+        "Katiola",
+        "Sakassou"
+      ]
+    },
+    {
+      "name": "Woroba",
+      "code": "WR",
+      "cities": [
+        "Bafing",
+        "Béré",
+        "Mankono",
+        "Séguéla",
+        "Touba",
+        "Worodougou"
+      ]
+    },
+    {
+      "name": "Yamoussoukro",
+      "code": "YM",
+      "cities": []
+    },
+    {
+      "name": "Zanzan",
+      "code": "ZZ",
+      "cities": [
+        "Bondoukou",
+        "Bouna",
+        "Bounkani",
+        "Gontougo",
+        "Sinfra",
+        "Tanda"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,663 @@
+{
+  "version": "3.4",
+  "log": [
+    {
+      "@openzeppelin/contracts/access/Ownable.sol:Ownable": {
+        "src": "@openzeppelin\\contracts\\access\\Ownable.sol:20",
+        "inherit": [
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [],
+        "methods": [
+          "owner()",
+          "renounceOwnership()",
+          "transferOwnership(address)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "Ownable",
+            "src": "@openzeppelin\\contracts\\access\\Ownable.sol:28"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_owner",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_address",
+              "contract": "Ownable",
+              "src": "@openzeppelin\\contracts\\access\\Ownable.sol:21"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard": {
+        "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:22",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "ReentrancyGuard",
+            "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:39"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            }
+          ],
+          "types": {
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/token/ERC1155/IERC1155.sol:IERC1155": {
+        "src": "@openzeppelin\\contracts\\token\\ERC1155\\IERC1155.sol:14",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "balanceOf(address,uint256)",
+          "balanceOfBatch(address[],uint256[])",
+          "setApprovalForAll(address,bool)",
+          "isApprovedForAll(address,address)",
+          "safeTransferFrom(address,address,uint256,uint256,bytes)",
+          "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\IERC721.sol:11",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "balanceOf(address)",
+          "ownerOf(uint256)",
+          "safeTransferFrom(address,address,uint256,bytes)",
+          "safeTransferFrom(address,address,uint256)",
+          "transferFrom(address,address,uint256)",
+          "approve(address,uint256)",
+          "setApprovalForAll(address,bool)",
+          "getApproved(uint256)",
+          "isApprovedForAll(address,address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/utils/Context.sol:Context": {
+        "src": "@openzeppelin\\contracts\\utils\\Context.sol:16",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165": {
+        "src": "@openzeppelin\\contracts\\utils\\introspection\\IERC165.sol:15",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "supportsInterface(bytes4)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "contracts/NFTMarketplace.sol:NFTMarketplace": {
+        "src": "contracts\\NFTMarketplace.sol:13",
+        "version": {
+          "withMetadata": "9ad9acc9ebd376a203d4b2001f5261313d0dab718880d45402682b32222551f9",
+          "withoutMetadata": "785b16bca4c4541123382c4c895d7365617030759e663504e899dcf40d3714e8",
+          "linkedWithoutMetadata": "785b16bca4c4541123382c4c895d7365617030759e663504e899dcf40d3714e8"
+        },
+        "inherit": [
+          "@openzeppelin/contracts/access/Ownable.sol:Ownable",
+          "@openzeppelin/contracts/utils/Context.sol:Context",
+          "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard"
+        ],
+        "libraries": [],
+        "methods": [
+          "(address payable,uint256)",
+          "listItem(address,uint256,uint256,uint256,address)",
+          "buyItem(address,uint256)",
+          "cancelListing(address,uint256)",
+          "updatePrice(address,uint256,uint256)",
+          "getListing(address,uint256)",
+          "updateFeePercentage(uint256)",
+          "updateFeeRecipient(address payable)",
+          "updateSupportedTokenStandard(address,bool)",
+          "isListed(address,uint256)",
+          "calculateFees(uint256,uint256)",
+          "withdrawBalance()",
+          "emergencyWithdraw()",
+          "onERC721Received(address,address,uint256,bytes)",
+          "supportsInterface(bytes4)",
+          "()"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "NFTMarketplace",
+            "src": "contracts\\NFTMarketplace.sol:53"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            },
+            {
+              "label": "_owner",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_address",
+              "contract": "Ownable",
+              "src": "@openzeppelin\\contracts\\access\\Ownable.sol:21"
+            },
+            {
+              "label": "feeRecipient",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_address_payable",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:15"
+            },
+            {
+              "label": "feePercentage",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_uint256",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:16"
+            },
+            {
+              "label": "listings",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)483_storage))",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:27"
+            },
+            {
+              "label": "supportedTokenStandards",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_bool)",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:28"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_address_payable": {
+              "label": "address payable",
+              "numberOfBytes": "20"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)483_storage))": {
+              "label": "mapping(address => mapping(uint256 => struct NFTMarketplace.Listing))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(Listing)483_storage)": {
+              "label": "mapping(uint256 => struct NFTMarketplace.Listing)",
+              "numberOfBytes": "32"
+            },
+            "t_struct(Listing)483_storage": {
+              "label": "struct NFTMarketplace.Listing",
+              "members": [
+                {
+                  "label": "seller",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "price",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "active",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "royaltyPercentage",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "royaltyRecipient",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "4"
+                }
+              ],
+              "numberOfBytes": "160"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      }
+    },
+    {
+      "@openzeppelin/contracts/access/Ownable.sol:Ownable": {
+        "src": "@openzeppelin\\contracts\\access\\Ownable.sol:20",
+        "inherit": [
+          "@openzeppelin/contracts/utils/Context.sol:Context"
+        ],
+        "libraries": [],
+        "methods": [
+          "owner()",
+          "renounceOwnership()",
+          "transferOwnership(address)"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "Ownable",
+            "src": "@openzeppelin\\contracts\\access\\Ownable.sol:28"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_owner",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_address",
+              "contract": "Ownable",
+              "src": "@openzeppelin\\contracts\\access\\Ownable.sol:21"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard": {
+        "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:22",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "ReentrancyGuard",
+            "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:39"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            }
+          ],
+          "types": {
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/token/ERC1155/IERC1155.sol:IERC1155": {
+        "src": "@openzeppelin\\contracts\\token\\ERC1155\\IERC1155.sol:14",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "balanceOf(address,uint256)",
+          "balanceOfBatch(address[],uint256[])",
+          "setApprovalForAll(address,bool)",
+          "isApprovedForAll(address,address)",
+          "safeTransferFrom(address,address,uint256,uint256,bytes)",
+          "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/token/ERC721/IERC721.sol:IERC721": {
+        "src": "@openzeppelin\\contracts\\token\\ERC721\\IERC721.sol:11",
+        "inherit": [
+          "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165"
+        ],
+        "libraries": [],
+        "methods": [
+          "balanceOf(address)",
+          "ownerOf(uint256)",
+          "safeTransferFrom(address,address,uint256,bytes)",
+          "safeTransferFrom(address,address,uint256)",
+          "transferFrom(address,address,uint256)",
+          "approve(address,uint256)",
+          "setApprovalForAll(address,bool)",
+          "getApproved(uint256)",
+          "isApprovedForAll(address,address)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/utils/Context.sol:Context": {
+        "src": "@openzeppelin\\contracts\\utils\\Context.sol:16",
+        "inherit": [],
+        "libraries": [],
+        "methods": [],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "@openzeppelin/contracts/utils/introspection/IERC165.sol:IERC165": {
+        "src": "@openzeppelin\\contracts\\utils\\introspection\\IERC165.sol:15",
+        "inherit": [],
+        "libraries": [],
+        "methods": [
+          "supportsInterface(bytes4)"
+        ],
+        "linkReferences": [],
+        "errors": [],
+        "layout": {
+          "storage": [],
+          "types": {},
+          "layoutVersion": "1.2",
+          "flat": false,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      },
+      "contracts/NFTMarketplace.sol:NFTMarketplace": {
+        "src": "contracts\\NFTMarketplace.sol:13",
+        "version": {
+          "withMetadata": "9ad9acc9ebd376a203d4b2001f5261313d0dab718880d45402682b32222551f9",
+          "withoutMetadata": "785b16bca4c4541123382c4c895d7365617030759e663504e899dcf40d3714e8",
+          "linkedWithoutMetadata": "785b16bca4c4541123382c4c895d7365617030759e663504e899dcf40d3714e8"
+        },
+        "inherit": [
+          "@openzeppelin/contracts/access/Ownable.sol:Ownable",
+          "@openzeppelin/contracts/utils/Context.sol:Context",
+          "@openzeppelin/contracts/security/ReentrancyGuard.sol:ReentrancyGuard"
+        ],
+        "libraries": [],
+        "methods": [
+          "(address payable,uint256)",
+          "listItem(address,uint256,uint256,uint256,address)",
+          "buyItem(address,uint256)",
+          "cancelListing(address,uint256)",
+          "updatePrice(address,uint256,uint256)",
+          "getListing(address,uint256)",
+          "updateFeePercentage(uint256)",
+          "updateFeeRecipient(address payable)",
+          "updateSupportedTokenStandard(address,bool)",
+          "isListed(address,uint256)",
+          "calculateFees(uint256,uint256)",
+          "withdrawBalance()",
+          "emergencyWithdraw()",
+          "onERC721Received(address,address,uint256,bytes)",
+          "supportsInterface(bytes4)",
+          "()"
+        ],
+        "linkReferences": [],
+        "errors": [
+          {
+            "kind": "constructor",
+            "contract": "NFTMarketplace",
+            "src": "contracts\\NFTMarketplace.sol:53"
+          }
+        ],
+        "layout": {
+          "storage": [
+            {
+              "label": "_status",
+              "offset": 0,
+              "slot": "0",
+              "type": "t_uint256",
+              "contract": "ReentrancyGuard",
+              "src": "@openzeppelin\\contracts\\security\\ReentrancyGuard.sol:37"
+            },
+            {
+              "label": "_owner",
+              "offset": 0,
+              "slot": "1",
+              "type": "t_address",
+              "contract": "Ownable",
+              "src": "@openzeppelin\\contracts\\access\\Ownable.sol:21"
+            },
+            {
+              "label": "feeRecipient",
+              "offset": 0,
+              "slot": "2",
+              "type": "t_address_payable",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:15"
+            },
+            {
+              "label": "feePercentage",
+              "offset": 0,
+              "slot": "3",
+              "type": "t_uint256",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:16"
+            },
+            {
+              "label": "listings",
+              "offset": 0,
+              "slot": "4",
+              "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)483_storage))",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:27"
+            },
+            {
+              "label": "supportedTokenStandards",
+              "offset": 0,
+              "slot": "5",
+              "type": "t_mapping(t_address,t_bool)",
+              "contract": "NFTMarketplace",
+              "src": "contracts\\NFTMarketplace.sol:28"
+            }
+          ],
+          "types": {
+            "t_address": {
+              "label": "address",
+              "numberOfBytes": "20"
+            },
+            "t_address_payable": {
+              "label": "address payable",
+              "numberOfBytes": "20"
+            },
+            "t_bool": {
+              "label": "bool",
+              "numberOfBytes": "1"
+            },
+            "t_mapping(t_address,t_bool)": {
+              "label": "mapping(address => bool)",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_mapping(t_uint256,t_struct(Listing)483_storage))": {
+              "label": "mapping(address => mapping(uint256 => struct NFTMarketplace.Listing))",
+              "numberOfBytes": "32"
+            },
+            "t_mapping(t_uint256,t_struct(Listing)483_storage)": {
+              "label": "mapping(uint256 => struct NFTMarketplace.Listing)",
+              "numberOfBytes": "32"
+            },
+            "t_struct(Listing)483_storage": {
+              "label": "struct NFTMarketplace.Listing",
+              "members": [
+                {
+                  "label": "seller",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "0"
+                },
+                {
+                  "label": "price",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "1"
+                },
+                {
+                  "label": "active",
+                  "type": "t_bool",
+                  "offset": 0,
+                  "slot": "2"
+                },
+                {
+                  "label": "royaltyPercentage",
+                  "type": "t_uint256",
+                  "offset": 0,
+                  "slot": "3"
+                },
+                {
+                  "label": "royaltyRecipient",
+                  "type": "t_address",
+                  "offset": 0,
+                  "slot": "4"
+                }
+              ],
+              "numberOfBytes": "160"
+            },
+            "t_uint256": {
+              "label": "uint256",
+              "numberOfBytes": "32"
+            }
+          },
+          "layoutVersion": "1.2",
+          "flat": true,
+          "namespaces": {}
+        },
+        "solcVersion": "0.8.19"
+      }
+    }
+  ]
+}

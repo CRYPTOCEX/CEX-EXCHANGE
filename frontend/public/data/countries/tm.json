@@ -1,0 +1,74 @@
+{
+  "name": "Turkmenistan",
+  "iso2": "TM",
+  "iso3": "TKM",
+  "phonecode": "993",
+  "states": [
+    {
+      "name": "Ahal",
+      "code": "A",
+      "cities": [
+        "Abadan",
+        "Annau",
+        "Arçabil",
+        "Baharly",
+        "Kaka",
+        "Tejen"
+      ]
+    },
+    {
+      "name": "Ashgabat",
+      "code": "S",
+      "cities": [
+        "Ashgabat"
+      ]
+    },
+    {
+      "name": "Balkan",
+      "code": "B",
+      "cities": [
+        "Balkanabat",
+        "Bereket",
+        "Gumdag",
+        "Magtymguly",
+        "Serdar",
+        "Türkmenbaşy"
+      ]
+    },
+    {
+      "name": "Daşoguz",
+      "code": "D",
+      "cities": [
+        "Akdepe",
+        "Boldumsaz",
+        "Daşoguz",
+        "Köneürgench",
+        "Tagta",
+        "Yylanly"
+      ]
+    },
+    {
+      "name": "Lebap",
+      "code": "L",
+      "cities": [
+        "Atamyrat",
+        "Farap",
+        "Gazojak",
+        "Gowurdak",
+        "Saýat",
+        "Türkmenabat"
+      ]
+    },
+    {
+      "name": "Mary",
+      "code": "M",
+      "cities": [
+        "Bayramaly",
+        "Mary",
+        "Serhetabat",
+        "Seydi",
+        "Yolöten"
+      ]
+    }
+  ]
+}

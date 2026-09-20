@@ -1,0 +1,700 @@
+{
+  "name": "Vietnam",
+  "iso2": "VN",
+  "iso3": "VNM",
+  "phonecode": "84",
+  "states": [
+    {
+      "name": "An Giang",
+      "code": "44",
+      "cities": [
+        "Cho Dok",
+        "Dương Đông",
+        "Hà Tiên",
+        "Huyện An Biên",
+        "Huyện An Minh",
+        "Huyện An Phú",
+        "Huyện Châu Phú",
+        "Huyện Châu Thành",
+        "Huyện Chợ Mới",
+        "Huyện Giồng Riềng",
+        "Huyện Gò Quao",
+        "Huyện Hòn Đất",
+        "Huyện Kiên Hải",
+        "Huyện Phú Quốc",
+        "Huyện Phú Tân",
+        "Huyện Tân Hiệp",
+        "Huyện Tri Tôn",
+        "Huyện Vĩnh Thuận",
+        "Kien Luong Town",
+        "Long Xuyên",
+        "Rạch Giá"
+      ]
+    },
+    {
+      "name": "Bắc Ninh",
+      "code": "56",
+      "cities": [
+        "Bắc Giang",
+        "Bắc Ninh",
+        "Cung Kiệm",
+        "Huyện Gia Bình",
+        "Huyện Lục Nam",
+        "Huyện Lục Ngạn",
+        "Huyện Thuận Thành",
+        "Huyện Tiên Du",
+        "Huyện Yên Phong",
+        "Huyện Yên Thế"
+      ]
+    },
+    {
+      "name": "Cà Mau",
+      "code": "59",
+      "cities": [
+        "Bạc Liêu",
+        "Cà Mau",
+        "Huyện Cái Nước",
+        "Huyện Đầm Dơi",
+        "Huyện Giá Rai",
+        "Huyện Hồng Dân",
+        "Huyen Nam Can",
+        "Huyện Thới Bình"
+      ]
+    },
+    {
+      "name": "Cần Thơ",
+      "code": "CT",
+      "cities": [
+        "Cần Thơ",
+        "Cờ Đỏ",
+        "Huyện Châu Thành A",
+        "Huyện Kế Sách",
+        "Huyện Long Phú",
+        "Huyện Mỹ Tú",
+        "Huyện Mỹ Xuyên",
+        "Huyen Nga Nam",
+        "Huyện Thạnh Trị",
+        "Sóc Trăng",
+        "Thới Lai",
+        "Vị Thanh",
+        "Vĩnh Thạnh"
+      ]
+    },
+    {
+      "name": "Cao Bằng",
+      "code": "04",
+      "cities": [
+        "Cao Bằng",
+        "Huyện Bảo Lac",
+        "Huyện Bảo Lâm",
+        "Huyện Hạ Lang",
+        "Huyện Hà Quảng",
+        "Huyện Nguyên Bình",
+        "Huyen Phuc Hoa",
+        "Huyện Thạch An",
+        "Huyện Thông Nông",
+        "Huyện Trà Lĩnh",
+        "Huyện Trùng Khánh"
+      ]
+    },
+    {
+      "name": "Đà Nẵng",
+      "code": "DN",
+      "cities": [
+        "Da Nang",
+        "Hội An",
+        "Huyện Đại Lộc",
+        "Huyện Điện Bàn",
+        "Huyện Duy Xuyên",
+        "Huyện Hiệp Đức",
+        "Huyện Nam Giang",
+        "Huyện Núi Thành",
+        "Huyện Phước Sơn",
+        "Huyện Tiên Phước",
+        "Huyện Trà My",
+        "Tam Kỳ"
+      ]
+    },
+    {
+      "name": "Đắk Lắk",
+      "code": "33",
+      "cities": [
+        "Buôn Ma Thuột",
+        "Huyện Buôn Đôn",
+        "Huyện Ea H'Leo",
+        "Huyện Ea Súp",
+        "Huyện Sơn Hòa",
+        "Huyện Sông Hinh",
+        "Sông Cầu",
+        "Tuy Hòa"
+      ]
+    },
+    {
+      "name": "Điện Biên",
+      "code": "71",
+      "cities": [
+        "Dien Bien Phu",
+        "Huyện Điện Biên Đông",
+        "Huyện Mường Nhé",
+        "Huyện Tủa Chùa",
+        "Huyện Tuần Giáo",
+        "Thị Xã Mưòng Lay"
+      ]
+    },
+    {
+      "name": "Đồng Nai",
+      "code": "39",
+      "cities": [
+        "Biên Hòa",
+        "Bình Long",
+        "Don Luan",
+        "Huyện Bù Đốp",
+        "Huyện Chơn Thành",
+        "Huyện Định Quán",
+        "Huyện Đồng Phú",
+        "Huyện Hớn Quản",
+        "Huyện Long Thành",
+        "Huyện Tân Phú",
+        "Huyện Thống Nhất",
+        "Huyện Trảng Bom",
+        "Huyện Vĩnh Cửu",
+        "Thị Xã Phước Long"
+      ]
+    },
+    {
+      "name": "Đồng Tháp",
+      "code": "45",
+      "cities": [
+        "Cao Lãnh",
+        "Huyện Cái Bè",
+        "Huyện Cai Lậy",
+        "Huyện Châu Thành",
+        "Huyện Chợ Gạo",
+        "Huyện Gò Công Đông",
+        "Huyện Gò Công Tây",
+        "Huyện Lai Vung",
+        "Huyện Lấp Vò",
+        "Huyện Tam Nông",
+        "Huyện Tân Hồng",
+        "Huyện Tân Phước",
+        "Huyện Thanh Bình",
+        "Huyện Tháp Mười",
+        "Mỹ Tho",
+        "Sa Dec",
+        "Thành Phố Mỹ Tho",
+        "Thị Trấn Tân Thành",
+        "Thị Xã Gò Công"
+      ]
+    },
+    {
+      "name": "Gia Lai",
+      "code": "30",
+      "cities": [
+        "Huyện An Lão",
+        "Huyện Chư Păh",
+        "Huyện Chư Prông",
+        "Huyện Chư Sê",
+        "Huyện Đức Cơ",
+        "Huyện Hoài Nhơn",
+        "Huyện Ia Grai",
+        "Huyện KBang",
+        "Huyện Kông Chro",
+        "Huyện Krông Pa",
+        "Huyện Mang Yang",
+        "Huyện Phù Mỹ",
+        "Huyện Tây Sơn",
+        "Huyện Tuy Phước",
+        "Huyện Vĩnh Thạnh",
+        "Pleiku",
+        "Qui Nhon"
+      ]
+    },
+    {
+      "name": "Hà Nội",
+      "code": "HN",
+      "cities": [
+        "Ba Đình",
+        "Ba Vì",
+        "Bắc Từ Liêm",
+        "Cầu Giấy",
+        "Chương Mỹ",
+        "Đan Phượng",
+        "Đông Anh",
+        "Đống Đa",
+        "Gia Lâm",
+        "Hà Đông",
+        "Hai Bà Trưng",
+        "Hoài Đức",
+        "Hoàn Kiếm",
+        "Hoàng Mai",
+        "Long Biên",
+        "Mê Linh",
+        "Mỹ Đức",
+        "Nam Từ Liêm",
+        "Phú Xuyên",
+        "Phúc Thọ",
+        "Quốc Oai",
+        "Sóc Sơn",
+        "Sơn Tây",
+        "Tây Hồ",
+        "Thạch Thất",
+        "Thanh Oai",
+        "Thanh Trì",
+        "Thanh Xuân",
+        "Thường Tín",
+        "Ứng Hòa"
+      ]
+    },
+    {
+      "name": "Hà Tĩnh",
+      "code": "23",
+      "cities": [
+        "Hà Tĩnh",
+        "Huyện Cẩm Xuyên",
+        "Huyện Can Lộc",
+        "Huyện Ðức Thọ",
+        "Huyện Kỳ Anh",
+        "Huyện Nghi Xuân",
+        "Huyện Thạch Hà"
+      ]
+    },
+    {
+      "name": "Hải Phòng",
+      "code": "HP",
+      "cities": [
+        "Cát Bà",
+        "Hải Dương",
+        "Haiphong",
+        "Huyện Bình Giang",
+        "Huyện Cẩm Giàng",
+        "Huyện Gia Lộc",
+        "Huyện Kinh Môn",
+        "Huyện Nam Sách",
+        "Huyện Thanh Miện",
+        "Thị Xã Chí Linh"
+      ]
+    },
+    {
+      "name": "Hồ Chí Minh",
+      "code": "SG",
+      "cities": [
+        "Cần Giờ",
+        "Côn Sơn",
+        "Củ Chi",
+        "Dĩ An",
+        "Ho Chi Minh City",
+        "Huyện Châu Đức",
+        "Huyện Đất Đỏ",
+        "Huyện Tân Thành",
+        "Huyện Xuyên Mộc",
+        "Thành Phố Vũng Tàu",
+        "Thị Xã Phú Mỹ",
+        "Thủ Dầu Một",
+        "Vũng Tàu"
+      ]
+    },
+    {
+      "name": "Hưng Yên",
+      "code": "66",
+      "cities": [
+        "Hưng Yên",
+        "Huyện Ân Thi",
+        "Huyện Ðông Hưng",
+        "Huyện Hưng Hà",
+        "Huyện Khoái Châu",
+        "Huyện Kiến Xương",
+        "Huyện Kim Động",
+        "Huyện Mỹ Hào",
+        "Huyện Phù Cừ",
+        "Huyện Quỳnh Phụ",
+        "Huyện Thái Thụy",
+        "Huyện Tiền Hải",
+        "Huyện Tiên Lữ",
+        "Huyện Vũ Thư",
+        "Thái Bình"
+      ]
+    },
+    {
+      "name": "Khánh Hòa",
+      "code": "34",
+      "cities": [
+        "Cam Ranh",
+        "Huyện Diên Khánh",
+        "Huyện Khánh Sơn",
+        "Huyện Khánh Vĩnh",
+        "Huyện Vạn Ninh",
+        "Nha Trang",
+        "Phan Rang-Tháp Chàm",
+        "Thành Phố Cam Ranh",
+        "Thành Phố Nha Trang",
+        "Thị Xã Ninh Hòa"
+      ]
+    },
+    {
+      "name": "Lai Châu",
+      "code": "01",
+      "cities": [
+        "Huyện Mưòng Tè",
+        "Huyện Tam Đường",
+        "Huyện Than Uyên"
+      ]
+    },
+    {
+      "name": "Lâm Đồng",
+      "code": "35",
+      "cities": [
+        "Bảo Lộc",
+        "Ðà Lạt",
+        "Đam Rong",
+        "Đinh Văn",
+        "Đưc Trọng",
+        "Huyện Bắc Bình",
+        "Huyện Bảo Lâm",
+        "Huyện Cư Jút",
+        "Huyện Đạ Huoai",
+        "Huyện Đạ Tẻh",
+        "Huyện Đắk R’Lấp",
+        "Huyện Đơn Dương",
+        "Huyện Đức Trọng",
+        "Huyện Hàm Tân",
+        "Huyện Hàm Thuận Bắc",
+        "Huyện Hàm Thuận Nam",
+        "Huyện Krông Nô",
+        "Huyện Lâm Hà",
+        "Huyện Tánh Linh",
+        "Huyện Tuy Phong",
+        "La Gi",
+        "Phan Thiết",
+        "Thành Phố Phan Thiết"
+      ]
+    },
+    {
+      "name": "Lạng Sơn",
+      "code": "09",
+      "cities": [
+        "Huyện Bắc Sơn",
+        "Huyện Bình Gia",
+        "Huyện Cao Lộc",
+        "Huyện Chi Lăng",
+        "Huyện Đình Lập",
+        "Huyện Hũu Lũng",
+        "Huyện Vặn Quan",
+        "Lạng Sơn"
+      ]
+    },
+    {
+      "name": "Lào Cai",
+      "code": "02",
+      "cities": [
+        "Huyện Bắc Hà",
+        "Huyện Bảo Yên",
+        "Huyện Bát Xát",
+        "Huyện Lục Yên",
+        "Huyện Mù Cang Chải",
+        "Huyện Mường Khương",
+        "Huyện Sa Pa",
+        "Huyện Si Ma Cai",
+        "Huyện Trạm Tấu",
+        "Huyện Trấn Yên",
+        "Huyện Văn Bàn",
+        "Huyện Văn Chấn",
+        "Huyện Văn Yên",
+        "Lào Cai",
+        "Lao Chải",
+        "Sa Pa",
+        "Yên Bái"
+      ]
+    },
+    {
+      "name": "Nghệ An",
+      "code": "22",
+      "cities": [
+        "Huyện Anh Sơn",
+        "Huyện Con Cuông",
+        "Huyện Diễn Châu",
+        "Huyện Đô Lương",
+        "Huyện Hưng Nguyên",
+        "Huyện Kỳ Sơn",
+        "Huyện Nam Đàn",
+        "Huyện Nghi Lộc",
+        "Huyện Nghĩa Đàn",
+        "Huyện Quế Phong",
+        "Huyện Quỳ Châu",
+        "Huyện Quỳ Hợp",
+        "Huyện Quỳnh Lưu",
+        "Huyện Thanh Chương",
+        "Huyện Tương Dương",
+        "Huyện Yên Thành",
+        "Vinh",
+        "Yên Vinh"
+      ]
+    },
+    {
+      "name": "Ninh Bình",
+      "code": "18",
+      "cities": [
+        "Huyện Bình Lục",
+        "Huyện Duy Tiên",
+        "Huyện Giao Thủy",
+        "Huyện Hải Hậu",
+        "Huyện Hoa Lư",
+        "Huyện Kim Bảng",
+        "Huyện Kim Sơn",
+        "Huyện Lý Nhân",
+        "Huyện Mỹ Lộc",
+        "Huyện Nam Trực",
+        "Huyện Nghĩa Hưng",
+        "Huyện Nho Quan",
+        "Huyện Thanh Liêm",
+        "Huyện Trực Ninh",
+        "Huyện Vụ Bản",
+        "Huyện Ý Yên",
+        "Huyện Yên Khánh",
+        "Huyện Yên Mô",
+        "Nam Định",
+        "Ninh Bình",
+        "Phủ Lý"
+      ]
+    },
+    {
+      "name": "Phú Thọ",
+      "code": "68",
+      "cities": [
+        "Hòa Bình",
+        "Huyện Bình Xuyên",
+        "Huyện Cẩm Khê",
+        "Huyện Cao Phong",
+        "Huyện Đoan Hùng",
+        "Huyện Hạ Hòa",
+        "Huyện Kỳ Sơn",
+        "Huyện Lạc Thủy",
+        "Huyen Lam Thao",
+        "Huyện Lương Sơn",
+        "Huyện Tam Đảo",
+        "Huyện Tam Dương",
+        "Huyện Tân Lạc",
+        "Huyện Thanh Ba",
+        "Huyện Yên Lạc",
+        "Huyện Yên Lập",
+        "Thành Phố Việt Trì",
+        "Thị xã Phú Thọ",
+        "Việt Trì",
+        "Vĩnh Yên"
+      ]
+    },
+    {
+      "name": "Quảng Ngãi",
+      "code": "29",
+      "cities": [
+        "Huyện Ba Tơ",
+        "Huyện Bình Sơn",
+        "Huyện Đắk Glei",
+        "Huyện Đắk Hà",
+        "Huyện Đắk Tô",
+        "Huyện Đức Phổ",
+        "Huyện Ia H'Drai",
+        "Huyện Kon Plông",
+        "Huyện Lý Sơn",
+        "Huyện Minh Long",
+        "Huyện Mộ Đức",
+        "Huyện Nghĩa Hành",
+        "Huyện Ngọc Hồi",
+        "Huyện Sa Thầy",
+        "Huyện Sơn Hà",
+        "Huyện Sơn Tây",
+        "Huyện Sơn Tịnh",
+        "Huyện Trà Bồng",
+        "Huyện Tư Nghĩa",
+        "Kon Tum",
+        "Quảng Ngãi"
+      ]
+    },
+    {
+      "name": "Quảng Ninh",
+      "code": "13",
+      "cities": [
+        "Cẩm Phả",
+        "Cẩm Phả Mines",
+        "Hạ Long",
+        "Huyện Ba Chẽ",
+        "Huyện Bình Liêu",
+        "Huyện Cô Tô",
+        "Huyện Đầm Hà",
+        "Huyện Đông Triều",
+        "Huyện Hải Hà",
+        "Huyện Hoành Bồ",
+        "Huyện Tiên Yên",
+        "Huyện Vân Đồn",
+        "Móng Cái",
+        "Thành Phố Uông Bí"
+      ]
+    },
+    {
+      "name": "Quảng Trị",
+      "code": "25",
+      "cities": [
+        "Ðông Hà",
+        "Huyện Cam Lộ",
+        "Huyện Đa Krông",
+        "Huyện Gio Linh",
+        "Huyện Hải Lăng",
+        "Huyện Hướng Hóa",
+        "Huyện Lệ Thủy",
+        "Huyện Quảng Ninh",
+        "Huyện Quảng Trạch",
+        "Huyện Triệu Phong",
+        "Huyện Tuyên Hóa",
+        "Huyện Vĩnh Linh",
+        "Kwang Binh"
+      ]
+    },
+    {
+      "name": "Sơn La",
+      "code": "05",
+      "cities": [
+        "Huyện Bắc Yên",
+        "Huyện Mai Sơn",
+        "Huyện Mộc Châu",
+        "Huyện Mường La",
+        "Huyện Phù Yên",
+        "Huyện Quỳnh Nhai",
+        "Huyện Sông Mã",
+        "Huyện Thuận Châu",
+        "Huyện Yên Châu",
+        "Sơn La"
+      ]
+    },
+    {
+      "name": "Tây Ninh",
+      "code": "37",
+      "cities": [
+        "Cần Giuộc",
+        "Huyện Bến Cầu",
+        "Huyện Bến Lức",
+        "Huyện Cần Đước",
+        "Huyện Cần Giuộc",
+        "Huyện Châu Thành",
+        "Huyện Đức Hòa",
+        "Huyện Đức Huệ",
+        "Huyện Dương Minh Châu",
+        "Huyện Gò Dầu",
+        "Huyện Hòa Thành",
+        "Huyện Mộc Hóa",
+        "Huyện Tân Châu",
+        "Huyện Tân Hưng",
+        "Huyện Tân Thạnh",
+        "Huyện Tân Trụ",
+        "Huyện Thạnh Hóa",
+        "Huyện Thủ Thừa",
+        "Huyện Trảng Bàng",
+        "Huyện Vĩnh Hưng",
+        "Phú Khương",
+        "Tân An",
+        "Tây Ninh"
+      ]
+    },
+    {
+      "name": "Thái Nguyên",
+      "code": "69",
+      "cities": [
+        "Bắc Kạn",
+        "Huyện Ba Bể",
+        "Huyện Bạch Thông",
+        "Huyện Chợ Đồn",
+        "Huyện Na Rì",
+        "Huyện Ngân Sơn",
+        "Thái Nguyên",
+        "Thị Xã Bắc Kạn"
+      ]
+    },
+    {
+      "name": "Thanh Hóa",
+      "code": "21",
+      "cities": [
+        "Bỉm Sơn",
+        "Huyện Bá Thước",
+        "Huyện Cẩm Thủy",
+        "Huyện Đông Sơn",
+        "Huyện Hà Trung",
+        "Huyện Hậu Lộc",
+        "Huyện Lang Chánh",
+        "Huyện Mường Lát",
+        "Huyện Nga Sơn",
+        "Huyện Ngọc Lặc",
+        "Huyện Như Thanh",
+        "Huyện Như Xuân",
+        "Huyện Nông Cống",
+        "Huyện Quan Hóa",
+        "Huyện Quan Sơn",
+        "Huyện Quảng Xương",
+        "Huyện Thiệu Hóa",
+        "Huyện Thọ Xuân",
+        "Huyện Thường Xuân",
+        "Huyện Triệu Sơn",
+        "Huyện Vĩnh Lộc",
+        "Huyện Yên Định",
+        "Thanh Hóa"
+      ]
+    },
+    {
+      "name": "Thừa Thiên-Huế",
+      "code": "26",
+      "cities": [
+        "Huế",
+        "Huyện A Lưới",
+        "Huyện Nam Đông",
+        "Huyện Phong Điền",
+        "Huyện Phú Lộc",
+        "Huyện Phú Vang",
+        "Huyện Quảng Ðiền"
+      ]
+    },
+    {
+      "name": "Tuyên Quang",
+      "code": "07",
+      "cities": [
+        "Hà Giang",
+        "Huyện Bắc Mê",
+        "Huyện Bắc Quang",
+        "Huyện Chiêm Hóa",
+        "Huyện Đồng Văn",
+        "Huyện Hàm Yên",
+        "Huyện Lâm Bình",
+        "Huyện Na Hang",
+        "Huyện Quang Bình",
+        "Huyện Sơn Dương",
+        "Huyện Vị Xuyên",
+        "Huyện Xín Mần",
+        "Huyện Yên Minh",
+        "Huyện Yên Sơn",
+        "Tuyên Quang"
+      ]
+    },
+    {
+      "name": "Vĩnh Long",
+      "code": "49",
+      "cities": [
+        "Ấp Tân Ngãi",
+        "Bến Tre",
+        "Huyện Ba Tri",
+        "Huyện Bình Đại",
+        "Huyện Càng Long",
+        "Huyện Cầu Kè",
+        "Huyện Cầu Ngang",
+        "Huyện Châu Thành",
+        "Huyện Chợ Lách",
+        "Huyện Giồng Trôm",
+        "Huyện Long Hồ",
+        "Huyện Mang Thít",
+        "Huyện Tam Bình",
+        "Huyện Thạnh Phú",
+        "Huyện Tiểu Cần",
+        "Huyện Trà Cú",
+        "Huyện Trà Ôn",
+        "Huyện Vũng Liêm",
+        "Trà Vinh",
+        "Vĩnh Long"
+      ]
+    }
+  ]
+}

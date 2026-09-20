@@ -1,0 +1,264 @@
+{
+  "name": "Cambodia",
+  "iso2": "KH",
+  "iso3": "KHM",
+  "phonecode": "855",
+  "states": [
+    {
+      "name": "Banteay Meanchey",
+      "code": "1",
+      "cities": [
+        "Mongkol Borei",
+        "Paoy Paet",
+        "Sisophon",
+        "Srŏk Malai",
+        "Srŏk Svay Chék"
+      ]
+    },
+    {
+      "name": "Battambang",
+      "code": "2",
+      "cities": [
+        "Battambang",
+        "Srŏk Âk Phnŭm",
+        "Srŏk Banăn",
+        "Srŏk Bâvĭl",
+        "Srŏk Rotanak Mondol"
+      ]
+    },
+    {
+      "name": "Kampong Cham",
+      "code": "3",
+      "cities": [
+        "Cheung Prey",
+        "Kampong Cham",
+        "Srŏk Bathéay"
+      ]
+    },
+    {
+      "name": "Kampong Chhnang",
+      "code": "4",
+      "cities": [
+        "Baribour",
+        "Kampong Chhnang",
+        "Rolea B'ier",
+        "Srŏk Chol Kiri",
+        "Srŏk Sameakki Mean Chey"
+      ]
+    },
+    {
+      "name": "Kampong Speu",
+      "code": "5",
+      "cities": [
+        "Kampong Speu",
+        "Krŏng Chbar Mon",
+        "Srŏk Basedth",
+        "Srŏk Kông Pĭsei",
+        "Srŏk Ŏdŏngk"
+      ]
+    },
+    {
+      "name": "Kampong Thom",
+      "code": "6",
+      "cities": []
+    },
+    {
+      "name": "Kampot",
+      "code": "7",
+      "cities": [
+        "Angkor Chey",
+        "Banteay Meas",
+        "Chhouk",
+        "Kampong Bay",
+        "Kampong Tranch",
+        "Kampot",
+        "Srŏk Chŭm Kiri",
+        "Srŏk Dângtóng",
+        "Srok Tuek Chhou"
+      ]
+    },
+    {
+      "name": "Kandal",
+      "code": "8",
+      "cities": [
+        "Krŏng Ta Khmau",
+        "Srŏk Khsăch Kândal",
+        "Ta Khmau"
+      ]
+    },
+    {
+      "name": "Kep",
+      "code": "23",
+      "cities": [
+        "Krong Kep",
+        "Srŏk Dâmnăk Châng’aeur"
+      ]
+    },
+    {
+      "name": "Koh Kong",
+      "code": "9",
+      "cities": [
+        "Koh Kong",
+        "Smach Mean Chey",
+        "Srae Ambel",
+        "Srŏk Batum Sakôr",
+        "Srŏk Môndôl Seima"
+      ]
+    },
+    {
+      "name": "Kratie",
+      "code": "10",
+      "cities": [
+        "Kracheh",
+        "Kratié",
+        "Snuol"
+      ]
+    },
+    {
+      "name": "Mondulkiri",
+      "code": "11",
+      "cities": [
+        "Krŏng Sênmônoŭrôm",
+        "Sen Monorom",
+        "Srŏk Kaev Seima",
+        "Srŏk Pech Chreada"
+      ]
+    },
+    {
+      "name": "Oddar Meanchey",
+      "code": "22",
+      "cities": [
+        "Samraong",
+        "Srŏk Bântéay Âmpĭl",
+        "Srŏk Sâmraông",
+        "Srŏk Trâpeăng Prasat"
+      ]
+    },
+    {
+      "name": "Pailin",
+      "code": "24",
+      "cities": [
+        "Khan Sala Krau",
+        "Pailin"
+      ]
+    },
+    {
+      "name": "Phnom Penh",
+      "code": "12",
+      "cities": [
+        "Khan 7 Makara",
+        "Khan Châmkar Mon",
+        "Khan Dângkaô",
+        "Khan Duŏn Pénh",
+        "Khan Méan Chey",
+        "Khan Russey Keo",
+        "Khan Saen Sokh",
+        "Phnom Penh"
+      ]
+    },
+    {
+      "name": "Preah Vihear",
+      "code": "13",
+      "cities": [
+        "Sangkom Thmei",
+        "Srŏk Ch’êh Sên",
+        "Srŏk Chhêb",
+        "Srŏk Kulén",
+        "Srŏk Rôviĕng",
+        "Srŏk Tbêng Méanchey",
+        "Tbeng Meanchey"
+      ]
+    },
+    {
+      "name": "Prey Veng",
+      "code": "14",
+      "cities": [
+        "Prey Veng",
+        "Srŏk Kâmpóng Léav",
+        "Srŏk Mésang",
+        "Srŏk Preăh Sdéch"
+      ]
+    },
+    {
+      "name": "Pursat",
+      "code": "15",
+      "cities": [
+        "Bakan",
+        "Krakor",
+        "Pursat",
+        "Sampov Meas",
+        "Srŏk Kândiĕng",
+        "Srŏk Véal Vêng"
+      ]
+    },
+    {
+      "name": "Ratanakiri",
+      "code": "16",
+      "cities": [
+        "Banlung",
+        "Lumphat",
+        "Srŏk Ândong Méas",
+        "Srŏk Bâ Kêv",
+        "Srŏk Ban Lŭng",
+        "Srŏk Koun Mom",
+        "Srŏk Ou Chum",
+        "Srŏk Ou Ya Dav",
+        "Srŏk Ta Vêng"
+      ]
+    },
+    {
+      "name": "Siem Reap",
+      "code": "17",
+      "cities": [
+        "Siem Reap",
+        "Srŏk Ângkôr Thum",
+        "Srŏk Prasat Bakong",
+        "Svay Leu",
+        "Varin"
+      ]
+    },
+    {
+      "name": "Sihanoukville",
+      "code": "18",
+      "cities": [
+        "Sihanoukville",
+        "Srok Stueng Hav"
+      ]
+    },
+    {
+      "name": "Stung Treng",
+      "code": "19",
+      "cities": [
+        "Srŏk Srêsén",
+        "Stueng Traeng",
+        "Stung Treng"
+      ]
+    },
+    {
+      "name": "Svay Rieng",
+      "code": "20",
+      "cities": [
+        "Srŏk Svay Chrŭm",
+        "Svay Rieng"
+      ]
+    },
+    {
+      "name": "Takeo",
+      "code": "21",
+      "cities": [
+        "Krŏng Doun Kaev",
+        "Phumĭ Véal Srê",
+        "Srŏk Ângkôr Borei",
+        "Srŏk Borei Cholsar",
+        "Takeo"
+      ]
+    },
+    {
+      "name": "Tboung Khmum",
+      "code": "25",
+      "cities": [
+        "Suong"
+      ]
+    }
+  ]
+}

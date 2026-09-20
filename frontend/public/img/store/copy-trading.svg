@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Copy Trading">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ma{to{stroke-dashoffset:-120}}
+@keyframes dr{0%{stroke-dashoffset:1000}100%{stroke-dashoffset:0}}
+@keyframes be{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes eq{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.62)}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes px{0%,100%{transform:scaleX(.78)}50%{transform:scaleX(1)}}
+@keyframes fk{0%,100%{transform:scaleY(1);opacity:.85}50%{transform:scaleY(1.22);opacity:1}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.am{animation:ma 4.8s linear infinite}
+.ad{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dr 10s ease-in-out infinite alternate}
+.abe{transform-box:fill-box;transform-origin:center;animation:be 6s ease-in-out infinite}
+.aq{transform-box:fill-box;transform-origin:center bottom;animation:eq 4s ease-in-out infinite}
+.asp{transform-box:fill-box;transform-origin:center;animation:sp 30s linear infinite}
+.apx{transform-box:fill-box;transform-origin:left center;animation:px 8s ease-in-out infinite}
+.afk{transform-box:fill-box;transform-origin:center top;animation:fk 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.am,.ad,.abe,.aq,.asp,.apx,.afk{animation:none}.ad{stroke-dashoffset:0}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#101018"/>
+    <stop offset="1" stop-color="#0a0a10"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#34d399"/>
+    <stop offset="1" stop-color="#14b8a6"/>
+  </linearGradient>
+  <linearGradient id="accSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#34d399" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#34d399" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#14b8a6" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#14b8a6" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#ffffff" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="596" y="105" width="270" height="210" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="590" y="95" width="270" height="210" rx="18" fill="#14141d" fill-opacity="0.94" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="590" y="95" width="270" height="46" rx="18" fill="#ffffff" fill-opacity="0.03"/>
+  <line x1="590" y1="141" x2="860" y2="141" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="614" cy="118" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="633" cy="118" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="652" cy="118" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="658" y="125" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff" fill-opacity="0.55">Signal provider</text>
+</g>
+<path d="M 618 242 C 639.5 242, 639.5 221, 661 221 C 682.5 221, 682.5 226.25, 704 226.25 C 725.5 226.25, 725.5 200, 747 200 C 768.5 200, 768.5 205.25, 790 205.25 C 811.5 205.25, 811.5 179, 833 179" fill="none" stroke="#34d399" stroke-width="4" stroke-linecap="round" class="ad" pathLength="1000"/>
+<g>
+  <circle cx="634" cy="275" r="21" fill="#34d399" fill-opacity="0.18" stroke="#34d399" stroke-opacity="0.55" stroke-width="2.5"/>
+  <circle cx="634" cy="269.75" r="6.72" fill="#34d399"/>
+  <path d="M 622.45 288.02 Q 634 273.95 645.55 288.02" fill="#34d399"/>
+</g>
+<text x="666" y="282" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff" fill-opacity="0.85">Top trader · +214%</text>
+<g>
+  <rect x="886" y="345" width="270" height="210" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="880" y="335" width="270" height="210" rx="18" fill="#14141d" fill-opacity="0.94" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="880" y="335" width="270" height="46" rx="18" fill="#ffffff" fill-opacity="0.03"/>
+  <line x1="880" y1="381" x2="1150" y2="381" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="904" cy="358" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="923" cy="358" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="942" cy="358" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="948" y="365" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff" fill-opacity="0.55">Your portfolio</text>
+</g>
+<path d="M 908 482 C 929.5 482, 929.5 461, 951 461 C 972.5 461, 972.5 466.25, 994 466.25 C 1015.5 466.25, 1015.5 440, 1037 440 C 1058.5 440, 1058.5 445.25, 1080 445.25 C 1101.5 445.25, 1101.5 419, 1123 419" fill="none" stroke="#14b8a6" stroke-width="4" stroke-linecap="round" class="ad" pathLength="1000" style="animation-delay:1.2s"/>
+<g>
+  <circle cx="924" cy="515" r="21" fill="#14b8a6" fill-opacity="0.18" stroke="#14b8a6" stroke-opacity="0.55" stroke-width="2.5"/>
+  <circle cx="924" cy="509.75" r="6.72" fill="#14b8a6"/>
+  <path d="M 912.45 528.02 Q 924 513.95 935.55 528.02" fill="#14b8a6"/>
+</g>
+<text x="956" y="522" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#ffffff" fill-opacity="0.85">Mirrored · +214%</text>
+<path class="am" d="M 868 245 Q 960 265 945 328" fill="none" stroke="#34d399" stroke-width="4.5" stroke-dasharray="2 10" stroke-linecap="round"/>
+<path d="M 928 308 L 946 332 L 962 306" fill="none" stroke="#34d399" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g>
+  <rect x="600" y="580" width="262.15999999999997" height="33.6" rx="16.8" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="731.0799999999999" y="603.04" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#34d399">Auto position mirroring</text>
+</g></g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" fill="#fff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#ffffff" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="80.5" height="31.5" rx="15.75" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="104.25" y="227.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#34d399">ADDON</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#ffffff">Copy</text>
+<text x="64" y="386" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#ffffff">Trading</text>
+<text x="64" y="442" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">Let users mirror top traders</text>
+<text x="64" y="480" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">— automatically.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#ffffff" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

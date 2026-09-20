@@ -1,0 +1,55 @@
+{
+  "name": "Eritrea",
+  "iso2": "ER",
+  "iso3": "ERI",
+  "phonecode": "291",
+  "states": [
+    {
+      "name": "Anseba",
+      "code": "AN",
+      "cities": [
+        "Keren"
+      ]
+    },
+    {
+      "name": "Debub",
+      "code": "DU",
+      "cities": [
+        "Adi Keyh",
+        "Dek’emhāre",
+        "Mendefera"
+      ]
+    },
+    {
+      "name": "Gash-Barka",
+      "code": "GB",
+      "cities": [
+        "Ak’ordat",
+        "Barentu",
+        "Teseney"
+      ]
+    },
+    {
+      "name": "Maekel",
+      "code": "MA",
+      "cities": [
+        "Asmara"
+      ]
+    },
+    {
+      "name": "Northern Red Sea",
+      "code": "SK",
+      "cities": [
+        "Massawa"
+      ]
+    },
+    {
+      "name": "Southern Red Sea",
+      "code": "DK",
+      "cities": [
+        "Assab",
+        "Edd"
+      ]
+    }
+  ]
+}

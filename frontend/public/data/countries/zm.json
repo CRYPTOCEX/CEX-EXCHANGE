@@ -1,0 +1,139 @@
+{
+  "name": "Zambia",
+  "iso2": "ZM",
+  "iso3": "ZMB",
+  "phonecode": "260",
+  "states": [
+    {
+      "name": "Central",
+      "code": "02",
+      "cities": [
+        "Chibombo",
+        "Chibombo District",
+        "Kabwe",
+        "Kapiri Mposhi",
+        "Mkushi",
+        "Mumbwa",
+        "Serenje"
+      ]
+    },
+    {
+      "name": "Copperbelt",
+      "code": "08",
+      "cities": [
+        "Chambishi",
+        "Chililabombwe",
+        "Chingola",
+        "Chingola District",
+        "Kalulushi",
+        "Kataba",
+        "Kitwe",
+        "Luanshya",
+        "Mpongwe",
+        "Mufulira",
+        "Ndola"
+      ]
+    },
+    {
+      "name": "Eastern",
+      "code": "03",
+      "cities": [
+        "Chadiza",
+        "Chipata",
+        "Lundazi",
+        "Nyimba",
+        "Petauke"
+      ]
+    },
+    {
+      "name": "Luapula",
+      "code": "04",
+      "cities": [
+        "Kawambwa",
+        "Mansa",
+        "Mwense",
+        "Nchelenge",
+        "Samfya"
+      ]
+    },
+    {
+      "name": "Lusaka",
+      "code": "09",
+      "cities": [
+        "Chongwe",
+        "Kafue",
+        "Luangwa",
+        "Lusaka"
+      ]
+    },
+    {
+      "name": "Muchinga",
+      "code": "10",
+      "cities": [
+        "Chama",
+        "Chinsali",
+        "Isoka",
+        "Mpika",
+        "Nakonde"
+      ]
+    },
+    {
+      "name": "Northern",
+      "code": "05",
+      "cities": [
+        "Kaputa",
+        "Kasama",
+        "Luwingu",
+        "Mbala",
+        "Mporokoso",
+        "Mpulungu",
+        "Mungwi"
+      ]
+    },
+    {
+      "name": "Northwestern",
+      "code": "06",
+      "cities": [
+        "Kabompo",
+        "Kalengwa",
+        "Kansanshi",
+        "Kasempa",
+        "Mufumbwe",
+        "Mwinilunga",
+        "Solwezi",
+        "Zambezi"
+      ]
+    },
+    {
+      "name": "Southern",
+      "code": "07",
+      "cities": [
+        "Choma",
+        "Gwembe",
+        "Itezhi-Tezhi",
+        "Livingstone",
+        "Maamba",
+        "Mazabuka",
+        "Monze",
+        "Nakambala",
+        "Namwala",
+        "Siavonga",
+        "Siavonga District",
+        "Sinazongwe"
+      ]
+    },
+    {
+      "name": "Western",
+      "code": "01",
+      "cities": [
+        "Kalabo",
+        "Kaoma",
+        "Limulunga",
+        "Lukulu",
+        "Mongu",
+        "Senanga",
+        "Sesheke"
+      ]
+    }
+  ]
+}

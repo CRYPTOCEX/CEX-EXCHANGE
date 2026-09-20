@@ -1,0 +1,229 @@
+/**
+ * Bicrypto Gateway Admin Styles
+ */
+
+/* Settings Page Styles */
+.bicrypto-callback-urls {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.bicrypto-url-box {
+    background: #fff;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bicrypto-url-box:last-child {
+    margin-bottom: 0;
+}
+
+.bicrypto-url-box label {
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.bicrypto-url-box code {
+    flex: 1;
+    background: #e9ecef;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    word-break: break-all;
+}
+
+.bicrypto-copy-btn {
+    min-width: 60px;
+}
+
+.bicrypto-copy-btn.copied {
+    background: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #fff !important;
+}
+
+/* Test Connection Results */
+#bicrypto-test-result {
+    margin-top: 15px;
+}
+
+#bicrypto-test-result .notice {
+    margin: 0;
+    padding: 12px 15px;
+}
+
+#bicrypto-test-result ul {
+    margin: 10px 0 0 20px;
+    list-style: disc;
+}
+
+#bicrypto-test-result li {
+    margin: 5px 0;
+}
+
+/* Mode Indicator */
+.bicrypto-mode-indicator {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.bicrypto-mode-live {
+    background: #d4edda;
+    color: #155724;
+}
+
+.bicrypto-mode-test {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Permission badges */
+.bicrypto-permission-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    margin: 2px;
+    background: #e9ecef;
+    color: #495057;
+}
+
+.bicrypto-permission-badge.full-access {
+    background: #d4edda;
+    color: #155724;
+}
+
+/* Wallet type selector in settings */
+.bicrypto-wallet-types-list {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.bicrypto-wallet-type-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.bicrypto-wallet-type-item input[type="checkbox"] {
+    margin: 0;
+}
+
+/* Order list column */
+.column-bicrypto_status {
+    width: 100px;
+}
+
+.bicrypto-order-status {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bicrypto-status {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.bicrypto-status-completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.bicrypto-status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.bicrypto-status-failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.bicrypto-status-cancelled {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.bicrypto-status-unknown,
+.bicrypto-status-none {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.bicrypto-wallet-type {
+    color: #666;
+    font-size: 10px;
+}
+
+/* Meta box styles */
+.bicrypto-payment-details {
+    width: 100%;
+}
+
+.bicrypto-payment-details td {
+    padding: 4px 0;
+}
+
+.bicrypto-payment-details code {
+    word-break: break-all;
+    font-size: 11px;
+    background: #f5f5f5;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Logs page */
+#bicrypto-logs {
+    width: 100%;
+    height: 600px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 15px;
+    border: none;
+    border-radius: 6px;
+    resize: vertical;
+}
+
+/* Spinner animation */
+.bicrypto-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: bicrypto-spin 1s linear infinite;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+@keyframes bicrypto-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

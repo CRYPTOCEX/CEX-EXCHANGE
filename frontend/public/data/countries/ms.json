@@ -1,0 +1,23 @@
+{
+  "name": "Montserrat",
+  "iso2": "MS",
+  "iso3": "MSR",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Saint Anthony",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Saint Georges",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "Saint Peter",
+      "code": "01",
+      "cities": []
+    }
+  ]
+}

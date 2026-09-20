@@ -1,0 +1,28 @@
+/* Binary trading — text scale.
+ *
+ * The binary trading interface has a lot of small text (positions table,
+ * order book, mobile cards). The user-adjustable text-size control in the
+ * settings dialog scales every Tailwind text utility used on the page via
+ * `--binary-font-scale`. Layout (panel heights, grids, paddings, icons)
+ * is intentionally unchanged so the single-viewport layout is preserved.
+ *
+ * Scoped to .binary-workspace so the rest of the app is unaffected.
+ */
+
+.binary-workspace {
+  --binary-font-scale: 1;
+}
+
+.binary-workspace .text-xs   { font-size: calc(0.75rem  * var(--binary-font-scale)) !important; }
+.binary-workspace .text-sm   { font-size: calc(0.875rem * var(--binary-font-scale)) !important; }
+.binary-workspace .text-base { font-size: calc(1rem     * var(--binary-font-scale)) !important; }
+.binary-workspace .text-lg   { font-size: calc(1.125rem * var(--binary-font-scale)) !important; }
+.binary-workspace .text-xl   { font-size: calc(1.25rem  * var(--binary-font-scale)) !important; }
+.binary-workspace .text-2xl  { font-size: calc(1.5rem   * var(--binary-font-scale)) !important; }
+.binary-workspace .text-3xl  { font-size: calc(1.875rem * var(--binary-font-scale)) !important; }
+
+.binary-workspace .text-\[9px\]  { font-size: calc(9px  * var(--binary-font-scale)) !important; }
+.binary-workspace .text-\[10px\] { font-size: calc(10px * var(--binary-font-scale)) !important; }
+.binary-workspace .text-\[11px\] { font-size: calc(11px * var(--binary-font-scale)) !important; }
+.binary-workspace .text-\[12px\] { font-size: calc(12px * var(--binary-font-scale)) !important; }
+.binary-workspace .text-\[13px\] { font-size: calc(13px * var(--binary-font-scale)) !important; }

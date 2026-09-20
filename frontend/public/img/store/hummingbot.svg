@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Hummingbot Connector">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ma{to{stroke-dashoffset:-120}}
+@keyframes dr{0%{stroke-dashoffset:1000}100%{stroke-dashoffset:0}}
+@keyframes qx{0%,100%{transform:scaleX(1);opacity:.9}50%{transform:scaleX(.82);opacity:1}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.am{animation:ma 4.8s linear infinite}
+.ad{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dr 10s ease-in-out infinite alternate}
+.aqb{transform-box:fill-box;transform-origin:right center;animation:qx 3.4s ease-in-out infinite}
+.aqa{transform-box:fill-box;transform-origin:left center;animation:qx 3.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.am,.ad,.aqb,.aqa{animation:none}.ad{stroke-dashoffset:0}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#101018"/>
+    <stop offset="1" stop-color="#0a0a10"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#14b8a6"/>
+    <stop offset="1" stop-color="#06b6d4"/>
+  </linearGradient>
+  <linearGradient id="accSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#14b8a6" stop-opacity="0.30"/>
+    <stop offset="1" stop-color="#14b8a6" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#14b8a6" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#14b8a6" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#06b6d4" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#06b6d4" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#ffffff" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="596" y="110" width="560" height="460" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="590" y="100" width="560" height="460" rx="18" fill="#14141d" fill-opacity="0.94" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="590" y="100" width="560" height="46" rx="18" fill="#ffffff" fill-opacity="0.03"/>
+  <line x1="590" y1="146" x2="1150" y2="146" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="614" cy="123" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="633" cy="123" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="652" cy="123" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="658" y="130" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff" fill-opacity="0.55">PMM · ECO/USDT</text>
+</g>
+<rect x="620" y="164" width="500" height="176" rx="10" fill="url(#accSoft)" opacity="0.45"/>
+<g>
+  <rect x="766" y="172" width="96" height="17" rx="3" fill="#34d399" fill-opacity="0.9"/>
+  <rect x="714" y="199" width="148" height="17" rx="3" fill="#34d399" fill-opacity="0.7"/>
+  <rect x="744" y="226" width="118" height="17" rx="3" fill="#34d399" fill-opacity="0.78"/>
+  <rect class="aqb" x="662" y="253" width="200" height="17" rx="3" fill="#34d399" fill-opacity="0.6"/>
+  <rect x="778" y="280" width="84" height="17" rx="3" fill="#34d399" fill-opacity="0.82"/>
+  <rect x="694" y="307" width="168" height="17" rx="3" fill="#34d399" fill-opacity="0.55"/>
+  <text x="628" y="185" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">1.9k</text>
+  <text x="628" y="266" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">4.1k</text>
+  <text x="628" y="320" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">3.3k</text>
+</g>
+<g>
+  <rect x="878" y="172" width="122" height="17" rx="3" fill="#fb7185" fill-opacity="0.9"/>
+  <rect x="878" y="199" width="86" height="17" rx="3" fill="#fb7185" fill-opacity="0.78"/>
+  <rect class="aqa" x="878" y="226" width="178" height="17" rx="3" fill="#fb7185" fill-opacity="0.62"/>
+  <rect x="878" y="253" width="142" height="17" rx="3" fill="#fb7185" fill-opacity="0.72"/>
+  <rect x="878" y="280" width="210" height="17" rx="3" fill="#fb7185" fill-opacity="0.55"/>
+  <rect x="878" y="307" width="100" height="17" rx="3" fill="#fb7185" fill-opacity="0.8"/>
+  <text x="1112" y="185" text-anchor="end" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">2.4k</text>
+  <text x="1112" y="239" text-anchor="end" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">3.6k</text>
+  <text x="1112" y="293" text-anchor="end" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="12.5" fill="#ffffff" fill-opacity="0.35">5.2k</text>
+</g>
+<line x1="870" y1="160" x2="870" y2="340" stroke="#14b8a6" stroke-width="2" stroke-dasharray="2 10" class="am" stroke-opacity="0.7"/>
+<g class="ap">
+  <rect x="630" y="350" width="146" height="32" rx="16" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="703" y="372" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#34d399">BID 0.42690</text>
+</g>
+<text x="870" y="372" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" fill="#ffffff" fill-opacity="0.5">mid 0.42718</text>
+<g class="ap" style="animation-delay:1.6s">
+  <rect x="964" y="350" width="146" height="32" rx="16" fill="#fb7185" fill-opacity="0.15" stroke="#fb7185" stroke-opacity="0.4"/>
+  <text x="1037" y="372" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#fb7185">ASK 0.42745</text>
+</g>
+<g class="af">
+  <rect x="622" y="414" width="132" height="32" rx="16" fill="#2dd4bf" fill-opacity="0.15" stroke="#2dd4bf" stroke-opacity="0.4"/>
+  <text x="688" y="436" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#2dd4bf">Local CLOB</text>
+  <circle cx="778" cy="430" r="8" fill="url(#acc)"/>
+  <circle class="ab" cx="778" cy="430" r="14" fill="none" stroke="#14b8a6" stroke-opacity="0.35"/>
+  <line x1="796" y1="430" x2="986" y2="430" stroke="#14b8a6" stroke-width="2.5" stroke-dasharray="4 10" class="am" stroke-opacity="0.75"/>
+  <text x="891" y="416" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity="0.45">wss · REST</text>
+  <circle cx="1004" cy="430" r="8" fill="url(#acc)"/>
+  <circle class="ab" cx="1004" cy="430" r="14" fill="none" stroke="#06b6d4" stroke-opacity="0.35" style="animation-delay:2s"/>
+  <rect x="1028" y="414" width="88" height="32" rx="16" fill="#22d3ee" fill-opacity="0.15" stroke="#22d3ee" stroke-opacity="0.4"/>
+  <text x="1072" y="436" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#22d3ee">MEXC</text>
+</g>
+<g>
+  <rect x="630" y="492" width="76" height="31.5" rx="15.75" fill="#14b8a6" fill-opacity="0.15" stroke="#14b8a6" stroke-opacity="0.4"/>
+  <text x="668" y="513.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#14b8a6">PMM</text>
+</g>
+<g>
+  <rect x="726" y="492" width="88" height="31.5" rx="15.75" fill="#22d3ee" fill-opacity="0.15" stroke="#22d3ee" stroke-opacity="0.4"/>
+  <text x="770" y="513.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#22d3ee">XEMM</text>
+</g>
+<g class="ap">
+  <rect x="834" y="492" width="160" height="31.5" rx="15.75" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="914" y="513.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#34d399">HMAC secured</text>
+</g></g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" fill="#fff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#ffffff" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="80.5" height="31.5" rx="15.75" fill="#14b8a6" fill-opacity="0.15" stroke="#14b8a6" stroke-opacity="0.4"/>
+  <text x="104.25" y="227.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#14b8a6">ADDON</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" letter-spacing="-2" fill="#ffffff">Hummingbot</text>
+<text x="64" y="374" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="64" font-weight="800" letter-spacing="-2" fill="#ffffff">Connector</text>
+<text x="64" y="430" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">Bridge your orderbooks to Hummingbot</text>
+<text x="64" y="468" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">v2 for PMM &amp; XEMM market making.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#ffffff" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

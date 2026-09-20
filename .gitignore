@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.pnpm-store/
 .pnp
 .pnp.js
 
@@ -10,7 +11,9 @@ out/
 frontend/dist/
 
 # Logs
-logs/
+/logs/
+/backend/logs/
+/frontend/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -20,6 +23,8 @@ yarn-error.log*
 # Environment files
 .env
 .env*.local
+.env.*
+!.env.example
 
 # OS files
 .DS_Store
@@ -36,6 +41,17 @@ next-env.d.ts
 
 # Testing
 coverage/
+.auth.json
+/e2e/coverage/
+/e2e/playwright-report/
+/e2e/test-results/
+/e2e/.results/
+/e2e/.cache/
+/e2e/**/.quota.json
+/e2e/**/.split-logs/
+/e2e/**/screenshots/
+/e2e/**/shots/
+/e2e/.reviewer-credentials.json
 
 # Vercel
 .vercel
@@ -66,11 +82,13 @@ frontend/public/i18n/
 .million
 
 # Local folders
+/preview
 /plans
 /wp
 /lic
 /license
 /envato
+/store
 /explorer
 /updates
 /docs-server
@@ -78,6 +96,8 @@ frontend/public/i18n/
 # Data folders
 /data
 backend/data/chart/
+backend/storage/
+backend/backup/
 
 # Database sync
 .sync-hash
@@ -96,7 +116,6 @@ TODO.md
 docs/patch-notes-data.json
 /docs/dist
 /docs/patch-notes
-/preview
 /frontend/public/img/screenshots
 /backend/ecosystem/wallets
 /.omc
@@ -104,3 +123,34 @@ docs/patch-notes-data.json
 /frontend/.omc
 tools/translation-manager/package-lock.json
 tools/translation-manager/package-lock.json
+/.audit-logs
+
+# Dev hot-reload restart sentinels (touched to ask nodemon for a full restart).
+# One per role so the web and cron dev processes restart independently — see
+# backend/src/utils/dev/restart-scope.ts.
+/backend/dev-restart.json
+/backend/dev-restart.web.json
+/backend/dev-restart.cron.json
+/backend/data/chart-fx
+/.claude
+/scripts/p2p-demo/.demo-state.json
+
+# AI Support knowledge packs — generated from store/content/docs by
+# `pnpm --filter backend knowledge:build`. NOT optional at release: without them
+# `ingestDocPacks()` finds no pack directory, the retrieval index is empty, every
+# question falls below the retrieval floor and escalates, and the symptom reads
+# as "the AI does nothing" rather than as a missing build step. Ignored here
+# because they are derived and ~1 MB of gzip; the release pipeline must build
+# them. Output is byte-stable for an unchanged corpus.
+/backend/knowledge/
+/mobile
+/old-mobile
+/.playwright-mcp
+# Python
+__pycache__/
+*.py[cod]
+/backend/data/chart
+/backend/data/chart-dex
+
+*.mutbak
+/backend/.verif

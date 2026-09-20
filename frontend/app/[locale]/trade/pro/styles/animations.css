@@ -1,0 +1,113 @@
+/* Skeleton shimmer */
+@keyframes tp-skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fade in */
+@keyframes tp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide in from top */
+@keyframes tp-slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide in from bottom */
+@keyframes tp-slide-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Price flash green */
+@keyframes tp-flash-green {
+  0% {
+    background-color: var(--tp-green-bg);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Price flash red */
+@keyframes tp-flash-red {
+  0% {
+    background-color: var(--tp-red-bg);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Pulse */
+@keyframes tp-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Spin */
+@keyframes tp-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animation utility classes */
+.tp-animate-fade-in {
+  animation: tp-fade-in var(--tp-transition-normal) forwards;
+}
+
+.tp-animate-slide-in-top {
+  animation: tp-slide-in-top var(--tp-transition-normal) forwards;
+}
+
+.tp-animate-slide-in-bottom {
+  animation: tp-slide-in-bottom var(--tp-transition-normal) forwards;
+}
+
+.tp-animate-pulse {
+  animation: tp-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.tp-animate-spin {
+  animation: tp-spin 1s linear infinite;
+}
+
+.tp-flash-green {
+  animation: tp-flash-green 0.3s ease-out;
+}
+
+.tp-flash-red {
+  animation: tp-flash-red 0.3s ease-out;
+}

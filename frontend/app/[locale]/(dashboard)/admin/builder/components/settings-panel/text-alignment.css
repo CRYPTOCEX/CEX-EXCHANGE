@@ -1,0 +1,105 @@
+/**
+ * Text behaviour for the page builder's contentEditable elements.
+ *
+ * WHAT THIS FILE USED TO DO, AND WHY IT WAS DANGEROUS
+ * ---------------------------------------------------
+ * `builder/layout.tsx` imports it, so every rule here applies to every page under
+ * `/admin/builder` — including every SHARED component rendered there. Two shapes
+ * abused that reach and neither was visible to any gate, because no design check
+ * had ever opened a `.css` file:
+ *
+ *  1. `.text-left`, `.text-center`, `.text-right`, `.text-justify` were declared
+ *     at top level with `!important`. Those are TAILWIND'S class names, not the
+ *     builder's, so a `text-right` written in any shared component on these
+ *     routes went through this file instead. They also set exactly what Tailwind
+ *     already sets, so they bought nothing — they are deleted rather than
+ *     renamed. The `.editable-content` variants below are the ones that do real
+ *     work: they exist to beat the `text-align: inherit` reset, and they keep
+ *     their `!important` for that reason.
+ *
+ *  2. `[contenteditable="true"] { … }` was UNSCOPED. `components/ui/wysiwyg` is a
+ *     shared contentEditable primitive, so on any builder route it lost its
+ *     border, its background, its font sizing and — via
+ *     `[contenteditable="true"]:focus { box-shadow: none !important }` — the
+ *     focus ring the design system defines through `--ring`. Phase 11e added that
+ *     ring to 774 input call sites precisely because there had not been one.
+ *
+ * Everything is now scoped to `.editable-content`, which is the class
+ * `renderers/elements/editable-content.tsx` actually puts on these elements.
+ *
+ * Also removed: `.builder-text-element`, `.text-element-wrapper` and
+ * `.builder-canvas [contenteditable]`. Those three class names appear in no TSX
+ * anywhere in the repo, so the rules were dead — and the first two were
+ * additionally the reason a naive "does this shadow a utility?" check reported
+ * false positives, since `text-element-wrapper` merely starts with `text-`.
+ */
+
+/* Normalize contentEditable elements to behave like regular elements */
+.editable-content[contenteditable="true"] {
+  /* Reset browser defaults but preserve spacing */
+  outline: none !important;
+  border: none !important;
+  background: transparent !important;
+  /* DON'T reset margin/padding - let element settings control this */
+
+  /* Inherit all text properties to match regular elements */
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  text-align: inherit !important;
+  text-decoration: inherit !important;
+  text-transform: inherit !important;
+  word-spacing: inherit !important;
+  word-break: inherit !important;
+  white-space: inherit !important;
+
+  /* Ensure minimum height to prevent thin line appearance */
+  min-height: 1.2em !important;
+
+  /* Remove any special contentEditable styling */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+
+  /* Ensure cursor behaves correctly */
+  cursor: inherit !important;
+}
+
+/* Force contentEditable elements to respect text alignment. These beat the
+   `text-align: inherit` above, which is the only reason they exist. */
+.editable-content[contenteditable="true"].text-left {
+  text-align: left !important;
+}
+
+.editable-content[contenteditable="true"].text-center {
+  text-align: center !important;
+}
+
+.editable-content[contenteditable="true"].text-right {
+  text-align: right !important;
+}
+
+.editable-content[contenteditable="true"].text-justify {
+  text-align: justify !important;
+}
+
+/* Ensure consistent rendering in both modes */
+.editable-content {
+  /* Normalize display and layout */
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Remove any default contentEditable placeholder pseudo-content across browsers */
+.editable-content[contenteditable="true"]:empty:before {
+  content: none !important;
+}
+
+.editable-content[contenteditable="true"]:empty:after {
+  content: none !important;
+}

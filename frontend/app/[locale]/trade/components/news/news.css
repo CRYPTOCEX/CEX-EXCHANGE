@@ -1,0 +1,174 @@
+/* NewsFeed palette.
+ *
+ * Same idiom as algo.css: `var(--tp-x, <fallback>)`. Inside the Pro workspace
+ * the --tp-* variables are declared, so the feed inherits that palette exactly;
+ * anywhere else they are undefined and the fallback resolves to the Obsidian
+ * token. One component, two shells, no fork and no `dark:` variants — the
+ * tokens underneath already flip with the theme.
+ *
+ * Durations are `calc(Nms * var(--motion-scale, 1))`. They were literal
+ * `100ms`, which put every transition in this file outside the design
+ * panel's speed knob AND outside `prefers-reduced-motion`, which is
+ * implemented by collapsing that same scale.
+ *
+ * The fallbacks are wrapped in hsl() because the Obsidian tokens hold bare HSL
+ * triples (`159 67% 45.1%`), not colours. A bare `var(--card)` here would be an
+ * invalid colour and the whole declaration would be dropped silently.
+ */
+
+.news-feed {
+  --news-bg: var(--tp-bg-secondary, hsl(var(--card)));
+  --news-bg-raised: var(--tp-bg-tertiary, hsl(var(--surface-3)));
+  --news-bg-elevated: var(--tp-bg-elevated, hsl(var(--border-strong)));
+
+  --news-border: var(--tp-border, hsl(var(--border)));
+
+  --news-text: var(--tp-text-primary, hsl(var(--foreground)));
+  --news-text-dim: var(--tp-text-secondary, hsl(var(--muted-foreground)));
+  --news-text-muted: var(--tp-text-muted, hsl(var(--subtle-foreground)));
+
+  --news-blue: var(--tp-blue, hsl(var(--primary)));
+  --news-red: var(--tp-red, hsl(var(--down)));
+
+  background-color: var(--news-bg);
+  color: var(--news-text);
+}
+
+.news-feed-row {
+  border-bottom: 1px solid var(--news-border);
+  transition: background-color calc(100ms * var(--motion-scale, 1)) ease-out;
+}
+
+.news-feed-row:last-child {
+  border-bottom: 0;
+}
+
+.news-feed-row:hover {
+  background-color: var(--news-bg-raised);
+}
+
+.news-feed-link:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--news-blue);
+}
+
+/* Master column of the split layout. The width and the `lg:border-r` are
+ * Tailwind's, but the border COLOUR is set here: Tailwind only sets the width,
+ * and the preflight default would leave the divider on currentColor — bright
+ * body text drawn as a rule down the middle of the view. */
+.news-feed-master {
+  border-color: var(--news-border);
+}
+
+/* Strip above the reading pane in the single-column layout. */
+.news-feed-bar {
+  border-bottom: 1px solid var(--news-border);
+}
+
+.news-feed-option {
+  transition:
+    background-color calc(100ms * var(--motion-scale, 1)) ease-out,
+    box-shadow calc(100ms * var(--motion-scale, 1)) ease-out;
+}
+
+/* Selection is marked on TWO channels — an elevated ground and a rail —
+ * because the ground alone is the same treatment as :hover, and a reader
+ * arrowing down the list could not tell which row the pane is showing.
+ *
+ * `:hover` is named again rather than left to inherit: `.news-feed-row:hover`
+ * above carries a pseudo-class and so outranks a bare class, and without this
+ * the selected row LOSES its ground the moment the pointer crosses it. */
+.news-feed-option-selected,
+.news-feed-option-selected:hover {
+  background-color: var(--news-bg-elevated);
+  box-shadow: inset 2px 0 0 var(--news-blue);
+}
+
+.news-feed-option:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--news-blue);
+}
+
+/* Focus must not erase the selection rail — one box-shadow list replaces the
+ * other, so the selected+focused state has to name both. */
+.news-feed-option-selected:focus-visible {
+  box-shadow: inset 2px 0 0 var(--news-blue), inset 0 0 0 1px var(--news-blue);
+}
+
+/* Artwork sits on the raised ground while it loads, so a slow image is a tile
+ * rather than a hole. StoryImage removes the element outright on error, so this
+ * never lingers as an empty box. */
+.news-feed-thumb,
+.news-feed-hero {
+  background-color: var(--news-bg-raised);
+}
+
+/* The one outbound call to action in the reading pane. */
+.news-feed-cta {
+  border: 1px solid color-mix(in srgb, var(--news-blue) 40%, transparent);
+  background-color: color-mix(in srgb, var(--news-blue) 12%, transparent);
+  color: var(--news-blue);
+  transition:
+    background-color calc(100ms * var(--motion-scale, 1)) ease-out,
+    border-color calc(100ms * var(--motion-scale, 1)) ease-out;
+}
+
+.news-feed-cta:hover {
+  background-color: color-mix(in srgb, var(--news-blue) 20%, transparent);
+  border-color: var(--news-blue);
+}
+
+.news-feed-cta:focus-visible {
+  outline: 2px solid var(--news-blue);
+  outline-offset: 2px;
+}
+
+.news-feed-chip {
+  background-color: var(--news-bg-raised);
+  color: var(--news-text-dim);
+}
+
+.news-feed-chip-desk {
+  /* color-mix keeps the tint on whichever blue the host shell resolved. */
+  background-color: color-mix(in srgb, var(--news-blue) 15%, transparent);
+  color: var(--news-blue);
+}
+
+.news-feed-button {
+  border: 1px solid var(--news-border);
+  color: var(--news-text-dim);
+  transition:
+    background-color calc(100ms * var(--motion-scale, 1)) ease-out,
+    color calc(100ms * var(--motion-scale, 1)) ease-out;
+}
+
+.news-feed-button:hover {
+  background-color: var(--news-bg-raised);
+  color: var(--news-text);
+}
+
+.news-feed-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--news-bg-raised) 25%,
+    var(--news-bg-elevated) 50%,
+    var(--news-bg-raised) 75%
+  );
+  background-size: 200% 100%;
+  animation: news-feed-shimmer 1.5s infinite;
+}
+
+@keyframes news-feed-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .news-feed-skeleton {
+    animation: none;
+  }
+}

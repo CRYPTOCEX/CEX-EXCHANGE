@@ -1,0 +1,301 @@
+{
+  "name": "Moldova",
+  "iso2": "MD",
+  "iso3": "MDA",
+  "phonecode": "373",
+  "states": [
+    {
+      "name": "Anenii Noi",
+      "code": "AN",
+      "cities": [
+        "Anenii Noi",
+        "Varniţa"
+      ]
+    },
+    {
+      "name": "Bălți",
+      "code": "BA",
+      "cities": [
+        "Bălţi"
+      ]
+    },
+    {
+      "name": "Basarabeasca",
+      "code": "BS",
+      "cities": [
+        "Basarabeasca"
+      ]
+    },
+    {
+      "name": "Bender",
+      "code": "BD",
+      "cities": [
+        "Bender"
+      ]
+    },
+    {
+      "name": "Briceni",
+      "code": "BR",
+      "cities": []
+    },
+    {
+      "name": "Cahul",
+      "code": "CA",
+      "cities": [
+        "Cahul",
+        "Giurgiuleşti"
+      ]
+    },
+    {
+      "name": "Călărași",
+      "code": "CL",
+      "cities": [
+        "Călăraşi"
+      ]
+    },
+    {
+      "name": "Cantemir",
+      "code": "CT",
+      "cities": [
+        "Cantemir",
+        "Vişniovca"
+      ]
+    },
+    {
+      "name": "Căușeni",
+      "code": "CS",
+      "cities": [
+        "Căuşeni",
+        "Chiţcani"
+      ]
+    },
+    {
+      "name": "Chișinău",
+      "code": "CU",
+      "cities": [
+        "Chisinau",
+        "Ciorescu",
+        "Cricova",
+        "Sîngera",
+        "Stăuceni",
+        "Vadul lui Vodă",
+        "Vatra"
+      ]
+    },
+    {
+      "name": "Cimișlia",
+      "code": "CM",
+      "cities": [
+        "Cimişlia"
+      ]
+    },
+    {
+      "name": "Criuleni",
+      "code": "CR",
+      "cities": [
+        "Criuleni"
+      ]
+    },
+    {
+      "name": "Dondușeni",
+      "code": "DO",
+      "cities": [
+        "Briceni",
+        "Donduşeni"
+      ]
+    },
+    {
+      "name": "Drochia",
+      "code": "DR",
+      "cities": [
+        "Drochia"
+      ]
+    },
+    {
+      "name": "Dubăsari",
+      "code": "DU",
+      "cities": [
+        "Cocieri",
+        "Ustia"
+      ]
+    },
+    {
+      "name": "Edineț",
+      "code": "ED",
+      "cities": [
+        "Edineţ"
+      ]
+    },
+    {
+      "name": "Fălești",
+      "code": "FA",
+      "cities": [
+        "Fălești"
+      ]
+    },
+    {
+      "name": "Florești",
+      "code": "FL",
+      "cities": [
+        "Floreşti",
+        "Ghindești",
+        "Mărculeşti"
+      ]
+    },
+    {
+      "name": "Gagauzia",
+      "code": "GA",
+      "cities": [
+        "Bugeac",
+        "Ceadîr-Lunga",
+        "Comrat",
+        "Vulcăneşti"
+      ]
+    },
+    {
+      "name": "Glodeni",
+      "code": "GL",
+      "cities": [
+        "Glodeni"
+      ]
+    },
+    {
+      "name": "Hîncești",
+      "code": "HI",
+      "cities": [
+        "Dancu",
+        "Hînceşti"
+      ]
+    },
+    {
+      "name": "Ialoveni",
+      "code": "IA",
+      "cities": [
+        "Ialoveni"
+      ]
+    },
+    {
+      "name": "Leova",
+      "code": "LE",
+      "cities": [
+        "Iargara",
+        "Leova"
+      ]
+    },
+    {
+      "name": "Nisporeni",
+      "code": "NI",
+      "cities": [
+        "Nisporeni"
+      ]
+    },
+    {
+      "name": "Ocnița",
+      "code": "OC",
+      "cities": [
+        "Ocniţa",
+        "Otaci"
+      ]
+    },
+    {
+      "name": "Orhei",
+      "code": "OR",
+      "cities": [
+        "Orhei"
+      ]
+    },
+    {
+      "name": "Rezina",
+      "code": "RE",
+      "cities": [
+        "Rezina",
+        "Saharna"
+      ]
+    },
+    {
+      "name": "Rîșcani",
+      "code": "RI",
+      "cities": [
+        "Rîşcani"
+      ]
+    },
+    {
+      "name": "Sîngerei",
+      "code": "SI",
+      "cities": [
+        "Bilicenii Vechi",
+        "Biruinţa",
+        "Sîngerei"
+      ]
+    },
+    {
+      "name": "Șoldănești",
+      "code": "SD",
+      "cities": [
+        "Şoldăneşti"
+      ]
+    },
+    {
+      "name": "Soroca",
+      "code": "SO",
+      "cities": [
+        "Soroca"
+      ]
+    },
+    {
+      "name": "Ștefan Vodă",
+      "code": "SV",
+      "cities": [
+        "Ştefan Vodă"
+      ]
+    },
+    {
+      "name": "Strășeni",
+      "code": "ST",
+      "cities": [
+        "Bucovăţ",
+        "Strășeni"
+      ]
+    },
+    {
+      "name": "Taraclia",
+      "code": "TA",
+      "cities": [
+        "Taraclia",
+        "Tvardița"
+      ]
+    },
+    {
+      "name": "Telenești",
+      "code": "TE",
+      "cities": [
+        "Mîndreşti",
+        "Teleneşti"
+      ]
+    },
+    {
+      "name": "Transnistria",
+      "code": "SN",
+      "cities": [
+        "Camenca",
+        "Crasnoe",
+        "Dnestrovsc",
+        "Dubăsari",
+        "Hryhoriopol",
+        "Maiac",
+        "Pervomaisc",
+        "Rîbniţa",
+        "Slobozia",
+        "Tiraspol",
+        "Tiraspolul Nou"
+      ]
+    },
+    {
+      "name": "Ungheni",
+      "code": "UN",
+      "cities": [
+        "Ungheni"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Futures Trading">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ma{to{stroke-dashoffset:-120}}
+@keyframes dr{0%{stroke-dashoffset:1000}100%{stroke-dashoffset:0}}
+@keyframes be{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes eq{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.62)}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes px{0%,100%{transform:scaleX(.78)}50%{transform:scaleX(1)}}
+@keyframes fk{0%,100%{transform:scaleY(1);opacity:.85}50%{transform:scaleY(1.22);opacity:1}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.am{animation:ma 4.8s linear infinite}
+.ad{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dr 10s ease-in-out infinite alternate}
+.abe{transform-box:fill-box;transform-origin:center;animation:be 6s ease-in-out infinite}
+.aq{transform-box:fill-box;transform-origin:center bottom;animation:eq 4s ease-in-out infinite}
+.asp{transform-box:fill-box;transform-origin:center;animation:sp 30s linear infinite}
+.apx{transform-box:fill-box;transform-origin:left center;animation:px 8s ease-in-out infinite}
+.afk{transform-box:fill-box;transform-origin:center top;animation:fk 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.am,.ad,.abe,.aq,.asp,.apx,.afk{animation:none}.ad{stroke-dashoffset:0}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#101018"/>
+    <stop offset="1" stop-color="#0a0a10"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fbbf24"/>
+    <stop offset="1" stop-color="#f97316"/>
+  </linearGradient>
+  <linearGradient id="accSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fbbf24" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#fbbf24" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#f97316" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#f97316" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#ffffff" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#ffffff" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="596" y="100" width="560" height="470" rx="18" fill="#000" opacity="0.4"/>
+  <rect x="590" y="90" width="560" height="470" rx="18" fill="#14141d" fill-opacity="0.94" stroke="#ffffff" stroke-opacity="0.12"/>
+  <rect x="590" y="90" width="560" height="46" rx="18" fill="#ffffff" fill-opacity="0.03"/>
+  <line x1="590" y1="136" x2="1150" y2="136" stroke="#ffffff" stroke-opacity="0.08"/>
+  <circle cx="614" cy="113" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="633" cy="113" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="652" cy="113" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="658" y="120" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#ffffff" fill-opacity="0.55">BTC-PERP · Isolated</text>
+</g>
+<g>
+<line x1="640.7142857142857" y1="302.73" x2="640.7142857142857" y2="348.2300000000001" stroke="#34d399" stroke-width="2.5"/>
+<rect x="628.6999999999999" y="318.33000000000004" width="24.02857142857143" height="14.3" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="682.1428571428571" y1="302.73" x2="682.1428571428571" y2="368.25000000000006" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="670.1285714285714" y="318.33000000000004" width="24.02857142857143" height="34.32000000000001" rx="3" fill="#fb7185"/>
+</g><g>
+<line x1="723.5714285714286" y1="314.313" x2="723.5714285714286" y2="366.963" stroke="#34d399" stroke-width="2.5"/>
+<rect x="711.5571428571428" y="329.913" width="24.02857142857143" height="21.450000000000006" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="765" y1="276.98999999999995" x2="765" y2="349.66" stroke="#34d399" stroke-width="2.5"/>
+<rect x="752.9857142857143" y="292.59" width="24.02857142857143" height="41.470000000000006" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="806.4285714285714" y1="276.98999999999995" x2="806.4285714285714" y2="336.79" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="794.4142857142857" y="292.59" width="24.02857142857143" height="28.6" rx="3" fill="#fb7185"/>
+</g><g>
+<line x1="847.8571428571428" y1="288.573" x2="847.8571428571428" y2="335.50300000000004" stroke="#34d399" stroke-width="2.5"/>
+<rect x="835.842857142857" y="304.173" width="24.02857142857143" height="15.730000000000002" rx="3" fill="#34d399"/>
+</g><g class="ap">
+<line x1="889.2857142857142" y1="256.3979999999999" x2="889.2857142857142" y2="323.34799999999996" stroke="#34d399" stroke-width="2.5"/>
+<rect x="877.2714285714285" y="271.99799999999993" width="24.02857142857143" height="35.75" rx="3" fill="#34d399"/>
+</g>
+<g>
+  <circle cx="1035" cy="285" r="82" fill="none" stroke="#ffffff" stroke-opacity="0.1" stroke-width="16"/>
+  <circle class="ap" cx="1035" cy="285" r="82" fill="none" stroke="#fbbf24" stroke-width="16" stroke-linecap="round"
+    stroke-dasharray="401.9 515.2" transform="rotate(-90 1035 285)"/>
+  <text x="1035" y="289" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="45.92" font-weight="800" fill="#ffffff">125x</text>
+  <text x="1035" y="322.72" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18.04" font-weight="600" fill="#ffffff" fill-opacity="0.6">LEVERAGE</text>
+</g>
+<g class="ap">
+  <rect x="620" y="470" width="76.16" height="35.7" rx="17.85" fill="#34d399" />
+  <text x="658.08" y="494.48" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0b0b10">LONG</text>
+</g>
+<g class="ap" style="animation-delay:1.6s">
+  <rect x="722" y="470" width="86.7" height="35.7" rx="17.85" fill="#fb7185" />
+  <text x="765.35" y="494.48" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0b0b10">SHORT</text>
+</g>
+<g>
+  <rect x="840" y="470" width="201.4" height="31.5" rx="15.75" fill="#fbbf24" fill-opacity="0.15" stroke="#fbbf24" stroke-opacity="0.4"/>
+  <text x="940.7" y="491.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#fbbf24">Liquidation engine</text>
+</g></g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" fill="#fff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#ffffff" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="80.5" height="31.5" rx="15.75" fill="#fbbf24" fill-opacity="0.15" stroke="#fbbf24" stroke-opacity="0.4"/>
+  <text x="104.25" y="227.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#fbbf24">ADDON</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#ffffff">Futures</text>
+<text x="64" y="386" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#ffffff">Trading</text>
+<text x="64" y="442" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">Perpetual contracts with leverage</text>
+<text x="64" y="480" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#ffffff" fill-opacity="0.72">and a real liquidation engine.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#ffffff" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

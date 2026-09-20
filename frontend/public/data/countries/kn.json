@@ -1,0 +1,114 @@
+{
+  "name": "Saint Kitts and Nevis",
+  "iso2": "KN",
+  "iso3": "KNA",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Christ Church Nichola Town",
+      "code": "01",
+      "cities": [
+        "Nicola Town"
+      ]
+    },
+    {
+      "name": "Nevis",
+      "code": "N",
+      "cities": []
+    },
+    {
+      "name": "Saint Anne Sandy Point",
+      "code": "02",
+      "cities": [
+        "Sandy Point Town"
+      ]
+    },
+    {
+      "name": "Saint George Basseterre",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Saint George Gingerland",
+      "code": "04",
+      "cities": [
+        "Market Shop"
+      ]
+    },
+    {
+      "name": "Saint James Windward",
+      "code": "05",
+      "cities": [
+        "Newcastle"
+      ]
+    },
+    {
+      "name": "Saint John Capisterre",
+      "code": "06",
+      "cities": [
+        "Dieppe Bay Town"
+      ]
+    },
+    {
+      "name": "Saint John Figtree",
+      "code": "07",
+      "cities": [
+        "Fig Tree"
+      ]
+    },
+    {
+      "name": "Saint Kitts",
+      "code": "K",
+      "cities": []
+    },
+    {
+      "name": "Saint Mary Cayon",
+      "code": "08",
+      "cities": [
+        "Cayon"
+      ]
+    },
+    {
+      "name": "Saint Paul Capisterre",
+      "code": "09",
+      "cities": [
+        "Saint Paul’s"
+      ]
+    },
+    {
+      "name": "Saint Paul Charlestown",
+      "code": "10",
+      "cities": [
+        "Charlestown"
+      ]
+    },
+    {
+      "name": "Saint Peter Basseterre",
+      "code": "11",
+      "cities": [
+        "Monkey Hill"
+      ]
+    },
+    {
+      "name": "Saint Thomas Lowland",
+      "code": "12",
+      "cities": [
+        "Cotton Ground"
+      ]
+    },
+    {
+      "name": "Saint Thomas Middle Island",
+      "code": "13",
+      "cities": [
+        "Middle Island"
+      ]
+    },
+    {
+      "name": "Trinity Palmetto Point",
+      "code": "15",
+      "cities": [
+        "Trinity"
+      ]
+    }
+  ]
+}

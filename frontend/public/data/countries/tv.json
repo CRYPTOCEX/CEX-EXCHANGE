@@ -1,0 +1,63 @@
+{
+  "name": "Tuvalu",
+  "iso2": "TV",
+  "iso3": "TUV",
+  "phonecode": "688",
+  "states": [
+    {
+      "name": "Funafuti",
+      "code": "FUN",
+      "cities": [
+        "Alapi Village",
+        "Fakaifou Village",
+        "Funafuti"
+      ]
+    },
+    {
+      "name": "Nanumanga",
+      "code": "NMG",
+      "cities": [
+        "Toga Village"
+      ]
+    },
+    {
+      "name": "Nanumea",
+      "code": "NMA",
+      "cities": []
+    },
+    {
+      "name": "Niutao Island Council",
+      "code": "NIT",
+      "cities": [
+        "Kulia Village",
+        "Niulakita"
+      ]
+    },
+    {
+      "name": "Nui",
+      "code": "NUI",
+      "cities": [
+        "Tanrake Village"
+      ]
+    },
+    {
+      "name": "Nukufetau",
+      "code": "NKF",
+      "cities": [
+        "Savave Village"
+      ]
+    },
+    {
+      "name": "Nukulaelae",
+      "code": "NKL",
+      "cities": []
+    },
+    {
+      "name": "Vaitupu",
+      "code": "VAI",
+      "cities": [
+        "Asau Village"
+      ]
+    }
+  ]
+}

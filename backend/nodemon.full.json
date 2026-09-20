@@ -1,0 +1,16 @@
+{
+  "//": "Escape hatch: the old behaviour — every change anywhere restarts the whole backend, and there is no in-process hot reload. Run with `npm run dev:full`. Use this if you suspect a hot swap left stale state behind.",
+  "watch": ["./*", "../.env"],
+  "ignore": ["node_modules/*", "dist/*", "storage/*", "data/*"],
+  "ext": "ts,json,env",
+  "delay": 300,
+  "exec": "ts-node --transpile-only -r tsconfig-paths/register -r module-alias/register --project tsconfig.json index.ts",
+  "env": {
+    "NODE_ENV": "development",
+    "HOT_RELOAD": "false",
+    "DEV_FULL_WATCH": "true"
+  },
+  "events": {
+    "restart": "echo 'Backend restarted due to changes...'"
+  }
+}

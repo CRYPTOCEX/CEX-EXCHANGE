@@ -1,0 +1,196 @@
+/* Trading Pro CSS Variables
+ *
+ * These `--tp-*` names are the Pro workspace's public palette API: ~81 .tsx
+ * files under trade/pro/ read them through Tailwind arbitrary values
+ * (`bg-[var(--tp-bg-tertiary)]`), and trade/components/algo/algo.css reads them
+ * through `var(--tp-x, <fallback>)` so the Algo panel matches whichever shell it
+ * is mounted in. The names stay; only what they RESOLVE TO changes.
+ *
+ * Every colour below is now an alias onto an Obsidian design token from
+ * app/globals.css. Nothing here picks a colour any more — this file only maps
+ * the workspace's vocabulary onto the app's. See frontend/DESIGN-SYSTEM.md §3
+ * for the token values and §4 for the translation rules.
+ *
+ * Why this was the whole job: `--tp-*` is not a Tailwind class, so the design
+ * ratchet (`pnpm design:check`, which scans class names) is structurally blind
+ * to it. A complete second palette in raw hex — its own surface ramp, borders,
+ * text ramp and five accents, forked light/dark — survived every earlier phase
+ * because no class-based tool could see it.
+ *
+ * ONE block, not two. The previous file carried a full light `:root` set and a
+ * full `.dark` override; the tokens underneath already flip with the theme, so
+ * re-declaring them per theme would just be a second place for the two themes
+ * to drift apart. `.dark` is kept in the selector list only so that a subtree
+ * that scopes `.dark` locally (scrims over imagery do this — see
+ * DESIGN-SYSTEM.md §8a) recomputes these aliases against that subtree's tokens
+ * instead of inheriting the page-level ones. next-themes runs with
+ * attribute="class" on <html>, so in the normal case both selectors match the
+ * same element.
+ *
+ * Two syntax traps this file exists to avoid repeating:
+ *   - `hsl(var(--x))` CANNOT take hex-alpha concatenation. `hsl(var(--up))1a`
+ *     is not a colour, and the browser drops the whole declaration silently.
+ *     Alpha goes INSIDE: `hsl(var(--up) / 0.1)`.
+ *   - The tokens hold bare HSL triples (`159 67% 45.1%`), not colours, so every
+ *     reference has to be wrapped in `hsl()` right here.
+ */
+
+:root,
+.dark {
+  /* ---------------------------------------------------------------------
+     Surface ramp (R3 — elevation is a ramp, not a gradient)
+
+     Pro's four grounds map onto the Obsidian ramp by role:
+       canvas            -> --background
+       panels / header   -> --card
+       rows, inputs,     -> --surface-3   (globals.css calls this exact set:
+         hover              "input, hover, active")
+       active / selected -> --border-strong ("emphasis")
+
+     --surface-2 is deliberately skipped. In LIGHT mode it is byte-identical to
+     --card (both #FFFFFF in §3), so using it for the row/input ground would
+     make panel headers, inputs and hover states invisible against the panel
+     they sit on. --surface-3 keeps a real tint in both themes.
+     --------------------------------------------------------------------- */
+  --tp-bg-primary: hsl(var(--background));
+  --tp-bg-secondary: hsl(var(--card));
+  --tp-bg-tertiary: hsl(var(--surface-3));
+  --tp-bg-elevated: hsl(var(--border-strong));
+
+  /* Structure. `-subtle` was a dimmer hairline in the old palette, not a
+     different hue, so it is the same token at half strength. */
+  --tp-border: hsl(var(--border));
+  --tp-border-subtle: hsl(var(--border) / 0.5);
+
+  /* ---------------------------------------------------------------------
+     Text ramp
+
+     --tp-text-muted is the single most-used token in the workspace (227 call
+     sites) and lands on --subtle-foreground, which §3 guarantees clears 4.5:1
+     against its own ground — it is used at 9–11px here, so that matters.
+     There is no "disabled" token in Obsidian; disabled ink is the label ink
+     at half strength.
+     --------------------------------------------------------------------- */
+  --tp-text-primary: hsl(var(--foreground));
+  --tp-text-secondary: hsl(var(--muted-foreground));
+  --tp-text-muted: hsl(var(--subtle-foreground));
+  --tp-text-disabled: hsl(var(--subtle-foreground) / 0.5);
+
+  /* ---------------------------------------------------------------------
+     Accents, mapped by MEANING (§4)
+
+     green/red are price direction  -> --up / --down   (R1)
+     blue is the interaction accent -> --primary       (R2)
+     yellow is caution              -> --warning
+     orange is the rung between caution and danger (see below)
+     purple is a categorical tag    -> --chart-4
+
+     `-dim` is the hover state of a FILLED button, so it has to be a deeper
+     shade of the same colour in both themes — an alpha would lighten it on a
+     dark panel and there is no darker sibling token to point at. `black` here
+     is a shade operand, not a colour choice.
+
+     `-bg` is the 10% tint behind a price flash / direction chip.
+     `-fg` is the ink that goes ON the filled colour. --up === --success and
+     --down === --destructive (§3), so their paired *-foreground tokens are the
+     correct inks: near-black in dark mode, where white on the green measures
+     2.34:1.
+     --------------------------------------------------------------------- */
+  --tp-green: hsl(var(--up));
+  --tp-green-dim: color-mix(in srgb, hsl(var(--up)) 82%, black);
+  --tp-green-bg: hsl(var(--up) / 0.1);
+  --tp-green-fg: hsl(var(--success-foreground));
+
+  --tp-red: hsl(var(--down));
+  --tp-red-dim: color-mix(in srgb, hsl(var(--down)) 82%, black);
+  --tp-red-bg: hsl(var(--down) / 0.1);
+  --tp-red-fg: hsl(var(--destructive-foreground));
+
+  --tp-blue: hsl(var(--primary));
+  --tp-blue-dim: color-mix(in srgb, hsl(var(--primary)) 82%, black);
+  --tp-blue-bg: hsl(var(--primary) / 0.1);
+  --tp-blue-fg: hsl(var(--primary-foreground));
+
+  --tp-yellow: hsl(var(--warning));
+
+  /* Orange is NOT a second warning. LeverageSlider paints a four-rung risk
+     ladder — Low green / Medium yellow / High orange / Very High red — so
+     collapsing orange onto --warning would merge two adjacent rungs and lose
+     the distinction the control exists to show. It is the midpoint of the two
+     tokens either side of it, which keeps the ladder monotonic in both themes
+     without inventing a hue. Same job at the liquidation-price readout and the
+     Command Palette's high-risk badge. */
+  --tp-orange: color-mix(
+    in srgb,
+    hsl(var(--warning)) 40%,
+    hsl(var(--destructive))
+  );
+
+  /* Purple was NEVER DEFINED — it is referenced by the "ECO" market tag in
+     MobileMarketSelector and by nothing else, so `bg-[var(--tp-purple)]/15`
+     and `text-[var(--tp-purple)]` both resolved to an invalid colour and were
+     dropped: the badge painted no ground and inherited its parent's ink. That
+     is a market-type label sitting next to a yellow "HOT" badge — categorical
+     identity, not status — so per §4a it takes a fixed slot on the validated
+     categorical chart ramp rather than a status token. --chart-4 is the violet
+     slot, which also preserves the original intent. */
+  --tp-purple: hsl(var(--chart-4));
+}
+
+/* Shared variables (theme-independent) */
+:root {
+  /* Typography */
+  /* var() first so next/font's size-adjusted fallback face is used during
+     swap; the literal name after it covers subtrees outside <body>, where
+     --font-jetbrains-mono is not in scope. */
+  --tp-font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "SF Mono",
+    "Fira Code", "Consolas", monospace;
+  /* `--tp-font-sans` was removed rather than repointed. It named "Inter", which
+     this app never loads, so it only ever resolved to the system stack — the
+     same stack <body> already uses. The workspace now simply inherits the app
+     font (see trading-pro.css), so there is no second sans knob to drift.
+
+     NOTE for whoever wires the admin design panel: `layout.tsx` loads Geist Sans
+     and Geist Mono via next/font, but NOTHING references `--font-geist-sans` or
+     `--font-geist-mono` anywhere in source — only `--font-jetbrains-mono` is
+     actually applied (globals.css). Those two families are downloaded on every
+     page load and never painted. Turning Geist on is a platform-wide typography
+     decision, so it is left alone here. */
+
+  /* Font sizes. `xs`, `lg` and `xl` were removed: nothing consumed them, and a
+     design-management panel must not show knobs that move nothing. */
+  --tp-text-sm: 0.75rem;
+  --tp-text-base: 0.8125rem;
+
+  /* Transitions. `--tp-transition-slow` had no consumers.
+
+     Both are `<duration> <easing>` pairs consumed by `transition:` and
+     `animation:` shorthands. They held literal `100ms ease-out` / `200ms
+     ease-out`, so every workspace transition sat outside `--motion-scale`
+     and outside `prefers-reduced-motion` (which is implemented by collapsing
+     that scale). Routing them through the motion tokens moves all of
+     trading-pro.css and animations.css at once. The `ease-out` fallback is
+     load-bearing: a bare var() with no fallback makes the whole declaration
+     invalid at computed-value time rather than falling back.
+
+     ONE LIMIT OF THE INDIRECTION, measured: `var()` inside a custom property
+     is substituted where that property is DECLARED, so these read the
+     `--motion-scale` in scope at :root, not at the consuming element. A
+     SUBTREE override of the scale therefore would not reach them. Every way
+     the app actually sets it targets :root — the panel's live preview
+     (`documentElement.style`), a saved theme (`@layer admin-theme{:root{…}}`)
+     and `prefers-reduced-motion` — and all three were verified to move these
+     values, so this is a property to know about rather than a live defect. */
+  --tp-transition-fast: calc(100ms * var(--motion-scale, 1))
+    var(--motion-ease-out, ease-out);
+  --tp-transition-normal: calc(200ms * var(--motion-scale, 1))
+    var(--motion-ease-out, ease-out);
+
+  /* Z-index layers. `dropdown`, `tooltip` and `toast` had no consumers; those
+     surfaces are portalled and take the shared app z-scale instead. */
+  --tp-z-panel: 10;
+  /* A maximized panel has to clear its neighbours' resize handles, which sit at
+     z-20 in the same stacking context, while staying under the modal layer. */
+  --tp-z-panel-maximized: 30;
+  --tp-z-modal: 200;
+}

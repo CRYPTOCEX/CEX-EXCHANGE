@@ -1,0 +1,167 @@
+{
+  "name": "Mayotte",
+  "iso2": "YT",
+  "iso3": "MYT",
+  "phonecode": "262",
+  "states": [
+    {
+      "name": "Acoua",
+      "code": "14",
+      "cities": [
+        "Acoua",
+        "Mtsangadoua"
+      ]
+    },
+    {
+      "name": "Bandraboua",
+      "code": "16",
+      "cities": [
+        "Bandraboua",
+        "Bouyouni",
+        "Dzumogne",
+        "Handréma",
+        "Mtsangamboua"
+      ]
+    },
+    {
+      "name": "Bandrélé",
+      "code": "05",
+      "cities": [
+        "Bandrele",
+        "Hamouro",
+        "Mtsamoudou",
+        "Nyambadao"
+      ]
+    },
+    {
+      "name": "Boueni",
+      "code": "07",
+      "cities": [
+        "Bouéni",
+        "Mouanatrindri",
+        "Mzouazia"
+      ]
+    },
+    {
+      "name": "Chiconi",
+      "code": "11",
+      "cities": [
+        "Chiconi",
+        "Sohoa"
+      ]
+    },
+    {
+      "name": "Chirongui",
+      "code": "08",
+      "cities": [
+        "Chirongui",
+        "Miréréni",
+        "Mramadoudou",
+        "Poroani",
+        "Tsimkoura"
+      ]
+    },
+    {
+      "name": "Dembeni",
+      "code": "04",
+      "cities": [
+        "Dembeni",
+        "Hajangoua",
+        "Iloni",
+        "Ongojou",
+        "Tsararano"
+      ]
+    },
+    {
+      "name": "Dzaoudzi",
+      "code": "01",
+      "cities": [
+        "Dzaoudzi",
+        "Labattoir"
+      ]
+    },
+    {
+      "name": "Kani Keli",
+      "code": "06",
+      "cities": [
+        "Kani-Kéli"
+      ]
+    },
+    {
+      "name": "Koungou",
+      "code": "17",
+      "cities": [
+        "Kangani",
+        "Koungou",
+        "Longoni",
+        "Majikavo Koropa",
+        "Trévani"
+      ]
+    },
+    {
+      "name": "M'Tsangamouji",
+      "code": "13",
+      "cities": [
+        "Chembényoumba",
+        "M'Tsangamouji"
+      ]
+    },
+    {
+      "name": "Mamoudzou",
+      "code": "03",
+      "cities": [
+        "Combani",
+        "Kaouéni",
+        "Kavani",
+        "Majikavo Lamir",
+        "Mamoudzou",
+        "Mtsapéré",
+        "Passamainty",
+        "Tsoundzou 1",
+        "Tsoundzou 2",
+        "Vahibé"
+      ]
+    },
+    {
+      "name": "Mtsamboro",
+      "code": "15",
+      "cities": [
+        "Hamjago",
+        "Mtsahara",
+        "Mtsamboro"
+      ]
+    },
+    {
+      "name": "Ouangani",
+      "code": "10",
+      "cities": [
+        "Barakani",
+        "Kahani",
+        "Ouangani"
+      ]
+    },
+    {
+      "name": "Pamandzi",
+      "code": "02",
+      "cities": [
+        "Pamandzi"
+      ]
+    },
+    {
+      "name": "Sada",
+      "code": "09",
+      "cities": [
+        "Mangajou",
+        "Sada"
+      ]
+    },
+    {
+      "name": "Tsingoni",
+      "code": "12",
+      "cities": [
+        "Miréréni",
+        "Tsingoni"
+      ]
+    }
+  ]
+}

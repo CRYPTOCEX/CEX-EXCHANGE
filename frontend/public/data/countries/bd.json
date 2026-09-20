@@ -1,0 +1,496 @@
+{
+  "name": "Bangladesh",
+  "iso2": "BD",
+  "iso3": "BGD",
+  "phonecode": "880",
+  "states": [
+    {
+      "name": "Bagerhat",
+      "code": "05",
+      "cities": [
+        "Bagerhat"
+      ]
+    },
+    {
+      "name": "Bandarban",
+      "code": "01",
+      "cities": [
+        "Bandarban"
+      ]
+    },
+    {
+      "name": "Barguna",
+      "code": "02",
+      "cities": [
+        "Barguna"
+      ]
+    },
+    {
+      "name": "Barisal ",
+      "code": "A",
+      "cities": []
+    },
+    {
+      "name": "Barishal",
+      "code": "06",
+      "cities": [
+        "Barisal"
+      ]
+    },
+    {
+      "name": "Bhola",
+      "code": "07",
+      "cities": [
+        "Bhola"
+      ]
+    },
+    {
+      "name": "Bogura",
+      "code": "03",
+      "cities": [
+        "Bogra"
+      ]
+    },
+    {
+      "name": "Brahmanbaria",
+      "code": "04",
+      "cities": [
+        "Brahmanbaria"
+      ]
+    },
+    {
+      "name": "Chandpur",
+      "code": "09",
+      "cities": [
+        "Chandpur"
+      ]
+    },
+    {
+      "name": "Chapai Nawabganj",
+      "code": "45",
+      "cities": [
+        "Chapai Nawabganj"
+      ]
+    },
+    {
+      "name": "Chattogram",
+      "code": "10",
+      "cities": [
+        "Chittagong"
+      ]
+    },
+    {
+      "name": "Chittagong ",
+      "code": "B",
+      "cities": []
+    },
+    {
+      "name": "Chuadanga",
+      "code": "12",
+      "cities": [
+        "Chuadanga"
+      ]
+    },
+    {
+      "name": "Cox's Bazar",
+      "code": "11",
+      "cities": [
+        "Cox's Bazar"
+      ]
+    },
+    {
+      "name": "Cumilla",
+      "code": "08",
+      "cities": [
+        "Comilla"
+      ]
+    },
+    {
+      "name": "Dhaka",
+      "code": "13",
+      "cities": [
+        "Dhaka"
+      ]
+    },
+    {
+      "name": "Dhaka ",
+      "code": "C",
+      "cities": []
+    },
+    {
+      "name": "Dinajpur",
+      "code": "14",
+      "cities": [
+        "Dinajpur"
+      ]
+    },
+    {
+      "name": "Faridpur",
+      "code": "15",
+      "cities": [
+        "Faridpur"
+      ]
+    },
+    {
+      "name": "Feni",
+      "code": "16",
+      "cities": [
+        "Feni"
+      ]
+    },
+    {
+      "name": "Gaibandha",
+      "code": "19",
+      "cities": [
+        "Gaibandha"
+      ]
+    },
+    {
+      "name": "Gazipur",
+      "code": "18",
+      "cities": [
+        "Gazipur"
+      ]
+    },
+    {
+      "name": "Gopalganj",
+      "code": "17",
+      "cities": [
+        "Gopalganj"
+      ]
+    },
+    {
+      "name": "Habiganj",
+      "code": "20",
+      "cities": [
+        "Habiganj"
+      ]
+    },
+    {
+      "name": "Jamalpur",
+      "code": "21",
+      "cities": [
+        "Jamalpur"
+      ]
+    },
+    {
+      "name": "Jashore",
+      "code": "22",
+      "cities": [
+        "Jessore"
+      ]
+    },
+    {
+      "name": "Jhalakathi",
+      "code": "25",
+      "cities": [
+        "Jhalokati"
+      ]
+    },
+    {
+      "name": "Jhenaidah",
+      "code": "23",
+      "cities": [
+        "Jhenaidah"
+      ]
+    },
+    {
+      "name": "Joypurhat",
+      "code": "24",
+      "cities": [
+        "Joypurhat"
+      ]
+    },
+    {
+      "name": "Khagrachhari",
+      "code": "29",
+      "cities": [
+        "Khagrachhari"
+      ]
+    },
+    {
+      "name": "Khulna",
+      "code": "27",
+      "cities": [
+        "Khulna"
+      ]
+    },
+    {
+      "name": "Khulna ",
+      "code": "D",
+      "cities": []
+    },
+    {
+      "name": "Kishoreganj",
+      "code": "26",
+      "cities": [
+        "Kishoreganj"
+      ]
+    },
+    {
+      "name": "Kurigram",
+      "code": "28",
+      "cities": [
+        "Kurigram"
+      ]
+    },
+    {
+      "name": "Kushtia",
+      "code": "30",
+      "cities": [
+        "Kushtia"
+      ]
+    },
+    {
+      "name": "Lakshmipur",
+      "code": "31",
+      "cities": [
+        "Lakshmipur"
+      ]
+    },
+    {
+      "name": "Lalmonirhat",
+      "code": "32",
+      "cities": [
+        "Lalmonirhat"
+      ]
+    },
+    {
+      "name": "Madaripur",
+      "code": "36",
+      "cities": [
+        "Madaripur"
+      ]
+    },
+    {
+      "name": "Magura",
+      "code": "37",
+      "cities": [
+        "Magura"
+      ]
+    },
+    {
+      "name": "Manikganj",
+      "code": "33",
+      "cities": [
+        "Manikganj"
+      ]
+    },
+    {
+      "name": "Meherpur",
+      "code": "39",
+      "cities": [
+        "Meherpur"
+      ]
+    },
+    {
+      "name": "Moulvibazar",
+      "code": "38",
+      "cities": [
+        "Moulvibazar"
+      ]
+    },
+    {
+      "name": "Munshiganj",
+      "code": "35",
+      "cities": [
+        "Munshiganj"
+      ]
+    },
+    {
+      "name": "Mymensingh",
+      "code": "34",
+      "cities": [
+        "Mymensingh"
+      ]
+    },
+    {
+      "name": "Mymensingh ",
+      "code": "H",
+      "cities": []
+    },
+    {
+      "name": "Naogaon",
+      "code": "48",
+      "cities": [
+        "Naogaon"
+      ]
+    },
+    {
+      "name": "Narail",
+      "code": "43",
+      "cities": [
+        "Narail"
+      ]
+    },
+    {
+      "name": "Narayanganj",
+      "code": "40",
+      "cities": [
+        "Narayanganj"
+      ]
+    },
+    {
+      "name": "Narsingdi",
+      "code": "42",
+      "cities": [
+        "Narsingdi"
+      ]
+    },
+    {
+      "name": "Natore",
+      "code": "44",
+      "cities": [
+        "Natore"
+      ]
+    },
+    {
+      "name": "Netrakona",
+      "code": "41",
+      "cities": [
+        "Netrokona"
+      ]
+    },
+    {
+      "name": "Nilphamari",
+      "code": "46",
+      "cities": [
+        "Nilphamari"
+      ]
+    },
+    {
+      "name": "Noakhali",
+      "code": "47",
+      "cities": [
+        "Noakhali"
+      ]
+    },
+    {
+      "name": "Pabna",
+      "code": "49",
+      "cities": [
+        "Pabna"
+      ]
+    },
+    {
+      "name": "Panchagarh",
+      "code": "52",
+      "cities": [
+        "Panchagarh"
+      ]
+    },
+    {
+      "name": "Patuakhali",
+      "code": "51",
+      "cities": [
+        "Patuakhali"
+      ]
+    },
+    {
+      "name": "Pirojpur",
+      "code": "50",
+      "cities": [
+        "Pirojpur"
+      ]
+    },
+    {
+      "name": "Rajbari",
+      "code": "53",
+      "cities": [
+        "Rajbari"
+      ]
+    },
+    {
+      "name": "Rajshahi",
+      "code": "54",
+      "cities": [
+        "Rajshahi"
+      ]
+    },
+    {
+      "name": "Rajshahi ",
+      "code": "E",
+      "cities": []
+    },
+    {
+      "name": "Rangamati",
+      "code": "56",
+      "cities": [
+        "Rangamati"
+      ]
+    },
+    {
+      "name": "Rangpur",
+      "code": "55",
+      "cities": [
+        "Rangpur"
+      ]
+    },
+    {
+      "name": "Rangpur ",
+      "code": "F",
+      "cities": []
+    },
+    {
+      "name": "Satkhira",
+      "code": "58",
+      "cities": [
+        "Satkhira"
+      ]
+    },
+    {
+      "name": "Shariatpur",
+      "code": "62",
+      "cities": [
+        "Shariatpur"
+      ]
+    },
+    {
+      "name": "Sherpur",
+      "code": "57",
+      "cities": [
+        "Sherpur"
+      ]
+    },
+    {
+      "name": "Sirajganj",
+      "code": "59",
+      "cities": [
+        "Sirajganj"
+      ]
+    },
+    {
+      "name": "Sunamganj",
+      "code": "61",
+      "cities": [
+        "Sunamganj"
+      ]
+    },
+    {
+      "name": "Sylhet",
+      "code": "60",
+      "cities": [
+        "Sylhet"
+      ]
+    },
+    {
+      "name": "Sylhet ",
+      "code": "G",
+      "cities": []
+    },
+    {
+      "name": "Tangail",
+      "code": "63",
+      "cities": [
+        "Tangail"
+      ]
+    },
+    {
+      "name": "Thakurgaon",
+      "code": "64",
+      "cities": [
+        "Thakurgaon"
+      ]
+    }
+  ]
+}

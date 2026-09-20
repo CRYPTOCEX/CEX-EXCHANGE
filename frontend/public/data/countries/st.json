@@ -1,0 +1,57 @@
+{
+  "name": "Sao Tome and Principe",
+  "iso2": "ST",
+  "iso3": "STP",
+  "phonecode": "239",
+  "states": [
+    {
+      "name": "Água Grande",
+      "code": "01",
+      "cities": [
+        "São Tomé"
+      ]
+    },
+    {
+      "name": "Cantagalo",
+      "code": "02",
+      "cities": [
+        "Santana"
+      ]
+    },
+    {
+      "name": "Caué",
+      "code": "03",
+      "cities": [
+        "São João dos Angolares"
+      ]
+    },
+    {
+      "name": "Lemba",
+      "code": "04",
+      "cities": [
+        "Neves"
+      ]
+    },
+    {
+      "name": "Lobata",
+      "code": "05",
+      "cities": [
+        "Guadalupe"
+      ]
+    },
+    {
+      "name": "Mé-Zóchi",
+      "code": "06",
+      "cities": [
+        "Trindade"
+      ]
+    },
+    {
+      "name": "Príncipe",
+      "code": "P",
+      "cities": [
+        "Santo António"
+      ]
+    }
+  ]
+}

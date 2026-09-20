@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Chart Engine">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ma{to{stroke-dashoffset:-120}}
+@keyframes dr{0%{stroke-dashoffset:1000}100%{stroke-dashoffset:0}}
+@keyframes be{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes eq{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.62)}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes px{0%,100%{transform:scaleX(.78)}50%{transform:scaleX(1)}}
+@keyframes fk{0%,100%{transform:scaleY(1);opacity:.85}50%{transform:scaleY(1.22);opacity:1}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.am{animation:ma 4.8s linear infinite}
+.ad{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dr 10s ease-in-out infinite alternate}
+.abe{transform-box:fill-box;transform-origin:center;animation:be 6s ease-in-out infinite}
+.aq{transform-box:fill-box;transform-origin:center bottom;animation:eq 4s ease-in-out infinite}
+.asp{transform-box:fill-box;transform-origin:center;animation:sp 30s linear infinite}
+.apx{transform-box:fill-box;transform-origin:left center;animation:px 8s ease-in-out infinite}
+.afk{transform-box:fill-box;transform-origin:center top;animation:fk 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.am,.ad,.abe,.aq,.asp,.apx,.afk{animation:none}.ad{stroke-dashoffset:0}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f6f8fb"/>
+    <stop offset="1" stop-color="#eceff4"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#60a5fa"/>
+    <stop offset="1" stop-color="#6366f1"/>
+  </linearGradient>
+  <linearGradient id="accSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#60a5fa" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#60a5fa" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#6366f1" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#0f172a" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="596" y="95" width="560" height="480" rx="18" fill="#334155" opacity="0.14"/>
+  <rect x="590" y="85" width="560" height="480" rx="18" fill="#ffffff" fill-opacity="0.94" stroke="#0f172a" stroke-opacity="0.12"/>
+  <rect x="590" y="85" width="560" height="46" rx="18" fill="#0f172a" fill-opacity="0.03"/>
+  <line x1="590" y1="131" x2="1150" y2="131" stroke="#0f172a" stroke-opacity="0.08"/>
+  <circle cx="614" cy="108" r="5.5" fill="#fb7185" opacity="0.9"/>
+  <circle cx="633" cy="108" r="5.5" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="652" cy="108" r="5.5" fill="#34d399" opacity="0.9"/>
+  <text x="658" y="115" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="600" fill="#0f172a" fill-opacity="0.55">Advanced charting</text>
+</g>
+<g>
+<line x1="643.125" y1="250.10000000000002" x2="643.125" y2="285.1" stroke="#34d399" stroke-width="2.5"/>
+<rect x="629.7125" y="262.1" width="26.825" height="11" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="689.375" y1="250.10000000000002" x2="689.375" y2="300.5" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="675.9625" y="262.1" width="26.825" height="26.400000000000006" rx="3" fill="#fb7185"/>
+</g><g>
+<line x1="735.625" y1="259.01" x2="735.625" y2="299.51" stroke="#34d399" stroke-width="2.5"/>
+<rect x="722.2125" y="271.01" width="26.825" height="16.500000000000004" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="781.875" y1="230.29999999999998" x2="781.875" y2="286.2" stroke="#34d399" stroke-width="2.5"/>
+<rect x="768.4625" y="242.29999999999998" width="26.825" height="31.900000000000006" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="828.125" y1="230.29999999999998" x2="828.125" y2="276.29999999999995" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="814.7125" y="242.29999999999998" width="26.825" height="22" rx="3" fill="#fb7185"/>
+</g><g>
+<line x1="874.375" y1="239.20999999999998" x2="874.375" y2="275.31" stroke="#34d399" stroke-width="2.5"/>
+<rect x="860.9625" y="251.20999999999998" width="26.825" height="12.100000000000001" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="920.625" y1="239.20999999999998" x2="920.625" y2="290.71" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="907.2125" y="251.20999999999998" width="26.825" height="27.500000000000004" rx="3" fill="#fb7185"/>
+</g><g class="ap">
+<line x1="966.875" y1="248.12" x2="966.875" y2="289.72" stroke="#34d399" stroke-width="2.5"/>
+<rect x="953.4625" y="260.12" width="26.825" height="17.6" rx="3" fill="#34d399"/>
+</g>
+<path d="M 620 286 C 646.4285714285714 286, 646.4285714285714 259, 672.8571428571429 259 C 699.2857142857142 259, 699.2857142857142 268, 725.7142857142857 268 C 752.1428571428571 268, 752.1428571428571 232, 778.5714285714286 232 C 805 232, 805 241, 831.4285714285714 241 C 857.8571428571429 241, 857.8571428571429 214, 884.2857142857142 214 C 910.7142857142857 214, 910.7142857142857 223, 937.1428571428571 223 C 963.5714285714286 223, 963.5714285714286 187, 990 187" fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 10" class="am"/>
+<line x1="620" y1="378" x2="1120" y2="378" stroke="#0f172a" stroke-opacity="0.09"/>
+<path d="M 620 433.6 C 655.7142857142858 433.6, 655.7142857142858 413.8, 691.4285714285714 413.8 C 727.1428571428571 413.8, 727.1428571428571 440.2, 762.8571428571429 440.2 C 798.5714285714286 440.2, 798.5714285714286 407.2, 834.2857142857142 407.2 C 870 407.2, 870 427, 905.7142857142858 427 C 941.4285714285714 427, 941.4285714285714 410.5, 977.1428571428571 410.5 C 1012.8571428571428 410.5, 1012.8571428571428 436.9, 1048.5714285714284 436.9 C 1084.2857142857142 436.9, 1084.2857142857142 420.4, 1120 420.4" fill="none" stroke="#6366f1" stroke-width="4" stroke-linecap="round" class="ad" pathLength="1000"/>
+<line x1="620" y1="486" x2="1120" y2="486" stroke="#0f172a" stroke-opacity="0.09"/>
+<rect x="620" y="500" width="190" height="14" rx="7" fill="#34d399" opacity="0.3"/><rect x="620" y="518" width="455" height="14" rx="7" fill="#34d399" opacity="0.59"/>
+<g class="ap">
+  <rect x="1010" y="140" width="60.04" height="29.400000000000002" rx="14.700000000000001" fill="#60a5fa" fill-opacity="0.15" stroke="#60a5fa" stroke-opacity="0.4"/>
+  <text x="1040.02" y="160.16" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#60a5fa">RSI</text>
+</g>
+<g class="ap" style="animation-delay:1s">
+  <rect x="1010" y="186" width="68.72" height="29.400000000000002" rx="14.700000000000001" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
+  <text x="1044.36" y="206.16" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#6366f1">MACD</text>
+</g>
+<g class="ap" style="animation-delay:2s">
+  <rect x="1010" y="232" width="68.72" height="29.400000000000002" rx="14.700000000000001" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="1044.36" y="252.16" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="14" font-weight="700" fill="#34d399">173+</text>
+</g></g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" fill="#fff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#0f172a" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="80.5" height="31.5" rx="15.75" fill="#60a5fa" fill-opacity="0.15" stroke="#60a5fa" stroke-opacity="0.4"/>
+  <text x="104.25" y="227.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#60a5fa">ADDON</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#0f172a">Chart</text>
+<text x="64" y="386" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#0f172a">Engine</text>
+<text x="64" y="442" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#0f172a" fill-opacity="0.72">Pro charting with 173+</text>
+<text x="64" y="480" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#0f172a" fill-opacity="0.72">indicators, multi-pane.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#0f172a" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

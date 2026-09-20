@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" role="img" aria-label="Bicrypto Mobile">
+<style>
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ma{to{stroke-dashoffset:-120}}
+@keyframes dr{0%{stroke-dashoffset:1000}100%{stroke-dashoffset:0}}
+@keyframes be{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes eq{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.62)}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes px{0%,100%{transform:scaleX(.78)}50%{transform:scaleX(1)}}
+@keyframes fk{0%,100%{transform:scaleY(1);opacity:.85}50%{transform:scaleY(1.22);opacity:1}}
+.af{animation:fl 9s ease-in-out infinite}
+.ap{animation:pu 6s ease-in-out infinite}
+.ab{animation:bl 4s ease-in-out infinite}
+.am{animation:ma 4.8s linear infinite}
+.ad{stroke-dasharray:1000;stroke-dashoffset:1000;animation:dr 10s ease-in-out infinite alternate}
+.abe{transform-box:fill-box;transform-origin:center;animation:be 6s ease-in-out infinite}
+.aq{transform-box:fill-box;transform-origin:center bottom;animation:eq 4s ease-in-out infinite}
+.asp{transform-box:fill-box;transform-origin:center;animation:sp 30s linear infinite}
+.apx{transform-box:fill-box;transform-origin:left center;animation:px 8s ease-in-out infinite}
+.afk{transform-box:fill-box;transform-origin:center top;animation:fk 1.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.af,.ap,.ab,.am,.ad,.abe,.aq,.asp,.apx,.afk{animation:none}.ad{stroke-dashoffset:0}}
+</style>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#f6f8fb"/>
+    <stop offset="1" stop-color="#eceff4"/>
+  </linearGradient>
+  <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#8b5cf6"/>
+    <stop offset="1" stop-color="#6366f1"/>
+  </linearGradient>
+  <linearGradient id="accSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="glowA" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#8b5cf6" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glowB" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#6366f1" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<rect width="1200" height="720" fill="url(#bg)"/>
+<line x1="40" y1="0" x2="40" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="88" y1="0" x2="88" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="136" y1="0" x2="136" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="184" y1="0" x2="184" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="232" y1="0" x2="232" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="280" y1="0" x2="280" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="328" y1="0" x2="328" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="376" y1="0" x2="376" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="424" y1="0" x2="424" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="472" y1="0" x2="472" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="520" y1="0" x2="520" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="568" y1="0" x2="568" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="616" y1="0" x2="616" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="664" y1="0" x2="664" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="712" y1="0" x2="712" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="760" y1="0" x2="760" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="808" y1="0" x2="808" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="856" y1="0" x2="856" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="904" y1="0" x2="904" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="952" y1="0" x2="952" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1000" y1="0" x2="1000" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1048" y1="0" x2="1048" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1096" y1="0" x2="1096" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1144" y1="0" x2="1144" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="1192" y1="0" x2="1192" y2="720" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="40" x2="1200" y2="40" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="88" x2="1200" y2="88" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="136" x2="1200" y2="136" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="184" x2="1200" y2="184" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="232" x2="1200" y2="232" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="280" x2="1200" y2="280" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="328" x2="1200" y2="328" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="376" x2="1200" y2="376" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="424" x2="1200" y2="424" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="472" x2="1200" y2="472" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="520" x2="1200" y2="520" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="568" x2="1200" y2="568" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="616" x2="1200" y2="616" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="664" x2="1200" y2="664" stroke="#0f172a" stroke-opacity="0.025"/><line x1="0" y1="712" x2="1200" y2="712" stroke="#0f172a" stroke-opacity="0.025"/>
+<ellipse class="ap" cx="200" cy="40" rx="560" ry="330" fill="url(#glowA)"/>
+<ellipse class="ap" cx="1080" cy="700" rx="520" ry="320" fill="url(#glowB)" style="animation-delay:1.6s"/>
+<g opacity="0.97">
+<g>
+  <rect x="756" y="95" width="265" height="515" rx="34" fill="#334155" opacity="0.14"/>
+  <rect x="750" y="85" width="265" height="515" rx="34" fill="#ffffff" stroke="#0f172a" stroke-opacity="0.16" stroke-width="2.5"/>
+  <rect x="842.5" y="99" width="80" height="10" rx="5" fill="#0f172a" fill-opacity="0.14"/>
+</g>
+<text x="882" y="158" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0f172a" fill-opacity="0.65">Bicrypto</text>
+<rect x="778" y="178" width="209" height="78" rx="14" fill="url(#acc)"/>
+<text x="798" y="212" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" fill="#0b0b10" fill-opacity="0.7">Balance</text>
+<text x="798" y="238" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="23" font-weight="800" fill="#0b0b10">$12,480.00</text>
+<g>
+<line x1="795.4166666666666" y1="354.1275" x2="795.4166666666666" y2="381.2525" stroke="#34d399" stroke-width="2.5"/>
+<rect x="785.3149999999999" y="363.4275" width="20.203333333333333" height="10" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="830.25" y1="354.1275" x2="830.25" y2="393.1875" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="820.1483333333333" y="363.4275" width="20.203333333333333" height="20.460000000000004" rx="3" fill="#fb7185"/>
+</g><g>
+<line x1="865.0833333333333" y1="361.03275" x2="865.0833333333333" y2="392.42025000000007" stroke="#34d399" stroke-width="2.5"/>
+<rect x="854.9816666666666" y="370.33275000000003" width="20.203333333333333" height="12.787500000000003" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="899.9166666666666" y1="338.78249999999997" x2="899.9166666666666" y2="382.105" stroke="#34d399" stroke-width="2.5"/>
+<rect x="889.8149999999999" y="348.0825" width="20.203333333333333" height="24.722500000000004" rx="3" fill="#34d399"/>
+</g><g>
+<line x1="934.75" y1="338.78249999999997" x2="934.75" y2="374.4325" stroke="#fb7185" stroke-width="2.5"/>
+<rect x="924.6483333333333" y="348.0825" width="20.203333333333333" height="17.05" rx="3" fill="#fb7185"/>
+</g><g class="ap">
+<line x1="969.5833333333334" y1="345.68775" x2="969.5833333333334" y2="373.66525" stroke="#34d399" stroke-width="2.5"/>
+<rect x="959.4816666666667" y="354.98775" width="20.203333333333333" height="10" rx="3" fill="#34d399"/>
+</g>
+<g class="ap">
+  <rect x="778" y="462" width="99" height="44" rx="22" fill="#34d399"/>
+  <text x="827" y="490" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" font-weight="800" fill="#0b0b10">BUY</text>
+</g>
+<g class="ap" style="animation-delay:1.6s">
+  <rect x="888" y="462" width="99" height="44" rx="22" fill="#fb7185"/>
+  <text x="937" y="490" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="17" font-weight="800" fill="#0b0b10">SELL</text>
+</g>
+<rect x="778" y="524" width="209" height="12" rx="6" fill="#0f172a" fill-opacity="0.09"/>
+<g>
+  <rect x="1040" y="250" width="63.76" height="33.6" rx="16.8" fill="#8b5cf6" fill-opacity="0.15" stroke="#8b5cf6" stroke-opacity="0.4"/>
+  <text x="1071.88" y="273.04" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#8b5cf6">iOS</text>
+</g>
+<g>
+  <rect x="1040" y="312" width="103.44" height="33.6" rx="16.8" fill="#6366f1" fill-opacity="0.15" stroke="#6366f1" stroke-opacity="0.4"/>
+  <text x="1091.72" y="335.04" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#6366f1">Android</text>
+</g>
+<g>
+  <rect x="1028" y="374" width="103.44" height="33.6" rx="16.8" fill="#34d399" fill-opacity="0.15" stroke="#34d399" stroke-opacity="0.4"/>
+  <text x="1079.72" y="397.04" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="16" font-weight="700" fill="#34d399">Flutter</text>
+</g></g>
+<g>
+  <rect x="64" y="52" width="46" height="46" rx="13" fill="url(#acc)"/>
+  <text x="87" y="84" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="26" font-weight="900" fill="#fff">M</text>
+  <text x="124" y="82" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="18" font-weight="800" letter-spacing="3.5" fill="#0f172a" fill-opacity="0.9">MASHDIV</text>
+</g>
+<g>
+  <rect x="64" y="206" width="127" height="31.5" rx="15.75" fill="#8b5cf6" fill-opacity="0.15" stroke="#8b5cf6" stroke-opacity="0.4"/>
+  <text x="127.5" y="227.6" text-anchor="middle" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="15" font-weight="700" fill="#8b5cf6">MOBILE APP</text>
+</g>
+<text x="64" y="300" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#0f172a">Bicrypto</text>
+<text x="64" y="386" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="76" font-weight="800" letter-spacing="-2" fill="#0f172a">Mobile</text>
+<text x="64" y="442" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#0f172a" fill-opacity="0.72">Your exchange in their pocket</text>
+<text x="64" y="480" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="27" fill="#0f172a" fill-opacity="0.72">— native Flutter app.</text>
+<g>
+  <circle class="ab" cx="72" cy="642" r="5" fill="#34d399"/>
+  <text x="88" y="649" font-family="Inter, 'Segoe UI', -apple-system, system-ui, sans-serif" font-size="19" fill="#0f172a" fill-opacity="0.55">Instant delivery · Lifetime updates</text>
+</g>
+</svg>

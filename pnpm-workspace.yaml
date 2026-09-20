@@ -1,3 +1,76 @@
 packages:
-  - "frontend"
-  - "backend"
+  - frontend
+  - backend
+  - e2e
+
+confirmModulesPurge: false
+
+ignoredBuiltDependencies:
+  - esbuild
+
+onlyBuiltDependencies:
+  - '@firebase/util'
+  - '@parcel/watcher'
+  - '@reown/appkit'
+  - argon2
+  - bcrypt
+  - bigint-buffer
+  - bufferutil
+  - ccxt
+  - keccak
+  - msgpackr-extract
+  - protobufjs
+  - secp256k1
+  - sharp
+  - unrs-resolver
+  - utf-8-validate
+  - zeromq
+
+overrides:
+  '@jridgewell/trace-mapping': ^0.3.20
+  '@lit/reactive-element': ^2.0.0
+  '@metamask/sdk': 0.30.0
+  '@reown/appkit': 1.8.23
+  '@reown/appkit-adapter-wagmi': 1.8.23
+  '@reown/appkit-common': 1.8.23
+  '@reown/appkit-controllers': 1.8.23
+  '@reown/appkit-core': 1.8.23
+  '@reown/appkit-pay': 1.8.23
+  '@reown/appkit-scaffold-ui': 1.8.23
+  '@reown/appkit-ui': 1.8.23
+  '@reown/appkit-utils': 1.8.23
+  '@reown/appkit-wallet': 1.8.23
+  '@reown/appkit-polyfills': 1.8.23
+  '@tanstack/react-query': ^5.101.4
+  '@types/react': 19.1.9
+  '@types/react-dom': 19.1.7
+  '@wagmi/connectors': 5.11.2
+  '@wagmi/core': 2.21.2
+  '@walletconnect/ethereum-provider': 2.23.1
+  cli-spinners: ^2.9.2
+  form-data: ^4.0.4
+  lit: ^3.3.1
+  log-update: ^5.0.1
+  motion-dom: 12.30.1
+  motion-utils: 12.29.2
+  mysql2: ^3.23.2
+  nth-check: ^2.1.1
+  pbkdf2: ^3.1.3
+  react: 19.1.1
+  react-dom: 19.1.1
+  typescript: 5.9.3
+  viem: ^2.45.0
+  wagmi: ^2.19.5
+  xlsx: ^0.18.5
+
+peerDependencyRules:
+  allowedVersions:
+    lit: '3'
+    react: '19'
+    react-dom: '19'
+    tailwindcss: '4'
+    typescript: '5'
+  ignoreMissing:
+    - react
+    - react-dom
+    - typescript

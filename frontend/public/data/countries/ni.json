@@ -1,0 +1,265 @@
+{
+  "name": "Nicaragua",
+  "iso2": "NI",
+  "iso3": "NIC",
+  "phonecode": "505",
+  "states": [
+    {
+      "name": "Boaco",
+      "code": "BO",
+      "cities": [
+        "Boaco",
+        "Camoapa",
+        "San José de los Remates",
+        "San Lorenzo",
+        "Santa Lucía",
+        "Teustepe"
+      ]
+    },
+    {
+      "name": "Carazo",
+      "code": "CA",
+      "cities": [
+        "Diriamba",
+        "Dolores",
+        "El Rosario",
+        "Jinotepe",
+        "La Conquista",
+        "La Paz de Carazo",
+        "Municipio de San Marcos",
+        "San Marcos",
+        "Santa Teresa"
+      ]
+    },
+    {
+      "name": "Chinandega",
+      "code": "CI",
+      "cities": [
+        "Chichigalpa",
+        "Chinandega",
+        "Cinco Pinos",
+        "Corinto",
+        "El Realejo",
+        "El Viejo",
+        "Jiquilillo",
+        "Municipio de San Francisco del Norte",
+        "Posoltega",
+        "Puerto Morazán",
+        "Santo Tomás del Norte",
+        "Somotillo"
+      ]
+    },
+    {
+      "name": "Chontales",
+      "code": "CO",
+      "cities": [
+        "Acoyapa",
+        "Comalapa",
+        "Cuapa",
+        "El Ayote",
+        "Juigalpa",
+        "La Libertad",
+        "Santo Domingo",
+        "Santo Tomás",
+        "Villa Sandino"
+      ]
+    },
+    {
+      "name": "Estelí",
+      "code": "ES",
+      "cities": [
+        "Condega",
+        "Estelí",
+        "La Trinidad",
+        "Pueblo Nuevo",
+        "San Juan de Limay"
+      ]
+    },
+    {
+      "name": "Granada",
+      "code": "GR",
+      "cities": [
+        "Diriá",
+        "Diriomo",
+        "Granada",
+        "Nandaime"
+      ]
+    },
+    {
+      "name": "Jinotega",
+      "code": "JI",
+      "cities": [
+        "El Cuá",
+        "Jinotega",
+        "La Concordia",
+        "Las Praderas",
+        "LLano de La Cruz",
+        "San José de Bocay",
+        "San Rafael del Norte",
+        "San Sebastián de Yalí"
+      ]
+    },
+    {
+      "name": "León",
+      "code": "LE",
+      "cities": [
+        "Achuapa",
+        "El Jicaral",
+        "El Sauce",
+        "La Paz Centro",
+        "Larreynaga",
+        "León",
+        "Nagarote",
+        "Quezalguaque",
+        "Santa Rosa del Peñón",
+        "Telica"
+      ]
+    },
+    {
+      "name": "Madriz",
+      "code": "MD",
+      "cities": [
+        "Las Sabanas",
+        "Palacagüina",
+        "San José de Cusmapa",
+        "San Juan de Río Coco",
+        "San Lucas",
+        "Somoto",
+        "Telpaneca",
+        "Totogalpa",
+        "Yalagüina"
+      ]
+    },
+    {
+      "name": "Managua",
+      "code": "MN",
+      "cities": [
+        "Ciudad Sandino",
+        "El Crucero",
+        "Managua",
+        "Masachapa",
+        "San Rafael del Sur",
+        "Ticuantepe",
+        "Tipitapa",
+        "Valle San Francisco",
+        "Villa El Carmen"
+      ]
+    },
+    {
+      "name": "Masaya",
+      "code": "MS",
+      "cities": [
+        "Catarina",
+        "La Concepción",
+        "Masatepe",
+        "Masaya",
+        "Municipio de Masatepe",
+        "Municipio de Nandasmo",
+        "Municipio de Niquinohomo",
+        "Municipio de San Juan de Oriente",
+        "Nandasmo",
+        "Nindirí",
+        "Niquinohomo",
+        "San Juan de Oriente",
+        "Tisma"
+      ]
+    },
+    {
+      "name": "Matagalpa",
+      "code": "MT",
+      "cities": [
+        "Ciudad Darío",
+        "Matagalpa",
+        "Matiguás",
+        "Muy Muy",
+        "Río Blanco",
+        "San Dionisio",
+        "San Ramón",
+        "Terrabona"
+      ]
+    },
+    {
+      "name": "North Caribbean Coast",
+      "code": "AN",
+      "cities": [
+        "Bonanza",
+        "Prinzapolka",
+        "Puerto Cabezas",
+        "Siuna",
+        "Waslala",
+        "Waspán"
+      ]
+    },
+    {
+      "name": "Nueva Segovia",
+      "code": "NS",
+      "cities": [
+        "Ciudad Antigua",
+        "Dipilto",
+        "El Jícaro",
+        "Jalapa",
+        "Macuelizo",
+        "Mozonte",
+        "Murra",
+        "Ocotal",
+        "Quilalí",
+        "San Fernando",
+        "Santa María",
+        "Wiwilí"
+      ]
+    },
+    {
+      "name": "Río San Juan",
+      "code": "SJ",
+      "cities": [
+        "El Almendro",
+        "Greytown",
+        "Morrito",
+        "San Carlos",
+        "San Miguelito"
+      ]
+    },
+    {
+      "name": "Rivas",
+      "code": "RI",
+      "cities": [
+        "Altagracia",
+        "Belén",
+        "Buenos Aires",
+        "Cárdenas",
+        "Moyogalpa",
+        "Municipio de Altagracia",
+        "Municipio de Belén",
+        "Municipio de Buenos Aires",
+        "Municipio de Cárdenas",
+        "Municipio de Moyogalpa",
+        "Municipio de Potosí",
+        "Municipio de Rivas",
+        "Municipio de San Jorge",
+        "Municipio de San Juan del Sur",
+        "Municipio de Tola",
+        "Potosí",
+        "Rivas",
+        "San Jorge",
+        "San Juan del Sur",
+        "Tola"
+      ]
+    },
+    {
+      "name": "South Caribbean Coast",
+      "code": "AS",
+      "cities": [
+        "Bluefields",
+        "Bocana de Paiwas",
+        "Corn Island",
+        "El Rama",
+        "El Tortuguero",
+        "Kukrahill",
+        "La Cruz de Río Grande",
+        "Laguna de Perlas",
+        "Muelle de los Bueyes",
+        "Nueva Guinea"
+      ]
+    }
+  ]
+}

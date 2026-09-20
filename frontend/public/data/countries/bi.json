@@ -1,0 +1,132 @@
+{
+  "name": "Burundi",
+  "iso2": "BI",
+  "iso3": "BDI",
+  "phonecode": "257",
+  "states": [
+    {
+      "name": "Bubanza",
+      "code": "BB",
+      "cities": [
+        "Bubanza"
+      ]
+    },
+    {
+      "name": "Bujumbura Mairie",
+      "code": "BM",
+      "cities": [
+        "Bujumbura"
+      ]
+    },
+    {
+      "name": "Bujumbura Rural",
+      "code": "BL",
+      "cities": []
+    },
+    {
+      "name": "Bururi",
+      "code": "BR",
+      "cities": [
+        "Bururi"
+      ]
+    },
+    {
+      "name": "Cankuzo",
+      "code": "CA",
+      "cities": [
+        "Cankuzo"
+      ]
+    },
+    {
+      "name": "Cibitoke",
+      "code": "CI",
+      "cities": [
+        "Cibitoke"
+      ]
+    },
+    {
+      "name": "Gitega",
+      "code": "GI",
+      "cities": [
+        "Gitega"
+      ]
+    },
+    {
+      "name": "Karuzi",
+      "code": "KR",
+      "cities": [
+        "Karuzi"
+      ]
+    },
+    {
+      "name": "Kayanza",
+      "code": "KY",
+      "cities": [
+        "Kayanza"
+      ]
+    },
+    {
+      "name": "Kirundo",
+      "code": "KI",
+      "cities": [
+        "Kirundo"
+      ]
+    },
+    {
+      "name": "Makamba",
+      "code": "MA",
+      "cities": [
+        "Makamba"
+      ]
+    },
+    {
+      "name": "Muramvya",
+      "code": "MU",
+      "cities": [
+        "Muramvya"
+      ]
+    },
+    {
+      "name": "Muyinga",
+      "code": "MY",
+      "cities": [
+        "Muyinga"
+      ]
+    },
+    {
+      "name": "Mwaro",
+      "code": "MW",
+      "cities": [
+        "Mwaro"
+      ]
+    },
+    {
+      "name": "Ngozi",
+      "code": "NG",
+      "cities": [
+        "Ngozi"
+      ]
+    },
+    {
+      "name": "Rumonge",
+      "code": "RM",
+      "cities": [
+        "Rumonge"
+      ]
+    },
+    {
+      "name": "Rutana",
+      "code": "RT",
+      "cities": [
+        "Rutana"
+      ]
+    },
+    {
+      "name": "Ruyigi",
+      "code": "RY",
+      "cities": [
+        "Ruyigi"
+      ]
+    }
+  ]
+}

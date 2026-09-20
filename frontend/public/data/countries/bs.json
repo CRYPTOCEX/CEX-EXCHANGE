@@ -1,0 +1,208 @@
+{
+  "name": "The Bahamas",
+  "iso2": "BS",
+  "iso3": "BHS",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Acklins",
+      "code": "AK",
+      "cities": []
+    },
+    {
+      "name": "Berry Islands",
+      "code": "BY",
+      "cities": []
+    },
+    {
+      "name": "Bimini",
+      "code": "BI",
+      "cities": [
+        "Alice Town"
+      ]
+    },
+    {
+      "name": "Black Point",
+      "code": "BP",
+      "cities": []
+    },
+    {
+      "name": "Cat Island",
+      "code": "CI",
+      "cities": [
+        "Arthur’s Town"
+      ]
+    },
+    {
+      "name": "Central Abaco",
+      "code": "CO",
+      "cities": [
+        "Marsh Harbour"
+      ]
+    },
+    {
+      "name": "Central Andros",
+      "code": "CS",
+      "cities": []
+    },
+    {
+      "name": "Central Eleuthera",
+      "code": "CE",
+      "cities": []
+    },
+    {
+      "name": "Crooked Island",
+      "code": "CK",
+      "cities": [
+        "Colonel Hill"
+      ]
+    },
+    {
+      "name": "East Grand Bahama",
+      "code": "EG",
+      "cities": [
+        "High Rock"
+      ]
+    },
+    {
+      "name": "Exuma",
+      "code": "EX",
+      "cities": [
+        "George Town"
+      ]
+    },
+    {
+      "name": "Freeport",
+      "code": "FP",
+      "cities": [
+        "Freeport",
+        "Lucaya"
+      ]
+    },
+    {
+      "name": "Grand Cay",
+      "code": "GC",
+      "cities": []
+    },
+    {
+      "name": "Harbour Island",
+      "code": "HI",
+      "cities": [
+        "Dunmore Town"
+      ]
+    },
+    {
+      "name": "Hope Town",
+      "code": "HT",
+      "cities": []
+    },
+    {
+      "name": "Inagua",
+      "code": "IN",
+      "cities": [
+        "Matthew Town"
+      ]
+    },
+    {
+      "name": "Long Island",
+      "code": "LI",
+      "cities": [
+        "Clarence Town"
+      ]
+    },
+    {
+      "name": "Mangrove Cay",
+      "code": "MC",
+      "cities": []
+    },
+    {
+      "name": "Mayaguana",
+      "code": "MG",
+      "cities": [
+        "Abraham’s Bay"
+      ]
+    },
+    {
+      "name": "Moore's Island",
+      "code": "MI",
+      "cities": []
+    },
+    {
+      "name": "New Providence",
+      "code": "NP",
+      "cities": [
+        "Nassau"
+      ]
+    },
+    {
+      "name": "North Abaco",
+      "code": "NO",
+      "cities": [
+        "Cooper’s Town"
+      ]
+    },
+    {
+      "name": "North Andros",
+      "code": "NS",
+      "cities": [
+        "Andros Town",
+        "San Andros"
+      ]
+    },
+    {
+      "name": "North Eleuthera",
+      "code": "NE",
+      "cities": []
+    },
+    {
+      "name": "Ragged Island",
+      "code": "RI",
+      "cities": [
+        "Duncan Town"
+      ]
+    },
+    {
+      "name": "Rum Cay",
+      "code": "RC",
+      "cities": [
+        "Port Nelson"
+      ]
+    },
+    {
+      "name": "San Salvador Island",
+      "code": "SS",
+      "cities": [
+        "Cockburn Town"
+      ]
+    },
+    {
+      "name": "South Abaco",
+      "code": "SO",
+      "cities": []
+    },
+    {
+      "name": "South Andros",
+      "code": "SA",
+      "cities": []
+    },
+    {
+      "name": "South Eleuthera",
+      "code": "SE",
+      "cities": []
+    },
+    {
+      "name": "Spanish Wells",
+      "code": "SW",
+      "cities": [
+        "Spanish Wells"
+      ]
+    },
+    {
+      "name": "West Grand Bahama",
+      "code": "WG",
+      "cities": [
+        "West End"
+      ]
+    }
+  ]
+}

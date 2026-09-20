@@ -1,0 +1,575 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:hwf0acla-r-47r-1077-b675-sa0l785klv82",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "Bicrypto Mobile",
+      "version": "5.3.5+6",
+      "purl": "pkg:generic/mobile@5.3.5+6",
+      "supplier": {
+        "name": "MashDiv"
+      }
+    },
+    "supplier": {
+      "name": "MashDiv"
+    },
+    "properties": [
+      {
+        "name": "cdx:scope",
+        "value": "Top-level dependencies only, per CRA Annex I Part II(1). Build-time devDependencies are excluded — they are not components of the product placed on the market."
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "bloc",
+      "version": "8.1.2",
+      "purl": "pkg:pub/bloc@8.1.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^8.1.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cached_network_image",
+      "version": "3.4.1",
+      "purl": "pkg:pub/cached_network_image@3.4.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.4.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "crypto",
+      "version": "3.0.3",
+      "purl": "pkg:pub/crypto@3.0.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.0.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "cupertino_icons",
+      "version": "1.0.6",
+      "purl": "pkg:pub/cupertino_icons@1.0.6",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^1.0.6"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dartz",
+      "version": "0.10.1",
+      "purl": "pkg:pub/dartz@0.10.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^0.10.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dio",
+      "version": "5.4.0",
+      "purl": "pkg:pub/dio@5.4.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^5.4.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "equatable",
+      "version": "2.0.5",
+      "purl": "pkg:pub/equatable@2.0.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.0.5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "file_picker",
+      "version": "8.1.7",
+      "purl": "pkg:pub/file_picker@8.1.7",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^8.1.7"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "firebase_core",
+      "version": "3.8.0",
+      "purl": "pkg:pub/firebase_core@3.8.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.8.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "firebase_messaging",
+      "version": "15.1.5",
+      "purl": "pkg:pub/firebase_messaging@15.1.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^15.1.5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "fl_chart",
+      "version": "0.66.2",
+      "purl": "pkg:pub/fl_chart@0.66.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^0.66.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter",
+      "version": "unknown",
+      "purl": "pkg:pub/flutter@unknown",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "flutter_bloc",
+      "version": "8.1.3",
+      "purl": "pkg:pub/flutter_bloc@8.1.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^8.1.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter_html",
+      "version": "3.0.0-beta.2",
+      "purl": "pkg:pub/flutter_html@3.0.0-beta.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.0.0-beta.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter_local_notifications",
+      "version": "19.3.0",
+      "purl": "pkg:pub/flutter_local_notifications@19.3.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^19.3.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter_localizations",
+      "version": "unknown",
+      "purl": "pkg:pub/flutter_localizations@unknown",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "flutter_secure_storage",
+      "version": "9.0.0",
+      "purl": "pkg:pub/flutter_secure_storage@9.0.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^9.0.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter_stripe",
+      "version": "11.5.0",
+      "purl": "pkg:pub/flutter_stripe@11.5.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^11.5.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "flutter_svg",
+      "version": "2.2.0",
+      "purl": "pkg:pub/flutter_svg@2.2.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.2.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "freezed_annotation",
+      "version": "2.4.4",
+      "purl": "pkg:pub/freezed_annotation@2.4.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.4.4"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "get_it",
+      "version": "7.6.4",
+      "purl": "pkg:pub/get_it@7.6.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^7.6.4"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "go_router",
+      "version": "12.1.3",
+      "purl": "pkg:pub/go_router@12.1.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^12.1.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "google_fonts",
+      "version": "8.2.0",
+      "purl": "pkg:pub/google_fonts@8.2.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^8.2.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "google_sign_in",
+      "version": "6.2.1",
+      "purl": "pkg:pub/google_sign_in@6.2.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^6.2.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "image_picker",
+      "version": "1.0.7",
+      "purl": "pkg:pub/image_picker@1.0.7",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^1.0.7"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "image_picker_android",
+      "version": "0.8.12",
+      "purl": "pkg:pub/image_picker_android@0.8.12",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^0.8.12"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "image_picker_platform_interface",
+      "version": "2.10.0",
+      "purl": "pkg:pub/image_picker_platform_interface@2.10.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.10.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "injectable",
+      "version": "2.3.2",
+      "purl": "pkg:pub/injectable@2.3.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.3.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "intl",
+      "version": "0.20.2",
+      "purl": "pkg:pub/intl@0.20.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^0.20.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "json_annotation",
+      "version": "4.8.1",
+      "purl": "pkg:pub/json_annotation@4.8.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^4.8.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "k_chart_plus",
+      "version": "1.0.2",
+      "purl": "pkg:pub/k_chart_plus@1.0.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^1.0.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "lucide_icons_flutter",
+      "version": "3.1.15",
+      "purl": "pkg:pub/lucide_icons_flutter@3.1.15",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.1.15"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "mime",
+      "version": "1.0.5",
+      "purl": "pkg:pub/mime@1.0.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^1.0.5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "package_info_plus",
+      "version": "8.3.0",
+      "purl": "pkg:pub/package_info_plus@8.3.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^8.3.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "path",
+      "version": "1.9.0",
+      "purl": "pkg:pub/path@1.9.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^1.9.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "path_provider",
+      "version": "2.1.4",
+      "purl": "pkg:pub/path_provider@2.1.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.1.4"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "pull_to_refresh",
+      "version": "2.0.0",
+      "purl": "pkg:pub/pull_to_refresh@2.0.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.0.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "qr_flutter",
+      "version": "4.1.0",
+      "purl": "pkg:pub/qr_flutter@4.1.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^4.1.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "share_plus",
+      "version": "7.2.2",
+      "purl": "pkg:pub/share_plus@7.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^7.2.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "shared_preferences",
+      "version": "2.5.3",
+      "purl": "pkg:pub/shared_preferences@2.5.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.5.3"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "shimmer",
+      "version": "3.0.0",
+      "purl": "pkg:pub/shimmer@3.0.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.0.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "url_launcher",
+      "version": "6.2.2",
+      "purl": "pkg:pub/url_launcher@6.2.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^6.2.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "web_socket_channel",
+      "version": "3.0.3",
+      "purl": "pkg:pub/web_socket_channel@3.0.3",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.0.3"
+        }
+      ]
+    }
+  ]
+}

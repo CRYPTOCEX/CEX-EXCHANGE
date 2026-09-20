@@ -1,0 +1,140 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.NEWS_PROVIDER_CATALOG = void 0;
+exports.newsProviderProfile = newsProviderProfile;
+const constants_1 = require("./constants");
+exports.NEWS_PROVIDER_CATALOG = [
+    {
+        name: "finnhub",
+        title: "Finnhub",
+        description: "Multi-asset newswire covering crypto, equities, forex and M&A. Free tier, generous rate limit, and the provider this feed shipped with.",
+        defaultCategories: ["crypto"],
+        categoryOptions: constants_1.FINNHUB_CATEGORIES,
+        categoryLabel: "Categories",
+        categoryHelp: "Finnhub's own vocabulary. Anything outside general / forex / crypto / merger returns an empty list rather than an error, so a typo costs stories silently.",
+        assetScope: "Crypto, US equities, forex, mergers & acquisitions",
+        tagsSymbols: false,
+        cost: "Free",
+        costDetail: "Market news is free on the registration tier at 60 calls/minute. That is roughly 60x what this job needs — it runs once every 15 minutes.",
+        bestFor: "Any desk that trades more than crypto, and any install that wants a working feed from one free key.",
+        limitations: "Tags nothing: `related` is empty on every story in every category, so the terminal's symbol filter falls back to reading the headline and summary. The merger category is premium on some plans.",
+        redistribution: "The free tier is for personal and internal use. Showing these headlines to your own end users needs a commercial agreement — check your plan before going live.",
+        setup: {
+            signupUrl: "https://finnhub.io/register",
+            consoleUrl: "https://finnhub.io/dashboard",
+            steps: [
+                "Register at finnhub.io — the free key is issued immediately.",
+                "Copy the API key from the dashboard. Use the plain key, not a webhook secret.",
+                "Set APP_FINNHUB_API_KEY in .env at the project root and restart the backend.",
+                "Come back here, press Test, then enable the provider.",
+            ],
+        },
+        configFields: [],
+    },
+    {
+        name: "cryptocompare",
+        title: "CryptoCompare",
+        description: "Crypto newswire aggregated from around 70 publishers, with per-coin and per-topic filtering. Uses the same key as the mobile app's news proxy.",
+        defaultCategories: ["BTC", "ETH", "Trading", "Regulation"],
+        categoryOptions: constants_1.CRYPTOCOMPARE_CATEGORIES,
+        categoryLabel: "Categories",
+        categoryHelp: "Coin codes (BTC, ETH, SOL) and editorial sections (Trading, Mining, Regulation) are both valid here, and the whole list goes to the vendor in one request. Leave it empty for everything.",
+        assetScope: "Crypto only",
+        tagsSymbols: true,
+        cost: "Free",
+        costDetail: "The news endpoint is free on the registration tier and shares your account's monthly call allowance. One call per sync run.",
+        bestFor: "Crypto-only desks that want breadth, images on most stories, and a full article summary rather than a headline.",
+        limitations: "No equities, forex or commodities. Its coin tags come from a mixed field of coins and editorial sections, so tagging is good but not authoritative.",
+        redistribution: "Free-tier data is licensed for non-commercial use. A public trading platform is commercial — check the terms for your account before relying on it in production.",
+        setup: {
+            signupUrl: "https://www.cryptocompare.com/cryptopian/api-keys",
+            consoleUrl: "https://www.cryptocompare.com/cryptopian/api-keys",
+            steps: [
+                "Sign in at cryptocompare.com and open Cryptopian → API Keys.",
+                "Create a key. The default read permissions are all this needs.",
+                "Set APP_CRYPTOCOMPARE_API_KEY in .env at the project root and restart the backend.",
+                "If your mobile app already serves news, this variable is already set and there is nothing to do — press Test to confirm.",
+            ],
+        },
+        configFields: [],
+    },
+    {
+        name: "cryptopanic",
+        title: "CryptoPanic",
+        description: "Crypto news aggregator with sentiment voting. The only source here that tags every story with the instruments it is about.",
+        defaultCategories: [],
+        categoryOptions: ["BTC", "ETH", "SOL", "XRP", "BNB", "ADA", "DOGE"],
+        categoryLabel: "Currencies",
+        categoryHelp: "Asset codes only — this vendor filters by currency, not by topic. Leave it empty to take everything, which is usually what you want since the stories arrive tagged anyway.",
+        assetScope: "Crypto only",
+        tagsSymbols: true,
+        cost: "Free tier, paid for the article text",
+        costDetail: "The developer plan is free and returns headlines with instrument tags. Article bodies and publisher links are on the paid plans.",
+        bestFor: "Making the terminal's per-symbol news filter exact instead of a text match. Enable it alongside another provider rather than on its own.",
+        limitations: "Headlines only on the free plan — no article text and no images, so its cards are sparser than the other providers'. Free-plan links point at the CryptoPanic permalink rather than the publisher.",
+        redistribution: "Their terms require attribution and restrict bulk redistribution. Read them before showing these headlines to end users.",
+        setup: {
+            signupUrl: "https://cryptopanic.com/developers/api/",
+            consoleUrl: "https://cryptopanic.com/developers/api/",
+            steps: [
+                "Create a CryptoPanic account and open Developers → API.",
+                "Copy the auth token shown there.",
+                "Set APP_CRYPTOPANIC_API_KEY in .env at the project root and restart the backend.",
+                "This adapter calls the developer v2 API. If your account is still on the legacy v1 plan the token is the same value and the instrument tags are read from either shape.",
+            ],
+        },
+        configFields: [
+            {
+                key: "filter",
+                type: "select",
+                label: "Sentiment filter",
+                help: "Restrict to posts the community has voted into a bucket. Leave unset for everything.",
+                options: constants_1.CRYPTOPANIC_FILTERS,
+            },
+            {
+                key: "kind",
+                type: "select",
+                label: "Post kind",
+                help: "news is written articles; media is video and podcasts. Unset takes both.",
+                options: ["news", "media"],
+            },
+        ],
+    },
+    {
+        name: "rss",
+        title: "RSS / Atom feeds",
+        description: "Any publisher's own feed, by URL. No account, no key, no quota — and the way to add a source that has no adapter here.",
+        defaultCategories: [],
+        categoryOptions: [],
+        categoryLabel: "",
+        categoryHelp: "",
+        assetScope: "Whatever you point it at",
+        tagsSymbols: false,
+        cost: "Free",
+        costDetail: "No vendor and no account. The only cost is one HTTP request per feed per sync run.",
+        bestFor: "Your own newsroom, a desk research blog, or a publisher whose API you do not want to pay for. Also the only provider that works on an install with no credentials configured at all.",
+        limitations: "No instrument tags and no consistent images — feeds vary enormously in what they carry. Each feed is a separate request inside one cron slot, so a long list makes the sync slow.",
+        redistribution: "A public feed is published to be syndicated, but that is not a blanket licence. Check the publisher's terms, and prefer feeds you own.",
+        setup: {
+            signupUrl: "",
+            consoleUrl: "",
+            steps: [
+                "Find the feed URL — most sites link it as RSS, or it is at /feed or /rss.",
+                "Paste it below. RSS 2.0, RSS 1.0 and Atom are all read.",
+                `Add up to ${constants_1.RSS_MAX_FEEDS} feeds. Give each one a category if you want its stories filterable in the terminal.`,
+                "Press Test — it reads every feed you have added and names the ones that failed.",
+            ],
+        },
+        configFields: [
+            {
+                key: "feeds",
+                type: "feedList",
+                label: "Feeds",
+                help: "http(s) URLs only. The category is optional and is written to each story from that feed.",
+            },
+        ],
+    },
+];
+function newsProviderProfile(name) {
+    return exports.NEWS_PROVIDER_CATALOG.find((profile) => profile.name === name);
+}

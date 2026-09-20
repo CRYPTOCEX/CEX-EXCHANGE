@@ -1,0 +1,227 @@
+{
+  "name": "Uzbekistan",
+  "iso2": "UZ",
+  "iso3": "UZB",
+  "phonecode": "998",
+  "states": [
+    {
+      "name": "Andijan",
+      "code": "AN",
+      "cities": [
+        "Andijon",
+        "Andijon Tumani",
+        "Asaka",
+        "Asaka Tumani",
+        "Baliqchi Tumani",
+        "Bo‘z Tumani",
+        "Buloqboshi Tumani",
+        "Izboskan Tumani",
+        "Jalolkuduk Tumani",
+        "Khŭjaobod Tumani",
+        "Marhamat",
+        "Marhamat Tumani",
+        "Oltinkŭl Tumani",
+        "Pakhtaobod Tumani",
+        "Paxtaobod",
+        "Qo‘rg‘ontepa",
+        "Qŭrghontepa Tumani",
+        "Shahrikhon Tumani",
+        "Shahrixon",
+        "Ulug‘nor Tumani",
+        "Xo‘jaobod"
+      ]
+    },
+    {
+      "name": "Bukhara",
+      "code": "BU",
+      "cities": [
+        "Bukhara",
+        "Galaosiyo",
+        "Gazli",
+        "Ghijduwon",
+        "Karakul’",
+        "Kogon",
+        "Olot",
+        "Peshku Tumani",
+        "Qorako’l",
+        "Qorovulbozor",
+        "Romiton",
+        "Shofirkon",
+        "Wobkent",
+        "Wobkent Tumani"
+      ]
+    },
+    {
+      "name": "Fergana",
+      "code": "FA",
+      "cities": [
+        "Beshariq",
+        "Fergana",
+        "Hamza",
+        "Kirguli",
+        "Marg‘ilon",
+        "Oltiariq",
+        "Qo‘qon",
+        "Quva",
+        "Quvasoy",
+        "Rishton",
+        "Shohimardon",
+        "So‘x Tumani",
+        "Toshloq",
+        "Yangi Marg‘ilon",
+        "Yaypan"
+      ]
+    },
+    {
+      "name": "Jizzakh",
+      "code": "JI",
+      "cities": [
+        "Dashtobod",
+        "Dŭstlik",
+        "Gagarin",
+        "Jizzax",
+        "Paxtakor",
+        "Zomin"
+      ]
+    },
+    {
+      "name": "Karakalpakstan",
+      "code": "QR",
+      "cities": [
+        "Beruniy",
+        "Kegeyli Shahar",
+        "Khŭjayli",
+        "Manghit",
+        "Mŭynoq",
+        "Novyy Turtkul’",
+        "Nukus",
+        "Oltinko‘l"
+      ]
+    },
+    {
+      "name": "Namangan",
+      "code": "NG",
+      "cities": [
+        "Chortoq",
+        "Chust",
+        "Haqqulobod",
+        "Kosonsoy",
+        "Namangan",
+        "Pop",
+        "To‘rqao‘rg‘on",
+        "Toshbuloq",
+        "Uchqŭrghon Shahri",
+        "Uychi",
+        "Yangiqo‘rg‘on"
+      ]
+    },
+    {
+      "name": "Navoiy",
+      "code": "NW",
+      "cities": [
+        "Navoiy",
+        "Nurota",
+        "Qiziltepa",
+        "Yangirabot"
+      ]
+    },
+    {
+      "name": "Qashqadaryo",
+      "code": "QA",
+      "cities": [
+        "Beshkent",
+        "Chiroqchi",
+        "G‘uzor",
+        "Kitob",
+        "Koson",
+        "Muborak",
+        "Nishon Tumani",
+        "Qarshi",
+        "Shahrisabz"
+      ]
+    },
+    {
+      "name": "Samarqand",
+      "code": "SA",
+      "cities": [
+        "Bulung’ur",
+        "Charxin",
+        "Chelak",
+        "Daxbet",
+        "Ishtixon",
+        "Jomboy",
+        "Juma",
+        "Kattaqo‘rg‘on",
+        "Oqtosh",
+        "Payshanba",
+        "Samarkand",
+        "Urgut"
+      ]
+    },
+    {
+      "name": "Sirdaryo",
+      "code": "SI",
+      "cities": [
+        "Guliston",
+        "Sirdaryo",
+        "Yangiyer"
+      ]
+    },
+    {
+      "name": "Surxondaryo",
+      "code": "SU",
+      "cities": [
+        "Boysun",
+        "Denov",
+        "Sho‘rchi",
+        "Tirmiz"
+      ]
+    },
+    {
+      "name": "Tashkent",
+      "code": "TK",
+      "cities": [
+        "Bektemir",
+        "Tashkent"
+      ]
+    },
+    {
+      "name": "Tashkent",
+      "code": "TO",
+      "cities": [
+        "Angren",
+        "Bekobod",
+        "Bo‘ka",
+        "Chinoz",
+        "Chirchiq",
+        "G‘azalkent",
+        "Iskandar",
+        "Kyzyldzhar",
+        "Ohangaron",
+        "Olmaliq",
+        "Parkent",
+        "Piskent",
+        "Qibray",
+        "Salor",
+        "Tŭytepa",
+        "Ŭrtaowul",
+        "Yangiobod",
+        "Yangiyŭl",
+        "Zafar"
+      ]
+    },
+    {
+      "name": "Xorazm",
+      "code": "XO",
+      "cities": [
+        "Boghot Tumani",
+        "Gurlan",
+        "Hazorasp",
+        "Khiwa",
+        "Qŭshkŭpir",
+        "Showot",
+        "Urganch"
+      ]
+    }
+  ]
+}

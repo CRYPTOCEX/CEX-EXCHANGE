@@ -1,0 +1,60 @@
+{
+  "name": "South Sudan",
+  "iso2": "SS",
+  "iso3": "SSD",
+  "phonecode": "211",
+  "states": [
+    {
+      "name": "Central Equatoria",
+      "code": "EC",
+      "cities": []
+    },
+    {
+      "name": "Eastern Equatoria",
+      "code": "EE",
+      "cities": []
+    },
+    {
+      "name": "Jonglei State",
+      "code": "JG",
+      "cities": []
+    },
+    {
+      "name": "Lakes",
+      "code": "LK",
+      "cities": [
+        "Yirol"
+      ]
+    },
+    {
+      "name": "Northern Bahr el Ghazal",
+      "code": "BN",
+      "cities": []
+    },
+    {
+      "name": "Unity",
+      "code": "UY",
+      "cities": []
+    },
+    {
+      "name": "Upper Nile",
+      "code": "NU",
+      "cities": []
+    },
+    {
+      "name": "Warrap",
+      "code": "WR",
+      "cities": []
+    },
+    {
+      "name": "Western Bahr el Ghazal",
+      "code": "BW",
+      "cities": []
+    },
+    {
+      "name": "Western Equatoria",
+      "code": "EW",
+      "cities": []
+    }
+  ]
+}

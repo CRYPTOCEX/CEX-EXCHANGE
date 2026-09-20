@@ -1,0 +1,77 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Referenced from ~293 call sites across 145 files, so this one file decides
+    what a missing image looks like everywhere.
+
+    It used to be slate-100/200/300/400/500 only: a LIGHT asset with no dark arm.
+    Measured against the dark page ground (rgb(6,8,12)), the `#f1f5f9` backdrop
+    is 18.2:1 — a glaring white rectangle on every dark-mode card whose image
+    failed to load.
+
+    WHY HEX AND NOT TOKENS: this file is loaded through `<img src>` / next
+    `<Image>`, so it is a SEPARATE DOCUMENT. The page's CSS custom properties do
+    not cross that boundary and `currentColor` has nothing to inherit from, so
+    a `hsl(var(...))` reference to a surface token cannot work here.
+
+    DO NOT WRITE A DOUBLE HYPHEN ANYWHERE IN THIS COMMENT. XML forbids `-` `-`
+    inside a comment, and every browser treats the whole file as malformed and
+    renders the broken-image glyph instead. Naming the CSS custom properties
+    literally (with their two leading hyphens) is exactly how this file was
+    silently broken at ~293 call sites: the SVG parsed fine in an editor and
+    failed in every browser. Refer to the tokens by bare name below.
+
+    WHAT THIS TRACKS: `prefers-color-scheme` is the only theme signal an
+    <img>-loaded SVG can read, and it reflects the OS setting — NOT the app's
+    class-based `.dark` toggle. A viewer whose OS is light while the app is set
+    to dark still gets the light arm. That is a real limitation; the only full
+    fix is to render the placeholder as an inline React component, which would
+    mean touching all 145 call sites.
+
+    The dark values mirror the app's dark tokens (surface-2, surface-3, border,
+    muted-foreground). Keep them in sync by hand.
+  -->
+  <style>
+    .ph-bg   { fill: #f1f5f9; }
+    .ph-grid { stroke: #e2e8f0; }
+    .ph-card { fill: #cbd5e1; stroke: #94a3b8; }
+    .ph-mark { fill: #94a3b8; }
+    .ph-text { fill: #64748b; }
+    .ph-sub  { fill: #94a3b8; }
+
+    @media (prefers-color-scheme: dark) {
+      .ph-bg   { fill: #121820; }
+      .ph-grid { stroke: #1e2733; }
+      .ph-card { fill: #232f3d; stroke: #55647a; }
+      .ph-mark { fill: #55647a; }
+      .ph-text { fill: #8b97a8; }
+      .ph-sub  { fill: #55647a; }
+    }
+  </style>
+
+  <!-- Background -->
+  <rect width="400" height="400" class="ph-bg"/>
+
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" class="ph-grid" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="400" fill="url(#grid)"/>
+
+  <!-- Center icon -->
+  <g transform="translate(200,200)">
+    <!-- Image icon -->
+    <rect x="-60" y="-45" width="120" height="90" rx="8" class="ph-card" stroke-width="2"/>
+    <circle cx="-30" cy="-15" r="12" class="ph-mark"/>
+    <path d="M-45 15 L-15 -15 L15 15 L45 -5 L45 25 L-45 25 Z" class="ph-mark"/>
+  </g>
+
+  <!-- Text -->
+  <text x="200" y="280" text-anchor="middle" class="ph-text" font-family="Arial, sans-serif" font-size="16" font-weight="500">
+    Image Placeholder
+  </text>
+  <text x="200" y="300" text-anchor="middle" class="ph-sub" font-family="Arial, sans-serif" font-size="12">
+    400 × 400
+  </text>
+</svg>

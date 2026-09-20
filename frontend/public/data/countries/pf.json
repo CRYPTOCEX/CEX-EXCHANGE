@@ -1,0 +1,86 @@
+{
+  "name": "French Polynesia",
+  "iso2": "PF",
+  "iso3": "PYF",
+  "phonecode": "689",
+  "states": [
+    {
+      "name": "Austral Islands",
+      "code": "01",
+      "cities": [
+        "Raivavae",
+        "Rapa",
+        "Rimatara",
+        "Rurutu",
+        "Tubuai"
+      ]
+    },
+    {
+      "name": "Leeward Islands",
+      "code": "02",
+      "cities": [
+        "Bora-Bora",
+        "Huahine",
+        "Maupiti",
+        "Tahaa",
+        "Taputapuatea",
+        "Tumaraa",
+        "Uturoa"
+      ]
+    },
+    {
+      "name": "Marquesas Islands",
+      "code": "03",
+      "cities": [
+        "Fatu-Hiva",
+        "Hiva-Oa",
+        "Nuku-Hiva",
+        "Tahuata",
+        "Ua-Huka",
+        "Ua-Pou"
+      ]
+    },
+    {
+      "name": "Tuamotu-Gambier",
+      "code": "04",
+      "cities": [
+        "Anaa",
+        "Arutua",
+        "Fakarava",
+        "Fangatau",
+        "Gambier",
+        "Hao",
+        "Hikueru",
+        "Makemo",
+        "Manihi",
+        "Napuka",
+        "Nukutavake",
+        "Puka-Puka",
+        "Rangiroa",
+        "Reao",
+        "Takaroa",
+        "Tatakoto",
+        "Tureia"
+      ]
+    },
+    {
+      "name": "Windward Islands",
+      "code": "05",
+      "cities": [
+        "Arue",
+        "Faaa",
+        "Hitiaa O Te Ra",
+        "Mahina",
+        "Moorea-Maiao",
+        "Paea",
+        "Papara",
+        "Papeete",
+        "Pirae",
+        "Punaauia",
+        "Taiarapu-Est",
+        "Taiarapu-Ouest",
+        "Teva I Uta"
+      ]
+    }
+  ]
+}

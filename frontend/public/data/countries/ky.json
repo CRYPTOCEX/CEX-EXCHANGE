@@ -1,0 +1,33 @@
+{
+  "name": "Cayman Islands",
+  "iso2": "KY",
+  "iso3": "CYM",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Cayman Brac",
+      "code": "02",
+      "cities": [
+        "Cayman Brac"
+      ]
+    },
+    {
+      "name": "Grand Cayman",
+      "code": "01",
+      "cities": [
+        "Bodden Town",
+        "East End",
+        "George Town",
+        "North Side",
+        "West Bay"
+      ]
+    },
+    {
+      "name": "Little Cayman",
+      "code": "03",
+      "cities": [
+        "Little Cayman"
+      ]
+    }
+  ]
+}

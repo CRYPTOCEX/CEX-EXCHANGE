@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redirecting to Stripe...</title>
+</head>
+<body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:sans-serif;background:#f9fafb">
+    <div style="text-align:center">
+        <div style="border:3px solid #e5e7eb;border-top:3px solid #2563eb;border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto"></div>
+        <p style="margin-top:16px;color:#6b7280" id="msg">Loading Stripe checkout...</p>
+    </div>
+    <style>@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>
+    <script>
+        // Poll sessionStorage for the checkout URL (parent sets it after API call)
+        var attempts = 0;
+        var maxAttempts = 60; // 30 seconds at 500ms intervals
+        var poll = setInterval(function() {
+            var url = sessionStorage.getItem('stripe_checkout_url');
+            if (url) {
+                clearInterval(poll);
+                sessionStorage.removeItem('stripe_checkout_url');
+                document.getElementById('msg').textContent = 'Redirecting to Stripe...';
+                window.location.href = url;
+                return;
+            }
+            attempts++;
+            if (attempts >= maxAttempts) {
+                clearInterval(poll);
+                document.getElementById('msg').textContent = 'Failed to load payment page. Please close this tab and try again.';
+            }
+        }, 500);
+    </script>
+</body>
+</html>

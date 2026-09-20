@@ -1,0 +1,166 @@
+{
+  "name": "Somalia",
+  "iso2": "SO",
+  "iso3": "SOM",
+  "phonecode": "252",
+  "states": [
+    {
+      "name": "Awdal",
+      "code": "AW",
+      "cities": []
+    },
+    {
+      "name": "Bakool",
+      "code": "BK",
+      "cities": [
+        "Tayeeglow",
+        "Waajid",
+        "Xuddur",
+        "Yeed"
+      ]
+    },
+    {
+      "name": "Banaadir",
+      "code": "BN",
+      "cities": [
+        "Mogadishu"
+      ]
+    },
+    {
+      "name": "Bari",
+      "code": "BR",
+      "cities": [
+        "Bandarbeyla",
+        "Bargaal",
+        "Bereeda",
+        "Bosaso",
+        "Caluula",
+        "Iskushuban",
+        "Qandala"
+      ]
+    },
+    {
+      "name": "Bay",
+      "code": "BY",
+      "cities": [
+        "Baidoa",
+        "Buurhakaba"
+      ]
+    },
+    {
+      "name": "Galguduud",
+      "code": "GA",
+      "cities": [
+        "Ceelbuur",
+        "Ceeldheer",
+        "Dhuusamarreeb"
+      ]
+    },
+    {
+      "name": "Gedo",
+      "code": "GE",
+      "cities": [
+        "Baardheere",
+        "Garbahaarrey",
+        "Luuq"
+      ]
+    },
+    {
+      "name": "Hiran",
+      "code": "HI",
+      "cities": [
+        "Beledweyne",
+        "Buulobarde",
+        "Jalalaqsi"
+      ]
+    },
+    {
+      "name": "Lower Juba",
+      "code": "JH",
+      "cities": [
+        "Buur Gaabo",
+        "Jamaame",
+        "Kismayo"
+      ]
+    },
+    {
+      "name": "Lower Shebelle",
+      "code": "SH",
+      "cities": [
+        "Afgooye",
+        "Marka",
+        "Qoryooley",
+        "Wanlaweyn"
+      ]
+    },
+    {
+      "name": "Middle Juba",
+      "code": "JD",
+      "cities": [
+        "Dujuuma",
+        "Jilib",
+        "Saacow"
+      ]
+    },
+    {
+      "name": "Middle Shebelle",
+      "code": "SD",
+      "cities": [
+        "Cadale",
+        "Jawhar",
+        "Mahaddayweyne"
+      ]
+    },
+    {
+      "name": "Mudug",
+      "code": "MU",
+      "cities": [
+        "Gaalkacyo",
+        "Hobyo",
+        "Xarardheere"
+      ]
+    },
+    {
+      "name": "Nugal",
+      "code": "NU",
+      "cities": [
+        "Eyl",
+        "Garoowe"
+      ]
+    },
+    {
+      "name": "Sanaag",
+      "code": "SA",
+      "cities": [
+        "Ceerigaabo",
+        "Las Khorey"
+      ]
+    },
+    {
+      "name": "Sool",
+      "code": "SO",
+      "cities": [
+        "Aynaba",
+        "Hudun",
+        "Las Anod"
+      ]
+    },
+    {
+      "name": "Togdheer",
+      "code": "TO",
+      "cities": [
+        "Burao",
+        "Ceek",
+        "Oodweyne"
+      ]
+    },
+    {
+      "name": "Woqooyi Galbeed",
+      "code": "WO",
+      "cities": [
+        "Gabiley",
+        "Hargeisa"
+      ]
+    }
+  ]
+}

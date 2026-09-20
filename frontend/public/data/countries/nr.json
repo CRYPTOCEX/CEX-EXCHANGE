@@ -1,0 +1,92 @@
+{
+  "name": "Nauru",
+  "iso2": "NR",
+  "iso3": "NRU",
+  "phonecode": "674",
+  "states": [
+    {
+      "name": "Aiwo",
+      "code": "01",
+      "cities": [
+        "Arijejen"
+      ]
+    },
+    {
+      "name": "Anabar",
+      "code": "02",
+      "cities": [
+        "Anabar"
+      ]
+    },
+    {
+      "name": "Anetan",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Anibare",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Baiti",
+      "code": "05",
+      "cities": [
+        "Baiti"
+      ]
+    },
+    {
+      "name": "Boe",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Buada",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Denigomodu",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Ewa",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Ijuw",
+      "code": "10",
+      "cities": [
+        "Ijuw"
+      ]
+    },
+    {
+      "name": "Meneng",
+      "code": "11",
+      "cities": [
+        "Menen"
+      ]
+    },
+    {
+      "name": "Nibok",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Uaboe",
+      "code": "13",
+      "cities": [
+        "Uaboe"
+      ]
+    },
+    {
+      "name": "Yaren",
+      "code": "14",
+      "cities": [
+        "Yaren"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "name": "Aland Islands",
+  "iso2": "AX",
+  "iso3": "ALA",
+  "phonecode": "358",
+  "states": [
+    {
+      "name": "Brändö",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Eckerö",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "Finström",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Föglö",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Geta",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "Hammarland",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Jomala",
+      "code": "02",
+      "cities": [
+        "Bomarsund",
+        "Finström",
+        "Godby",
+        "Hammarland",
+        "Jomala",
+        "Lemland",
+        "Saltvik",
+        "Sund",
+        "Tjudö",
+        "Yomala",
+        "Ytterby"
+      ]
+    },
+    {
+      "name": "Kökar",
+      "code": "15",
+      "cities": []
+    },
+    {
+      "name": "Kumlinge",
+      "code": "14",
+      "cities": []
+    },
+    {
+      "name": "Lemland",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Lumparland",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "Mariehamn",
+      "code": "01",
+      "cities": [
+        "Mariehamn"
+      ]
+    },
+    {
+      "name": "Saltvik",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Sottunga",
+      "code": "16",
+      "cities": []
+    },
+    {
+      "name": "Sund",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Vårdö",
+      "code": "11",
+      "cities": []
+    }
+  ]
+}

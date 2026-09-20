@@ -1,0 +1,92 @@
+{
+  "name": "Equatorial Guinea",
+  "iso2": "GQ",
+  "iso3": "GNQ",
+  "phonecode": "240",
+  "states": [
+    {
+      "name": "Annobón",
+      "code": "AN",
+      "cities": [
+        "San Antonio de Palé"
+      ]
+    },
+    {
+      "name": "Bioko Norte",
+      "code": "BN",
+      "cities": [
+        "Malabo",
+        "Rebola",
+        "Santiago de Baney"
+      ]
+    },
+    {
+      "name": "Bioko Sur",
+      "code": "BS",
+      "cities": [
+        "Luba"
+      ]
+    },
+    {
+      "name": "Centro Sur",
+      "code": "CS",
+      "cities": [
+        "Acurenam",
+        "Bicurga",
+        "Evinayong"
+      ]
+    },
+    {
+      "name": "Djibloho",
+      "code": "DJ",
+      "cities": [
+        "Ciudad de la Paz",
+        "Mengomeyén"
+      ]
+    },
+    {
+      "name": "Insular",
+      "code": "I",
+      "cities": []
+    },
+    {
+      "name": "Kié-Ntem",
+      "code": "KN",
+      "cities": [
+        "Ebebiyin",
+        "Mikomeseng",
+        "Ncue",
+        "Nsang"
+      ]
+    },
+    {
+      "name": "Litoral",
+      "code": "LI",
+      "cities": [
+        "Bata",
+        "Bitica",
+        "Cogo",
+        "Machinda",
+        "Mbini",
+        "Río Campo"
+      ]
+    },
+    {
+      "name": "Río Muni",
+      "code": "C",
+      "cities": []
+    },
+    {
+      "name": "Wele-Nzas",
+      "code": "WN",
+      "cities": [
+        "Aconibe",
+        "Añisoc",
+        "Ayene",
+        "Mengomeyén",
+        "Mongomo",
+        "Nsok"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "Kuwait",
+  "iso2": "KW",
+  "iso3": "KWT",
+  "phonecode": "965",
+  "states": [
+    {
+      "name": "Al Ahmadi",
+      "code": "AH",
+      "cities": [
+        "Al Aḩmadī",
+        "Al Faḩāḩīl",
+        "Al Finţās",
+        "Al Mahbūlah",
+        "Al Manqaf",
+        "Al Wafrah",
+        "Ar Riqqah"
+      ]
+    },
+    {
+      "name": "Al Asimah",
+      "code": "KU",
+      "cities": [
+        "Ad Dasmah",
+        "Ar Rābiyah",
+        "Ash Shāmīyah",
+        "Az Zawr",
+        "Kuwait City"
+      ]
+    },
+    {
+      "name": "Al Farwaniyah",
+      "code": "FA",
+      "cities": [
+        "Al Farwānīyah",
+        "Janūb as Surrah"
+      ]
+    },
+    {
+      "name": "Al Jahra",
+      "code": "JA",
+      "cities": [
+        "Al Jahrā’"
+      ]
+    },
+    {
+      "name": "Hawalli",
+      "code": "HA",
+      "cities": [
+        "Ar Rumaythīyah",
+        "As Sālimīyah",
+        "Bayān",
+        "Ḩawallī",
+        "Salwá"
+      ]
+    },
+    {
+      "name": "Mubarak Al-Kabeer",
+      "code": "MU",
+      "cities": [
+        "Abu Al Hasaniya",
+        "Abu Fatira",
+        "Al Funayţīs",
+        "Al-Masayel",
+        "Şabāḩ as Sālim"
+      ]
+    }
+  ]
+}

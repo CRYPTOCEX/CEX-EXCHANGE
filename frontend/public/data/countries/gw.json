@@ -1,0 +1,92 @@
+{
+  "name": "Guinea-Bissau",
+  "iso2": "GW",
+  "iso3": "GNB",
+  "phonecode": "245",
+  "states": [
+    {
+      "name": "Bafatá",
+      "code": "BA",
+      "cities": [
+        "Bafatá",
+        "Contuboel Sector"
+      ]
+    },
+    {
+      "name": "Biombo",
+      "code": "BM",
+      "cities": [
+        "Quinhámel"
+      ]
+    },
+    {
+      "name": "Bissau",
+      "code": "BS",
+      "cities": [
+        "Bissau"
+      ]
+    },
+    {
+      "name": "Bolama",
+      "code": "BL",
+      "cities": [
+        "Bolama",
+        "Bubaque"
+      ]
+    },
+    {
+      "name": "Cacheu",
+      "code": "CA",
+      "cities": [
+        "Cacheu",
+        "Canchungo"
+      ]
+    },
+    {
+      "name": "Gabú",
+      "code": "GA",
+      "cities": [
+        "Gabú"
+      ]
+    },
+    {
+      "name": "Leste",
+      "code": "L",
+      "cities": []
+    },
+    {
+      "name": "Norte",
+      "code": "N",
+      "cities": []
+    },
+    {
+      "name": "Oio",
+      "code": "OI",
+      "cities": [
+        "Bissorã",
+        "Farim",
+        "Mansôa"
+      ]
+    },
+    {
+      "name": "Quinara",
+      "code": "QU",
+      "cities": [
+        "Buba"
+      ]
+    },
+    {
+      "name": "Sul",
+      "code": "S",
+      "cities": []
+    },
+    {
+      "name": "Tombali",
+      "code": "TO",
+      "cities": [
+        "Catió",
+        "Quebo"
+      ]
+    }
+  ]
+}

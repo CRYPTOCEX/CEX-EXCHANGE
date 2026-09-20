@@ -1,0 +1,234 @@
+{
+  "name": "Syria",
+  "iso2": "SY",
+  "iso3": "SYR",
+  "phonecode": "963",
+  "states": [
+    {
+      "name": "Al-Hasakah",
+      "code": "HA",
+      "cities": [
+        "Ad Darbāsīyah",
+        "Al Ḩasakah",
+        "Al Mālikīyah",
+        "Al Qāmishlī",
+        "Al-Malikiyah",
+        "Amude"
+      ]
+    },
+    {
+      "name": "Al-Raqqah",
+      "code": "RA",
+      "cities": [
+        "Al-Thawrah",
+        "Ar Raqqah",
+        "Ar-Raqqah",
+        "Ath Thawrah",
+        "Tall Abyaḑ",
+        "Tell Abyad"
+      ]
+    },
+    {
+      "name": "Aleppo",
+      "code": "HL",
+      "cities": [
+        "‘Afrīn",
+        "‘Ayn al ‘Arab",
+        "Afrin",
+        "Al Atārib",
+        "Al Bāb",
+        "Al-Bab",
+        "Aleppo",
+        "As Safīrah",
+        "Azaz",
+        "Dayr Ḩāfir",
+        "I‘zāz",
+        "Jarābulus",
+        "Kafr Şaghīr",
+        "Khanāşir",
+        "Manbij",
+        "Manbij District",
+        "Mount Simeon",
+        "Nubl",
+        "Şūrān",
+        "Tādif",
+        "Tall Rif‘at"
+      ]
+    },
+    {
+      "name": "As-Suwayda",
+      "code": "SU",
+      "cities": [
+        "As-Suwayda",
+        "As-Suwayda District",
+        "Şalākhid",
+        "Şalkhad",
+        "Salkhad District",
+        "Shahbā",
+        "Shahba District"
+      ]
+    },
+    {
+      "name": "Damascus",
+      "code": "DI",
+      "cities": [
+        "Damascus"
+      ]
+    },
+    {
+      "name": "Daraa",
+      "code": "DR",
+      "cities": [
+        "Al Ḩarāk",
+        "Al Muzayrīb",
+        "Al-Sanamayn",
+        "Aş Şanamayn",
+        "Ash Shaykh Miskīn",
+        "Buşrá ash Shām",
+        "Dar‘ā",
+        "Ghabāghib",
+        "Inkhil",
+        "Izra",
+        "Izra‘",
+        "Jāsim",
+        "Nawá",
+        "Ţafas",
+        "Tasīl"
+      ]
+    },
+    {
+      "name": "Deir ez-Zor",
+      "code": "DY",
+      "cities": [
+        "Al Mayādīn",
+        "Ālbū Kamāl",
+        "Deir ez-Zor",
+        "Hajīn",
+        "Subaykhān"
+      ]
+    },
+    {
+      "name": "Hama",
+      "code": "HM",
+      "cities": [
+        "Al-Salamiyah",
+        "As Salamīyah",
+        "As Suqaylibīyah",
+        "Ḩalfāyā",
+        "Hama",
+        "Ḩamāh",
+        "Kafr Zaytā",
+        "Maşyāf",
+        "Masyaf District",
+        "Mūrak",
+        "Souran",
+        "Tall Salḩab",
+        "Ţayyibat al Imām",
+        "Tremseh"
+      ]
+    },
+    {
+      "name": "Homs",
+      "code": "HI",
+      "cities": [
+        "Al Ghanţū",
+        "Al Qaryatayn",
+        "Al Quşayr",
+        "Al-Rastan",
+        "Ar Rastan",
+        "Hisya",
+        "Homs",
+        "Kafr Lāhā",
+        "Mukharram al Fawqānī",
+        "Şadad",
+        "Tadmur",
+        "Tadmur District",
+        "Tallbīsah",
+        "Tallkalakh"
+      ]
+    },
+    {
+      "name": "Idlib",
+      "code": "ID",
+      "cities": [
+        "Ad Dānā",
+        "Arīḩā",
+        "Armanāz",
+        "Binnish",
+        "Darkūsh",
+        "Harem",
+        "Ḩārim",
+        "Idlib",
+        "Jisr al-Shughur",
+        "Jisr ash Shughūr",
+        "Kafr Takhārīm",
+        "Kafranbel",
+        "Khān Shaykhūn",
+        "Ma‘arratmişrīn",
+        "Maarrat al-Nu'man",
+        "Salqīn",
+        "Sarāqib",
+        "Sarmīn",
+        "Taftanāz"
+      ]
+    },
+    {
+      "name": "Latakia",
+      "code": "LA",
+      "cities": [
+        "Al-Haffah",
+        "Jablah",
+        "Jableh",
+        "Kassab",
+        "Latakia",
+        "Latakia District",
+        "Qardaha",
+        "Şlinfah"
+      ]
+    },
+    {
+      "name": "Quneitra",
+      "code": "QU",
+      "cities": [
+        "Al Qunayţirah"
+      ]
+    },
+    {
+      "name": "Rif Dimashq",
+      "code": "RD",
+      "cities": [
+        "‘Irbīn",
+        "Al Kiswah",
+        "Al Quţayfah",
+        "Al-Zabadani",
+        "An Nabk",
+        "At Tall",
+        "Az Zabadānī",
+        "Dārayyā",
+        "Dayr al ‘Aşāfīr",
+        "Douma",
+        "Ḩarastā",
+        "Jaramānā",
+        "Jayrūd",
+        "Ma‘lūlā",
+        "Medaya",
+        "Qārah",
+        "Qaţanā",
+        "Şaydnāyā",
+        "Yabrūd"
+      ]
+    },
+    {
+      "name": "Tartus",
+      "code": "TA",
+      "cities": [
+        "Ad Duraykīsh",
+        "Bāniyās",
+        "Kaff al-Jaa",
+        "Safita",
+        "Satita",
+        "Tartouss"
+      ]
+    }
+  ]
+}

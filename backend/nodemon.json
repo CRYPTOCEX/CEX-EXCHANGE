@@ -1,0 +1,22 @@
+{
+  "//": "The INLINE shape — `pnpm --filter backend dev`, one process serving traffic AND running jobs. `pnpm dev` does not use this file: it starts dev:web and dev:cron, which have their own configs (nodemon.web.json / nodemon.cron.json) watching their own sentinels so that a change only one of them cares about restarts only that one. An inline process has both roles, so it still restarts on everything.",
+  "//2": "src is deliberately NOT watched here — the whole tree is hot-reloaded in-process by src/utils/dev/hot-reload.ts, which purges the edited module's dependent closure when that is safe and touches this role's sentinel when it is not. nodemon only watches what genuinely cannot be swapped: the entry points, the Sequelize models, .env, and that sentinel. types/ is not watched either: it holds nothing but type declarations, which ts-node --transpile-only erases, so a change there cannot affect the running process. If boot itself fails the reloader never starts, so src/utils/dev/boot-guard.ts takes over the sentinel.",
+  "watch": [
+    "index.ts",
+    "thread.ts",
+    "module-alias-setup.ts",
+    "models",
+    "dev-restart.json",
+    "../.env"
+  ],
+  "ignore": ["node_modules/**", "dist/**", "storage/**", "data/**", ".types-hash", ".sync-hash"],
+  "ext": "ts,json,env",
+  "delay": 300,
+  "exec": "tsx --tsconfig tsconfig.json -r tsconfig-paths/register -r module-alias/register index.ts",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "events": {
+    "restart": "echo 'Backend restarting (core change)...'"
+  }
+}

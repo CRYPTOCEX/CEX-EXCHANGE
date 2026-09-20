@@ -1,0 +1,78 @@
+{
+  "name": "Anguilla",
+  "iso2": "AI",
+  "iso3": "AIA",
+  "phonecode": "1",
+  "states": [
+    {
+      "name": "Blowing Point",
+      "code": "01",
+      "cities": []
+    },
+    {
+      "name": "East End",
+      "code": "02",
+      "cities": []
+    },
+    {
+      "name": "George Hill",
+      "code": "03",
+      "cities": []
+    },
+    {
+      "name": "Island Harbour",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "North Hill",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "North Side",
+      "code": "06",
+      "cities": []
+    },
+    {
+      "name": "Sandy Ground",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Sandy Hill",
+      "code": "08",
+      "cities": []
+    },
+    {
+      "name": "South Hill",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Stoney Ground",
+      "code": "10",
+      "cities": []
+    },
+    {
+      "name": "The Farrington",
+      "code": "11",
+      "cities": []
+    },
+    {
+      "name": "The Quarter",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "The Valley",
+      "code": "13",
+      "cities": []
+    },
+    {
+      "name": "West End",
+      "code": "14",
+      "cities": []
+    }
+  ]
+}

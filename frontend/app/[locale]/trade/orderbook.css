@@ -1,0 +1,210 @@
+/*
+ * Order-book motion and depth geometry, shared by both books in this route:
+ * `components/orderbook` (retail) and `pro/components/orderbook` (the docked
+ * terminal). Written against the app-wide `--up` / `--down` tokens rather than
+ * the Pro terminal's `--tp-green` / `--tp-red`, because those are *defined* as
+ * `hsl(var(--up))` in `pro/styles/variables.css` — one source, both trees.
+ *
+ * ---------------------------------------------------------------------------
+ * REDUCED MOTION IS NOT AN EXTRA MEDIA QUERY HERE
+ * ---------------------------------------------------------------------------
+ *
+ * Every duration below is `calc(<ms> * var(--motion-scale, 1))`. `globals.css`
+ * already drops `--motion-scale` to 0.01 under `prefers-reduced-motion: reduce`
+ * for the whole app, so a duration written this way collapses to ~nothing
+ * without a second rule that can rot out of sync with the first. The Pro
+ * terminal's `.tp-flash-green` hardcodes `0.3s` and therefore keeps flashing at
+ * full strength for a reader who asked it not to; nothing here repeats that.
+ *
+ * The one thing the scale cannot express is a *looping* animation, which stays
+ * visible however short each cycle is. Those get an explicit reduce block.
+ *
+ * THERE IS NO PER-LEVEL FLASH HERE. A pulse on every size change was tried and
+ * removed: this platform's books are quoted by its own market maker, which
+ * adjusts size at stable prices continuously, so the flash fired on most
+ * visible rows on most frames whatever its colour or duration. The motion that
+ * remains tracks a QUANTITY (the depth bar's width) rather than an EVENT.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THE DEPTH BAR IS A CUSTOM PROPERTY
+ * ---------------------------------------------------------------------------
+ *
+ * `--ob-depth` is written by React as an inline style on the row; the bar reads
+ * it and transitions. Writing `width` directly from React would also work, but
+ * this way the row owns one variable and the stylesheet owns every visual
+ * decision about it — including which side it grows from, which is a layout
+ * concern the component should not be re-deciding per call site.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Row + depth bar
+ * ------------------------------------------------------------------ */
+
+.ob-row {
+  position: relative;
+  /* Set per row by React. A row that never sets it draws no bar rather than
+     inheriting the previous row's. */
+  --ob-depth: 0%;
+}
+
+.ob-depth {
+  position: absolute;
+  inset-block: 0;
+  width: var(--ob-depth);
+  pointer-events: none;
+  /* `width` rather than a `scaleX` transform, deliberately. A transform would
+     stay off the layout thread, but it also scales the element's paint, and
+     these bars are absolutely positioned siblings inside a row that is being
+     re-rendered anyway on the frame the width changes — so the layout is
+     already dirty and the transform buys nothing. Width keeps the fill's edge
+     crisp at every size and needs no transform-origin per side. */
+  transition: width calc(180ms * var(--motion-scale, 1))
+    var(--motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+}
+
+.ob-depth-bid {
+  background-color: hsl(var(--up) / 0.14);
+}
+
+.ob-depth-ask {
+  background-color: hsl(var(--down) / 0.14);
+}
+
+/* Which edge the fill grows from. A vertical ladder grows from the price
+   column's own edge so the bars form a silhouette against the spread. */
+.ob-depth-right {
+  right: 0;
+}
+
+.ob-depth-left {
+  left: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * New rows
+ * ------------------------------------------------------------------ */
+
+/*
+ * There is NO entry animation on a book row, deliberately.
+ *
+ * It was tried and it is noise. Rows are keyed by price, so the far end of a
+ * ladder mounts and unmounts constantly as the book breathes — every frame, on
+ * an active market — and animating those mounts makes the bottom half of the
+ * book shimmer permanently while saying nothing. A level appearing is not an
+ * event; a level CHANGING is, and the flash already carries it.
+ *
+ * The trade tape is the opposite case: every row there is a discrete event that
+ * happened once, arriving at the top of a list, so it keeps its entrance.
+ */
+.ob-row-enter {
+  animation: ob-row-enter calc(240ms * var(--motion-scale, 1))
+    var(--motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+}
+
+@keyframes ob-row-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Hover-to-cumulative
+ * ------------------------------------------------------------------ */
+
+/*
+ * Every level between the touch of the book and the pointer is tinted, which
+ * is how a trader reads "what would it cost me to sweep to here" without doing
+ * arithmetic. The tint is deliberately weaker than the depth bar it sits over,
+ * so the depth silhouette stays readable underneath.
+ */
+.ob-in-sweep {
+  background-color: hsl(var(--foreground) / 0.07);
+}
+
+/*
+ * The line marks where the sweep STOPS — the boundary between the levels you
+ * would consume and the ones you would not.
+ *
+ * The two ladders grow in opposite directions, so that boundary is not the same
+ * physical edge on both. A bid sweep runs from the best bid at the TOP down to
+ * the pointer, so it ends at the bottom of the hovered row. An ask sweep runs
+ * from the best ask at the BOTTOM up to the pointer, so it ends at the TOP of
+ * the hovered row.
+ *
+ * `bottom: 0` was applied to both. On the ask side that drew the line one row
+ * inside the tinted band rather than around it, which reads as a stray rule
+ * floating in the middle of the highlight instead of closing it off.
+ */
+.ob-sweep-edge::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background-color: hsl(var(--foreground) / 0.35);
+  pointer-events: none;
+}
+
+.ob-sweep-edge[data-side="ask"]::after {
+  top: 0;
+  bottom: auto;
+}
+
+/* ------------------------------------------------------------------ *
+ * Spread strip
+ * ------------------------------------------------------------------ */
+
+/*
+ * A crossed book — best bid at or above best ask — cannot exist in a real
+ * market, so when one is drawn it is a defect somewhere upstream and must not
+ * look like an unusually good spread. It pulses, and because a LOOP is not
+ * silenced by shortening its cycle, this one carries its own reduce rule.
+ */
+.ob-crossed {
+  animation: ob-crossed 1.6s ease-in-out infinite;
+}
+
+@keyframes ob-crossed {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-crossed {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Imbalance bar
+ * ------------------------------------------------------------------ */
+
+.ob-imbalance-fill {
+  transition: width calc(320ms * var(--motion-scale, 1))
+    var(--motion-ease-out, cubic-bezier(0, 0, 0.2, 1));
+}
+
+/* ------------------------------------------------------------------ *
+ * Keyboard focus
+ * ------------------------------------------------------------------ */
+
+/*
+ * The rows are interactive — click fills the order form — so they are focus
+ * targets, and a focus ring drawn with `outline` rather than a ring utility
+ * survives the row's `overflow` and its absolutely positioned children.
+ */
+.ob-row:focus-visible {
+  outline: 2px solid hsl(var(--ring, var(--foreground)));
+  outline-offset: -2px;
+  z-index: 2;
+}

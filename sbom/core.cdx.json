@@ -1,0 +1,210 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:bcf0acla-r-47r-1077-b675-sa0l785klv82",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "Bicrypto",
+      "version": "6.7.7",
+      "purl": "pkg:generic/core@6.7.7",
+      "supplier": {
+        "name": "MashDiv"
+      }
+    },
+    "supplier": {
+      "name": "MashDiv"
+    },
+    "properties": [
+      {
+        "name": "cdx:scope",
+        "value": "Top-level dependencies only, per CRA Annex I Part II(1). Build-time devDependencies are excluded — they are not components of the product placed on the market."
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "@google-cloud/translate",
+      "version": "9.4.2",
+      "purl": "pkg:npm/@google-cloud%2Ftranslate@9.4.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^9.4.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@reown/appkit",
+      "version": "1.8.23",
+      "purl": "pkg:npm/@reown%2Fappkit@1.8.23",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "1.8.23"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@reown/appkit-adapter-wagmi",
+      "version": "1.8.23",
+      "purl": "pkg:npm/@reown%2Fappkit-adapter-wagmi@1.8.23",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "1.8.23"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@tanstack/react-query",
+      "version": "5.101.4",
+      "purl": "pkg:npm/@tanstack%2Freact-query@5.101.4",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^5.101.4"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "@vitalets/google-translate-api",
+      "version": "9.2.1",
+      "purl": "pkg:npm/@vitalets%2Fgoogle-translate-api@9.2.1",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^9.2.1"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ccxt",
+      "version": "4.5.70",
+      "purl": "pkg:npm/ccxt@4.5.70",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^4.5.70"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "dotenv",
+      "version": "17.4.2",
+      "purl": "pkg:npm/dotenv@17.4.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^17.4.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "jose",
+      "version": "5.10.0",
+      "purl": "pkg:npm/jose@5.10.0",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^5.10.0"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "mysql2",
+      "version": "3.23.2",
+      "purl": "pkg:npm/mysql2@3.23.2",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.23.2"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "tonweb",
+      "version": "0.0.66",
+      "purl": "pkg:npm/tonweb@0.0.66",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^0.0.66"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "unstorage",
+      "version": "1.17.5",
+      "purl": "pkg:npm/unstorage@1.17.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "1.17.5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "viem",
+      "version": "2.55.10",
+      "purl": "pkg:npm/viem@2.55.10",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.55.10"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "wagmi",
+      "version": "2.19.5",
+      "purl": "pkg:npm/wagmi@2.19.5",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^2.19.5"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "name": "web-push",
+      "version": "3.6.7",
+      "purl": "pkg:npm/web-push@3.6.7",
+      "scope": "required",
+      "properties": [
+        {
+          "name": "declaredRange",
+          "value": "^3.6.7"
+        }
+      ]
+    }
+  ]
+}

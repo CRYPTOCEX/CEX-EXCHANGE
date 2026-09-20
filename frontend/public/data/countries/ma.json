@@ -1,0 +1,677 @@
+{
+  "name": "Morocco",
+  "iso2": "MA",
+  "iso3": "MAR",
+  "phonecode": "212",
+  "states": [
+    {
+      "name": "Agadir-Ida-Ou-Tanane",
+      "code": "AGD",
+      "cities": []
+    },
+    {
+      "name": "Al Haouz",
+      "code": "HAO",
+      "cities": []
+    },
+    {
+      "name": "Al Hoceïma",
+      "code": "HOC",
+      "cities": []
+    },
+    {
+      "name": "Aousserd (EH)",
+      "code": "AOU",
+      "cities": []
+    },
+    {
+      "name": "Assa-Zag (EH-partial)",
+      "code": "ASZ",
+      "cities": [
+        "Agadir",
+        "Agadir Melloul",
+        "Agadir-Ida-ou-Tnan",
+        "Aoulouz",
+        "Aourir",
+        "Arazane",
+        "Argana",
+        "Bigoudine",
+        "Chtouka-Ait-Baha",
+        "Inezgane",
+        "Inezgane-Ait Melloul",
+        "Ouijjane",
+        "Oulad Teïma",
+        "Reggada",
+        "Sidi Ifni",
+        "Tadrart",
+        "Tafraout",
+        "Taghazout",
+        "Taliouine",
+        "Tamri",
+        "Tanalt",
+        "Taroudannt",
+        "Taroudant",
+        "Tarsouat",
+        "Tata",
+        "Tiznit"
+      ]
+    },
+    {
+      "name": "Azilal",
+      "code": "AZI",
+      "cities": []
+    },
+    {
+      "name": "Béni Mellal",
+      "code": "BEM",
+      "cities": []
+    },
+    {
+      "name": "Béni Mellal-Khénifra",
+      "code": "05",
+      "cities": []
+    },
+    {
+      "name": "Benslimane",
+      "code": "BES",
+      "cities": []
+    },
+    {
+      "name": "Berkane",
+      "code": "BER",
+      "cities": []
+    },
+    {
+      "name": "Berrechid",
+      "code": "BRR",
+      "cities": []
+    },
+    {
+      "name": "Boujdour (EH)",
+      "code": "BOD",
+      "cities": []
+    },
+    {
+      "name": "Boulemane",
+      "code": "BOM",
+      "cities": []
+    },
+    {
+      "name": "Casablanca",
+      "code": "CAS",
+      "cities": []
+    },
+    {
+      "name": "Casablanca-Settat",
+      "code": "06",
+      "cities": [
+        "Azemmour",
+        "Benslimane",
+        "Berrechid",
+        "Berrechid Province",
+        "Boulaouane",
+        "Bouskoura",
+        "Bouznika",
+        "Casablanca",
+        "El Jadid",
+        "El-Jadida",
+        "Mediouna",
+        "Mohammedia",
+        "Nouaceur",
+        "Oualidia",
+        "Oulad Frej",
+        "Settat",
+        "Settat Province",
+        "Sidi Bennour",
+        "Sidi Smai’il",
+        "Tit Mellil",
+        "Zawyat an Nwaçer"
+      ]
+    },
+    {
+      "name": "Chefchaouen",
+      "code": "CHE",
+      "cities": []
+    },
+    {
+      "name": "Chichaoua",
+      "code": "CHI",
+      "cities": []
+    },
+    {
+      "name": "Chtouka-Ait Baha",
+      "code": "CHT",
+      "cities": []
+    },
+    {
+      "name": "Dakhla-Oued Ed-Dahab (EH)",
+      "code": "12",
+      "cities": []
+    },
+    {
+      "name": "Drâa-Tafilalet",
+      "code": "08",
+      "cities": [
+        "Agdz",
+        "Alnif",
+        "Aoufous",
+        "Arfoud",
+        "Errachidia",
+        "Imilchil",
+        "Jebel Tiskaouine",
+        "Jorf",
+        "Kelaat Mgouna",
+        "Mhamid",
+        "Midelt",
+        "Ouarzazat",
+        "Ouarzazate",
+        "Reçani",
+        "Taznakht",
+        "Telouet",
+        "Tinghir",
+        "Tinghir Province",
+        "Zagora"
+      ]
+    },
+    {
+      "name": "Driouch",
+      "code": "DRI",
+      "cities": []
+    },
+    {
+      "name": "El Hajeb",
+      "code": "HAJ",
+      "cities": []
+    },
+    {
+      "name": "El Jadida",
+      "code": "JDI",
+      "cities": []
+    },
+    {
+      "name": "El Kelâa des Sraghna",
+      "code": "KES",
+      "cities": []
+    },
+    {
+      "name": "Errachidia",
+      "code": "ERR",
+      "cities": []
+    },
+    {
+      "name": "Es-Semara (EH-partial)",
+      "code": "ESM",
+      "cities": []
+    },
+    {
+      "name": "Essaouira",
+      "code": "ESI",
+      "cities": []
+    },
+    {
+      "name": "Fahs-Anjra",
+      "code": "FAH",
+      "cities": []
+    },
+    {
+      "name": "Fès",
+      "code": "FES",
+      "cities": []
+    },
+    {
+      "name": "Fès-Meknès",
+      "code": "03",
+      "cities": [
+        "Aïn Leuh",
+        "Aknoul",
+        "Almis Marmoucha",
+        "Azrou",
+        "Bhalil",
+        "Bouarouss",
+        "Boulemane",
+        "El Hajeb",
+        "Fes",
+        "Fès al Bali",
+        "Galaz",
+        "Ghouazi",
+        "Guercif",
+        "Ifrane",
+        "Meknes",
+        "Missour",
+        "Moulay Bouchta",
+        "Moulay-Yacoub",
+        "Oued Amlil",
+        "Oulad Tayeb",
+        "Ourtzagh",
+        "Sefrou",
+        "Tahla",
+        "Talzemt",
+        "Taounate",
+        "Taza",
+        "Tmourghout"
+      ]
+    },
+    {
+      "name": "Figuig",
+      "code": "FIG",
+      "cities": []
+    },
+    {
+      "name": "Fquih Ben Salah",
+      "code": "FQH",
+      "cities": []
+    },
+    {
+      "name": "Guelmim",
+      "code": "GUE",
+      "cities": []
+    },
+    {
+      "name": "Guelmim-Oued Noun (EH-partial)",
+      "code": "10",
+      "cities": [
+        "Assa-Zag",
+        "Guelmim",
+        "Sidi Ifni",
+        "Tan-Tan"
+      ]
+    },
+    {
+      "name": "Guercif",
+      "code": "GUF",
+      "cities": []
+    },
+    {
+      "name": "Ifrane",
+      "code": "IFR",
+      "cities": []
+    },
+    {
+      "name": "Inezgane-Ait Melloul",
+      "code": "INE",
+      "cities": []
+    },
+    {
+      "name": "Jerada",
+      "code": "JRA",
+      "cities": []
+    },
+    {
+      "name": "Kénitra",
+      "code": "KEN",
+      "cities": [
+        "Arbaoua",
+        "Had Kourt",
+        "Kenitra",
+        "Kenitra Province",
+        "Khemisset",
+        "Mechraa Bel Ksiri",
+        "Oulmes",
+        "Rabat",
+        "Sale",
+        "Sidi Bousber",
+        "Sidi Qacem",
+        "Sidi Redouane",
+        "Sidi Slimane",
+        "Sidi Yahia El Gharb",
+        "Sidi-Kacem",
+        "Skhirate",
+        "Skhirate-Temara",
+        "Souq Larb’a al Gharb",
+        "Temara",
+        "Teroual",
+        "Tiflet"
+      ]
+    },
+    {
+      "name": "Khémisset",
+      "code": "KHE",
+      "cities": []
+    },
+    {
+      "name": "Khénifra",
+      "code": "KHN",
+      "cities": [
+        "Aguelmous",
+        "Al Fqih Ben Çalah",
+        "Azilal",
+        "Azilal Province",
+        "Beni Mellal",
+        "Boujniba",
+        "Bzou",
+        "Dar Ould Zidouh",
+        "Demnate",
+        "El Ksiba",
+        "Fquih Ben Salah",
+        "Ifrane",
+        "Isseksi",
+        "Itzer",
+        "Kasba Tadla",
+        "Kerrouchen",
+        "Khenifra",
+        "Khouribga",
+        "Khouribga Province",
+        "Midelt",
+        "Ouaoula",
+        "Oued Zem",
+        "Sidi Jaber",
+        "Timoulilt",
+        "Zawyat ech Cheïkh"
+      ]
+    },
+    {
+      "name": "Khouribga",
+      "code": "KHO",
+      "cities": []
+    },
+    {
+      "name": "L'Oriental",
+      "code": "02",
+      "cities": [
+        "Ahfir",
+        "Aïn Beni Mathar",
+        "Al Aaroui",
+        "Berkane",
+        "Bouarfa",
+        "Debdou",
+        "Driouch",
+        "El Aïoun",
+        "Figuig",
+        "Guercif",
+        "Jerada",
+        "Madagh",
+        "Midar",
+        "Nador",
+        "Oujda-Angad",
+        "Saidia",
+        "Selouane",
+        "Taourirt",
+        "Tiztoutine",
+        "Zaïo"
+      ]
+    },
+    {
+      "name": "Laâyoune (EH)",
+      "code": "LAA",
+      "cities": []
+    },
+    {
+      "name": "Laâyoune-Sakia El Hamra (EH-partial)",
+      "code": "11",
+      "cities": [
+        "Akhfennir",
+        "Boujdour",
+        "Es-Semara",
+        "Gueltat Zemmour",
+        "Laayoune",
+        "Smara",
+        "Tarfaya"
+      ]
+    },
+    {
+      "name": "Larache",
+      "code": "LAR",
+      "cities": []
+    },
+    {
+      "name": "M’diq-Fnideq",
+      "code": "MDF",
+      "cities": []
+    },
+    {
+      "name": "Marrakech",
+      "code": "MAR",
+      "cities": []
+    },
+    {
+      "name": "Marrakesh-Safi",
+      "code": "07",
+      "cities": []
+    },
+    {
+      "name": "Médiouna",
+      "code": "MED",
+      "cities": []
+    },
+    {
+      "name": "Meknès",
+      "code": "MEK",
+      "cities": []
+    },
+    {
+      "name": "Midelt",
+      "code": "MID",
+      "cities": []
+    },
+    {
+      "name": "Mohammadia",
+      "code": "MOH",
+      "cities": []
+    },
+    {
+      "name": "Moulay Yacoub",
+      "code": "MOU",
+      "cities": []
+    },
+    {
+      "name": "Nador",
+      "code": "NAD",
+      "cities": []
+    },
+    {
+      "name": "Nouaceur",
+      "code": "NOU",
+      "cities": []
+    },
+    {
+      "name": "Ouarzazate",
+      "code": "OUA",
+      "cities": []
+    },
+    {
+      "name": "Oued Ed-Dahab (EH)",
+      "code": "OUD",
+      "cities": [
+        "Aousserd",
+        "Imlili",
+        "Oued-Ed-Dahab"
+      ]
+    },
+    {
+      "name": "Ouezzane",
+      "code": "OUZ",
+      "cities": []
+    },
+    {
+      "name": "Oujda-Angad",
+      "code": "OUJ",
+      "cities": []
+    },
+    {
+      "name": "Rabat",
+      "code": "RAB",
+      "cities": []
+    },
+    {
+      "name": "Rabat-Salé-Kénitra",
+      "code": "04",
+      "cities": []
+    },
+    {
+      "name": "Rehamna",
+      "code": "REH",
+      "cities": []
+    },
+    {
+      "name": "Safi",
+      "code": "SAF",
+      "cities": [
+        "Abadou",
+        "Adassil",
+        "Al-Haouz",
+        "Bouabout",
+        "Chichaoua",
+        "Essaouira",
+        "Kelaa-Des-Sraghna",
+        "Marrakech",
+        "Marrakesh",
+        "Oukaïmedene",
+        "Rehamna",
+        "Safi",
+        "Setti Fatma",
+        "Sidi Rahhal",
+        "Smimou",
+        "Tamanar",
+        "Taouloukoult",
+        "Tidili Mesfioua",
+        "Timezgadiouine",
+        "Youssoufia",
+        "Zerkten"
+      ]
+    },
+    {
+      "name": "Salé",
+      "code": "SAL",
+      "cities": []
+    },
+    {
+      "name": "Sefrou",
+      "code": "SEF",
+      "cities": []
+    },
+    {
+      "name": "Settat",
+      "code": "SET",
+      "cities": []
+    },
+    {
+      "name": "Sidi Bennour",
+      "code": "SIB",
+      "cities": []
+    },
+    {
+      "name": "Sidi Ifni",
+      "code": "SIF",
+      "cities": []
+    },
+    {
+      "name": "Sidi Kacem",
+      "code": "SIK",
+      "cities": []
+    },
+    {
+      "name": "Sidi Slimane",
+      "code": "SIL",
+      "cities": []
+    },
+    {
+      "name": "Skhirate-Témara",
+      "code": "SKH",
+      "cities": []
+    },
+    {
+      "name": "Souss-Massa",
+      "code": "09",
+      "cities": []
+    },
+    {
+      "name": "Tan-Tan (EH-partial)",
+      "code": "TNT",
+      "cities": []
+    },
+    {
+      "name": "Tanger-Assilah",
+      "code": "TNG",
+      "cities": []
+    },
+    {
+      "name": "Tanger-Tétouan-Al Hoceïma",
+      "code": "01",
+      "cities": [
+        "Al Hoceïma",
+        "Al-Hoceima",
+        "Asilah",
+        "Bni Bouayach",
+        "Brikcha",
+        "Cap Negro II",
+        "Chefchaouen",
+        "Chefchaouene",
+        "Derdara",
+        "Fahs-Anjra",
+        "Fnidek",
+        "Imzouren",
+        "Ksar El Kebir",
+        "Larache",
+        "M'Diq-Fnideq",
+        "Martil",
+        "Oued Laou",
+        "Ouezzane",
+        "Ouezzane Province",
+        "Senada",
+        "Tamorot",
+        "Tanger-Assilah",
+        "Tangier",
+        "Targuist",
+        "Tetouan",
+        "Tirhanimîne",
+        "Zinat",
+        "Zoumi"
+      ]
+    },
+    {
+      "name": "Taounate",
+      "code": "TAO",
+      "cities": []
+    },
+    {
+      "name": "Taourirt",
+      "code": "TAI",
+      "cities": []
+    },
+    {
+      "name": "Tarfaya (EH-partial)",
+      "code": "TAF",
+      "cities": []
+    },
+    {
+      "name": "Taroudannt",
+      "code": "TAR",
+      "cities": []
+    },
+    {
+      "name": "Tata",
+      "code": "TAT",
+      "cities": []
+    },
+    {
+      "name": "Taza",
+      "code": "TAZ",
+      "cities": []
+    },
+    {
+      "name": "Tétouan",
+      "code": "TET",
+      "cities": []
+    },
+    {
+      "name": "Tinghir",
+      "code": "TIN",
+      "cities": []
+    },
+    {
+      "name": "Tiznit",
+      "code": "TIZ",
+      "cities": []
+    },
+    {
+      "name": "Youssoufia",
+      "code": "YUS",
+      "cities": []
+    },
+    {
+      "name": "Zagora",
+      "code": "ZAG",
+      "cities": []
+    }
+  ]
+}

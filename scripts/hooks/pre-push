@@ -1,0 +1,16 @@
+#!/bin/sh
+# Runs the fast gate before every push. There is no CI in this repo; this hook
+# and `pnpm gate` are the only things standing between a broken generated
+# artefact and production.
+#
+# Bypass (deliberately noisy, so it shows up in shell history):
+#   GATE_SKIP=1 git push
+if [ -n "$GATE_SKIP" ]; then
+  echo "pre-push: GATE_SKIP set, skipping pnpm gate --fast"
+  exit 0
+fi
+node "$(git rev-parse --show-toplevel)/scripts/gate.mjs" --fast || {
+  echo ""
+  echo "pre-push blocked by the gate. Fix it, or push with: GATE_SKIP=1 git push"
+  exit 1
+}

@@ -1,0 +1,20 @@
+{
+  // Type-checks the operational scripts in `scripts/`, which the main tsconfig
+  // deliberately does NOT include.
+  //
+  // Why they are excluded there: `npm run build` runs the main config with
+  // `--noEmit false`, so including them would emit `dist/scripts/*.js` into a
+  // tracked directory that IS production. They are tools, not shipped code.
+  //
+  // Why they still need checking: several of them move real money against the
+  // live sandbox (the TransFi harnesses, the rate-card generator), and until this
+  // file existed a broken string literal or a wrong argument type in one of them
+  // was only discovered by running it.
+  //
+  //   npm run typecheck:scripts
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["scripts/**/*.ts", "types/**/*.ts", "types/**/*.d.ts", "models/**/*.ts", "src/**/*.ts", "*.ts"]
+}
