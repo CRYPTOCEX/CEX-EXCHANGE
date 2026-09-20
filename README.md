@@ -1,5 +1,5 @@
 # This is the CEX Code for team to develop frontend & backend🧑‍💻
- -Binance -xt -Kucoin -kraken -bybit -okx -kraken -bitget -gate -mexc 
+ -Binance -xt -Kucoin -kraken -bybit -okx -kraken -bitget -gate -mexc -lbank -bitfinex -cryptocom -htx -upbit -coinbase
 -----
 
 ## ✅ Prerequisites
@@ -30,8 +30,8 @@ After the installation is complete, you can access your Virtualmin panel at `htt
 
 For the main application installation and initial Virtualmin setup, please follow the detailed instructions provided in our official documentation:
 
-  * **Bicrypto Installation Guide:** [support.mash3div.com/hc/articles/1/2/3/bicrypto-installation](https://support.mash3div.com/hc/articles/1/2/3/bicrypto-installation)
-  * **Virtualmin Setup Docs:** [docs.mash3div.com/\#virtualmin-setup](https://docs.mash3div.com/#virtualmin-setup)
+  * **Bicrypto Installation Guide:** [docs.mashdiv.com/#virtualmin-setup](docs.mashdiv.com/#virtualmin-setup)
+  * **Virtualmin Setup Docs:** [docs.mashdiv.com/](docs.mashdiv.com/)
 
 -----
 
