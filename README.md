@@ -1,5 +1,5 @@
 # This is the CEX Code for team to develop frontend & backend🧑‍💻
- -Binance -xt -Kucoin -kraken -bybit -okx -kraken -bitget -gate -mexc 
+ -Binance -xt -Kucoin -kraken -bybit -okx -kraken -bitget -gate -mexc -lbank -bitfinex -cryptocom -htx -upbit -coinbase
 -----
 
 ## ✅ Prerequisites
