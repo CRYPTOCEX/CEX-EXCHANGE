@@ -30,8 +30,8 @@ After the installation is complete, you can access your Virtualmin panel at `htt
 
 For the main application installation and initial Virtualmin setup, please follow the detailed instructions provided in our official documentation:
 
-  * **Bicrypto Installation Guide:** [docs.mashdiv.com/#virtualmin-setup](docs.mashdiv.com/#virtualmin-setup)
-  * **Virtualmin Setup Docs:** [docs.mashdiv.com/](docs.mashdiv.com/)
+  * **Bicrypto Installation Guide:** docs.mashdiv.com/#virtualmin-setup
+  * **Virtualmin Setup Docs:** docs.mashdiv.com/
 
 -----
 
